@@ -9,10 +9,70 @@ import { NpcSchema, LIFE_STAGES } from "./npcSchema";
 
 export const HOUSES = [
   "Stark", "Lannister", "Targaryen", "Baratheon", "Greyjoy",
-  "Tyrell", "Martell", "Arryn", "Tully", "Không Nhà",
+  "Tyrell", "Martell", "Arryn", "Tully", "Không Nhà", "Tùy Chỉnh",
+  "Targaryen (Essos)", "Khalasar", "Braavos", "Hội Lính Đánh Thuê", "Ghiscar", "Qarth", "Thành Phố Tự Do"
 ] as const;
 
 export const SEASONS = ["Xuân", "Hạ", "Thu", "Đông"] as const;
+
+export const RELIGIONS = [
+  "Thất Diện Thần", "Cựu Thần", "Thần Ánh Sáng (R'hllor)", 
+  "Đa Diện Thần", "Thần Chết Chìm", "Đại Mã Thần", 
+  "Không Tín Ngưỡng", "Khác..."
+] as const;
+
+export interface BloodlineDef {
+  id: string;
+  name: string;
+  desc: string;
+  buffs: Partial<Record<string, number>>;
+}
+
+export const BLOODLINES: BloodlineDef[] = [
+  { id: "valyrian", name: "Máu Valyria Cổ Đại", desc: "+4 Uy Tín, +2 Trí Tuệ. Ngoại hình Valyria đặc trưng, kháng hỏa, tiềm năng cưỡi rồng.", buffs: { "Uy Tín": 4, "Trí Tuệ": 2 } },
+  { id: "first-men", name: "Máu Tiền Nhân", desc: "+4 Thể Chất, +2 Sức Mạnh. Kháng lạnh, sức chịu đựng phi thường, tiềm năng ma thuật xanh.", buffs: { "Thể Chất": 4, "Sức Mạnh": 2 } },
+  { id: "andal", name: "Máu Andal", desc: "+4 Trí Tuệ, +2 Tinh Tường. Bản tính hiếu học, nhạy bén với chính trị và tôn giáo.", buffs: { "Trí Tuệ": 4, "Tinh Tường": 2 } },
+  { id: "rhoynar", name: "Máu Rhoynar", desc: "+4 Nhanh Nhẹn, +2 Tinh Tường. Nhạy bén, có khả năng đi biển và lẩn trốn xuất sắc.", buffs: { "Nhanh Nhẹn": 4, "Tinh Tường": 2 } },
+  { id: "ironborn", name: "Máu Ironborn", desc: "+4 Sức Mạnh, +2 Thể Chất. Bản tính hung bạo, sinh ra để cướp bóc và chiến đấu.", buffs: { "Sức Mạnh": 4, "Thể Chất": 2 } },
+  { id: "ghiscari", name: "Máu Ghiscar Cổ", desc: "+4 Tinh Tường, +2 Uy Tín. Khéo léo trong cai trị và chỉ huy kỷ luật thép.", buffs: { "Tinh Tường": 4, "Uy Tín": 2 } },
+  { id: "dothraki", name: "Máu Dothraki", desc: "+4 Nhanh Nhẹn, +2 Sức Mạnh. Sức chịu đựng sa mạc và kỹ năng kỵ binh tuyệt hảo.", buffs: { "Nhanh Nhẹn": 4, "Sức Mạnh": 2 } },
+  { id: "tall-men", name: "Máu Người Cao (Sarnor)", desc: "+4 Sức Mạnh, +2 Thể Chất. Thể hình cao lớn vượt trội, sức mạnh đáng gờm.", buffs: { "Sức Mạnh": 4, "Thể Chất": 2 } },
+  { id: "none", name: "Không Rõ Huyết Mạch", desc: "Không có huyết mạch đặc biệt.", buffs: {} },
+];
+
+export interface PatronGodDef {
+  id: string;
+  name: string;
+  desc: string;
+  buffs: Partial<Record<string, number>>;
+}
+
+export const PATRON_GODS: Record<string, PatronGodDef[]> = {
+  "Thất Diện Thần": [
+    { id: "the-father", name: "Người Cha (The Father)", desc: "Đại diện cho công lý. +3 Uy Tín, +1 Tinh Tường", buffs: { "Uy Tín": 3, "Tinh Tường": 1 } },
+    { id: "the-mother", name: "Người Mẹ (The Mother)", desc: "Đại diện cho từ bi. +3 Uy Tín, +1 Trí Tuệ", buffs: { "Uy Tín": 3, "Trí Tuệ": 1 } },
+    { id: "the-warrior", name: "Chiến Binh (The Warrior)", desc: "Đại diện cho sức mạnh. +3 Sức Mạnh, +1 Thể Chất", buffs: { "Sức Mạnh": 3, "Thể Chất": 1 } },
+    { id: "the-maiden", name: "Thiếu Nữ (The Maiden)", desc: "Đại diện cho sắc đẹp. +3 Uy Tín, +1 Nhanh Nhẹn", buffs: { "Uy Tín": 3, "Nhanh Nhẹn": 1 } },
+    { id: "the-smith", name: "Thợ Rèn (The Smith)", desc: "Đại diện cho lao động. +3 Thể Chất, +1 Sức Mạnh", buffs: { "Thể Chất": 3, "Sức Mạnh": 1 } },
+    { id: "the-crone", name: "Bà Lão (The Crone)", desc: "Đại diện cho trí tuệ. +3 Trí Tuệ, +1 Tinh Tường", buffs: { "Trí Tuệ": 3, "Tinh Tường": 1 } },
+    { id: "the-stranger", name: "Kẻ Xa Lạ (The Stranger)", desc: "Đại diện cho cái chết. +3 Nhanh Nhẹn, +1 Trí Tuệ", buffs: { "Nhanh Nhẹn": 3, "Trí Tuệ": 1 } },
+  ],
+  "Cựu Thần": [
+    { id: "weirwood", name: "Cây Đước (Weirwood)", desc: "Liên kết với thiên nhiên cổ đại. +2 Thể Chất, +2 Trí Tuệ", buffs: { "Thể Chất": 2, "Trí Tuệ": 2 } },
+  ],
+  "Thần Ánh Sáng (R'hllor)": [
+    { id: "rhllor", name: "Quang Thần (R'hllor)", desc: "Thần của ngọn lửa sinh mệnh. +3 Trí Tuệ, +1 Uy Tín", buffs: { "Trí Tuệ": 3, "Uy Tín": 1 } },
+  ],
+  "Đa Diện Thần": [
+    { id: "many-faced", name: "Thần Đa Diện", desc: "Cái chết là món quà. +3 Nhanh Nhẹn, +1 Tinh Tường", buffs: { "Nhanh Nhẹn": 3, "Tinh Tường": 1 } },
+  ],
+  "Thần Chết Chìm": [
+    { id: "drowned-god", name: "Thần Chết Chìm", desc: "Không bao giờ chết. +3 Sức Mạnh, +1 Thể Chất", buffs: { "Sức Mạnh": 3, "Thể Chất": 1 } },
+  ],
+  "Đại Mã Thần": [
+    { id: "great-stallion", name: "Đại Mã Thần", desc: "Móng guốc nghiền nát thảo nguyên. +3 Sức Mạnh, +1 Nhanh Nhẹn", buffs: { "Sức Mạnh": 3, "Nhanh Nhẹn": 1 } },
+  ]
+};
 
 // ── Chiến đấu (mục 7) ──
 
@@ -395,7 +455,17 @@ export const StatDataSchema = z
     "Thông Tin Nhân Vật": z
       .object({
         "Họ Tên": safeString().prefault("Vô Danh"),
+        "Lục Địa": z.enum(["Westeros", "Essos"]).catch("Westeros").prefault("Westeros"),
+        "Văn Hoá": safeString().prefault("First Men"),
+        "Tôn Giáo": safeString().prefault("Thất Diện Thần"),
+        "Thần Bảo Hộ": safeString().prefault(""),
+        "Đức Tin": safeInt(30),
+        "Ân Sủng": safeInt(10),
         "Nhà": z.enum(HOUSES).catch("Không Nhà").prefault("Không Nhà"),
+        "Huyết Mạch": safeString().prefault("Không Rõ Huyết Mạch"),
+        "Tên Gia Tộc Tùy Chỉnh": safeString().optional(),
+        "Khẩu Hiệu": safeString().optional(),
+        "Ảnh Gia Huy": safeString().optional(),
         "Xuất Thân": safeString().prefault(""),
         "Biệt Danh": safeString().optional(),
         "Ảnh Chân Dung": safeString().optional(), // khoá tham chiếu Dexie (5.1c)
@@ -415,6 +485,13 @@ export const StatDataSchema = z
         "Ngoại Hình": safeString().prefault(""),
         "Tính Cách": safeString().prefault(""),
         "Tiểu Sử": safeString().prefault(""),
+        "Đặc Điểm": z
+          .object({
+            "Màu Mắt": safeString().prefault(""),
+            "Màu Tóc": safeString().prefault(""),
+            "Chiều Cao": safeString().prefault(""),
+          })
+          .prefault({}),
       })
       .prefault({}),
 

@@ -41,6 +41,7 @@ function Bar({ label, value, max, color }: { label: string; value: number; max: 
 export function StatusPanel() {
   const stat = useMvuStore((s) => s.stat);
   const info = stat["Thông Tin Nhân Vật"];
+  const persona = stat["Persona"];
   const vitals = stat["Chỉ Số Sinh Tồn"];
   const derived = stat["Chỉ Số Phái Sinh"];
   const core = stat["Chỉ Số Cốt Lõi"];
@@ -59,10 +60,33 @@ export function StatusPanel() {
     <div className="space-y-3">
       {/* ---- Overview ---- */}
       <Section title="NHÂN VẬT" icon={<IconCrossedSwords size={14} />}>
-        <p className="font-display text-[15px] text-[var(--text-soft)]">{info["Họ Tên"]}</p>
-        <p className="text-[12px] text-[var(--text-muted)]">
-          Nhà {info["Nhà"]} · Cấp {info["Cấp Độ"]}
-        </p>
+        <div className="flex items-start gap-3">
+          {info["Ảnh Gia Huy"] && (
+            <div className="w-12 h-12 shrink-0 rounded border border-[var(--accent)] overflow-hidden bg-black/40">
+              <img src={`/api/portrait/${info["Ảnh Gia Huy"]}`} alt="Sigil" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="font-display text-[15px] text-[var(--text-soft)] truncate">{info["Họ Tên"]}</p>
+            <p className="text-[12px] text-[var(--text-muted)] truncate">
+              Nhà {info["Tên Gia Tộc Tùy Chỉnh"] || info["Nhà"]} · Cấp {info["Cấp Độ"]}
+            </p>
+            {info["Khẩu Hiệu"] && (
+              <p className="text-[11px] text-[var(--text-faint)] italic mt-0.5 truncate">
+                "{info["Khẩu Hiệu"]}"
+              </p>
+            )}
+            <p className="text-[11.5px] text-[var(--text-faint)] mt-0.5 truncate">
+              {info["Lục Địa"]} · {info["Văn Hoá"]} · {info["Tôn Giáo"]}
+            </p>
+          </div>
+        </div>
+        
+        {persona["Đặc Điểm"]?.["Màu Mắt"] && (
+          <p className="text-[11px] text-[var(--text-faint)] mt-1.5">
+            {persona["Đặc Điểm"]["Màu Mắt"]} · {persona["Đặc Điểm"]["Màu Tóc"]} · {persona["Đặc Điểm"]["Chiều Cao"]}
+          </p>
+        )}
         <div className="mt-1.5 flex items-center gap-1.5 text-[13px] text-[var(--text-soft)]">
           <IconCoins size={14} color="var(--accent-text)" />
           <AnimatedNumber value={info["Vàng"]} /> vàng

@@ -9,6 +9,7 @@
 import { useState, useEffect } from "react";
 import { ChatScreen } from "../chat/ChatScreen";
 import { MapScreen } from "../map/MapScreen";
+import { InteractiveMap } from "../map/InteractiveMap";
 import { TerritoryPanel } from "../territory/TerritoryPanel";
 import { MilitaryPanel } from "../military/MilitaryPanel";
 import { CourtPanel } from "../court/CourtPanel";
@@ -83,7 +84,8 @@ export function GameScreen() {
 
   const railItems: RailItem[] = [
     { key: "chat", label: t("game.navChat"), icon: <IconSend size={18} />, enabled: true, active: gameView === "chat", onClick: () => setGameView("chat") },
-    { key: "map", label: t("game.navMap"), icon: <IconMap size={18} />, enabled: true, active: gameView === "map", onClick: () => { setGameView("map"); selectRegion(null); } },
+    { key: "map", label: "Địa Phương", icon: <IconMap size={18} />, enabled: true, active: gameView === "map", onClick: () => { setGameView("map"); selectRegion(null); } },
+    { key: "worldmap", label: "Thế Giới", icon: <IconMap size={18} />, enabled: true, active: gameView === "worldmap", onClick: () => setGameView("worldmap") },
     { key: "territory", label: t("game.navTerritory"), icon: <IconCastle size={18} />, enabled: true, onClick: openTerritory },
     { key: "military", label: t("game.navMilitary"), icon: <IconShield size={18} />, enabled: true, active: militaryOpen, onClick: () => setMilitaryOpen(true) },
     { key: "economy", label: "Kinh Tế", icon: <IconCoin size={18} />, enabled: hasHoldings, active: economyOpen, onClick: toggleEconomy },
@@ -140,7 +142,7 @@ export function GameScreen() {
 
       {/* ---- CHAT / BẢN ĐỒ (giữa) ---- */}
       <main className="min-h-0 min-w-0 flex-1">
-        {gameView === "map" ? <MapScreen /> : <ChatScreen />}
+        {gameView === "map" ? <MapScreen /> : gameView === "worldmap" ? <InteractiveMap /> : <ChatScreen />}
       </main>
 
       {/* ---- STATUS PANEL (phải, PC — thu gọn được) ---- */}
@@ -167,7 +169,8 @@ export function GameScreen() {
       {/* ---- BOTTOM NAV (mobile) ---- */}
       <div className="glass-strong fixed bottom-20 left-1/2 z-30 flex -translate-x-1/2 gap-1 rounded-full px-1.5 py-1 lg:hidden">
         <MobileNavBtn label={t("game.navChat")} icon={<IconSend size={17} />} active={gameView === "chat"} onClick={() => setGameView("chat")} />
-        <MobileNavBtn label={t("game.navMap")} icon={<IconMap size={17} />} active={gameView === "map"} onClick={() => { setGameView("map"); selectRegion(null); }} />
+        <MobileNavBtn label="Địa Phương" icon={<IconMap size={17} />} active={gameView === "map"} onClick={() => { setGameView("map"); selectRegion(null); }} />
+        <MobileNavBtn label="Thế Giới" icon={<IconMap size={17} />} active={gameView === "worldmap"} onClick={() => setGameView("worldmap")} />
         <MobileNavBtn label={t("game.navTerritory")} icon={<IconCastle size={17} />} active={false} onClick={openTerritory} />
         <MobileNavBtn label={t("game.navMilitary")} icon={<IconShield size={17} />} active={militaryOpen} onClick={() => setMilitaryOpen(true)} />
         {hasHoldings && <MobileNavBtn label="Kinh Tế" icon={<IconCoin size={17} />} active={economyOpen} onClick={toggleEconomy} />}

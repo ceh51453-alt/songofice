@@ -8,6 +8,7 @@ import { ERAS, ERAS_BY_ID, parseHookYear, type CanonCharacter, type StartingHook
 import { humanAgeLabel } from "../../character/ageSystem";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { ORIGINS, ORIGINS_BY_ID } from "../../content/westeros/origins";
+import { REGIONS } from "../../content/westeros/regions";
 import { availableTalents, TALENTS_BY_ID, type TalentDef } from "../../content/westeros/talents";
 import { availableSkills, type SkillDef } from "../../content/westeros/skills";
 import { availableCrises } from "../../content/westeros/startingCrises";
@@ -19,12 +20,14 @@ import {
   buildStateFromCanon, buildStateFromWizard, flawRefund, pointBuySpent, resolveCrisisDesc, talentSlots,
   type Difficulty, type WizardData, type DragonWizardData,
 } from "../../character/characterInit";
-import { DRAGON_STATS, DRAGON_SKILLS, DRAGON_SIZES, type DragonStat, type DragonSkill } from "../../mvu/schema";
+import { DRAGON_STATS, DRAGON_SKILLS, DRAGON_SIZES, RELIGIONS, PATRON_GODS, BLOODLINES, type DragonStat, type DragonSkill } from "../../mvu/schema";
 import { startNewGame } from "../../character/startGame";
 import { savePortrait } from "../../state/db";
 import { genId } from "../../lib/id";
 import { useUiStore } from "../../state/uiStore";
 import { CharacterPreview } from "./CharacterPreview";
+import { CustomForceEditor } from "./CustomForceEditor";
+import { StartingLocationMap } from "./StartingLocationMap";
 import { GlassButton } from "../components/GlassButton";
 import { GlassInput, GlassTextarea } from "../components/GlassInput";
 import { IconCheck, IconChevronLeft, IconSpinner } from "../icons";
@@ -32,15 +35,16 @@ import type { CoreStat } from "../../content/westeros/skills";
 
 type Stage = "era" | "modes" | "path" | "canon-char" | "canon-hook" | "canon-confirm" | `w${number}` | "starting";
 
-const WIZARD_STEPS = 11;
+const WIZARD_STEPS = 12;
 
 function freshWizard(): WizardData {
   return {
     eraId: "", houseId: null, originId: "",
     narrativeMode: "Diễn Giải Tự Do", scenarioMode: "Người Chơi Là Trung Tâm", difficulty: "Cân Bằng",
+    continent: "Westeros", culture: "First Men", religion: "Thất Diện Thần", patronGod: "", bloodline: "none", startingLocation: "",
     name: "", age: 25, pointBuy: Object.fromEntries(CORE_STATS.map((s) => [s, STAT_BASE])) as Record<CoreStat, number>,
-    talentIds: [], skillAllocations: {},
-    persona: { ngoaiHinh: "", tinhCach: "", tieuSu: "" },
+    talentIds: [], skillAllocations: {}, customForce: { npcs: [], units: [] },
+    persona: { ngoaiHinh: "", tinhCach: "", tieuSu: "", mauMat: "", mauToc: "", chieuCao: "" },
     crisisId: null, companionId: null, hookId: "ai-random",
     dragon: null,
   };
@@ -87,6 +91,7 @@ export function NewGameFlow() {
   const [canonChar, setCanonChar] = useState<CanonCharacter | null>(null);
   const [canonHook, setCanonHook] = useState<StartingHook | null>(null);
   const [portraitFile, setPortraitFile] = useState<File | null>(null);
+  const [isMapOpen, setMapOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const era = wiz.eraId ? ERAS_BY_ID[wiz.eraId] : null;
@@ -304,23 +309,149 @@ export function NewGameFlow() {
         return (
           <div>
             <StepHeader step={stepLabel} title="Nhà & Xuất Thân" hint="Xuất thân là 'class nền' — bonus chỉ số, kỹ năng, gói tài sản thật." />
-            <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Nhà</span>
+            <div className="grid gap-4 sm:grid-cols-2 mb-4">
+              <div>
+                <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Lục Địa</span>
+                <div className="flex gap-2">
+                  <Card selected={wiz.continent === "Westeros"} onClick={() => patch({ continent: "Westeros" })}>
+                    <span className="text-[13px]">Westeros</span>
+                  </Card>
+                  <Card selected={wiz.continent === "Essos"} onClick={() => patch({ continent: "Essos" })}>
+                    <span className="text-[13px]">Essos</span>
+                  </Card>
+                </div>
+              </div>
+              <div>
+                <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Văn Hoá & Tôn Giáo</span>
+                <div className="space-y-2">
+                  <GlassInput placeholder="Văn hoá (VD: First Men, Valyrian...)" value={wiz.culture} onChange={(e) => patch({ culture: e.target.value })} />
+                  <select
+                    className="glass w-full px-3 py-2 text-[13px] text-[var(--text-soft)] bg-[rgba(0,0,0,0.4)] outline-none focus:border-[var(--accent)]"
+                    value={RELIGIONS.includes(wiz.religion as any) ? wiz.religion : (wiz.religion ? "Khác..." : "")}
+                    onChange={(e) => {
+                      if (e.target.value === "Khác...") patch({ religion: "", patronGod: "" });
+                      else patch({ religion: e.target.value, patronGod: "" });
+                    }}
+                  >
+                    <option value="" disabled className="bg-[var(--bg-panel)]">Chọn Tôn Giáo...</option>
+                    {RELIGIONS.map((r) => (
+                      <option key={r} value={r} className="bg-[var(--bg-panel)]">{r}</option>
+                    ))}
+                  </select>
+                  {!RELIGIONS.includes(wiz.religion as any) && (
+                    <GlassInput placeholder="Nhập tôn giáo tuỳ chỉnh..." value={wiz.religion} onChange={(e) => patch({ religion: e.target.value, patronGod: "" })} />
+                  )}
+                  {PATRON_GODS[wiz.religion] && (
+                    <div className="mt-3">
+                      <span className="block mb-1 text-[12px] text-[var(--text-muted)]">Thần Bảo Hộ (Buff Chỉ Số)</span>
+                      <select
+                        className="glass w-full px-3 py-2 text-[13px] text-[var(--text-soft)] bg-[rgba(0,0,0,0.4)] outline-none focus:border-[var(--accent)]"
+                        value={wiz.patronGod}
+                        onChange={(e) => patch({ patronGod: e.target.value })}
+                      >
+                        <option value="" disabled className="bg-[var(--bg-panel)]">Chọn Thần Bảo Hộ...</option>
+                        {PATRON_GODS[wiz.religion].map((god) => (
+                          <option key={god.id} value={god.name} className="bg-[var(--bg-panel)]">
+                            {god.name}
+                          </option>
+                        ))}
+                      </select>
+                      {wiz.patronGod && (
+                        <div className="mt-1.5 text-[11px] text-[var(--text-muted)] italic">
+                          {PATRON_GODS[wiz.religion].find(g => g.name === wiz.patronGod)?.desc}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Huyết Mạch</span>
+                <select
+                  className="glass w-full px-3 py-2 text-[13px] text-[var(--text-soft)] bg-[rgba(0,0,0,0.4)] outline-none focus:border-[var(--accent)]"
+                  value={wiz.bloodline}
+                  onChange={(e) => patch({ bloodline: e.target.value })}
+                >
+                  {BLOODLINES.map((b) => (
+                    <option key={b.id} value={b.id} className="bg-[var(--bg-panel)]">{b.name}</option>
+                  ))}
+                </select>
+                {wiz.bloodline !== "none" && (
+                  <div className="mt-1.5 text-[11px] text-[var(--accent-text)] italic">
+                    {BLOODLINES.find(b => b.id === wiz.bloodline)?.desc}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Nhà / Thế Lực</span>
             <div className="mb-4 flex flex-wrap gap-2">
               <Card selected={wiz.houseId === null} onClick={() => patch({ houseId: null })}>
                 <span className="text-[13px]">Không thuộc Nhà lớn</span>
               </Card>
-              {era?.availableHouses.map((hid) => {
-                const h = HOUSES_BY_ID[hid];
-                return (
-                  <Card key={hid} selected={wiz.houseId === hid} onClick={() => patch({ houseId: hid })}>
-                    <span className="text-[13px]" style={{ color: h.themeColor.primary }}>{h.name}</span>
-                  </Card>
-                );
-              })}
+              {(() => {
+                const essosIds = ["targaryen-essos", "dothraki", "braavos", "mercenary", "ghiscar", "qarth", "free-cities"];
+                const baseIds = era?.availableHouses ?? [];
+                const renderIds = wiz.continent === "Westeros" 
+                  ? [...baseIds.filter((id) => !essosIds.includes(id)), "custom"]
+                  : [...baseIds.filter((id) => id === "targaryen"), ...essosIds, "custom"];
+                return renderIds.map((hid) => {
+                  const h = HOUSES_BY_ID[hid];
+                  if (!h) return null;
+                  return (
+                    <Card key={hid} selected={wiz.houseId === hid} onClick={() => patch({ houseId: hid })}>
+                      <span className="text-[13px]" style={{ color: h.themeColor.primary }}>{h.name}</span>
+                    </Card>
+                  );
+                });
+              })()}
             </div>
+            
+            {wiz.houseId === "custom" && (
+              <div className="glass p-3 mb-4 space-y-3">
+                <span className="block text-[13px] text-[var(--text-muted)] border-b border-[var(--glass-border)] pb-1 mb-2">Tùy Chỉnh Thế Lực</span>
+                <GlassInput placeholder="Tên Gia Tộc / Thế Lực" value={wiz.customHouseName || ""} onChange={(e) => patch({ customHouseName: e.target.value })} />
+                <GlassInput placeholder="Khẩu Hiệu (Ví dụ: Lửa và Máu)" value={wiz.customHouseWords || ""} onChange={(e) => patch({ customHouseWords: e.target.value })} />
+                <div>
+                  <span className="block mb-1 text-[12px] text-[var(--text-muted)]">Gia Huy (Tùy chọn)</span>
+                  <div className="flex gap-2">
+                    {wiz.customHouseSigilKey ? (
+                      <div className="relative w-12 h-12 bg-black/40 rounded border border-[var(--accent)] overflow-hidden">
+                        <img src={`/api/portrait/${wiz.customHouseSigilKey}`} alt="Sigil" className="w-full h-full object-cover" />
+                        <button onClick={() => patch({ customHouseSigilKey: undefined })} className="absolute top-0 right-0 bg-red-500/80 text-white w-4 h-4 text-[10px] flex items-center justify-center hover:bg-red-500">×</button>
+                      </div>
+                    ) : (
+                      <label className="cursor-pointer bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)] border border-dashed border-[var(--glass-border-bright)] rounded px-3 py-1.5 text-[12px] text-[var(--text-soft)] transition-colors">
+                        Tải ảnh lên...
+                        <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const key = "sigil_" + genId();
+                          await savePortrait(key, file);
+                          patch({ customHouseSigilKey: key });
+                        }} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+                {wiz.customForce && (
+                  <CustomForceEditor
+                    force={wiz.customForce}
+                    onChange={(newForce) => patch({ customForce: newForce })}
+                  />
+                )}
+              </div>
+            )}
+
             <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Xuất thân</span>
             <div className="grid gap-2 sm:grid-cols-2">
-              {ORIGINS.map((o) => (
+              {ORIGINS.filter((o) => {
+                const essosOrigins = ["dothraki-rider", "braavosi-bravo", "magister-heir"];
+                const westerosOnly = ["north-clansman", "ironborn-reaver", "wildling"];
+                if (wiz.continent === "Westeros" && essosOrigins.includes(o.id)) return false;
+                if (wiz.continent === "Essos" && westerosOnly.includes(o.id)) return false;
+                return true;
+              }).map((o) => (
                 <Card key={o.id} selected={wiz.originId === o.id} onClick={() => patch({ originId: o.id })}>
                   <span className="text-[14px] text-[var(--text-soft)]">{o.name}</span>
                   <span className="block mt-0.5 text-[12px] leading-relaxed text-[var(--text-faint)]">{o.desc}</span>
@@ -345,12 +476,129 @@ export function NewGameFlow() {
               {humanAgeLabel(wiz.age)}
             </span>
 
+            {/* ── Nơi Bắt Đầu ── */}
+            <span className="block mb-1.5 mt-4 text-[13px] text-[var(--text-muted)]">Nơi Bắt Đầu Khởi Nghiệp</span>
+            <div className="glass p-3 mb-4 space-y-3">
+              <div className="flex gap-2 items-center">
+                <select
+                  value={wiz.startingLocation || ""}
+                  onChange={(e) => patch({ startingLocation: e.target.value })}
+                  className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1.5 flex-1"
+                >
+                  <option value="">(Mặc định theo Kịch Bản)</option>
+                  {REGIONS.map((r) => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+                <GlassButton
+                  onClick={() => setMapOpen(!isMapOpen)}
+                  className="px-3 py-1.5 text-[12px]"
+                >
+                  {isMapOpen ? "Đóng Bản Đồ" : "Chọn trên Bản Đồ"}
+                </GlassButton>
+              </div>
+              {isMapOpen && (
+                <StartingLocationMap
+                  selectedLocation={wiz.startingLocation || ""}
+                  onSelect={(id) => patch({ startingLocation: id })}
+                />
+              )}
+            </div>
+
             <NavButtons onBack={back} onNext={wiz.originId ? next : undefined} blockedReason="Hãy chọn một Xuất Thân" />
           </div>
         );
       }
 
       case 2: {
+        if (wiz.houseId !== "custom") {
+          setStage("w3");
+          return null;
+        }
+        
+        const BUDGET_GOLD = 5000;
+        const UNIT_COSTS: Record<string, number> = {
+          "Bộ Binh": 300, "Trường Thương": 350, "Kỵ Binh": 800, 
+          "Kỵ Binh Nhẹ": 600, "Cung Thủ": 400, "Công Thành": 1000, "Lính Đánh Thuê": 500
+        };
+        const NPC_COST = 500;
+        
+        const forces = wiz.customForce || { npcs: [], units: [] };
+        const spent = forces.npcs.length * NPC_COST + forces.units.reduce((s, u) => s + (UNIT_COSTS[u.type] || 300) * (u.count / 1000), 0);
+        
+        const addNpc = () => {
+          if (spent + NPC_COST > BUDGET_GOLD) return;
+          patch({ customForce: { ...forces, npcs: [...forces.npcs, { id: genId(), name: "NPC Mới", role: "Tướng Lĩnh", statPreset: "Cân Bằng" }] } });
+        };
+        const removeNpc = (id: string) => patch({ customForce: { ...forces, npcs: forces.npcs.filter(n => n.id !== id) } });
+        const updateNpc = (id: string, data: any) => patch({ customForce: { ...forces, npcs: forces.npcs.map(n => n.id === id ? { ...n, ...data } : n) } });
+
+        const addUnit = () => {
+          patch({ customForce: { ...forces, units: [...forces.units, { id: genId(), type: "Bộ Binh", count: 1000, commander: "" }] } });
+        };
+        const removeUnit = (id: string) => patch({ customForce: { ...forces, units: forces.units.filter(u => u.id !== id) } });
+        const updateUnit = (id: string, data: any) => patch({ customForce: { ...forces, units: forces.units.map(u => u.id === id ? { ...u, ...data } : u) } });
+
+        return (
+          <div>
+            <StepHeader step={stepLabel} title="Xây Dựng Thế Lực" hint={`Ngân sách: ${BUDGET_GOLD - spent}/${BUDGET_GOLD} Vàng`} />
+            <div className="space-y-4">
+              {/* Quân Đội */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[13px] text-[var(--text-muted)]">Quân Đội (Vàng / 1000 lính)</span>
+                  <GlassButton size="sm" onClick={addUnit}>+ Thêm Đạo Quân</GlassButton>
+                </div>
+                <div className="space-y-2">
+                  {forces.units.map(u => {
+                    const cost = (UNIT_COSTS[u.type] || 300) * (u.count / 1000);
+                    return (
+                      <div key={u.id} className="glass p-3 flex flex-wrap gap-2 items-center">
+                        <select className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1" value={u.type} onChange={e => updateUnit(u.id, { type: e.target.value })}>
+                          {Object.keys(UNIT_COSTS).map(t => <option key={t} value={t} className="bg-[var(--bg-panel)]">{t}</option>)}
+                        </select>
+                        <input type="number" min="100" step="100" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-24" value={u.count} onChange={e => updateUnit(u.id, { count: parseInt(e.target.value) || 0 })} />
+                        <span className="text-[12px] text-[var(--text-faint)]">lính</span>
+                        <input type="text" placeholder="Tên Chỉ huy" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1 min-w-[120px]" value={u.commander} onChange={e => updateUnit(u.id, { commander: e.target.value })} />
+                        <span className="text-[12px] text-[var(--accent-text)]">{cost} V</span>
+                        <button onClick={() => removeUnit(u.id)} className="text-red-400 hover:text-red-300 ml-2">×</button>
+                      </div>
+                    );
+                  })}
+                  {forces.units.length === 0 && <span className="text-[12px] text-[var(--text-faint)] block italic">Chưa có đạo quân nào</span>}
+                </div>
+              </div>
+
+              {/* Gia Thần / NPC */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[13px] text-[var(--text-muted)]">Gia Thần / Tướng Lĩnh ({NPC_COST} Vàng/người)</span>
+                  <GlassButton size="sm" onClick={addNpc} disabled={spent + NPC_COST > BUDGET_GOLD}>+ Thêm NPC</GlassButton>
+                </div>
+                <div className="space-y-2">
+                  {forces.npcs.map(n => (
+                    <div key={n.id} className="glass p-3 flex flex-wrap gap-2 items-center">
+                      <input type="text" placeholder="Tên NPC" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/3" value={n.name} onChange={e => updateNpc(n.id, { name: e.target.value })} />
+                      <select className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1" value={n.role} onChange={e => updateNpc(n.id, { role: e.target.value })}>
+                        <option value="Tướng Lĩnh" className="bg-[var(--bg-panel)]">Tướng Lĩnh</option>
+                        <option value="Học Sĩ" className="bg-[var(--bg-panel)]">Học Sĩ</option>
+                        <option value="Hiệp Sĩ" className="bg-[var(--bg-panel)]">Hiệp Sĩ</option>
+                        <option value="Cố Vấn" className="bg-[var(--bg-panel)]">Cố Vấn</option>
+                      </select>
+                      <button onClick={() => removeNpc(n.id)} className="text-red-400 hover:text-red-300 ml-auto">×</button>
+                    </div>
+                  ))}
+                  {forces.npcs.length === 0 && <span className="text-[12px] text-[var(--text-faint)] block italic">Chưa có thủ hạ nào</span>}
+                </div>
+              </div>
+            </div>
+            {spent > BUDGET_GOLD && <span className="block mt-3 text-[12px] text-red-400">Vượt quá ngân sách! Vui lòng giảm quân số.</span>}
+            <NavButtons onBack={back} onNext={spent <= BUDGET_GOLD ? next : undefined} blockedReason="Vượt ngân sách" />
+          </div>
+        );
+      }
+
+case 3: {
         const budget = BUDGETS[wiz.difficulty].pointBuy + flawRefund(wiz.talentIds);
         const spent = pointBuySpent(wiz.pointBuy);
         const setStat = (s: CoreStat, delta: number) => {
@@ -383,7 +631,7 @@ export function NewGameFlow() {
         );
       }
 
-      case 3: {
+      case 4: {
         const pool = availableTalents({ eraId: wiz.eraId, eraHasMagic: era?.hasMagic ?? false, originId: wiz.originId, houseId: wiz.houseId ?? undefined });
         const gifts = new Set(origin?.giftTalentIds ?? []);
         const slots = talentSlots(wiz.difficulty, wiz.talentIds);
@@ -430,7 +678,7 @@ export function NewGameFlow() {
         );
       }
 
-      case 4: {
+      case 5: {
         const pool = availableSkills({ eraHasMagic: era?.hasMagic ?? false, chosenTalentIds: wiz.talentIds });
         const budget = BUDGETS[wiz.difficulty].skillPoints;
         const spent = Object.values(wiz.skillAllocations).reduce((s, v) => s + v, 0);
@@ -470,12 +718,12 @@ export function NewGameFlow() {
         );
       }
 
-      case 5: {
+      case 6: {
         // Bước Rồng — chỉ hiện khi Era có magic; không có magic thì auto-skip
         const canHaveDragon = era?.hasMagic ?? false;
         if (!canHaveDragon) {
           // auto-skip: nhảy thẳng bước tiếp
-          setStage("w6");
+          setStage("w7");
           return null;
         }
         const freshDragon = (): DragonWizardData => ({
@@ -596,7 +844,7 @@ export function NewGameFlow() {
         );
       }
 
-      case 6:
+      case 7:
         return (
           <div>
             <StepHeader step={stepLabel} title="Trang Bị Khởi Đầu"
@@ -631,7 +879,7 @@ export function NewGameFlow() {
           </div>
         );
 
-      case 7:
+      case 8:
         return (
           <div>
             <StepHeader step={stepLabel} title="Persona & Chân Dung" hint="AI dùng phần này để giữ giọng nhân vật nhất quán." />
@@ -646,6 +894,11 @@ export function NewGameFlow() {
                 onChange={(e) => patch({ persona: { ...wiz.persona, tinhCach: e.target.value } })} />
               <GlassTextarea rows={3} placeholder="Tiểu sử..." value={wiz.persona.tieuSu}
                 onChange={(e) => patch({ persona: { ...wiz.persona, tieuSu: e.target.value } })} />
+              <div className="grid grid-cols-3 gap-2">
+                <GlassInput placeholder="Màu mắt" value={wiz.persona.mauMat} onChange={(e) => patch({ persona: { ...wiz.persona, mauMat: e.target.value } })} />
+                <GlassInput placeholder="Màu tóc" value={wiz.persona.mauToc} onChange={(e) => patch({ persona: { ...wiz.persona, mauToc: e.target.value } })} />
+                <GlassInput placeholder="Chiều cao" value={wiz.persona.chieuCao} onChange={(e) => patch({ persona: { ...wiz.persona, chieuCao: e.target.value } })} />
+              </div>
               <div>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden"
                   onChange={(e) => setPortraitFile(e.target.files?.[0] ?? null)} />
@@ -658,7 +911,7 @@ export function NewGameFlow() {
           </div>
         );
 
-      case 8: {
+      case 9: {
         const crises = availableCrises({ originId: wiz.originId, eraId: wiz.eraId, houseId: wiz.houseId ?? undefined });
         return (
           <div>
@@ -686,7 +939,7 @@ export function NewGameFlow() {
         );
       }
 
-      case 9:
+      case 10:
         return (
           <div>
             <StepHeader step={stepLabel} title="Một Tâm Phúc Khởi Đầu" hint="NPC trung thành đi cùng từ đầu — điểm tựa quan hệ lúc mở màn." />
@@ -711,7 +964,7 @@ export function NewGameFlow() {
           </div>
         );
 
-      case 10:
+      case 11:
         return (
           <div>
             <StepHeader step={stepLabel} title="Điểm Bắt Đầu" hint="Tình huống mở màn — AI dựng cảnh từ đây." />
@@ -734,7 +987,7 @@ export function NewGameFlow() {
           </div>
         );
 
-      case 11:
+      case 12:
         return (
           <div>
             <StepHeader step={stepLabel} title="Cuộn Giấy Vận Mệnh" hint="Xem lại nhân vật lần cuối." />

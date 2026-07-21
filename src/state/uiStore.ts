@@ -3,7 +3,7 @@ import { create } from "zustand";
 
 export type AppScreen = "menu" | "newgame" | "game";
 /** khung nhìn trong game (6.1): chat trung tâm hoặc bản đồ (mục 9). */
-export type GameView = "chat" | "map";
+export type GameView = "chat" | "map" | "worldmap";
 
 interface UiState {
   /** màn hình hiện tại — Main Menu là màn đầu tiên (8.1). */

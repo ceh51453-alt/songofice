@@ -27,9 +27,11 @@ function makeWizard(partial?: Partial<WizardData>): WizardData {
     eraId: "war-of-five-kings", houseId: "stark", originId: "knight",
     ...MODES,
     name: "Ser Duncan", age: 25,
+    continent: "Westeros", culture: "", religion: "", patronGod: "", bloodline: "none", startingLocation: "",
     pointBuy: Object.fromEntries(CORE_STATS.map((s) => [s, STAT_BASE])) as Record<CoreStat, number>,
     talentIds: [], skillAllocations: {},
-    persona: { ngoaiHinh: "", tinhCach: "", tieuSu: "" },
+    dragon: null,
+    persona: { ngoaiHinh: "", tinhCach: "", tieuSu: "", mauMat: "", mauToc: "", chieuCao: "" },
     crisisId: null, companionId: null, hookId: "ai-random",
     ...partial,
   };
@@ -174,7 +176,9 @@ describe("buildStateFromWizard (8.6b)", () => {
     const s = buildStateFromWizard(
       makeWizard({
         pointBuy: { ...makeWizard().pointBuy, "Uy Tín": 14 },
-        originId: "minor-noble", // +2 Uy Tín
+        originId: "northern-noble",
+        startingLocation: "",
+        narrativeMode: "Theo Sát Nguyên Tác",
         skillAllocations: { "persuasion": 4 },
       }),
     );

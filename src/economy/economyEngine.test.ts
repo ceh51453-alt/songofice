@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { makeDefaultState, type StatData } from "../mvu/schema";
 import { tickEconomy, TAX_TABLE, isBlockaded, estimateNetIncome, turnsUntilBankrupt } from "./economyEngine";
-import { createTradeRoute, estimateProfit, suggestOpportunities, cancelTradeRoute } from "./tradeRoutes";
+import { createTradeRoute, suggestOpportunities, cancelTradeRoute } from "./tradeRoutes";
 import { borrowFromIronBank, repayIronBank, defaultOnDebt } from "./ironBank";
 import { seedRegionalEconomy, regionPrice } from "../content/westeros/regionalResources";
 

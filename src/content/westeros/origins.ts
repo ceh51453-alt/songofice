@@ -189,6 +189,51 @@ export const ORIGINS: OriginDef[] = [
     reputation: {},
     ghiChu: "Chỉ chọn được thiên phú ma thuật nếu Era cho phép; thức tỉnh dần",
   },
+  {
+    id: "dothraki-rider", name: "Kỵ Sĩ Dothraki",
+    desc: "Sinh ra trên lưng ngựa, với thanh arakh trong tay và một khát khao chinh phạt vô tận.",
+    statBonus: { "Sức Mạnh": 2, "Thể Chất": 1 }, extraPointBuy: 0,
+    giftTalentIds: ["born-swordsman"],
+    equipment: [
+      { slot: "Vũ Khí Chính", ten: "Thanh Arakh", phamChat: "Thường", thuocTinh: { "Sát Thương Cận": 4 }, moTa: "Lưỡi gươm cong sắc lẹm" },
+      { slot: "Giáp Thân", ten: "Áo da sờn", phamChat: "Thường", thuocTinh: { "Phòng Thủ": 1 }, moTa: "Kỵ sĩ Dothraki khinh thường áo giáp" },
+    ],
+    items: [{ ten: "Ngựa Dothraki", soLuong: 1, moTa: "Ngựa chiến cực kỳ bền bỉ" }],
+    assets: { vang: 50, luongThuc: 100, thuNhapKy: 0, chiPhiKy: 10, moTa: "Sống bằng cướp bóc và sức mạnh bầy đàn" },
+    reputation: { uyDung: 8, xaoQuyet: 2 },
+    ghiChu: "Thiên về chiến đấu cơ động và tàn bạo",
+  },
+  {
+    id: "braavosi-bravo", name: "Kiếm Khách Bravo",
+    desc: "Vũ điệu nước, kiếm mỏng và sự kiêu hãnh của một công dân thành Braavos.",
+    statBonus: { "Nhanh Nhẹn": 3 }, extraPointBuy: 0,
+    giftTalentIds: ["catlike"],
+    equipment: [
+      { slot: "Vũ Khí Chính", ten: "Kiếm Braavos", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 4 }, dacTinh: ["xuyên giáp"], moTa: "Mỏng, nhẹ và cực kỳ chết chóc" },
+      { slot: "Áo Choàng", ten: "Áo choàng rực rỡ", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Chứng minh sự tự tin của một Bravo" },
+    ],
+    items: [],
+    assets: { vang: 200, luongThuc: 50, thuNhapKy: 0, chiPhiKy: 20, moTa: "Không tài sản lớn, chỉ có danh tiếng trên đường phố" },
+    reputation: { uyDung: 5, vinhDu: 5 },
+    ghiChu: "Né tránh cực tốt, sát thương cao nhưng mỏng manh",
+  },
+  {
+    id: "magister-heir", name: "Con Cháu Tổng Trấn (Magister)",
+    desc: "Lớn lên trong nhung lụa và quyền lực ngầm tại các Thành Phố Tự Do, mưu mô là bạn đồng hành.",
+    statBonus: { "Uy Tín": 2, "Trí Tuệ": 1 }, extraPointBuy: 0,
+    giftTalentIds: ["schemer", "merchant-fortune"],
+    equipment: [
+      { slot: "Vũ Khí Chính", ten: "Dao găm khảm ngọc", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 2 }, moTa: "Vừa là vũ khí vừa là trang sức" },
+    ],
+    items: [{ ten: "Sổ cái nợ", soLuong: 1, moTa: "Thông tin những kẻ nợ tiền gia tộc" }],
+    assets: {
+      vang: 8000, luongThuc: 1000, thuNhapKy: 1500, chiPhiKy: 500,
+      lanhDia: { ten: "Dinh thự Magister", moTa: "Dinh thự sang trọng với đội lính đánh thuê bảo vệ", danSo: 2000, trungThanh: 80 },
+      moTa: "Nắm quyền lực tài chính và chính trị tại Essos",
+    },
+    reputation: { xaoQuyet: 8, uyDung: 2 },
+    ghiChu: "Khởi đầu giàu có, thiên về ngoại giao/mưu đồ",
+  },
 ];
 
 export const ORIGINS_BY_ID: Record<string, OriginDef> = Object.fromEntries(ORIGINS.map((o) => [o.id, o]));

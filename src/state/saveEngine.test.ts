@@ -14,7 +14,7 @@ function makeTestState(overrides: Partial<{
 }> = {}): StatData {
   const s = makeDefaultState();
   if (overrides.name) s["Thông Tin Nhân Vật"]["Họ Tên"] = overrides.name;
-  if (overrides.house) s["Thông Tin Nhân Vật"]["Nhà"] = overrides.house;
+  if (overrides.house) s["Thông Tin Nhân Vật"]["Nhà"] = overrides.house as any;
   if (overrides.era) s["Cài Đặt Ván"]["Thời Kỳ"] = overrides.era;
   if (overrides.turn) s["_engineMeta"]["turnCount"] = overrides.turn;
   if (overrides.year) s["Thế Giới"]["Năm"] = overrides.year;
@@ -95,7 +95,7 @@ describe("saveEngine (M15)", () => {
 
       const result = StatDataSchema.safeParse(merged);
       expect(result.success).toBe(true);
-      expect(result.data["Thông Tin Nhân Vật"]["Họ Tên"]).toBe("Tyrion");
+      expect(result.data!["Thông Tin Nhân Vật"]["Họ Tên"]).toBe("Tyrion");
     });
   });
 

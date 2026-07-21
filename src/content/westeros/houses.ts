@@ -50,6 +50,31 @@ export const HOUSES_DATA: HouseData[] = [
   { id: "blackfyre", name: "Nhà Blackfyre", schemaName: "Blackfyre", sigil: "Rồng ba đầu đen trên nền đỏ",
     words: "Lửa và Máu", seat: "(Lưu Vong)", region: "(Không có)",
     themeColor: { primary: "#3d1a1a", secondary: "#6b3030" } },
+  // --- Essos Factions ---
+  { id: "targaryen-essos", name: "Targaryen (Lưu Vong)", schemaName: "Targaryen (Essos)", sigil: "Rồng ba đầu đỏ trên nền đen",
+    words: "Lửa và Máu", seat: "Pentos", region: "Thành Phố Tự Do",
+    themeColor: { primary: "#9a5a5f", secondary: "#2e2a33" } },
+  { id: "dothraki", name: "Khalasar Dothraki", schemaName: "Khalasar", sigil: "Ngựa hoang trên nền cỏ úa",
+    words: "Huyết Mạch Trực Thiết", seat: "Vaes Dothrak", region: "Biển Dothraki",
+    themeColor: { primary: "#8f6b45", secondary: "#4a331a" } },
+  { id: "braavos", name: "Thành Bang Braavos", schemaName: "Braavos", sigil: "Khổng tượng Titan trên biển",
+    words: "Valar Morghulis", seat: "Braavos", region: "Thành Phố Tự Do",
+    themeColor: { primary: "#4a687a", secondary: "#1a2c38" } },
+  { id: "mercenary", name: "Hội Lính Đánh Thuê", schemaName: "Hội Lính Đánh Thuê", sigil: "Đồng tiền vàng và gươm giáo",
+    words: "Vàng quyết định tất cả", seat: "Di động", region: "Essos",
+    themeColor: { primary: "#8a7d3b", secondary: "#3d3615" } },
+  { id: "ghiscar", name: "Thành Quốc Ghiscar", schemaName: "Ghiscar", sigil: "Nữ thần Harpy",
+    words: "Xiềng xích và Quyền lực", seat: "Astapor/Yunkai/Meereen", region: "Vịnh Nô Lệ",
+    themeColor: { primary: "#9e7751", secondary: "#4f351e" } },
+  { id: "qarth", name: "Thành Quốc Qarth", schemaName: "Qarth", sigil: "Cổng thành nạm ngọc",
+    words: "Trung tâm của Thế giới", seat: "Qarth", region: "Eo Biển Ngọc",
+    themeColor: { primary: "#69968b", secondary: "#2c4a43" } },
+  { id: "free-cities", name: "Công Dân Thành Phố Tự Do", schemaName: "Thành Phố Tự Do", sigil: "Đồng xu vàng",
+    words: "Tiền bạc mở mọi cánh cửa", seat: "Thành Phố Tự Do", region: "Essos",
+    themeColor: { primary: "#8c7e61", secondary: "#363228" } },
+  { id: "custom", name: "Tự Tạo Thế Lực Mới", schemaName: "Tùy Chỉnh", sigil: "Tùy chọn",
+    words: "Tùy chọn", seat: "Tùy chọn", region: "Tùy chọn",
+    themeColor: { primary: "#a0a0a0", secondary: "#404040" } }
 ];
 
 export const HOUSES_BY_ID: Record<string, HouseData> = Object.fromEntries(HOUSES_DATA.map((h) => [h.id, h]));
@@ -59,4 +84,5 @@ export const MAJOR_LOCATIONS = [
   "Winterfell", "King's Landing", "The Wall", "Dragonstone", "Casterly Rock",
   "Highgarden", "Sunspear", "The Eyrie", "Riverrun", "Pyke", "Storm's End",
   "Braavos", "White Harbor", "Oldtown",
+  "Pentos", "Volantis", "Meereen", "Qarth", "Vaes Dothrak",
 ] as const;

@@ -25,6 +25,14 @@ export function CharacterPreview({ state, title }: { state: StatData; title?: st
         <p className="text-[var(--text-muted)]">
           Nhà {info["Nhà"]}{info["Xuất Thân"] ? ` · ${info["Xuất Thân"]}` : ""} · Vàng {info["Vàng"].toLocaleString("vi-VN")}
         </p>
+        <p className="text-[var(--text-faint)] mt-1">
+          {info["Lục Địa"]} · {info["Văn Hoá"]} · {info["Tôn Giáo"]}
+        </p>
+        {state.Persona["Đặc Điểm"]?.["Màu Mắt"] && (
+          <p className="text-[var(--text-faint)] mt-0.5 text-[11px]">
+            Đặc điểm: {state.Persona["Đặc Điểm"]["Màu Mắt"]} · {state.Persona["Đặc Điểm"]["Màu Tóc"]} · {state.Persona["Đặc Điểm"]["Chiều Cao"]}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-x-3 gap-y-1">

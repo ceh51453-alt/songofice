@@ -5,7 +5,7 @@
  * trang bị/tài sản → engine tính phái sinh → HP/Thể Lực = trần.
  * Kèm: lore entry khởi tạo (constant) + tin nhắn mở đầu + tự trigger AI.
  */
-import { makeDefaultState, DRAGON_SIZE_HP, DRAGON_STATS, DRAGON_SKILLS, type StatData, type DragonStat, type DragonSkill, type DragonSize } from "../mvu/schema";
+import { makeDefaultState, DRAGON_SIZE_HP, DRAGON_STATS, DRAGON_SKILLS, type StatData, type DragonStat, type DragonSkill, type DragonSize, PATRON_GODS, BLOODLINES } from "../mvu/schema";
 import { NpcSchema, lifeStage, type Npc } from "../mvu/npcSchema";
 import { parseEffect, recomputeDerived } from "../mvu/effects";
 import { clamp } from "../mvu/helpers";
@@ -129,6 +129,19 @@ export interface WizardData {
   difficulty: Difficulty;
   name: string;
   nickname?: string;
+  continent: "Westeros" | "Essos";
+  culture: string;
+  religion: string;
+  patronGod: string;
+  bloodline: string;
+  startingLocation: string;
+  customHouseName?: string;
+  customHouseWords?: string;
+  customHouseSigilKey?: string;
+  customForce?: {
+    npcs: { id: string; name: string; role: string; statPreset: string }[];
+    units: { id: string; type: string; count: number; commander: string }[];
+  };
   /** Tuổi nhân vật khi bắt đầu (default 25). */
   age: number;
   /** giá trị 6 chỉ số SAU point-buy, TRƯỚC bonus xuất thân. */
@@ -137,7 +150,14 @@ export interface WizardData {
   talentIds: string[];
   /** phân bổ điểm kỹ năng {skillId: điểm} (trần 5). */
   skillAllocations: Record<string, number>;
-  persona: { ngoaiHinh: string; tinhCach: string; tieuSu: string };
+  persona: {
+    ngoaiHinh: string;
+    tinhCach: string;
+    tieuSu: string;
+    mauMat: string;
+    mauToc: string;
+    chieuCao: string;
+  };
   portraitKey?: string;
   /** null = yên bình; "ai-random" = để AI gieo. */
   crisisId: string | null;
@@ -217,14 +237,40 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
   // ---- danh tính ----
   const info = state["Thông Tin Nhân Vật"];
+  
+  if (d.startingLocation) {
+    state["Thế Giới"]["Vị Trí"] = d.startingLocation;
+  }
+  
   info["Họ Tên"] = d.name.trim() || "Vô Danh";
   info["Xuất Thân"] = origin.name;
+  info["Lục Địa"] = d.continent;
+  info["Văn Hoá"] = d.culture || "Chưa Rõ";
+  info["Tôn Giáo"] = d.religion || "Chưa Rõ";
+  info["Thần Bảo Hộ"] = d.patronGod || "";
+  info["Huyết Mạch"] = d.bloodline !== "none" ? BLOODLINES.find((b: any) => b.id === d.bloodline)?.name || "Chưa Rõ" : "Không";
+  info["Đức Tin"] = 30;
+  info["Ân Sủng"] = 10;
   if (d.nickname?.trim()) info["Biệt Danh"] = d.nickname.trim();
   if (d.portraitKey) info["Ảnh Chân Dung"] = d.portraitKey;
-  info["Nhà"] = (d.houseId ? (HOUSES_BY_ID[d.houseId]?.schemaName as typeof info["Nhà"]) : "Không Nhà") ?? "Không Nhà";
+  
+  if (d.houseId === "custom") {
+    info["Nhà"] = "Tùy Chỉnh";
+    info["Tên Gia Tộc Tùy Chỉnh"] = d.customHouseName?.trim() || "Gia Tộc Mới";
+    info["Khẩu Hiệu"] = d.customHouseWords?.trim();
+    if (d.customHouseSigilKey) info["Ảnh Gia Huy"] = d.customHouseSigilKey;
+  } else {
+    info["Nhà"] = (d.houseId ? (HOUSES_BY_ID[d.houseId]?.schemaName as typeof info["Nhà"]) : "Không Nhà") ?? "Không Nhà";
+  }
+
   state["Persona"]["Ngoại Hình"] = d.persona.ngoaiHinh;
   state["Persona"]["Tính Cách"] = d.persona.tinhCach;
   state["Persona"]["Tiểu Sử"] = d.persona.tieuSu;
+  state["Persona"]["Đặc Điểm"] = {
+    "Màu Mắt": d.persona.mauMat,
+    "Màu Tóc": d.persona.mauToc,
+    "Chiều Cao": d.persona.chieuCao,
+  };
 
   // ---- tuổi tác ----
   info["Tuổi"] = d.age;
@@ -233,8 +279,21 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
   // ---- chỉ số cốt lõi: point-buy + bonus xuất thân (cộng SAU — 8.5 Bước 2) ----
   const core = state["Chỉ Số Cốt Lõi"];
+  let extraBuffs: Record<string, number> = {};
+  if (d.religion && PATRON_GODS[d.religion] && d.patronGod) {
+    const god = PATRON_GODS[d.religion].find(g => g.name === d.patronGod);
+    if (god && god.buffs) {
+      for (const [k, v] of Object.entries(god.buffs)) extraBuffs[k] = (extraBuffs[k] || 0) + (v as number);
+    }
+  }
+  if (d.bloodline && d.bloodline !== "none") {
+    const b = BLOODLINES.find((b: any) => b.id === d.bloodline);
+    if (b && b.buffs) {
+      for (const [k, v] of Object.entries(b.buffs)) extraBuffs[k] = (extraBuffs[k] || 0) + (v as number);
+    }
+  }
   for (const stat of CORE_STATS) {
-    core[stat] = clamp((d.pointBuy[stat] ?? STAT_BASE) + (origin.statBonus[stat] ?? 0), 1, 20);
+    core[stat] = clamp((d.pointBuy[stat] ?? STAT_BASE) + (origin.statBonus[stat] ?? 0) + (extraBuffs[stat] ?? 0), 1, 20);
   }
 
   // ---- thiên phú: quà xuất thân + chọn; effect VÔ ĐIỀU KIỆN cộng cốt lõi (C1) ----
@@ -334,6 +393,48 @@ export function buildStateFromWizard(d: WizardData): StatData {
   // ---- chủ quyền lãnh thổ theo Era (9.6.1); migrate holding gói xuất thân ----
   seedRegionControl(state, era.id, { createIfMissing: false });
 
+  // ---- Tùy chỉnh thế lực: Quân số & NPC ----
+  if (d.houseId === "custom" && d.customForce) {
+    for (const u of d.customForce.units) {
+      (state["Biên Chế Quân Sự"] as Record<string, unknown>)[u.id] = {
+        "Tướng Chỉ Huy": u.commander?.trim() || "Tạm Khuyết",
+        "Số Lượng": u.count,
+        "Loại Quân": u.type,
+        "Thành Phần": {},
+        "Hậu Cần": "Cầm Cự Được",
+        "Sĩ Khí": "Ổn Định",
+        "Trang Bị": "Đồng Bộ Chỉnh Tề",
+        "Huấn Luyện": "Thành Thạo",
+        "Lãnh Địa Đồn Trú": d.startingLocation || state["Thế Giới"]["Vị Trí"],
+        "Turn Di Chuyển Còn Lại": 0,
+        "Turn Huấn Luyện": 0,
+      };
+    }
+    for (const n of d.customForce.npcs) {
+      (state["Tướng Lĩnh"] as Record<string, unknown>)[n.id] = {
+        "Họ Tên": n.name?.trim() || "Vô Danh",
+        "Chức Vụ": n.role,
+        "Tuổi": 30,
+        "Độ Hảo Cảm": 50,
+        "Tin Cậy": true,
+        "Loại Quan Hệ": "Gia Thần",
+        "Đánh Giá": "Được tuyển mộ từ lúc khởi nghiệp",
+        "Năng Lực": getStatsForRole(n.role),
+        "Nét Tính Cách": ["Trung Thành"],
+      };
+    }
+  }
+
+  function getStatsForRole(role: string) {
+    switch (role) {
+      case "Tướng Quân": return { "Võ Lực": 14, "Thống Soái": 16, "Trí Mưu": 12, "Ngoại Giao": 10 };
+      case "Hiệp Sĩ": return { "Võ Lực": 18, "Thống Soái": 10, "Trí Mưu": 8, "Ngoại Giao": 8 };
+      case "Cố Vấn": return { "Võ Lực": 6, "Thống Soái": 8, "Trí Mưu": 18, "Ngoại Giao": 16 };
+      case "Thị Vệ": return { "Võ Lực": 16, "Thống Soái": 8, "Trí Mưu": 8, "Ngoại Giao": 6 };
+      default: return { "Võ Lực": 10, "Thống Soái": 10, "Trí Mưu": 10, "Ngoại Giao": 10 };
+    }
+  }
+
   // ---- phái sinh + đầy sinh tồn (8.6b bước 5) ----
   recomputeDerived(state);
   state["Chỉ Số Sinh Tồn"]["HP"] = state["Chỉ Số Phái Sinh"]["_HP Tối Đa"];
@@ -362,6 +463,15 @@ export function buildStateFromCanon(
   info["Họ Tên"] = c.name;
   info["Nhà"] = c.house as typeof info["Nhà"];
   info["Xuất Thân"] = c.role;
+  info["Lục Địa"] = "Westeros";
+  info["Văn Hoá"] = "First Men";
+  info["Tôn Giáo"] = c.religion || "Thất Diện Thần";
+  info["Thần Bảo Hộ"] = "";
+  info["Đức Tin"] = 30;
+  info["Ân Sủng"] = 10;
+  if (info["Tôn Giáo"] && PATRON_GODS[info["Tôn Giáo"]]) {
+    info["Thần Bảo Hộ"] = PATRON_GODS[info["Tôn Giáo"]][0]?.name || "";
+  }
   info["Vàng"] = c.gold;
   // ---- tuổi tác ----
   info["Tuổi"] = canonAge;
@@ -427,13 +537,15 @@ export function buildStateFromCanon(
 // ---------------------------------------------------------------------------
 export function buildInitLoreEntry(state: StatData, era: EraData, hook: StartingHook | null, crisisDesc: string | null): LoreEntry {
   const info = state["Thông Tin Nhân Vật"];
+  const persona = state["Persona"];
   const lines = [
     `[Bối cảnh ván chơi — luôn ghi nhớ]`,
     `Thời Kỳ: ${era.name} (${era.yearRange}). ${era.blurb}`,
     `Nhân vật chính: ${info["Họ Tên"]}${info["Biệt Danh"] ? ` "${info["Biệt Danh"]}"` : ""}, Nhà ${info["Nhà"]}, xuất thân ${info["Xuất Thân"]}.`,
-    state["Persona"]["Ngoại Hình"] ? `Ngoại hình: ${state["Persona"]["Ngoại Hình"]}` : "",
-    state["Persona"]["Tính Cách"] ? `Tính cách: ${state["Persona"]["Tính Cách"]}` : "",
-    state["Persona"]["Tiểu Sử"] ? `Tiểu sử: ${state["Persona"]["Tiểu Sử"]}` : "",
+    `${info["Lục Địa"] === "Essos" ? `Lục địa: Essos` : `Lục địa: Westeros`}`,
+    `Văn hoá: ${info["Văn Hoá"]}, Tôn giáo: ${info["Tôn Giáo"]}`,
+    `Ngoại hình: ${persona["Ngoại Hình"]}, Tính cách: ${persona["Tính Cách"]}, Tiểu sử: ${persona["Tiểu Sử"]}.`,
+    `Đặc điểm chi tiết: Màu mắt (${persona["Đặc Điểm"]?.["Màu Mắt"] || "không rõ"}), Màu tóc (${persona["Đặc Điểm"]?.["Màu Tóc"] || "không rõ"}), Chiều cao (${persona["Đặc Điểm"]?.["Chiều Cao"] || "không rõ"}).`,
     ...Object.entries(state["Rồng"]).map(([, drg]) =>
       `Rồng: ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi). HP ${drg["_HP"]}/${drg["_HP Tối Đa"]}. ` +
       `Chỉ số: ${DRAGON_STATS.map((s) => `${s} ${drg["Chỉ Số"][s]}`).join(", ")}.`),

@@ -21,7 +21,7 @@ import { useMvuStore, currentSeedInfo } from "../state/mvuStore";
 import { useCombatStore } from "../state/combatStore";
 import { renderStateForAI } from "../mvu/stateRenderer";
 import { renderTablesForAI } from "../mvu/tableBridge";
-import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT } from "../mvu/mvuPrompt";
+import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT } from "../mvu/mvuPrompt";
 import { useExtraModelStore } from "../state/extraModelStore";
 import { streamRng } from "../probability/rng";
 import { countTokens } from "./tokenizer";
@@ -84,6 +84,7 @@ function appLayerMessages(): ApiChatMessage[] {
   const msgs: ApiChatMessage[] = [
     { role: "system", content: updatePrompt },
     { role: "system", content: NARRATIVE_TAGS_PROMPT },
+    { role: "system", content: DICE_ROLL_PROMPT },
     { role: "system", content: stateBlock },
   ];
   // trận vừa phân giải xong → bút pháp 7.11 + khối báo cáo engine điền (7.10)
