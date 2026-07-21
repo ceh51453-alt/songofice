@@ -1,0 +1,331 @@
+/**
+ * useChatStore — vòng đời lượt chơi (6.2) + reroll/swipe (19.1):
+ * gửi → pipeline (lore + preset + state render) → streaming → EXTRACT ops
+ * (5.4c) → SNAPSHOT trước khi áp (5.3) → applyPatch + hiệu ứng lan toả →
+ * lượt kế state mới vào prompt (vòng khép kín 5.7.6).
+ * Reroll: ROLLBACK snapshot → sinh bản mới → áp ops mới (không cộng dồn).
+ * Swipe: đổi bản active → khôi phục snapshot → áp ops của bản đó.
+ */
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { genId } from "../lib/id";
+import { streamChat } from "../api/client";
+import { friendlyMessage, toApiError } from "../api/errors";
+import { useConnectionStore } from "./connectionStore";
+import { useMvuStore } from "./mvuStore";
+import { useCombatStore } from "./combatStore";
+import { useTerritoryStore } from "./territoryStore";
+import { buildPipeline } from "../prompt/promptPipeline";
+import { extractUpdates } from "../mvu/extractor";
+import { extractSqlUpdates } from "../mvu/sqlExtractor";
+import { findCombatTrigger, findTerritoryChanges } from "../ui/tags/parseNarrative";
+import type { StatData } from "../mvu/schema";
+import type { ApiChatMessage } from "../types/connection";
+import { callExtraModel } from "../mvu/extraModelCaller";
+import { useExtraModelStore } from "../state/extraModelStore";
+import { createLogger } from "../lib/log";
+
+const log = createLogger("chat");
+
+export interface MessageVariant {
+  /** raw đầy đủ (giữ trong DB — 5.5), gồm cả khối UpdateVariable. */
+  raw: string;
+  /** text hiển thị (đã cắt khối kỹ thuật). */
+  display: string;
+  reasoning?: string;
+  /** bị người chơi dừng giữa chừng (nội dung chưa trọn). */
+  stopped?: boolean;
+}
+
+export interface UiChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  /** content của bản active (assistant) hoặc text người chơi (user). */
+  content: string;
+  createdAt: number;
+  stopped?: boolean;
+  /** tin hệ thống (vd yêu cầu tường thuật trận) — AI thấy trong history, UI ẩn. */
+  hidden?: boolean;
+  /** assistant: các bản reroll (19.1). */
+  variants?: MessageVariant[];
+  activeVariant?: number;
+  /** snapshot state TRƯỚC khi áp patch của lượt này — rollback khi reroll/swipe. */
+  stateBefore?: StatData;
+}
+
+export interface RetryUiState {
+  attempt: number;
+  maxRetries: number;
+  delayMs: number;
+  reason: string;
+}
+
+export type ChatStatus = "idle" | "waiting" | "streaming" | "retrying";
+
+interface ChatState {
+  messages: UiChatMessage[];
+  status: ChatStatus;
+  draft: string;
+  draftReasoning: string;
+  retryInfo: RetryUiState | null;
+  error: string | null;
+
+  send: (text: string, opts?: { hidden?: boolean }) => Promise<void>;
+  retryLast: () => Promise<void>;
+  /** Reroll tin nhắn AI cuối (19.1) — rollback state + sinh bản mới. */
+  reroll: () => Promise<void>;
+  /** Đổi bản active của tin nhắn AI cuối (swipe ‹ ›) — khôi phục state đúng bản. */
+  swipeVariant: (dir: 1 | -1) => void;
+  cancel: () => void;
+  clearChat: () => void;
+  /** Gọi extra model thủ công cho tin nhắn AI cụ thể. */
+  triggerExtraForMessage: (messageId: string) => Promise<void>;
+}
+
+let abortController: AbortController | null = null;
+
+/** History gửi cho AI: text hiển thị (đã sạch khối kỹ thuật) của bản active. */
+function toHistory(messages: UiChatMessage[]): ApiChatMessage[] {
+  return messages.map((m) => ({ role: m.role, content: m.content }));
+}
+
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set, get) => {
+      /** Sinh 1 phản hồi AI cho history đã cho; trả variant + ops đã áp. */
+      async function generate(history: ApiChatMessage[], opts?: { freshSeed?: boolean }): Promise<MessageVariant | null> {
+        const profile = useConnectionStore.getState().activeProfile();
+        if (!profile.baseUrl || !profile.model) {
+          set({ error: "Chưa cấu hình kết nối — mở Cài đặt, nhập Base URL, API key và chọn model." });
+          return null;
+        }
+
+        abortController = new AbortController();
+        set({ status: "waiting", draft: "", draftReasoning: "", retryInfo: null, error: null });
+
+        const built = await buildPipeline(history);
+        // reroll với seed API cố định sẽ trả y hệt — tự bỏ seed cho lần tạo lại (19.1)
+        const params = opts?.freshSeed && built.params.seed !== undefined ? { ...built.params, seed: undefined } : built.params;
+        const effectiveProfile = { ...profile, params };
+
+        try {
+          const result = await streamChat(
+            effectiveProfile,
+            built.messages,
+            {
+              onText: (t) => set({ status: "streaming", retryInfo: null, draft: get().draft + t }),
+              onReasoning: (t) => set({ status: "streaming", draftReasoning: get().draftReasoning + t }),
+              onRetry: (info) =>
+                set({
+                  status: "retrying", draft: "", draftReasoning: "",
+                  retryInfo: { attempt: info.attempt, maxRetries: info.maxRetries, delayMs: info.delayMs, reason: friendlyMessage(info.error) },
+                }),
+            },
+            abortController.signal,
+          );
+          const engine = useExtraModelStore.getState().stateEngine;
+          const extract = engine === "auto-database"
+            ? extractSqlUpdates(result.text)
+            : extractUpdates(result.text);
+
+          // Extra model fallback: nếu main không trả update VÀ extra model bật auto
+          const extraStore = useExtraModelStore.getState();
+          if (!extract.found && extraStore.enabled && extraStore.autoTrigger) {
+            log.info("Main model không trả UpdateVariable — gọi extra model");
+            try {
+              const extra = await callExtraModel(result.text, abortController?.signal);
+              if (extra.ops.length > 0) {
+                extract.ops.push(...extra.ops);
+                extract.found = true;
+                log.info(`Extra model trả ${extra.ops.length} ops`);
+              }
+            } catch (err) {
+              log.warn("Extra model lỗi:", err instanceof Error ? err.message : err);
+            }
+          }
+
+          const variant: MessageVariant = {
+            raw: result.text,
+            display: extract.displayText,
+            ...(result.reasoning ? { reasoning: result.reasoning } : {}),
+          };
+          set({ status: "idle", draft: "", draftReasoning: "", retryInfo: null });
+          return variant;
+        } catch (err) {
+          const apiErr = toApiError(err);
+          if (apiErr.kind === "aborted") {
+            const partial = get().draft;
+            set({ status: "idle", draft: "", draftReasoning: "", retryInfo: null, error: null });
+            return partial ? { raw: partial, display: partial, stopped: true } : null;
+          }
+          set({
+            status: "idle", draft: "", draftReasoning: "", retryInfo: null,
+            error: `Đã thử ${profile.maxRetries + 1} lần vẫn lỗi — ${friendlyMessage(apiErr)}`,
+          });
+          return null;
+        } finally {
+          abortController = null;
+        }
+      }
+
+      /** Áp ops của 1 variant vào state (sau khi đã đứng ở stateBefore). */
+      function applyVariant(variant: MessageVariant): void {
+        const engine = useExtraModelStore.getState().stateEngine;
+        const { ops } = engine === "auto-database"
+          ? extractSqlUpdates(variant.raw)
+          : extractUpdates(variant.raw);
+        useMvuStore.getState().applyAiOps(ops);
+        // AI kể tới giao chiến → mở hệ thống chiến đấu (6.2 lượt N, mục 7)
+        const trigger = findCombatTrigger(variant.display);
+        if (trigger) {
+          useCombatStore.getState().startFromTrigger(trigger.attrs, trigger.content);
+        }
+        // AI kể vùng đổi chủ (chiếm/liên minh/thừa kế) → engine đồng bộ + bản đồ đổi màu (9.5.1)
+        for (const tc of findTerritoryChanges(variant.display)) {
+          useTerritoryStore.getState().captureRegion(tc.regionId, tc.houseId);
+        }
+      }
+
+      return {
+        messages: [],
+        status: "idle",
+        draft: "",
+        draftReasoning: "",
+        retryInfo: null,
+        error: null,
+
+        send: async (text, opts) => {
+          if (get().status !== "idle") return;
+          const trimmed = text.trim();
+          if (!trimmed) return;
+          // báo cáo trận đã ĐƯỢC tường thuật xong → dùng hết khi người chơi mở lượt mới
+          // (giữ qua reroll để lời kể lại vẫn đúng kết quả đã chốt — 19.1)
+          const combat = useCombatStore.getState();
+          if (!opts?.hidden && combat.reportBlock && combat.reportNarrated) {
+            combat.clearReport();
+          }
+          const userMsg: UiChatMessage = {
+            id: genId("msg"), role: "user", content: trimmed, createdAt: Date.now(),
+            ...(opts?.hidden ? { hidden: true } : {}),
+          };
+          set({ messages: [...get().messages, userMsg], error: null });
+
+          const stateBefore = useMvuStore.getState().getSnapshot();
+          const variant = await generate(toHistory(get().messages));
+          if (!variant) return; // lỗi — user msg giữ lại, nút Thử lại dùng retryLast
+
+          applyVariant(variant);
+          if (useCombatStore.getState().reportBlock) useCombatStore.getState().markNarrated();
+          const msg: UiChatMessage = {
+            id: genId("msg"), role: "assistant", content: variant.display, createdAt: Date.now(),
+            variants: [variant], activeVariant: 0, stateBefore,
+          };
+          set({ messages: [...get().messages, msg] });
+        },
+
+        retryLast: async () => {
+          if (get().status !== "idle") return;
+          const msgs = get().messages;
+          if (msgs.length === 0 || msgs[msgs.length - 1].role !== "user") return;
+          const stateBefore = useMvuStore.getState().getSnapshot();
+          const variant = await generate(toHistory(msgs));
+          if (!variant) return;
+          applyVariant(variant);
+          const msg: UiChatMessage = {
+            id: genId("msg"), role: "assistant", content: variant.display, createdAt: Date.now(),
+            variants: [variant], activeVariant: 0, stateBefore,
+          };
+          set({ messages: [...get().messages, msg] });
+        },
+
+        reroll: async () => {
+          if (get().status !== "idle") return;
+          const msgs = get().messages;
+          const last = msgs[msgs.length - 1];
+          if (!last || last.role !== "assistant" || !last.variants || !last.stateBefore) return;
+
+          // 1. ROLLBACK state về trước lượt (19.1 — chống cộng dồn)
+          useMvuStore.getState().restoreSnapshot(last.stateBefore);
+
+          // 2. sinh bản mới với CÙNG ngữ cảnh (history không gồm tin nhắn này)
+          const history = toHistory(msgs.slice(0, -1));
+          const variant = await generate(history, { freshSeed: true });
+          if (!variant) {
+            // lỗi/huỷ không ra bản mới → áp lại bản active cũ, state quay về như cũ
+            applyVariant(last.variants[last.activeVariant ?? 0]);
+            return;
+          }
+
+          // 3. áp ops bản mới + thêm variant
+          applyVariant(variant);
+          const updated: UiChatMessage = {
+            ...last,
+            variants: [...last.variants, variant],
+            activeVariant: last.variants.length,
+            content: variant.display,
+          };
+          set({ messages: [...msgs.slice(0, -1), updated] });
+          log.info(`Reroll: bản ${updated.variants!.length}`);
+        },
+
+        swipeVariant: (dir) => {
+          if (get().status !== "idle") return;
+          const msgs = get().messages;
+          const last = msgs[msgs.length - 1];
+          if (!last || last.role !== "assistant" || !last.variants || !last.stateBefore) return;
+          const count = last.variants.length;
+          if (count <= 1) return;
+          const next = ((last.activeVariant ?? 0) + dir + count) % count;
+          if (next === last.activeVariant) return;
+
+          // khôi phục snapshot → áp ops của bản được chọn (19.1)
+          useMvuStore.getState().restoreSnapshot(last.stateBefore);
+          const variant = last.variants[next];
+          extractAndApply(variant);
+          const updated: UiChatMessage = { ...last, activeVariant: next, content: variant.display };
+          set({ messages: [...msgs.slice(0, -1), updated] });
+
+          function extractAndApply(v: MessageVariant): void {
+            const { ops } = extractUpdates(v.raw);
+            useMvuStore.getState().applyAiOps(ops);
+          }
+        },
+
+        cancel: () => {
+          abortController?.abort();
+        },
+
+        clearChat: () => {
+          abortController?.abort();
+          set({ messages: [], status: "idle", draft: "", draftReasoning: "", retryInfo: null, error: null });
+        },
+
+        triggerExtraForMessage: async (messageId) => {
+          if (get().status !== "idle") return;
+          const msg = get().messages.find((m) => m.id === messageId);
+          if (!msg || msg.role !== "assistant" || !msg.variants) return;
+          const variant = msg.variants[msg.activeVariant ?? 0];
+          if (!variant) return;
+
+          const extraStore = useExtraModelStore.getState();
+          if (!extraStore.enabled || !extraStore.baseUrl || !extraStore.model) return;
+
+          try {
+            const result = await callExtraModel(variant.raw);
+            if (result.ops.length > 0) {
+              useMvuStore.getState().applyAiOps(result.ops);
+              log.info(`Đã áp ${result.ops.length} ops từ extra model (thủ công)`);
+            }
+          } catch (err) {
+            log.warn("Extra model thủ công lỗi:", err instanceof Error ? err.message : err);
+          }
+        },
+      };
+    },
+    {
+      name: "asoiaf-chat-m1",
+      version: 2,
+      partialize: (s) => ({ messages: s.messages }),
+    },
+  ),
+);

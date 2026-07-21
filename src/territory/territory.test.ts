@@ -1,0 +1,103 @@
+/**
+ * Acceptance M7 (9.5): chủ quyền động + đồng bộ 2 chiều + tô màu 2 chế độ.
+ * "chiếm 1 vùng → polygon đổi màu + state Chủ Quyền cập nhật đồng bộ; toggle
+ * Quan Hệ → nhuộm theo Thái Độ; đổi ảnh/màu qua data KHÔNG cần sửa engine".
+ */
+import { describe, expect, it } from "vitest";
+import { makeDefaultState } from "../mvu/schema";
+import { applyPatch } from "../mvu/patchEngine";
+import { rejectReason } from "../mvu/extractor";
+import {
+  seedRegionControl, captureRegionOps, regionFill, regionController, playerHouseId,
+} from "./territoryEngine";
+import { houseColor, PLAYER_HEAT_COLOR, ATTITUDE_HEAT } from "../content/westeros/houseColors";
+
+function starkPlayer(era = "war-of-five-kings") {
+  const s = makeDefaultState();
+  s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
+  seedRegionControl(s, era, { createIfMissing: true });
+  return s;
+}
+
+describe("seedRegionControl (9.6.1) + đồng bộ", () => {
+  it("nạp chủ quyền từ Era; vùng của Nhà người chơi = Là Của Người Chơi", () => {
+    const s = starkPlayer();
+    expect(playerHouseId(s)).toBe("stark");
+    expect(regionController(s, "the-north")).toBe("stark");
+    expect(s["Chủ Quyền Lãnh Thổ"]["the-north"]["Là Của Người Chơi"]).toBe(true);
+    // vùng Nhà khác không phải của người chơi
+    expect(regionController(s, "the-riverlands")).toBe("tully");
+    expect(s["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(false);
+    // canon lãnh chúa → mở holding vùng quê
+    expect(s["Lãnh Địa"]["the-north"]).toBeDefined();
+    expect(s["Lãnh Địa"]["the-north"]["Địa Hình"]).toBe("Tuyết/Băng Giá");
+  });
+
+  it("wizard: MIGRATE holding gói xuất thân về regionId, KHÔNG tăng số holding", () => {
+    const s = makeDefaultState();
+    s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
+    (s["Lãnh Địa"] as Record<string, unknown>)["Lãnh địa tổ truyền"] = { "Mô Tả": "cũ", "Dân Số": 8000, "Trung Thành": 60 };
+    seedRegionControl(s, "war-of-five-kings", { createIfMissing: false });
+    expect(Object.keys(s["Lãnh Địa"])).toHaveLength(1); // vẫn 1 (đã migrate)
+    expect(s["Lãnh Địa"]["the-north"]).toBeDefined();
+    expect(s["Lãnh Địa"]["Lãnh địa tổ truyền"]).toBeUndefined();
+  });
+});
+
+describe("Tô màu 2 chế độ (9.5.2)", () => {
+  it("Chính Trị: vùng tô màu Nhà kiểm soát; vô chủ → sọc", () => {
+    const s = starkPlayer("aegon-conquest"); // Crownlands vô chủ ở Era này
+    expect(regionFill(s, "the-north", "political").color).toBe(houseColor("stark").base);
+    const crown = regionFill(s, "the-crownlands", "political");
+    expect(crown.striped).toBe(true); // vô chủ → sọc 2 màu
+  });
+
+  it("Quan Hệ: lãnh thổ ta nổi bật; heatmap theo Thái Độ Nhà kiểm soát", () => {
+    const s = starkPlayer();
+    // vùng ta → vàng kim
+    expect(regionFill(s, "the-north", "relationship").color).toBe(PLAYER_HEAT_COLOR);
+    // đặt Lannister THÙ ĐỊCH → vùng Tây đỏ đậm
+    const { state } = applyPatch(s, [
+      { op: "replace", path: "stat_data.Thái Độ Các Nhà.Lannister", value: { "Thái Độ": "Thù Địch", "Mô Tả": "" } },
+    ]);
+    expect(regionFill(state, "the-westerlands", "relationship").color).toBe(ATTITUDE_HEAT["Thù Địch"].color);
+    // Nhà chưa có Thái Độ → trung lập (Cảnh Giác)
+    expect(regionFill(state, "the-vale", "relationship").color).toBe(ATTITUDE_HEAT["Cảnh Giác"].color);
+  });
+});
+
+describe("captureRegion đồng bộ 2 chiều (9.5.1)", () => {
+  it("chiếm vùng cho người chơi → đổi chủ + tạo Lãnh Địa + đánh dấu turn (animation)", () => {
+    const s = starkPlayer();
+    const ops = captureRegionOps(s, "the-riverlands", "stark", 7);
+    const { state } = applyPatch(s, ops);
+    expect(regionController(state, "the-riverlands")).toBe("stark");
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["_Đổi Chủ Turn"]).toBe(7);
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).toBe("Mới Chiếm");
+    // mở quản trị nội bộ (10.1)
+    expect(state["Lãnh Địa"]["the-riverlands"]).toBeDefined();
+    // bản đồ Chính Trị đổi sang màu Stark
+    expect(regionFill(state, "the-riverlands", "political").color).toBe(houseColor("stark").base);
+  });
+
+  it("mất vùng của người chơi → xoá entry Lãnh Địa tương ứng (10.1)", () => {
+    const s = starkPlayer();
+    expect(s["Lãnh Địa"]["the-north"]).toBeDefined();
+    const ops = captureRegionOps(s, "the-north", "bolton", 12);
+    const { state } = applyPatch(s, ops);
+    expect(regionController(state, "the-north")).toBe("bolton");
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-north"]["Là Của Người Chơi"]).toBe(false);
+    expect(state["Lãnh Địa"]["the-north"]).toBeUndefined(); // quản trị đóng
+  });
+});
+
+describe("Extractor chặn AI ghi thẳng Chủ Quyền (9.5.1)", () => {
+  it("op AI ghi Chủ Quyền Lãnh Thổ bị lọc — engine giữ số", () => {
+    expect(rejectReason({ op: "replace", path: "stat_data.Chủ Quyền Lãnh Thổ.the-north.Nhà Kiểm Soát", value: "lannister" })).toBeTruthy();
+    // field _ vẫn bị chặn
+    expect(rejectReason({ op: "replace", path: "stat_data.Chủ Quyền Lãnh Thổ.the-north._Đổi Chủ Turn", value: 5 })).toBeTruthy();
+    // ghi Lãnh Địa nội bộ (Dân Số) thì cho phép
+    expect(rejectReason({ op: "delta", path: "stat_data.Lãnh Địa.the-north.Dân Số", value: -100 })).toBeNull();
+  });
+});
