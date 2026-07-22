@@ -176,7 +176,7 @@ describe("buildStateFromWizard (8.6b)", () => {
     const s = buildStateFromWizard(
       makeWizard({
         pointBuy: { ...makeWizard().pointBuy, "Uy Tín": 14 },
-        originId: "northern-noble",
+        originId: "minor-noble",
         startingLocation: "",
         narrativeMode: "Theo Sát Nguyên Tác",
         skillAllocations: { "persuasion": 4 },

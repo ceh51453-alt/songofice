@@ -15,6 +15,7 @@ import { houseColor, ATTITUDE_HEAT } from "../../content/westeros/houseColors";
 import { BUILDING_LIST, buildingCost, buildingTurns, type BuildingType, type ResourceKey } from "../../content/westeros/buildings";
 import { recruitableTroopsForEra } from "../../content/westeros/troopTypes";
 import { estimateTerritoryYield } from "../../territory/construction";
+import { canManageDomain } from "../../character/roleplay";
 import { GlassButton } from "../components/GlassButton";
 import { useT } from "../../i18n";
 import {
@@ -46,6 +47,7 @@ export function TerritoryPanel() {
   const selectedRegionId = useTerritoryStore((s) => s.selectedRegionId);
   const selectRegion = useTerritoryStore((s) => s.selectRegion);
   const [tab, setTab] = useState<Tab>("overview");
+  const [selectedHoldingId, setSelectedHoldingId] = useState<string | null>(null);
 
   if (!selectedRegionId) return null;
   const region = REGIONS_BY_ID[selectedRegionId];
@@ -55,16 +57,22 @@ export function TerritoryPanel() {
   const controllerId = sov?.["Nhà Kiểm Soát"] ?? "";
   const controller = HOUSES_BY_ID[controllerId];
   const col = houseColor(controllerId);
-  const holding = stat["Lãnh Địa"][selectedRegionId];
   const isPlayer = !!sov?.["Là Của Người Chơi"];
+
+  const allHoldings = Object.entries(stat["Lãnh Địa"]).filter(([, h]) => h["Thuộc Vùng"] === selectedRegionId);
+  
+  const activeHoldingId = selectedHoldingId ?? (allHoldings.length > 0 ? allHoldings[0][0] : null);
+  const holding = activeHoldingId ? stat["Lãnh Địa"][activeHoldingId] : undefined;
 
   const close = () => selectRegion(null);
 
-  const tabs: { key: Tab; label: string }[] = [
+  const hasDomainPrivilege = canManageDomain(stat);
+
+  const tabs: { key: Tab; label: string; disabled?: boolean }[] = [
     { key: "overview", label: t("terr.tabOverview") },
-    { key: "build", label: t("terr.tabBuild") },
-    { key: "garrison", label: t("terr.tabGarrison") },
-    { key: "people", label: t("terr.tabPeople") },
+    { key: "build", label: t("terr.tabBuild"), disabled: !hasDomainPrivilege },
+    { key: "garrison", label: t("terr.tabGarrison"), disabled: !hasDomainPrivilege },
+    { key: "people", label: t("terr.tabPeople"), disabled: !hasDomainPrivilege },
   ];
 
   return (
@@ -101,6 +109,20 @@ export function TerritoryPanel() {
               <Gem icon={<IconCoins size={15} />} label={t("terr.treasury")} value={fmt(stat["Thông Tin Nhân Vật"]["Vàng"])} />
             </div>
           )}
+
+          {allHoldings.length > 1 && (
+            <div className="mt-3">
+              <select 
+                value={activeHoldingId || ""} 
+                onChange={e => setSelectedHoldingId(e.target.value)}
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[rgba(0,0,0,0.22)] px-2 py-1.5 text-[12.5px] text-[var(--text-soft)] [&>option]:bg-[#141821]"
+              >
+                {allHoldings.map(([id, h]) => (
+                  <option key={id} value={id}>{h["Mô Tả"] || id}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* ---- vùng của Nhà khác: read-only tình báo ---- */}
@@ -109,6 +131,7 @@ export function TerritoryPanel() {
             <p className="text-[13px] italic text-[var(--text-muted)]">{t("terr.notYours")}</p>
             <InfoRow label={t("terr.controller")} value={controller ? controller.name : t("terr.unclaimed")} />
             <InfoRow label={t("terr.terrain")} value={region.terrain} />
+            <InfoRow label={t("terr.population")} value={region.population ? `${fmt(region.population)}` : "—"} />
             <InfoRow label={t("terr.status")} value={sov?.["Tình Trạng"] ?? "—"} />
             <InfoRow
               label={t("terr.attitude")}
@@ -129,10 +152,14 @@ export function TerritoryPanel() {
               {tabs.map((tb) => (
                 <button
                   key={tb.key}
-                  onClick={() => setTab(tb.key)}
+                  onClick={() => { if (!tb.disabled) setTab(tb.key); }}
+                  disabled={tb.disabled}
+                  title={tb.disabled ? "Bạn không có tước vị đủ cao để thực hiện quyền hạn này." : ""}
                   className={`shrink-0 rounded-[var(--radius-sm)] px-3 py-1.5 text-[12.5px] transition-colors ${
                     tab === tb.key
                       ? "bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                      : tb.disabled
+                      ? "text-[var(--text-faint)] opacity-50 cursor-not-allowed"
                       : "text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]"
                   }`}
                 >
@@ -143,9 +170,9 @@ export function TerritoryPanel() {
 
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {tab === "overview" && <OverviewTab holding={holding} regionName={region.name} besieged={sov?.["Tình Trạng"] === "Bị Vây"} />}
-              {tab === "build" && <BuildTab territoryId={selectedRegionId} holding={holding} />}
-              {tab === "garrison" && <GarrisonTab territoryId={selectedRegionId} holding={holding} />}
-              {tab === "people" && <PeopleTab territoryId={selectedRegionId} holding={holding} />}
+              {tab === "build" && activeHoldingId && <BuildTab territoryId={activeHoldingId} holding={holding} />}
+              {tab === "garrison" && activeHoldingId && <GarrisonTab territoryId={activeHoldingId} holding={holding} />}
+              {tab === "people" && activeHoldingId && <PeopleTab territoryId={activeHoldingId} holding={holding} />}
             </div>
           </>
         )}

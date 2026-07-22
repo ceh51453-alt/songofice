@@ -24,8 +24,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Không cache API calls
-  if (url.pathname.startsWith("/v1/") || url.pathname.startsWith("/api/")) {
+  // Không cache API calls hoặc các request từ extension (chrome-extension://)
+  if (!url.protocol.startsWith("http") || url.pathname.startsWith("/v1/") || url.pathname.startsWith("/api/")) {
     return;
   }
 

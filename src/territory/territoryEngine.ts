@@ -11,6 +11,7 @@ import type { PatchOp } from "../mvu/patchEngine";
 import { REGIONS, REGIONS_BY_ID, regionControlForEra, type MapRegion } from "../content/westeros/regions";
 import { HOUSES_DATA, HOUSES_BY_ID } from "../content/westeros/houses";
 import { houseColor, ATTITUDE_HEAT, PLAYER_HEAT_COLOR, NEUTRAL_COLOR } from "../content/westeros/houseColors";
+import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 
 /** schemaName ("Stark") → houseId ("stark"). */
 export const HOUSE_ID_BY_SCHEMA: Record<string, string> = Object.fromEntries(
@@ -37,14 +38,15 @@ function baseResources(): { Vàng: number; "Lương Thực": number; Gỗ: numbe
   return { "Vàng": 0, "Lương Thực": 3000, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150 };
 }
 
-/** Dựng object Territory (10.1) cho 1 vùng — dùng khi tạo/chiếm holding. */
-export function makeHolding(region: MapRegion, opts?: { danSo?: number; trungThanh?: number; moTa?: string; taiNguyen?: Record<string, number> }): Record<string, unknown> {
+/** Dựng object Territory (10.1) cho 1 vùng/thành trì — dùng khi tạo/chiếm holding. */
+export function makeHolding(opts?: { regionId?: string; terrain?: string; coastal?: boolean; name?: string; danSo?: number; trungThanh?: number; moTa?: string; taiNguyen?: Record<string, number> }): Record<string, unknown> {
   return {
-    "Mô Tả": opts?.moTa ?? `${region.seat} — trọng trấn ${region.name}`,
+    "Mô Tả": opts?.moTa ?? (opts?.name ? `${opts.name}` : `Thành trì`),
     "Dân Số": opts?.danSo ?? 10000,
     "Trung Thành": opts?.trungThanh ?? 60,
-    "Địa Hình": region.terrain,
-    "Ven Biển": region.coastal,
+    "Thuộc Vùng": opts?.regionId ?? "",
+    "Địa Hình": opts?.terrain,
+    "Ven Biển": opts?.coastal ?? false,
     "Tài Nguyên": opts?.taiNguyen ?? baseResources(),
     "Công Trình": {},
     "Khủng Hoảng": [],
@@ -77,21 +79,27 @@ export function seedRegionControl(state: StatData, eraId: string, opts?: { creat
   const playerControlsHome = home && control[home.id] === pHouse;
   if (!home || !playerControlsHome) return;
 
-  // MIGRATE: đưa holding gói xuất thân (key tự đặt) về key regionId + làm giàu.
-  const genericKeys = Object.keys(holdings).filter((k) => !REGIONS_BY_ID[k]);
-  if (genericKeys.length > 0 && !holdings[home.id]) {
+  // MIGRATE: Đặt "Thuộc Vùng" cho holding gói xuất thân. Nếu là nhân vật canon, tạo Lãnh Địa cho trọng trấn.
+  const genericKeys = Object.keys(holdings);
+  if (genericKeys.length > 0) {
+    // Nếu có Lãnh địa tổ truyền, thiết lập nó thuộc vùng quê nhà (không đổi key để giữ tính độc lập)
     const src = holdings[genericKeys[0]] as Record<string, unknown>;
-    delete holdings[genericKeys[0]];
-    holdings[home.id] = {
-      ...makeHolding(home, {
-        danSo: (src["Dân Số"] as number) ?? undefined,
-        trungThanh: (src["Trung Thành"] as number) ?? undefined,
-        moTa: (src["Mô Tả"] as string) || undefined,
-        taiNguyen: (src["Tài Nguyên"] as Record<string, number>) ?? undefined,
-      }),
-    };
-  } else if (opts?.createIfMissing && !holdings[home.id] && genericKeys.length === 0) {
-    holdings[home.id] = makeHolding(home);
+    src["Thuộc Vùng"] = home.id;
+    if (!src["Địa Hình"]) src["Địa Hình"] = home.terrain;
+    if (src["Ven Biển"] === undefined) src["Ven Biển"] = home.coastal;
+  } else if (opts?.createIfMissing) {
+    // Tạo Lãnh Địa cho trọng trấn (seat) của vùng nếu là canon player
+    if (home.seat) {
+      const seatMarker = MAP_MARKERS.find((m) => m.name === home.seat);
+      const seatId = seatMarker ? seatMarker.id : home.id + "-seat";
+      holdings[seatId] = makeHolding({
+        regionId: home.id,
+        terrain: home.terrain,
+        coastal: home.coastal,
+        name: home.seat,
+        danSo: seatMarker?.population ?? 20000,
+      });
+    }
   }
 }
 
@@ -119,15 +127,23 @@ export function captureRegionOps(
     { op: "replace", path: `${base}._Đổi Chủ Turn`, value: turn },
   ];
 
-  if (isPlayer && !state["Lãnh Địa"][regionId]) {
-    // về tay người chơi → mở quản trị nội bộ (vùng mới chiếm: dân chưa phục, lòng dân thấp)
+  // Tìm seat marker ID cho region
+  const seatMarker = MAP_MARKERS.find((m) => m.name === region.seat);
+  const seatId = seatMarker ? seatMarker.id : region.id + "-seat";
+
+  if (isPlayer && !state["Lãnh Địa"][seatId]) {
+    // về tay người chơi → mở quản trị nội bộ thành trì trọng trấn
     ops.push({
-      op: "replace", path: `stat_data.Lãnh Địa.${regionId}`,
-      value: makeHolding(region, { trungThanh: 35, moTa: `${region.seat} — vừa chiếm được, dân chưa quy phục` }),
+      op: "replace", path: `stat_data.Lãnh Địa.${seatId}`,
+      value: makeHolding({ 
+        regionId: region.id, terrain: region.terrain, coastal: region.coastal, name: region.seat, 
+        danSo: seatMarker?.population ?? 20000, trungThanh: 35, moTa: `${region.seat} — vừa chiếm được, dân chưa quy phục` 
+      }),
     });
-  } else if (!isPlayer && wasPlayer && state["Lãnh Địa"][regionId]) {
-    // mất vùng → đóng quản trị (10.1: xoá entry Lãnh Địa tương ứng)
-    ops.push({ op: "remove", path: `stat_data.Lãnh Địa.${regionId}` });
+  } else if (!isPlayer && wasPlayer && state["Lãnh Địa"][seatId]) {
+    // mất vùng → đóng quản trị thành trì trọng trấn (nếu người chơi mất vùng)
+    // Lưu ý: Nếu người chơi có các thành trì khác trong vùng, chúng vẫn được giữ lại!
+    ops.push({ op: "remove", path: `stat_data.Lãnh Địa.${seatId}` });
   }
   return ops;
 }

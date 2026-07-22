@@ -28,19 +28,20 @@ describe("seedRegionControl (9.6.1) + đồng bộ", () => {
     // vùng Nhà khác không phải của người chơi
     expect(regionController(s, "the-riverlands")).toBe("tully");
     expect(s["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(false);
-    // canon lãnh chúa → mở holding vùng quê
-    expect(s["Lãnh Địa"]["the-north"]).toBeDefined();
-    expect(s["Lãnh Địa"]["the-north"]["Địa Hình"]).toBe("Tuyết/Băng Giá");
+    // canon lãnh chúa → mở holding vùng quê tại trọng trấn
+    expect(s["Lãnh Địa"]["the-north-seat"]).toBeDefined();
+    expect(s["Lãnh Địa"]["the-north-seat"]["Địa Hình"]).toBe("Tuyết/Băng Giá");
   });
 
-  it("wizard: MIGRATE holding gói xuất thân về regionId, KHÔNG tăng số holding", () => {
+  it("wizard: MIGRATE holding gói xuất thân, thêm Thuộc Vùng thay vì đè key, KHÔNG tăng số holding", () => {
     const s = makeDefaultState();
     s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
     (s["Lãnh Địa"] as Record<string, unknown>)["Lãnh địa tổ truyền"] = { "Mô Tả": "cũ", "Dân Số": 8000, "Trung Thành": 60 };
     seedRegionControl(s, "war-of-five-kings", { createIfMissing: false });
-    expect(Object.keys(s["Lãnh Địa"])).toHaveLength(1); // vẫn 1 (đã migrate)
-    expect(s["Lãnh Địa"]["the-north"]).toBeDefined();
-    expect(s["Lãnh Địa"]["Lãnh địa tổ truyền"]).toBeUndefined();
+    expect(Object.keys(s["Lãnh Địa"])).toHaveLength(1); // vẫn 1 (đã migrate thuộc tính)
+    expect(s["Lãnh Địa"]["the-north-seat"]).toBeUndefined();
+    expect(s["Lãnh Địa"]["Lãnh địa tổ truyền"]).toBeDefined();
+    expect((s["Lãnh Địa"]["Lãnh địa tổ truyền"] as any)["Thuộc Vùng"]).toBe("the-north");
   });
 });
 
@@ -75,20 +76,20 @@ describe("captureRegion đồng bộ 2 chiều (9.5.1)", () => {
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["_Đổi Chủ Turn"]).toBe(7);
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).toBe("Mới Chiếm");
-    // mở quản trị nội bộ (10.1)
-    expect(state["Lãnh Địa"]["the-riverlands"]).toBeDefined();
+    // mở quản trị nội bộ thành trì trọng trấn (10.1)
+    expect(state["Lãnh Địa"]["the-riverlands-seat"]).toBeDefined();
     // bản đồ Chính Trị đổi sang màu Stark
     expect(regionFill(state, "the-riverlands", "political").color).toBe(houseColor("stark").base);
   });
 
-  it("mất vùng của người chơi → xoá entry Lãnh Địa tương ứng (10.1)", () => {
+  it("mất vùng của người chơi → xoá entry Lãnh Địa trọng trấn tương ứng (10.1)", () => {
     const s = starkPlayer();
-    expect(s["Lãnh Địa"]["the-north"]).toBeDefined();
+    expect(s["Lãnh Địa"]["the-north-seat"]).toBeDefined();
     const ops = captureRegionOps(s, "the-north", "bolton", 12);
     const { state } = applyPatch(s, ops);
     expect(regionController(state, "the-north")).toBe("bolton");
     expect(state["Chủ Quyền Lãnh Thổ"]["the-north"]["Là Của Người Chơi"]).toBe(false);
-    expect(state["Lãnh Địa"]["the-north"]).toBeUndefined(); // quản trị đóng
+    expect(state["Lãnh Địa"]["the-north-seat"]).toBeUndefined(); // quản trị đóng
   });
 });
 
@@ -98,6 +99,6 @@ describe("Extractor chặn AI ghi thẳng Chủ Quyền (9.5.1)", () => {
     // field _ vẫn bị chặn
     expect(rejectReason({ op: "replace", path: "stat_data.Chủ Quyền Lãnh Thổ.the-north._Đổi Chủ Turn", value: 5 })).toBeTruthy();
     // ghi Lãnh Địa nội bộ (Dân Số) thì cho phép
-    expect(rejectReason({ op: "delta", path: "stat_data.Lãnh Địa.the-north.Dân Số", value: -100 })).toBeNull();
+    expect(rejectReason({ op: "delta", path: "stat_data.Lãnh Địa.the-north-seat.Dân Số", value: -100 })).toBeNull();
   });
 });

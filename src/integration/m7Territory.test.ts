@@ -89,7 +89,7 @@ describe("M7 — chủ quyền + bản đồ + lãnh địa qua luồng chat", (
     const stat = useMvuStore.getState().stat;
     expect(regionController(stat, "the-riverlands")).toBe("stark");
     expect(stat["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
-    expect(stat["Lãnh Địa"]["the-riverlands"]).toBeDefined(); // mở quản trị nội bộ (10.1)
+    expect(stat["Lãnh Địa"]["the-riverlands-seat"]).toBeDefined(); // mở quản trị nội bộ
     // bản đồ (regionFill) đổi sang màu Stark (9.5.1)
     expect(regionFill(stat, "the-riverlands", "political").color).toBe(houseColor("stark").base);
     // toast đổi chủ (6.4)
@@ -105,16 +105,16 @@ describe("M7 — chủ quyền + bản đồ + lãnh địa qua luồng chat", (
 
   it("xây công trình → turn-advance loop tick đúng số ngày AI kể → hoàn tất + thu tăng", async () => {
     // khởi công Nông Trại (3 turn) ở Phương Bắc
-    const r = useTerritoryStore.getState().startBuild("the-north", "Nông Trại");
+    const r = useTerritoryStore.getState().startBuild("the-north-seat", "Nông Trại");
     expect(r.ok).toBe(true);
-    expect(useMvuStore.getState().stat["Lãnh Địa"]["the-north"]["Công Trình"]["Nông Trại"]["Đang Xây"]).toBe(true);
-    const foodStart = useMvuStore.getState().stat["Lãnh Địa"]["the-north"]["Tài Nguyên"]["Lương Thực"];
+    expect(useMvuStore.getState().stat["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"]).toBe(true);
+    const foodStart = useMvuStore.getState().stat["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"];
 
     // AI kể "ba ngày trôi qua" → onTurnAdvance tick 3 lần (6.2) → Nông Trại xong
     responseQueue = [AI_TIME_PASSES];
     await useChatStore.getState().send("Ta chờ vựa lúa hoàn thành.");
 
-    const north = useMvuStore.getState().stat["Lãnh Địa"]["the-north"];
+    const north = useMvuStore.getState().stat["Lãnh Địa"]["the-north-seat"];
     expect(north["Công Trình"]["Nông Trại"]["Đang Xây"]).toBe(false);
     expect(north["Tài Nguyên"]["Lương Thực"]).toBeGreaterThan(foodStart); // sản lượng cộng mỗi turn
   }, 20000);

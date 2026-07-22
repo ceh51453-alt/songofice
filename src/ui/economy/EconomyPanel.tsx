@@ -20,6 +20,7 @@ import {
 import { IconX } from "../icons";
 import type { TaxLevel } from "../../mvu/schema";
 import { isBlockaded } from "../../economy/economyEngine";
+import { hasPrivilege, canManageDomain } from "../../character/roleplay";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -60,8 +61,12 @@ export function EconomyPanel() {
     }
   }
 
+  const canChangeTax = hasPrivilege(stat, "Thu Thuế Toàn Cõi") || hasPrivilege(stat, "Thu Thuế Chư Hầu (Vùng)") || canManageDomain(stat);
+
   const handleTaxChange = (level: TaxLevel) => {
-    useMvuStore.getState().setByPath("stat_data.Chính Sách Thuế.Mức Thuế", level);
+    if (canChangeTax) {
+      useMvuStore.getState().setByPath("stat_data.Chính Sách Thuế.Mức Thuế", level);
+    }
   };
 
   if (!open) return null;
@@ -158,7 +163,16 @@ export function EconomyPanel() {
 
         {/* ── Tax Policy ── */}
         <section className="mb-4">
-          <TaxSlider currentLevel={summary.taxLevel} onChangeLevel={handleTaxChange} />
+          <TaxSlider 
+            currentLevel={summary.taxLevel} 
+            onChangeLevel={handleTaxChange}
+            disabled={!canChangeTax}
+          />
+          {!canChangeTax && (
+            <p className="mt-2 text-[11px] italic text-[var(--text-faint)] text-center">
+              Bạn không có tước vị đủ cao để thay đổi chính sách thuế.
+            </p>
+          )}
         </section>
 
         {/* ── Territory Resources Grid ── */}

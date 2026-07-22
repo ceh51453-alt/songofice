@@ -173,6 +173,19 @@ export function MapScreen() {
               <image href={MAP_CONFIG.assetUrl} x="0" y="0" width={MAP_W} height={MAP_H} preserveAspectRatio="xMidYMid slice" />
             )}
 
+            {/* Lớp Sông Ngòi Chân Thực (Major Westeros Rivers) */}
+            <g pointerEvents="none" stroke="#2563eb" opacity={0.65} fill="none" strokeLinecap="round">
+              {/* Sông Trident (Vùng Sông) */}
+              <path d="M 330 460 Q 420 520 480 610 T 660 680" strokeWidth={3} />
+              <path d="M 430 490 Q 460 550 480 610" strokeWidth={2} />
+              {/* Sông Blackwater Rush (Đất Vương Thất) */}
+              <path d="M 520 770 Q 610 750 690 770" strokeWidth={2.5} />
+              {/* Sông Mander (Reach) */}
+              <path d="M 520 770 Q 420 850 390 965 T 180 1070" strokeWidth={3} />
+              {/* Sông Greenblood (Dorne) */}
+              <path d="M 360 1180 Q 540 1280 720 1400" strokeWidth={2.5} />
+            </g>
+
             {/* territory layer (9.5.2) */}
             {showTerritory &&
               REGIONS.map((r) => {
@@ -181,25 +194,36 @@ export function MapScreen() {
                 const justChanged = fill.changedTurn > 0 && fill.changedTurn === currentTurn;
                 return (
                   <g key={r.id}>
+                    {/* Shadow / Coastline Glow border */}
+                    <polygon
+                      points={pts}
+                      fill="none"
+                      stroke="rgba(0,0,0,0.6)"
+                      strokeWidth={4}
+                      strokeLinejoin="round"
+                      pointerEvents="none"
+                    />
                     <polygon
                       points={pts}
                       fill={fill.striped ? "url(#contested)" : fill.color}
-                      style={{ transition: "fill 700ms ease, fill-opacity 700ms ease" }}
-                      fillOpacity={fill.isPlayer ? 0.62 : 0.44}
-                      stroke={fill.isPlayer ? PLAYER_HEAT_COLOR : "rgba(255,255,255,0.22)"}
-                      strokeWidth={fill.isPlayer ? 2.5 : 1.2}
+                      style={{ transition: "fill 700ms ease, fill-opacity 700ms ease, stroke 300ms ease" }}
+                      fillOpacity={fill.isPlayer ? 0.68 : 0.48}
+                      stroke={fill.isPlayer ? PLAYER_HEAT_COLOR : "rgba(255,255,255,0.35)"}
+                      strokeWidth={fill.isPlayer ? 3 : 1.6}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
                       onClick={() => {
                         if (dragMoved.current < 6) onRegionClick(r.id);
                       }}
-                      className="cursor-pointer"
+                      className="cursor-pointer hover:fill-opacity-80 transition-all"
                     />
                     {/* pulse "lan chiếm" khi vừa đổi chủ (9.5.3) */}
                     {justChanged && (
-                      <polygon points={pts} fill="none" stroke={fill.color} strokeWidth={4} className="anim-pulse" pointerEvents="none" />
+                      <polygon points={pts} fill="none" stroke={fill.color} strokeWidth={4} strokeLinejoin="round" className="anim-pulse" pointerEvents="none" />
                     )}
                     {/* nhấp nháy khi bị vây (9.5.3) */}
                     {fill.status === "Bị Vây" && (
-                      <polygon points={pts} fill="none" stroke="var(--danger)" strokeWidth={3} className="anim-pulse" pointerEvents="none" />
+                      <polygon points={pts} fill="none" stroke="var(--danger)" strokeWidth={3} strokeLinejoin="round" className="anim-pulse" pointerEvents="none" />
                     )}
                   </g>
                 );
@@ -210,16 +234,24 @@ export function MapScreen() {
               REGIONS.map((r) => {
                 const [cx, cy] = centroid(r.polygonPx);
                 return (
-                  <text
-                    key={`lbl-${r.id}`}
-                    x={cx}
-                    y={cy}
-                    textAnchor="middle"
-                    pointerEvents="none"
-                    style={{ fontFamily: "var(--font-display)", fontSize: 22, fill: "rgba(240,238,230,0.82)", letterSpacing: "0.04em" }}
-                  >
-                    {r.name}
-                  </text>
+                  <g key={`lbl-${r.id}`} pointerEvents="none">
+                    <text
+                      x={cx}
+                      y={cy + 1}
+                      textAnchor="middle"
+                      style={{ fontFamily: "var(--font-display)", fontSize: 21, fill: "rgba(0,0,0,0.8)", letterSpacing: "0.06em", fontWeight: "bold" }}
+                    >
+                      {r.name}
+                    </text>
+                    <text
+                      x={cx}
+                      y={cy}
+                      textAnchor="middle"
+                      style={{ fontFamily: "var(--font-display)", fontSize: 21, fill: "rgba(245,242,232,0.92)", letterSpacing: "0.06em" }}
+                    >
+                      {r.name}
+                    </text>
+                  </g>
                 );
               })}
 

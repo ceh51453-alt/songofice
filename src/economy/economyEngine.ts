@@ -16,6 +16,8 @@ import { treasuryMultiplier } from "../strategy/court";
 import { clamp } from "../mvu/helpers";
 import { makeRng, eventSeed } from "../probability/rng";
 import { createLogger } from "../lib/log";
+import { hasPrivilege } from "../character/roleplay";
+import { REGIONS_BY_ID } from "../content/westeros/regions";
 
 const log = createLogger("economy");
 
@@ -47,6 +49,21 @@ export function taxPreview(
   for (const territory of Object.values(state["Lãnh Địa"])) {
     baseGold += Math.round(territory["Dân Số"] * 0.005);
   }
+
+  // Thuế chư hầu vĩ mô
+  const canTaxMacro = hasPrivilege(state, "Thu Thuế Toàn Cõi") || hasPrivilege(state, "Thu Thuế Chư Hầu (Vùng)");
+  if (canTaxMacro) {
+    for (const [regionId, sov] of Object.entries(state["Chủ Quyền Lãnh Thổ"])) {
+      if (sov["Là Của Người Chơi"]) {
+        const regionInfo = REGIONS_BY_ID[regionId];
+        if (regionInfo) {
+          // Thu 200 Vàng cho mỗi 1 triệu dân số
+          baseGold += Math.round(regionInfo.population * 200);
+        }
+      }
+    }
+  }
+
   return {
     goldPerTurn: Math.round(baseGold * effect.goldMultiplier * coinMult),
     loyaltyPerTurn: effect.loyaltyPerTurn,
@@ -89,6 +106,7 @@ function tickTax(state: StatData, coinMult: number): number {
   const effect = TAX_TABLE[level];
   let taxGold = 0;
 
+  // 1. Thuế trực tiếp từ Lãnh Địa (vi mô)
   for (const territory of Object.values(state["Lãnh Địa"])) {
     const baseGold = Math.round(territory["Dân Số"] * 0.005);
     taxGold += Math.round(baseGold * effect.goldMultiplier);
@@ -99,6 +117,21 @@ function tickTax(state: StatData, coinMult: number): number {
       0,
       100,
     );
+  }
+
+  // 2. Thuế chư hầu (vĩ mô)
+  const canTaxMacro = hasPrivilege(state, "Thu Thuế Toàn Cõi") || hasPrivilege(state, "Thu Thuế Chư Hầu (Vùng)");
+  if (canTaxMacro) {
+    for (const [regionId, sov] of Object.entries(state["Chủ Quyền Lãnh Thổ"])) {
+      if (sov["Là Của Người Chơi"]) {
+        const regionInfo = REGIONS_BY_ID[regionId];
+        if (regionInfo) {
+          // Thu 200 Vàng cho mỗi 1 triệu dân số
+          const macroGold = Math.round(regionInfo.population * 200);
+          taxGold += Math.round(macroGold * effect.goldMultiplier);
+        }
+      }
+    }
   }
 
   return Math.round(taxGold * coinMult);

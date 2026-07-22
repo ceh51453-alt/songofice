@@ -8,6 +8,8 @@ import {
   IconBackpack, IconCalendar, IconCoins, IconCrossedSwords, IconDragon, IconPin, IconSpark, IconUsers,
 } from "../../icons";
 import { AnimatedNumber } from "./AnimatedNumber";
+import { canClaimIronThrone, claimIronThrone } from "../../../character/roleplay";
+import { applyPatch } from "../../../mvu/patchEngine";
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -56,6 +58,8 @@ export function StatusPanel() {
   const houses = Object.entries(stat["Thái Độ Các Nhà"]);
   const dragons = Object.entries(stat["Rồng"]);
 
+  const canClaimThrone = canClaimIronThrone(stat);
+
   return (
     <div className="space-y-3">
       {/* ---- Overview ---- */}
@@ -68,8 +72,20 @@ export function StatusPanel() {
           )}
           <div className="flex-1 min-w-0">
             <p className="font-display text-[15px] text-[var(--text-soft)] truncate">{info["Họ Tên"]}</p>
-            <p className="text-[12px] text-[var(--text-muted)] truncate">
-              Nhà {info["Tên Gia Tộc Tùy Chỉnh"] || info["Nhà"]} · Cấp {info["Cấp Độ"]}
+            <p className="text-[12px] text-[var(--text-muted)] truncate flex items-center gap-2">
+              <span>Nhà {info["Tên Gia Tộc Tùy Chỉnh"] || info["Nhà"]} · Cấp {info["Cấp Độ"]}</span>
+              {canClaimThrone && (
+                <button
+                  onClick={() => {
+                    const st = applyPatch(useMvuStore.getState().stat, []).state;
+                    claimIronThrone(st);
+                    useMvuStore.setState({ stat: st });
+                  }}
+                  className="bg-yellow-600 hover:bg-yellow-500 text-black px-1.5 py-0.5 rounded text-[10px] uppercase font-bold"
+                >
+                  Đăng Quang
+                </button>
+              )}
             </p>
             {info["Khẩu Hiệu"] && (
               <p className="text-[11px] text-[var(--text-faint)] italic mt-0.5 truncate">

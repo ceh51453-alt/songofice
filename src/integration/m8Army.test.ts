@@ -32,13 +32,13 @@ beforeEach(() => {
   s["Thông Tin Nhân Vật"]["Vàng"] = 10000;
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
-  s["Lãnh Địa"]["the-north"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0 };
+  s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0 };
   useMvuStore.setState({ stat: StatDataSchema.parse(s), pendingEvents: [], lastChangedPaths: [] });
 });
 
 describe("M8 — tuyển quân + huấn luyện + di chuyển (11.3/11.4)", () => {
   it("tuyển tại Doanh Trại → huấn luyện xong theo số ngày → điều tới vùng khác", () => {
-    const r = useMilitaryStore.getState().recruit("the-north", "Bộ Binh", 1000);
+    const r = useMilitaryStore.getState().recruit("the-north-seat", "Bộ Binh", 1000);
     expect(r.ok).toBe(true);
     const unitName = Object.keys(useMvuStore.getState().stat["Biên Chế Quân Sự"])[0];
     expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Turn Huấn Luyện"]).toBeGreaterThan(0);
@@ -62,7 +62,7 @@ describe("M8 — vây thành qua turn loop (12.2)", () => {
     // đặt sẵn 1 đại quân
     const st = applyPatch(useMvuStore.getState().stat, [{
       op: "replace", path: "stat_data.Biên Chế Quân Sự.Đại quân Bắc",
-      value: { "Số Lượng": 9000, "Loại Quân": "Bộ Binh", "Lãnh Địa Đồn Trú": "the-north" },
+      value: { "Số Lượng": 9000, "Loại Quân": "Bộ Binh", "Lãnh Địa Đồn Trú": "the-north-seat" },
     }]).state;
     useMvuStore.setState({ stat: st });
 
@@ -73,7 +73,8 @@ describe("M8 — vây thành qua turn loop (12.2)", () => {
     advanceDays(14); // > lương thủ (12 turn)
     expect(regionController(useMvuStore.getState().stat, "the-riverlands")).toBe("stark");
     expect(useMvuStore.getState().stat["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
-    expect(useMvuStore.getState().stat["Lãnh Địa"]["the-riverlands"]).toBeDefined();
+    console.log("Holdings in state:", Object.keys(useMvuStore.getState().stat["Lãnh Địa"]));
+    expect(useMvuStore.getState().stat["Lãnh Địa"]["the-riverlands-seat"]).toBeDefined();
     expect(useMvuStore.getState().stat["Quan Hệ Ngoại Giao"]["tully"]["War Score"]).toBeGreaterThan(0);
   });
 });
@@ -83,7 +84,7 @@ describe("M8 — War Score sau 1 trận Đại Chiến (12.1)", () => {
     // trang bị quân cho người chơi
     const st = applyPatch(useMvuStore.getState().stat, [{
       op: "replace", path: "stat_data.Biên Chế Quân Sự.Bộ binh Bắc",
-      value: { "Số Lượng": 8000, "Loại Quân": "Trường Thương", "Sĩ Khí": "Hăng Hái", "Huấn Luyện": "Thành Thạo", "Hậu Cần": "Dồi Dào", "Lãnh Địa Đồn Trú": "the-north" },
+      value: { "Số Lượng": 8000, "Loại Quân": "Trường Thương", "Sĩ Khí": "Hăng Hái", "Huấn Luyện": "Thành Thạo", "Hậu Cần": "Dồi Dào", "Lãnh Địa Đồn Trú": "the-north-seat" },
     }]).state;
     useMvuStore.setState({ stat: st });
 

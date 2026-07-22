@@ -11,13 +11,16 @@ import { parseEffect, recomputeDerived } from "../mvu/effects";
 import { clamp } from "../mvu/helpers";
 import { newRootSeed } from "../probability/rng";
 import { ORIGINS_BY_ID, type EquipGrant, type OriginDef } from "../content/westeros/origins";
+import { CULTURES_BY_ID } from "../content/westeros/cultures";
 import { TALENTS_BY_ID, type TalentDef } from "../content/westeros/talents";
 import { SKILLS_BY_ID, STARTING_SKILLS_BY_ORIGIN } from "../content/westeros/skills";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
 import { ERAS_BY_ID, parseHookYear, type CanonCharacter, type EraData, type StartingHook } from "../content/westeros/eras";
 import { STARTING_CRISES } from "../content/westeros/startingCrises";
 import { COMPANIONS_BY_ID } from "../content/westeros/companions";
+import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 import { seedRegionControl } from "../territory/territoryEngine";
+import { genId } from "../lib/id";
 import type { CoreStat } from "../content/westeros/skills";
 import type { LoreEntry } from "../lorebook/loreSchema";
 
@@ -31,6 +34,22 @@ export const BUDGETS: Record<Difficulty, { pointBuy: number; skillPoints: number
   "Cân Bằng": { pointBuy: 12, skillPoints: 15, talentSlots: 2 },
   "Chân Thực": { pointBuy: 8, skillPoints: 12, talentSlots: 2 },
 };
+
+export function getBudgetMultiplier(age: number): number {
+  if (age < 12) return 0.5;
+  if (age < 18) return 0.8;
+  return 1.0;
+}
+
+export function getCalculatedBudgets(difficulty: Difficulty, age: number) {
+  const base = BUDGETS[difficulty];
+  const mult = getBudgetMultiplier(age);
+  return {
+    pointBuy: Math.floor(base.pointBuy * mult),
+    skillPoints: Math.floor(base.skillPoints * mult),
+    talentSlots: base.talentSlots, // Giữ nguyên số slot thiên phú bẩm sinh
+  };
+}
 
 export const STAT_BASE = 8;
 export const STAT_MIN_CREATE = 6;
@@ -79,8 +98,9 @@ export function validatePointBuy(
   alloc: Record<CoreStat, number>,
   difficulty: Difficulty,
   talentIds: string[],
+  age: number
 ): { ok: boolean; spent: number; budget: number; error?: string } {
-  const budget = BUDGETS[difficulty].pointBuy + flawRefund(talentIds);
+  const budget = getCalculatedBudgets(difficulty, age).pointBuy + flawRefund(talentIds);
   for (const stat of CORE_STATS) {
     const v = alloc[stat] ?? STAT_BASE;
     if (v < STAT_MIN_CREATE || v > STAT_MAX_CREATE) {
@@ -123,6 +143,8 @@ export const DRAGON_SKILL_MAX_CREATE = 3;
 export interface WizardData {
   eraId: string;
   houseId: string | null;
+  /** Vị thế trong Nhà (Trực hệ, Nhánh phụ, Bề tôi, Kẻ đánh thuê) */
+  houseRole?: "Trực hệ" | "Nhánh phụ" | "Bề tôi" | "Kẻ đánh thuê";
   originId: string;
   narrativeMode: "Theo Sát Nguyên Tác" | "Diễn Giải Tự Do";
   scenarioMode: "Người Chơi Là Trung Tâm" | "Người Chơi Là Bối Cảnh";
@@ -142,6 +164,17 @@ export interface WizardData {
     npcs: { id: string; name: string; role: string; statPreset: string }[];
     units: { id: string; type: string; count: number; commander: string }[];
   };
+  /** Danh sách thành viên gia đình được tạo chi tiết */
+  familyMembers?: {
+    id: string;
+    name: string;
+    relation: string;
+    age: number;
+    persona: {
+      ngoaiHinh: string;
+      tinhCach: string;
+    };
+  }[];
   /** Tuổi nhân vật khi bắt đầu (default 25). */
   age: number;
   /** giá trị 6 chỉ số SAU point-buy, TRƯỚC bonus xuất thân. */
@@ -166,6 +199,11 @@ export interface WizardData {
   hookId: string;
   /** null = không có rồng (era không hỗ trợ hoặc người chơi không chọn). */
   dragon: DragonWizardData | null;
+  /** Quan hệ với nhân vật nguyên tác (tuỳ chọn) */
+  canonRelation?: {
+    characterId: string;
+    relation: string;
+  };
 }
 
 function talentToStateEntry(t: TalentDef): Record<string, unknown> {
@@ -219,6 +257,7 @@ function applyBase(state: StatData, era: EraData, d: Pick<WizardData, "narrative
   state["Cài Đặt Ván"]["Chế Độ Tường Thuật"] = d.narrativeMode;
   state["Cài Đặt Ván"]["Hướng Kịch Bản"] = d.scenarioMode;
   state["Cài Đặt Ván"]["Độ Khó Chiến Đấu"] = d.difficulty;
+  state["Cài Đặt Ván"]["$Bối Cảnh Ẩn"] = era.loreNotes || "";
   state["Thế Giới"]["Năm"] = actualStartYear ?? era.startYear;
   state["Thế Giới"]["Mùa"] = era.startSeason;
   state["Thế Giới"]["Vị Trí"] = era.startLocation;
@@ -229,6 +268,7 @@ function applyBase(state: StatData, era: EraData, d: Pick<WizardData, "narrative
 export function buildStateFromWizard(d: WizardData): StatData {
   const era = ERAS_BY_ID[d.eraId];
   const origin: OriginDef = ORIGINS_BY_ID[d.originId];
+  const cultureDef = CULTURES_BY_ID[d.culture];
   if (!era || !origin) throw new Error(`Era/Xuất thân không hợp lệ: ${d.eraId}/${d.originId}`);
   const hook = era.startingHooks.find((h) => h.id === d.hookId);
   const actualStartYear = parseHookYear(hook, era.startYear);
@@ -244,6 +284,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
   
   info["Họ Tên"] = d.name.trim() || "Vô Danh";
   info["Xuất Thân"] = origin.name;
+  info["Tước Vị"] = origin.tuocVi;
   info["Lục Địa"] = d.continent;
   info["Văn Hoá"] = d.culture || "Chưa Rõ";
   info["Tôn Giáo"] = d.religion || "Chưa Rõ";
@@ -251,6 +292,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
   info["Huyết Mạch"] = d.bloodline !== "none" ? BLOODLINES.find((b: any) => b.id === d.bloodline)?.name || "Chưa Rõ" : "Không";
   info["Đức Tin"] = 30;
   info["Ân Sủng"] = 10;
+
   if (d.nickname?.trim()) info["Biệt Danh"] = d.nickname.trim();
   if (d.portraitKey) info["Ảnh Chân Dung"] = d.portraitKey;
   
@@ -265,7 +307,14 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
   state["Persona"]["Ngoại Hình"] = d.persona.ngoaiHinh;
   state["Persona"]["Tính Cách"] = d.persona.tinhCach;
-  state["Persona"]["Tiểu Sử"] = d.persona.tieuSu;
+  let tieuSu = d.persona.tieuSu;
+  if (d.canonRelation) {
+    const canonChar = era.canonCharacters.find(c => c.id === d.canonRelation?.characterId);
+    if (canonChar) {
+      tieuSu += `\n\n[Quan hệ đặc biệt: Là ${d.canonRelation.relation} của ${canonChar.name}]`;
+    }
+  }
+  state["Persona"]["Tiểu Sử"] = tieuSu;
   state["Persona"]["Đặc Điểm"] = {
     "Màu Mắt": d.persona.mauMat,
     "Màu Tóc": d.persona.mauToc,
@@ -279,6 +328,8 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
   // ---- chỉ số cốt lõi: point-buy + bonus xuất thân (cộng SAU — 8.5 Bước 2) ----
   const core = state["Chỉ Số Cốt Lõi"];
+  
+  // Buffs khác (tôn giáo/huyết mạch)
   let extraBuffs: Record<string, number> = {};
   if (d.religion && PATRON_GODS[d.religion] && d.patronGod) {
     const god = PATRON_GODS[d.religion].find(g => g.name === d.patronGod);
@@ -292,8 +343,14 @@ export function buildStateFromWizard(d: WizardData): StatData {
       for (const [k, v] of Object.entries(b.buffs)) extraBuffs[k] = (extraBuffs[k] || 0) + (v as number);
     }
   }
+
+  // Tính tổng chỉ số cốt lõi
   for (const stat of CORE_STATS) {
-    core[stat] = clamp((d.pointBuy[stat] ?? STAT_BASE) + (origin.statBonus[stat] ?? 0) + (extraBuffs[stat] ?? 0), 1, 20);
+    const pbBase = d.pointBuy[stat] ?? STAT_BASE;
+    const originBonus = origin?.statBonus?.[stat] ?? 0;
+    const cultureBonus = cultureDef?.statBonus?.[stat] ?? 0;
+    const extraBonus = extraBuffs[stat] ?? 0;
+    core[stat] = clamp(pbBase + originBonus + cultureBonus + extraBonus, 1, 20);
   }
 
   // ---- thiên phú: quà xuất thân + chọn; effect VÔ ĐIỀU KIỆN cộng cốt lõi (C1) ----
@@ -307,7 +364,6 @@ export function buildStateFromWizard(d: WizardData): StatData {
         if ((CORE_STATS as string[]).includes(eff.key)) {
           core[eff.key as CoreStat] = clamp(core[eff.key as CoreStat] + eff.delta, 1, 20);
         }
-        // key phái sinh (Sát Thương Cận, Tải Trọng...) do recomputeDerived cộng qua talentBonusFor
       }
     }
   }
@@ -341,8 +397,6 @@ export function buildStateFromWizard(d: WizardData): StatData {
     (state["Túi Đồ"] as Record<string, unknown>)[item.ten] = { "Số Lượng": item.soLuong, "Mô Tả": item.moTa };
   }
   info["Vàng"] = origin.assets.vang;
-  // luongThuc: đẩy vào kho Tài Nguyên lãnh địa (nếu có); nếu không có lãnh địa, bỏ qua
-  // thuNhapKy / chiPhiKy: giờ do economy engine tính động (M12), không ghi tĩnh nữa
   if (origin.assets.lanhDia) {
     (state["Lãnh Địa"] as Record<string, unknown>)[origin.assets.lanhDia.ten] = {
       "Mô Tả": origin.assets.lanhDia.moTa,
@@ -359,6 +413,13 @@ export function buildStateFromWizard(d: WizardData): StatData {
   rep["Nhân Từ"] = origin.reputation.nhanTu ?? 0;
   rep["Uy Dũng"] = origin.reputation.uyDung ?? 0;
   rep["Xảo Quyệt"] = origin.reputation.xaoQuyet ?? 0;
+  
+  if (cultureDef && cultureDef.reputationBonus) {
+    if (cultureDef.reputationBonus.vinhDu) rep["Vinh Dự"] += cultureDef.reputationBonus.vinhDu;
+    if (cultureDef.reputationBonus.nhanTu) rep["Nhân Từ"] += cultureDef.reputationBonus.nhanTu;
+    if (cultureDef.reputationBonus.uyDung) rep["Uy Dũng"] += cultureDef.reputationBonus.uyDung;
+    if (cultureDef.reputationBonus.xaoQuyet) rep["Xảo Quyệt"] += cultureDef.reputationBonus.xaoQuyet;
+  }
 
   // ---- tâm phúc (Bước 8) ----
   if (d.companionId) {
@@ -425,6 +486,31 @@ export function buildStateFromWizard(d: WizardData): StatData {
     }
   }
 
+  // ---- Gia đình (Bước 2 mới) ----
+  if (d.familyMembers && d.familyMembers.length > 0) {
+    if (!state["Mối Quan Hệ"]["Thành Viên Gia Tộc"]) {
+      state["Mối Quan Hệ"]["Thành Viên Gia Tộc"] = {};
+    }
+    let familyLore = "\n\n[Gia đình & Tông tộc]:\n";
+    let hiddenFamilyNotes = `\n\nGia phả nhân vật chính (${d.name}):\n`;
+    for (const member of d.familyMembers) {
+      const npcName = member.name.trim() || "Người thân vô danh";
+      familyLore += `- ${member.relation}: ${npcName} (${member.age} tuổi). Ngoại hình: ${member.persona.ngoaiHinh || 'Bình thường'}. Tính cách: ${member.persona.tinhCach || 'Chưa rõ'}.\n`;
+      hiddenFamilyNotes += `- ${npcName}: ${member.relation} của ${d.name} (${d.houseId ? HOUSES_BY_ID[d.houseId]?.name : 'Không Nhà'}).\n`;
+      (state["Mối Quan Hệ"]["Thành Viên Gia Tộc"] as Record<string, unknown>)[member.id] = {
+        "Họ Tên": npcName,
+        "Tuổi": member.age,
+        "Loại Quan Hệ": member.relation,
+        "Ngoại Hình": member.persona.ngoaiHinh,
+        "Tính Cách": member.persona.tinhCach,
+        "Độ Hảo Cảm": 80,
+        "Tin Cậy": true,
+      };
+    }
+    state["Persona"]["Tiểu Sử"] += familyLore;
+    state["Cài Đặt Ván"]["$Bối Cảnh Ẩn"] += hiddenFamilyNotes;
+  }
+
   function getStatsForRole(role: string) {
     switch (role) {
       case "Tướng Quân": return { "Võ Lực": 14, "Thống Soái": 16, "Trí Mưu": 12, "Ngoại Giao": 10 };
@@ -463,6 +549,7 @@ export function buildStateFromCanon(
   info["Họ Tên"] = c.name;
   info["Nhà"] = c.house as typeof info["Nhà"];
   info["Xuất Thân"] = c.role;
+  info["Tước Vị"] = c.tuocVi;
   info["Lục Địa"] = "Westeros";
   info["Văn Hoá"] = "First Men";
   info["Tôn Giáo"] = c.religion || "Thất Diện Thần";
@@ -525,6 +612,50 @@ export function buildStateFromCanon(
 
   // canon: lãnh chúa cai quản vùng quê → mở holding nếu kiểm soát (9.6.1/10.1)
   seedRegionControl(state, era.id, { createIfMissing: true });
+
+  // ---- Cập nhật tài sản khởi điểm tuỳ chỉnh của nhân vật (nếu có) ----
+  if (c.startRegions) {
+    for (const rid of c.startRegions) {
+      if (state["Chủ Quyền Lãnh Thổ"][rid]) {
+        state["Chủ Quyền Lãnh Thổ"][rid]["Nhà Kiểm Soát"] = c.house;
+        state["Chủ Quyền Lãnh Thổ"][rid]["Là Của Người Chơi"] = true;
+      }
+    }
+  }
+
+  if (c.startHoldings) {
+    for (const sid of c.startHoldings) {
+      const marker = MAP_MARKERS.find(m => m.id === sid);
+      state["Lãnh Địa"][sid] = {
+        "Mô Tả": marker?.name || sid,
+        "Dân Số": marker?.population || 5000,
+        "Trung Thành": 80,
+        "Tài Nguyên": { "Vàng": 1000, "Lương Thực": 5000, "Gỗ": 1000, "Đá": 1000, "Quặng Sắt": 500 },
+        "Khủng Hoảng": [],
+        "Thuộc Vùng": sid, // Default to sid if region mapping is complex
+        "Ven Biển": false,
+        "Công Trình": {},
+      };
+    }
+  }
+
+  if (c.startArmy && c.startHoldings && c.startHoldings.length > 0) {
+    const firstHolding = c.startHoldings[0];
+    const unitId = genId("army");
+    state["Biên Chế Quân Sự"][unitId] = {
+      "Tướng Chỉ Huy": c.name,
+      "Số Lượng": c.startArmy.size,
+      "Loại Quân": "Bộ Binh",
+      "Thành Phần": {},
+      "Hậu Cần": "Dồi Dào",
+      "Sĩ Khí": "Ổn Định",
+      "Trang Bị": "Đồng Bộ Chỉnh Tề",
+      "Huấn Luyện": c.startArmy.quality === "Tân Binh" ? "Mới Lập Đội" : c.startArmy.quality === "Thiện Chiến" ? "Thành Thạo" : c.startArmy.quality,
+      "Lãnh Địa Đồn Trú": firstHolding,
+      "Turn Di Chuyển Còn Lại": 1,
+      "Turn Huấn Luyện": 0,
+    };
+  }
 
   recomputeDerived(state);
   state["Chỉ Số Sinh Tồn"]["HP"] = state["Chỉ Số Phái Sinh"]["_HP Tối Đa"];

@@ -14,7 +14,7 @@ import { availableSkills, type SkillDef } from "../../content/westeros/skills";
 import { availableCrises } from "../../content/westeros/startingCrises";
 import { COMPANIONS } from "../../content/westeros/companions";
 import {
-  BUDGETS, CORE_STATS, STAT_BASE, STAT_MAX_CREATE, STAT_MIN_CREATE, SKILL_MAX_CREATE,
+  getCalculatedBudgets, CORE_STATS, STAT_BASE, STAT_MAX_CREATE, STAT_MIN_CREATE, SKILL_MAX_CREATE,
   DRAGON_STAT_BASE, DRAGON_STAT_BUDGET, DRAGON_STAT_MAX_CREATE, DRAGON_STAT_MIN_CREATE,
   DRAGON_SKILL_BUDGET, DRAGON_SKILL_MAX_CREATE,
   buildStateFromCanon, buildStateFromWizard, flawRefund, pointBuySpent, resolveCrisisDesc, talentSlots,
@@ -23,6 +23,7 @@ import {
 import { DRAGON_STATS, DRAGON_SKILLS, DRAGON_SIZES, RELIGIONS, PATRON_GODS, BLOODLINES, type DragonStat, type DragonSkill } from "../../mvu/schema";
 import { startNewGame } from "../../character/startGame";
 import { savePortrait } from "../../state/db";
+import { CULTURES } from "../../content/westeros/cultures";
 import { genId } from "../../lib/id";
 import { useUiStore } from "../../state/uiStore";
 import { CharacterPreview } from "./CharacterPreview";
@@ -39,14 +40,15 @@ const WIZARD_STEPS = 12;
 
 function freshWizard(): WizardData {
   return {
-    eraId: "", houseId: null, originId: "",
+    eraId: "", houseId: null, houseRole: "Trực hệ", originId: "",
     narrativeMode: "Diễn Giải Tự Do", scenarioMode: "Người Chơi Là Trung Tâm", difficulty: "Cân Bằng",
     continent: "Westeros", culture: "First Men", religion: "Thất Diện Thần", patronGod: "", bloodline: "none", startingLocation: "",
     name: "", age: 25, pointBuy: Object.fromEntries(CORE_STATS.map((s) => [s, STAT_BASE])) as Record<CoreStat, number>,
-    talentIds: [], skillAllocations: {}, customForce: { npcs: [], units: [] },
+    talentIds: [], skillAllocations: {}, customForce: { npcs: [], units: [] }, familyMembers: [],
     persona: { ngoaiHinh: "", tinhCach: "", tieuSu: "", mauMat: "", mauToc: "", chieuCao: "" },
     crisisId: null, companionId: null, hookId: "ai-random",
     dragon: null,
+    canonRelation: undefined,
   };
 }
 
@@ -191,8 +193,8 @@ export function NewGameFlow() {
               <div className="grid grid-cols-3 gap-2">
                 {(["Nhàn Hạ", "Cân Bằng", "Chân Thực"] as Difficulty[]).map((m) => (
                   <Card key={m} selected={wiz.difficulty === m} onClick={() => patch({ difficulty: m })}>
-                    <span className="text-[13.5px] text-[var(--text-soft)]">{m}</span>
-                    <span className="block text-[11px] text-[var(--text-faint)]">{BUDGETS[m].pointBuy} điểm · {BUDGETS[m].skillPoints} kỹ năng</span>
+                    <span className="block text-[15px] font-medium text-[var(--text-bright)]">{m}</span>
+                    <span className="block text-[11px] text-[var(--text-faint)]">{getCalculatedBudgets(m, wiz.age).pointBuy} điểm · {getCalculatedBudgets(m, wiz.age).skillPoints} kỹ năng</span>
                   </Card>
                 ))}
               </div>
@@ -324,7 +326,26 @@ export function NewGameFlow() {
               <div>
                 <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Văn Hoá & Tôn Giáo</span>
                 <div className="space-y-2">
-                  <GlassInput placeholder="Văn hoá (VD: First Men, Valyrian...)" value={wiz.culture} onChange={(e) => patch({ culture: e.target.value })} />
+                  <select
+                    className="glass w-full px-3 py-2 text-[13px] text-[var(--text-soft)] bg-[rgba(0,0,0,0.4)] outline-none focus:border-[var(--accent)] mb-2"
+                    value={wiz.culture}
+                    onChange={(e) => {
+                      const selCulture = CULTURES.find(c => c.id === e.target.value);
+                      patch({
+                        culture: e.target.value,
+                        ...(selCulture?.defaultReligion && (!wiz.religion || wiz.religion === "Khác...") ? { religion: selCulture.defaultReligion } : {})
+                      });
+                    }}
+                  >
+                    {CULTURES.map((c) => (
+                      <option key={c.id} value={c.id} className="bg-[var(--bg-panel)]">{c.name}</option>
+                    ))}
+                  </select>
+                  {CULTURES.find(c => c.id === wiz.culture) && (
+                    <div className="text-[12px] text-[var(--text-dim)] mb-2 px-1">
+                      Buff: {Object.entries(CULTURES.find(c => c.id === wiz.culture)?.statBonus || {}).map(([k, v]) => `${k} +${v}`).join(", ")}
+                    </div>
+                  )}
                   <select
                     className="glass w-full px-3 py-2 text-[13px] text-[var(--text-soft)] bg-[rgba(0,0,0,0.4)] outline-none focus:border-[var(--accent)]"
                     value={RELIGIONS.includes(wiz.religion as any) ? wiz.religion : (wiz.religion ? "Khác..." : "")}
@@ -407,6 +428,50 @@ export function NewGameFlow() {
               })()}
             </div>
             
+            {wiz.houseId && (
+              <div className="mb-4 glass p-3 space-y-3">
+                <span className="block text-[13px] text-[var(--text-muted)] border-b border-[var(--glass-border)] pb-1">Vị Thế Trong Nhà</span>
+                <div className="flex gap-2">
+                  {(["Trực hệ", "Nhánh phụ", "Bề tôi", "Kẻ đánh thuê"] as const).map(role => (
+                    <Card key={role} selected={wiz.houseRole === role} onClick={() => patch({ houseRole: role })}>
+                      <span className="text-[13px]">{role}</span>
+                    </Card>
+                  ))}
+                </div>
+                {(wiz.houseRole === "Trực hệ" || wiz.houseRole === "Nhánh phụ") && (
+                  <div className="pt-2 border-t border-[var(--glass-border)]">
+                    <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Quan Hệ Với Nhân Vật Nguyên Tác (Tuỳ chọn)</span>
+                    <div className="flex gap-2">
+                      <select
+                        className="glass flex-1 px-3 py-2 text-[13px] text-[var(--text-soft)] bg-[rgba(0,0,0,0.4)] outline-none focus:border-[var(--accent)]"
+                        value={wiz.canonRelation?.characterId || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!val) {
+                            patch({ canonRelation: undefined });
+                          } else {
+                            patch({ canonRelation: { characterId: val, relation: wiz.canonRelation?.relation || "" } });
+                          }
+                        }}
+                      >
+                        <option value="" className="bg-[var(--bg-panel)]">Không có quan hệ đặc biệt</option>
+                        {era?.canonCharacters.map(c => (
+                          <option key={c.id} value={c.id} className="bg-[var(--bg-panel)]">{c.name} ({c.house})</option>
+                        ))}
+                      </select>
+                      {wiz.canonRelation && (
+                        <GlassInput 
+                          placeholder="Vai vế (VD: Anh trai, Kẻ thù...)" 
+                          value={wiz.canonRelation.relation} 
+                          onChange={(e) => patch({ canonRelation: { ...wiz.canonRelation!, relation: e.target.value } })} 
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
             {wiz.houseId === "custom" && (
               <div className="glass p-3 mb-4 space-y-3">
                 <span className="block text-[13px] text-[var(--text-muted)] border-b border-[var(--glass-border)] pb-1 mb-2">Tùy Chỉnh Thế Lực</span>
@@ -453,7 +518,7 @@ export function NewGameFlow() {
                 return true;
               }).map((o) => (
                 <Card key={o.id} selected={wiz.originId === o.id} onClick={() => patch({ originId: o.id })}>
-                  <span className="text-[14px] text-[var(--text-soft)]">{o.name}</span>
+                  <span className="text-[14px] text-[var(--text-soft)]">{o.name} <span className="text-[12px] opacity-70">[{o.tuocVi}]</span></span>
                   <span className="block mt-0.5 text-[12px] leading-relaxed text-[var(--text-faint)]">{o.desc}</span>
                   <span className="block mt-1 text-[11.5px] text-[var(--accent-text)]">
                     {Object.entries(o.statBonus).map(([s, v]) => `${s} +${v}`).join(", ")} · {o.assets.moTa.split(":")[0]}
@@ -511,11 +576,6 @@ export function NewGameFlow() {
       }
 
       case 2: {
-        if (wiz.houseId !== "custom") {
-          setStage("w3");
-          return null;
-        }
-        
         const BUDGET_GOLD = 5000;
         const UNIT_COSTS: Record<string, number> = {
           "Bộ Binh": 300, "Trường Thương": 350, "Kỵ Binh": 800, 
@@ -539,11 +599,49 @@ export function NewGameFlow() {
         const removeUnit = (id: string) => patch({ customForce: { ...forces, units: forces.units.filter(u => u.id !== id) } });
         const updateUnit = (id: string, data: any) => patch({ customForce: { ...forces, units: forces.units.map(u => u.id === id ? { ...u, ...data } : u) } });
 
+        const addFamilyMember = () => {
+          patch({ familyMembers: [...(wiz.familyMembers || []), { id: genId(), name: "", relation: "Anh em", age: 20, persona: { ngoaiHinh: "", tinhCach: "" } }] });
+        };
+        const updateFamily = (id: string, data: any) => {
+          patch({ familyMembers: (wiz.familyMembers || []).map(m => m.id === id ? { ...m, ...data } : m) });
+        };
+        const removeFamily = (id: string) => {
+          patch({ familyMembers: (wiz.familyMembers || []).filter(m => m.id !== id) });
+        };
+
         return (
           <div>
-            <StepHeader step={stepLabel} title="Xây Dựng Thế Lực" hint={`Ngân sách: ${BUDGET_GOLD - spent}/${BUDGET_GOLD} Vàng`} />
+            <StepHeader step={stepLabel} title="Tông Tộc & Thế Lực" hint={wiz.houseId === "custom" ? `Ngân sách thế lực: ${BUDGET_GOLD - spent}/${BUDGET_GOLD} Vàng` : "Thiết lập các thành viên trong gia đình bạn."} />
             <div className="space-y-4">
-              {/* Quân Đội */}
+              
+              {/* Gia Đình & Người Thân */}
+              <div>
+                <div className="flex justify-between items-center mb-2 border-b border-[var(--glass-border)] pb-1">
+                  <span className="text-[13px] text-[var(--text-muted)] font-medium">Người Thân / Gia Đình</span>
+                  <GlassButton size="sm" onClick={addFamilyMember}>+ Thêm Người Thân</GlassButton>
+                </div>
+                <div className="space-y-2">
+                  {(wiz.familyMembers || []).map(m => (
+                    <div key={m.id} className="glass p-3 space-y-2">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <input type="text" placeholder="Họ Tên" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={m.name} onChange={e => updateFamily(m.id, { name: e.target.value })} />
+                        <input type="text" placeholder="Vai vế (Vợ, Con, ...)" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/3" value={m.relation} onChange={e => updateFamily(m.id, { relation: e.target.value })} />
+                        <input type="number" min="0" max="100" placeholder="Tuổi" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-16" value={m.age} onChange={e => updateFamily(m.id, { age: parseInt(e.target.value) || 0 })} />
+                        <button onClick={() => removeFamily(m.id)} className="text-red-400 hover:text-red-300 ml-auto">×</button>
+                      </div>
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="Ngoại hình (Tuỳ chọn)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/2" value={m.persona.ngoaiHinh} onChange={e => updateFamily(m.id, { persona: { ...m.persona, ngoaiHinh: e.target.value } })} />
+                        <input type="text" placeholder="Tính cách (Tuỳ chọn)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/2" value={m.persona.tinhCach} onChange={e => updateFamily(m.id, { persona: { ...m.persona, tinhCach: e.target.value } })} />
+                      </div>
+                    </div>
+                  ))}
+                  {(wiz.familyMembers || []).length === 0 && <span className="text-[12px] text-[var(--text-faint)] block italic">Chưa có người thân nào</span>}
+                </div>
+              </div>
+
+              {wiz.houseId === "custom" && (
+                <>
+              {/* Đạo Quân */}
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-[13px] text-[var(--text-muted)]">Quân Đội (Vàng / 1000 lính)</span>
@@ -591,15 +689,17 @@ export function NewGameFlow() {
                   {forces.npcs.length === 0 && <span className="text-[12px] text-[var(--text-faint)] block italic">Chưa có thủ hạ nào</span>}
                 </div>
               </div>
+                </>
+              )}
             </div>
-            {spent > BUDGET_GOLD && <span className="block mt-3 text-[12px] text-red-400">Vượt quá ngân sách! Vui lòng giảm quân số.</span>}
-            <NavButtons onBack={back} onNext={spent <= BUDGET_GOLD ? next : undefined} blockedReason="Vượt ngân sách" />
+            {wiz.houseId === "custom" && spent > BUDGET_GOLD && <span className="block mt-3 text-[12px] text-red-400">Vượt quá ngân sách! Vui lòng giảm quân số.</span>}
+            <NavButtons onBack={back} onNext={(wiz.houseId !== "custom" || spent <= BUDGET_GOLD) ? next : undefined} blockedReason="Vượt ngân sách" />
           </div>
         );
       }
 
-case 3: {
-        const budget = BUDGETS[wiz.difficulty].pointBuy + flawRefund(wiz.talentIds);
+      case 3: {
+        const budget = getCalculatedBudgets(wiz.difficulty, wiz.age).pointBuy + flawRefund(wiz.talentIds);
         const spent = pointBuySpent(wiz.pointBuy);
         const setStat = (s: CoreStat, delta: number) => {
           const v = (wiz.pointBuy[s] ?? STAT_BASE) + delta;
@@ -679,8 +779,8 @@ case 3: {
       }
 
       case 5: {
+        const budget = getCalculatedBudgets(wiz.difficulty, wiz.age).skillPoints;
         const pool = availableSkills({ eraHasMagic: era?.hasMagic ?? false, chosenTalentIds: wiz.talentIds });
-        const budget = BUDGETS[wiz.difficulty].skillPoints;
         const spent = Object.values(wiz.skillAllocations).reduce((s, v) => s + v, 0);
         const setSkill = (id: string, delta: number) => {
           const v = (wiz.skillAllocations[id] ?? 0) + delta;
@@ -899,7 +999,7 @@ case 3: {
                 <GlassInput placeholder="Màu tóc" value={wiz.persona.mauToc} onChange={(e) => patch({ persona: { ...wiz.persona, mauToc: e.target.value } })} />
                 <GlassInput placeholder="Chiều cao" value={wiz.persona.chieuCao} onChange={(e) => patch({ persona: { ...wiz.persona, chieuCao: e.target.value } })} />
               </div>
-              <div>
+              <div className="pt-2 border-t border-[var(--glass-border)]">
                 <input ref={fileRef} type="file" accept="image/*" className="hidden"
                   onChange={(e) => setPortraitFile(e.target.files?.[0] ?? null)} />
                 <GlassButton onClick={() => fileRef.current?.click()}>

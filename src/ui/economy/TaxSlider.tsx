@@ -12,6 +12,7 @@ import { IconTax } from "./EconomyIcons";
 interface TaxSliderProps {
   currentLevel: TaxLevel;
   onChangeLevel: (level: TaxLevel) => void;
+  disabled?: boolean;
 }
 
 const LEVELS = [...TAX_LEVELS];
@@ -25,7 +26,7 @@ const LEVEL_LABELS: Record<TaxLevel, string> = {
 
 const dangerLevels = new Set<TaxLevel>(["Nặng", "Vắt Kiệt"]);
 
-export function TaxSlider({ currentLevel, onChangeLevel }: TaxSliderProps) {
+export function TaxSlider({ currentLevel, onChangeLevel, disabled }: TaxSliderProps) {
   const stat = useMvuStore((s) => s.stat);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const currentIdx = LEVELS.indexOf(currentLevel);
@@ -70,10 +71,12 @@ export function TaxSlider({ currentLevel, onChangeLevel }: TaxSliderProps) {
                     ? "bg-[var(--glass-bg-hover)] text-[var(--text-soft)]"
                     : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]"
                 }
+                ${disabled ? "opacity-50 cursor-not-allowed" : ""}
               `}
-              onClick={() => handleClick(idx)}
-              onMouseEnter={() => setHoveredIdx(idx)}
-              onMouseLeave={() => setHoveredIdx(null)}
+              onClick={() => { if (!disabled) handleClick(idx); }}
+              onMouseEnter={() => { if (!disabled) setHoveredIdx(idx); }}
+              onMouseLeave={() => { if (!disabled) setHoveredIdx(null); }}
+              disabled={disabled}
               title={level}
             >
               {LEVEL_LABELS[level]}

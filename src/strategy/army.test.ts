@@ -17,8 +17,8 @@ function lordWithBarracks(gold = 5000): StatData {
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
   s["Thông Tin Nhân Vật"]["Vàng"] = gold;
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
-  seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north
-  s["Lãnh Địa"]["the-north"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0 };
+  seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north-seat
+  s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0 };
   return StatDataSchema.parse(s);
 }
 
@@ -45,42 +45,42 @@ describe("Gate binh chủng theo Era (11.2b)", () => {
 describe("Tuyển quân (11.3)", () => {
   it("tuyển tại lãnh địa có Doanh Trại → trừ Vàng/Lương + đơn vị đang huấn luyện", () => {
     const s = lordWithBarracks(5000);
-    expect(hasBarracks(s, "the-north")).toBe(true);
-    const foodBefore = s["Lãnh Địa"]["the-north"]["Tài Nguyên"]["Lương Thực"];
-    const r = recruitUnit(s, "the-north", "Bộ Binh", 500);
+    expect(hasBarracks(s, "the-north-seat")).toBe(true);
+    const foodBefore = s["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"];
+    const r = recruitUnit(s, "the-north-seat", "Bộ Binh", 500);
     expect(r.ok).toBe(true);
     const { state } = applyPatch(s, r.ops);
     expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(5000 - 500); // 100/100 quân
-    expect(state["Lãnh Địa"]["the-north"]["Tài Nguyên"]["Lương Thực"]).toBe(foodBefore - 250);
+    expect(state["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"]).toBe(foodBefore - 250);
     const unit = state["Biên Chế Quân Sự"][r.unitName!];
     expect(unit["Số Lượng"]).toBe(500);
     expect(unit["Turn Huấn Luyện"]).toBeGreaterThan(0); // chưa chiến đấu được
-    expect(unit["Lãnh Địa Đồn Trú"]).toBe("the-north");
+    expect(unit["Lãnh Địa Đồn Trú"]).toBe("the-north-seat");
   });
 
   it("không có Doanh Trại → chặn; binh chủng ngoài Era → chặn", () => {
     const s = lordWithBarracks();
-    delete s["Lãnh Địa"]["the-north"]["Công Trình"]["Doanh Trại"];
-    expect(recruitUnit(s, "the-north", "Bộ Binh", 100).ok).toBe(false);
+    delete s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"];
+    expect(recruitUnit(s, "the-north-seat", "Bộ Binh", 100).ok).toBe(false);
     const s2 = lordWithBarracks();
-    expect(recruitUnit(s2, "the-north", "Rồng", 1).ok).toBe(false); // Rồng không tuyển được
+    expect(recruitUnit(s2, "the-north-seat", "Rồng", 1).ok).toBe(false); // Rồng không tuyển được
   });
 
   it("vượt sức tuyển/turn → chặn", () => {
     const s = lordWithBarracks(999999);
-    const cap = 1 * 800 + Math.floor(s["Lãnh Địa"]["the-north"]["Dân Số"] / 25);
-    expect(recruitUnit(s, "the-north", "Bộ Binh", cap + 1).ok).toBe(false);
-    expect(recruitUnit(s, "the-north", "Bộ Binh", cap).ok).toBe(true);
+    const cap = 1 * 800 + Math.floor(s["Lãnh Địa"]["the-north-seat"]["Dân Số"] / 25);
+    expect(recruitUnit(s, "the-north-seat", "Bộ Binh", cap + 1).ok).toBe(false);
+    expect(recruitUnit(s, "the-north-seat", "Bộ Binh", cap).ok).toBe(true);
   });
 });
 
 describe("Di chuyển trên bản đồ (11.4)", () => {
   it("moveArmy đặt đích + số turn theo khoảng cách px; tick cập nhật vị trí", () => {
     const s = lordWithBarracks();
-    // đặt 1 đơn vị đóng ở the-north
+    // đặt 1 đơn vị đóng ở the-north-seat
     const { state } = applyPatch(s, [{
       op: "replace", path: "stat_data.Biên Chế Quân Sự.Bộ binh Bắc",
-      value: { "Số Lượng": 3000, "Loại Quân": "Bộ Binh", "Lãnh Địa Đồn Trú": "the-north" },
+      value: { "Số Lượng": 3000, "Loại Quân": "Bộ Binh", "Lãnh Địa Đồn Trú": "the-north-seat" },
     }]);
     const r = moveArmy(state, "Bộ binh Bắc", "the-riverlands");
     expect(r.ok).toBe(true);

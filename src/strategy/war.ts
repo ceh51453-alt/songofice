@@ -10,6 +10,7 @@ import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import { registerTurnListener } from "../mvu/effects";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
+import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 import { playerHouseId, makeHolding } from "../territory/territoryEngine";
 
 export type DiploState = "Hoà Bình" | "Chiến Tranh" | "Đình Chiến";
@@ -91,11 +92,23 @@ function captureRegionMutate(state: StatData, regionId: string, newHouseId: stri
   sov["Là Của Người Chơi"] = isPlayer;
   sov["_Đổi Chủ Turn"] = turn;
   sov["_Vây"] = undefined;
+  
+  const seatMarker = MAP_MARKERS.find((m) => m.name === region.seat);
+  const seatId = seatMarker ? seatMarker.id : region.id + "-seat";
+
   const holdings = state["Lãnh Địa"] as Record<string, unknown>;
-  if (isPlayer && !holdings[regionId]) {
-    holdings[regionId] = makeHolding(region, { trungThanh: 35, moTa: `${region.seat} — vừa chiếm được, dân chưa quy phục` });
-  } else if (!isPlayer && wasPlayer && holdings[regionId]) {
-    delete holdings[regionId];
+  if (isPlayer && !holdings[seatId]) {
+    holdings[seatId] = makeHolding({
+      regionId: region.id,
+      terrain: region.terrain,
+      coastal: region.coastal,
+      name: region.seat,
+      danSo: seatMarker?.population ?? 20000,
+      trungThanh: 35, 
+      moTa: `${region.seat} — vừa chiếm được, dân chưa quy phục` 
+    });
+  } else if (!isPlayer && wasPlayer && holdings[seatId]) {
+    delete holdings[seatId];
   }
 }
 
@@ -110,8 +123,13 @@ export function tickSiege(state: StatData): void {
     vay["Turn Đã Vây"] += 1;
     vay["Lương Còn"] -= 1;
 
+    const region = REGIONS_BY_ID[regionId];
+    if (!region) continue;
+    const seatMarker = MAP_MARKERS.find((m) => m.name === region.seat);
+    const seatId = seatMarker ? seatMarker.id : region.id + "-seat";
+    
     // vùng bị vây là holding người chơi → drain lương + lòng dân
-    const holding = state["Lãnh Địa"][regionId];
+    const holding = state["Lãnh Địa"][seatId];
     if (holding) {
       holding["Tài Nguyên"]["Lương Thực"] = Math.max(0, holding["Tài Nguyên"]["Lương Thực"] - 150);
       holding["Trung Thành"] = Math.max(0, holding["Trung Thành"] - 2);

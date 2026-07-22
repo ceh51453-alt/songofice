@@ -73,7 +73,7 @@ describe("M9 — đổ bộ → vây thành ven biển (7.8→12.2)", () => {
 
     advanceDays(14);
     expect(regionController(useMvuStore.getState().stat, "the-westerlands")).toBe("greyjoy");
-    expect(useMvuStore.getState().stat["Lãnh Địa"]["the-westerlands"]).toBeDefined();
+    expect(useMvuStore.getState().stat["Lãnh Địa"]["the-westerlands-seat"]).toBeDefined();
   });
 });
 

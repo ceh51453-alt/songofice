@@ -20,6 +20,10 @@ export interface MapRegion {
   coastal: boolean; // giáp biển → mở Bến Cảng
   /** Nhà cai trị mặc định ở mốc 298 AC (Chiến Tranh Ngũ Vương) — houseId. */
   defaultHouse: string;
+  /** Dân số vĩ mô của toàn vùng (người). */
+  population: number;
+  /** Dân số của riêng trọng trấn (seat) - ví dụ King's Landing. */
+  seatPopulation?: number;
   /** Era mà trọng trấn CHƯA tồn tại (ẩn marker seat). VD King's Landing thời Chinh Phạt. */
   seatHiddenEras?: string[];
 }
@@ -31,51 +35,84 @@ export const MAP_H = 1500;
 export const REGIONS: MapRegion[] = [
   {
     id: "the-north", name: "Phương Bắc", seat: "Winterfell", seatXY: [470, 300],
-    polygonPx: [[200, 120], [760, 120], [800, 430], [620, 470], [360, 470], [180, 430]],
-    terrain: "Tuyết/Băng Giá", coastal: true, defaultHouse: "stark",
+    polygonPx: [
+      [200, 95], [380, 95], [520, 95], [760, 95], [785, 160], [740, 220],
+      [820, 270], [790, 340], [830, 390], [740, 440], [640, 480], [530, 490],
+      [420, 485], [330, 460], [280, 480], [220, 440], [170, 430], [210, 360],
+      [150, 310], [230, 270], [180, 210], [260, 160]
+    ],
+    terrain: "Tuyết/Băng Giá", coastal: true, defaultHouse: "stark", population: 4000000, seatPopulation: 15000,
     seatHiddenEras: ["long-night"],
   },
   {
-    id: "the-iron-islands", name: "Quần Đảo Sắt", seat: "Pyke", seatXY: [165, 575],
-    polygonPx: [[110, 520], [220, 515], [235, 615], [120, 625]],
-    terrain: "Đồng Bằng", coastal: true, defaultHouse: "greyjoy",
+    id: "the-iron-islands", name: "Quần Đảo Sắt", seat: "Pyke", seatXY: [75, 545],
+    polygonPx: [
+      [30, 480], [70, 470], [110, 490], [115, 530], [105, 575], [70, 595],
+      [35, 580], [20, 530]
+    ],
+    terrain: "Đồng Bằng", coastal: true, defaultHouse: "greyjoy", population: 1500000, seatPopulation: 10000,
     seatHiddenEras: ["long-night"],
   },
   {
     id: "the-vale", name: "Thung Lũng Arryn", seat: "The Eyrie", seatXY: [745, 585],
-    polygonPx: [[645, 490], [835, 470], [865, 665], [705, 705], [650, 600]],
-    terrain: "Hẻm Núi", coastal: true, defaultHouse: "arryn",
+    polygonPx: [
+      [640, 480], [655, 540], [630, 610], [660, 680], [740, 715], [820, 690],
+      [880, 660], [850, 620], [890, 580], [920, 530], [880, 490], [810, 465],
+      [720, 455]
+    ],
+    terrain: "Hẻm Núi", coastal: true, defaultHouse: "arryn", population: 4000000, seatPopulation: 10000,
   },
   {
     id: "the-riverlands", name: "Vùng Sông", seat: "Riverrun", seatXY: [480, 610],
-    polygonPx: [[360, 500], [630, 490], [662, 650], [560, 762], [400, 720], [330, 600]],
-    terrain: "Sông/Lối Vượt Sông", coastal: false, defaultHouse: "tully",
+    polygonPx: [
+      [330, 460], [420, 485], [530, 490], [640, 480], [655, 540], [630, 610],
+      [660, 680], [590, 730], [520, 770], [430, 750], [360, 715], [330, 650],
+      [340, 560]
+    ],
+    terrain: "Sông/Lối Vượt Sông", coastal: false, defaultHouse: "tully", population: 5500000, seatPopulation: 20000,
   },
   {
     id: "the-westerlands", name: "Vùng Tây", seat: "Casterly Rock", seatXY: [275, 690],
-    polygonPx: [[200, 560], [340, 560], [392, 720], [300, 822], [190, 762], [172, 642]],
-    terrain: "Đồi Núi", coastal: true, defaultHouse: "lannister",
+    polygonPx: [
+      [330, 460], [340, 560], [330, 650], [360, 715], [320, 770], [270, 810],
+      [200, 790], [180, 730], [190, 650], [180, 600], [210, 550], [240, 545]
+    ],
+    terrain: "Đồi Núi", coastal: true, defaultHouse: "lannister", population: 5000000, seatPopulation: 50000,
   },
   {
     id: "the-crownlands", name: "Đất Vương Thất", seat: "King's Landing", seatXY: [690, 770],
-    polygonPx: [[620, 690], [762, 680], [800, 820], [682, 862], [602, 782]],
-    terrain: "Đồng Bằng", coastal: true, defaultHouse: "baratheon",
-    seatHiddenEras: ["aegon-conquest", "long-night"], // Aegon mới đổ bộ, King's Landing chưa xây; Đêm Trường chưa có
+    polygonPx: [
+      [520, 770], [590, 730], [660, 680], [740, 715], [820, 690], [870, 740],
+      [840, 800], [790, 840], [720, 870], [640, 840], [590, 780]
+    ],
+    terrain: "Đồng Bằng", coastal: true, defaultHouse: "baratheon", population: 2000000, seatPopulation: 500000,
+    seatHiddenEras: ["aegon-conquest", "long-night"],
   },
   {
     id: "the-reach", name: "Reach", seat: "Highgarden", seatXY: [390, 965],
-    polygonPx: [[200, 840], [470, 782], [600, 852], [560, 1080], [360, 1162], [220, 1020]],
-    terrain: "Đồng Bằng", coastal: true, defaultHouse: "tyrell",
+    polygonPx: [
+      [270, 810], [320, 770], [360, 715], [430, 750], [520, 770], [590, 780],
+      [640, 840], [570, 860], [610, 940], [570, 1010], [590, 1100], [480, 1140],
+      [360, 1180], [250, 1160], [180, 1070], [210, 960], [150, 880], [160, 790]
+    ],
+    terrain: "Đồng Bằng", coastal: true, defaultHouse: "tyrell", population: 12000000, seatPopulation: 80000,
   },
   {
     id: "the-stormlands", name: "Vùng Bão", seat: "Storm's End", seatXY: [712, 1000],
-    polygonPx: [[620, 882], [802, 852], [832, 1082], [680, 1142], [602, 1002]],
-    terrain: "Rừng Rậm", coastal: true, defaultHouse: "baratheon",
+    polygonPx: [
+      [640, 840], [720, 870], [790, 840], [850, 880], [880, 950], [840, 1030],
+      [770, 1100], [670, 1140], [590, 1100], [570, 1010], [610, 940], [570, 860]
+    ],
+    terrain: "Rừng Rậm", coastal: true, defaultHouse: "baratheon", population: 2500000, seatPopulation: 15000,
   },
   {
     id: "dorne", name: "Dorne", seat: "Sunspear", seatXY: [545, 1290],
-    polygonPx: [[360, 1182], [682, 1150], [762, 1322], [560, 1422], [360, 1362]],
-    terrain: "Sa Mạc", coastal: true, defaultHouse: "martell",
+    polygonPx: [
+      [250, 1160], [360, 1180], [480, 1140], [590, 1100], [670, 1140], [770, 1100],
+      [830, 1160], [870, 1240], [810, 1330], [720, 1400], [580, 1440], [440, 1410],
+      [330, 1350], [280, 1260]
+    ],
+    terrain: "Sa Mạc", coastal: true, defaultHouse: "martell", population: 1800000, seatPopulation: 30000,
   },
 ];
 

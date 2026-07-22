@@ -50,9 +50,9 @@ describe("Vây thành (12.2)", () => {
 
     // chạy turn tới khi hết lương (SIEGE_FOOD_TURNS=12)
     for (let i = 0; i < 13; i++) tickSiege(state);
-    expect(regionController(state, "the-riverlands")).toBe("stark"); // thất thủ → về tay ta
+    expect(regionController(state, "the-riverlands")).toBe("stark"); // Stark là phe vây
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
-    expect(state["Lãnh Địa"]["the-riverlands"]).toBeDefined(); // mở quản trị (10.1)
+    expect(state["Lãnh Địa"]["the-riverlands-seat"]).toBeDefined(); // mở quản lý thành trì
     // War Score với Nhà thủ (Tully) tăng cho ta
     expect(state["Quan Hệ Ngoại Giao"]["tully"]["War Score"]).toBeGreaterThan(0);
   });

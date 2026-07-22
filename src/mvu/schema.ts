@@ -258,6 +258,7 @@ export const TerritorySchema = z
     "Mô Tả": safeString().prefault(""),
     "Dân Số": safeInt(1000),
     "Trung Thành": clampedStat(0, 100, 60),
+    "Thuộc Vùng": safeString().prefault(""), // regionId mà thành trì này toạ lạc
     "Địa Hình": TerrainSchema.optional(),
     "Ven Biển": z.boolean().catch(false).prefault(false),
     "Tài Nguyên": z
@@ -449,6 +450,7 @@ export const StatDataSchema = z
         "Hướng Kịch Bản": z.enum(["Người Chơi Là Trung Tâm", "Người Chơi Là Bối Cảnh"]).catch("Người Chơi Là Trung Tâm").prefault("Người Chơi Là Trung Tâm"),
         "Độ Khó Chiến Đấu": z.enum(["Nhàn Hạ", "Cân Bằng", "Chân Thực"]).catch("Cân Bằng").prefault("Cân Bằng"),
         "Thời Kỳ": safeString().optional(), // id Era (8.2)
+        "$Bối Cảnh Ẩn": safeString().prefault(""), // Bộ nhớ ẩn dành riêng cho AI (mối quan hệ, gia phả, bối cảnh phức tạp)
       })
       .prefault({}),
 
@@ -476,6 +478,7 @@ export const StatDataSchema = z
         "Tuổi": safeInt(25),
         "Năm Sinh": z.coerce.number().int().optional(),
         "Giai Đoạn Đời": z.enum(LIFE_STAGES).catch("Trưởng Thành").prefault("Trưởng Thành"),
+        "Tước Vị": z.enum(["Thường Dân", "Hiệp Sĩ", "Lãnh Chúa", "Đại Lãnh Chúa", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế"]).catch("Thường Dân").prefault("Thường Dân"),
       })
       .prefault({}),
 
