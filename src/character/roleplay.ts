@@ -92,6 +92,6 @@ export function canClaimIronThrone(state: StatData): boolean {
 export function claimIronThrone(state: StatData): void {
   if (!canClaimIronThrone(state)) return;
   state["Thông Tin Nhân Vật"]["Tước Vị"] = "Vua Bảy Vương Quốc";
-  // Tăng uy tín
-  state["Thông Tin Nhân Vật"]["Uy Tín"] += 500;
+  // Tăng danh vọng
+  state["Danh Vọng"]["Uy Dũng"] = Math.min(100, state["Danh Vọng"]["Uy Dũng"] + 50);
 }
