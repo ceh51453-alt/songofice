@@ -29,6 +29,7 @@ import { useUiStore } from "../../state/uiStore";
 import { CharacterPreview } from "./CharacterPreview";
 import { StartingLocationMap } from "./StartingLocationMap";
 import { AiWizardAssistant } from "./AiWizardAssistant";
+import { AiCanonAssistant } from "./AiCanonAssistant";
 import { CustomOriginEditor } from "./CustomOriginEditor";
 import { GlassButton } from "../components/GlassButton";
 import { GlassInput, GlassTextarea } from "../components/GlassInput";
@@ -92,6 +93,7 @@ export function NewGameFlow() {
   const [stage, setStage] = useState<Stage>("era");
   const [wiz, setWiz] = useState<WizardData>(freshWizard);
   const [canonChar, setCanonChar] = useState<CanonCharacter | null>(null);
+  const [customCanonChars, setCustomCanonChars] = useState<CanonCharacter[]>([]);
   const [canonHook, setCanonHook] = useState<StartingHook | null>(null);
   const [portraitFile, setPortraitFile] = useState<File | null>(null);
   const [isMapOpen, setMapOpen] = useState(false);
@@ -247,7 +249,28 @@ export function NewGameFlow() {
                 </Card>
                 );
               })}
+              {customCanonChars.map((c) => (
+                <Card key={c.id} selected={canonChar?.id === c.id} onClick={() => { setCanonChar(c); setCanonHook(null); setStage("canon-hook"); }}>
+                  <span className="font-display block text-[15px] text-[var(--text-soft)]">{c.name} <span className="text-[10px] text-[var(--accent)] border border-[var(--accent-border)] rounded-sm px-1 py-0.5 ml-1 bg-[rgba(234,179,8,0.1)]">AI Tự Tạo</span></span>
+                  <span className="text-[12px] text-[var(--accent-text)]">
+                    Nhà {c.house} · {c.role} · {c.age} tuổi
+                  </span>
+                  <span className="block mt-1 text-[12.5px] leading-relaxed text-[var(--text-muted)]">{c.blurb}</span>
+                </Card>
+              ))}
             </div>
+            
+            {era && (
+              <AiCanonAssistant 
+                era={era} 
+                onGenerated={(char) => {
+                  setCustomCanonChars((prev) => [...prev, char]);
+                  setCanonChar(char);
+                  setCanonHook(null);
+                }} 
+              />
+            )}
+            
             <NavButtons onBack={() => setStage("path")} />
           </div>
         );

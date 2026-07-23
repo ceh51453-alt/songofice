@@ -41,29 +41,29 @@ describe("Point-buy (8.5 Bước 2)", () => {
   it("tổng điểm cố định theo Độ Khó; vượt quỹ bị chặn", () => {
     const alloc = { ...makeWizard().pointBuy, "Sức Mạnh": 15, "Thể Chất": 13 }; // 7+5 = 12 điểm
     expect(pointBuySpent(alloc)).toBe(12);
-    expect(validatePointBuy(alloc, "Cân Bằng", []).ok).toBe(true);
+    expect(validatePointBuy(alloc, "Cân Bằng", [], 25).ok).toBe(true);
     const over = { ...alloc, "Uy Tín": 9 }; // 13 điểm > 12
-    expect(validatePointBuy(over, "Cân Bằng", []).ok).toBe(false);
-    expect(validatePointBuy(over, "Nhàn Hạ", []).ok).toBe(true); // quỹ 16
+    expect(validatePointBuy(over, "Cân Bằng", [], 25).ok).toBe(false);
+    expect(validatePointBuy(over, "Nhàn Hạ", [], 25).ok).toBe(true); // quỹ 16
   });
 
   it("HẠ chỉ số xuống tối thiểu 6 để lấy thêm điểm", () => {
     const alloc = { ...makeWizard().pointBuy, "Sức Mạnh": 6, "Trí Tuệ": 15, "Tinh Tường": 15 }; // -2 +7 +7 = 12
-    const r = validatePointBuy(alloc, "Cân Bằng", []);
+    const r = validatePointBuy(alloc, "Cân Bằng", [], 25);
     expect(r.ok).toBe(true);
     expect(r.spent).toBe(12);
     // dưới 6 → không hợp lệ
-    expect(validatePointBuy({ ...alloc, "Sức Mạnh": 5 }, "Cân Bằng", []).ok).toBe(false);
+    expect(validatePointBuy({ ...alloc, "Sức Mạnh": 5 }, "Cân Bằng", [], 25).ok).toBe(false);
     // trần 15 lúc tạo
-    expect(validatePointBuy({ ...alloc, "Trí Tuệ": 16 }, "Cân Bằng", []).ok).toBe(false);
+    expect(validatePointBuy({ ...alloc, "Trí Tuệ": 16 }, "Cân Bằng", [], 25).ok).toBe(false);
   });
 
   it("khiếm khuyết HOÀN điểm point-buy (+|cost|) và +1 slot thiên phú", () => {
     expect(flawRefund(["dwarf"])).toBe(3); // cost -3
     expect(flawRefund(["lame", "ill-reputed"])).toBe(4);
     const alloc = { ...makeWizard().pointBuy, "Trí Tuệ": 15, "Tinh Tường": 15 }; // 14 điểm
-    expect(validatePointBuy(alloc, "Cân Bằng", []).ok).toBe(false); // 14 > 12
-    expect(validatePointBuy(alloc, "Cân Bằng", ["dwarf"]).ok).toBe(true); // 12+3 = 15
+    expect(validatePointBuy(alloc, "Cân Bằng", [], 25).ok).toBe(false); // 14 > 12
+    expect(validatePointBuy(alloc, "Cân Bằng", ["dwarf"], 25).ok).toBe(true); // 12+3 = 15
     // slot: Cân Bằng 2 tích cực; nhận 1 flaw → 3
     expect(talentSlots("Cân Bằng", ["warrior-blood", "silver-tongue"]).max).toBe(2);
     expect(talentSlots("Cân Bằng", ["warrior-blood", "silver-tongue", "lame"]).max).toBe(3);

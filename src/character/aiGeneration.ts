@@ -2,6 +2,7 @@ import { streamChat } from "../api/client";
 import { useConnectionStore } from "../state/connectionStore";
 import type { WizardData } from "./characterInit";
 import type { ApiChatMessage } from "../types/connection";
+import type { CanonCharacter, EraData } from "../content/westeros/eras";
 import { ERAS_BY_ID } from "../content/westeros/eras";
 import { ORIGINS_BY_ID } from "../content/westeros/origins";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
@@ -119,6 +120,99 @@ CHÚ Ý QUAN TRỌNG:
     return parsed as Partial<WizardData>;
   } catch (e) {
     console.error("AI Generation JSON Parse Error:", e, jsonStr);
+    throw new Error("AI trả về dữ liệu không đúng định dạng JSON.");
+  }
+}
+
+export async function generateCanonCharacter(
+  prompt: string,
+  era: EraData,
+  signal?: AbortSignal
+): Promise<CanonCharacter> {
+  const profile = useConnectionStore.getState().activeProfile();
+  if (!profile) {
+    throw new Error("Không tìm thấy connection profile. Vui lòng thiết lập AI trong Cấu hình.");
+  }
+
+  const overrideProfile = { ...profile, params: { ...profile.params, stream: false } };
+
+  const systemPrompt = `Bạn là một Game Master lão luyện trong vũ trụ A Song of Ice and Fire.
+Người chơi đang muốn dùng AI để tạo ra một "Nhân vật có sẵn" (Canon Character) hoàn toàn mới hoặc một biến thể (What-if) cho kỷ nguyên: ${era.name} (${era.blurb}).
+Kỷ nguyên này có magic: ${era.hasMagic}.
+
+Nhiệm vụ của bạn:
+1. Đọc yêu cầu của người chơi.
+2. Tự động sáng tạo ra các giá trị phù hợp chuẩn lore ASOIAF (chỉ số, vật phẩm, trang bị, tiểu sử).
+   - Hãy cân bằng sức mạnh của nhân vật theo yêu cầu, nhưng nên giới hạn budget sao cho phù hợp với tước vị.
+   - Các field như coreStats phải tuân theo cấu trúc: "Sức Mạnh", "Nhanh Nhẹn", "Thể Chất", "Trí Tuệ", "Uy Tín", "Giác Quan", "Mưu Lược". Giá trị thường từ 1 đến 15.
+   - equipment: mảng các món đồ, phamChat có thể là "Thô Kệch", "Thường", "Tinh Xảo", "Thượng Hạng", "Thép Valyria", "Vô Giá".
+   - id: tạo 1 id duy nhất dạng "custom-ai-...".
+3. Trả về kết quả là một JSON duy nhất có cấu trúc chính xác của interface CanonCharacter.
+
+Cấu trúc mẫu (JSON):
+{
+  "id": "custom-ai-robb",
+  "name": "Robb Stark (What if)",
+  "tuocVi": "Lãnh Chúa",
+  "house": "Stark",
+  "role": "Chiến binh",
+  "religion": "Cựu Thần",
+  "blurb": "Một Sói Trẻ hung hãn...",
+  "birthYear": 283,
+  "age": 16,
+  "coreStats": {
+    "Sức Mạnh": 8, "Nhanh Nhẹn": 7, "Thể Chất": 8,
+    "Trí Tuệ": 5, "Uy Tín": 8, "Giác Quan": 6, "Mưu Lược": 6
+  },
+  "talentIds": [],
+  "skills": { "kiemThuat": 3, "chiHuy": 2 },
+  "equipment": [
+    {
+      "slot": "tayPhai",
+      "ten": "Kiếm Thép",
+      "phamChat": "Tinh Xảo",
+      "thuocTinh": { "satThuong": 10 },
+      "moTa": "Thép tốt từ Winterfell"
+    }
+  ],
+  "items": [],
+  "gold": 500,
+  "startingHookIds": []
+}
+
+CHÚ Ý QUAN TRỌNG:
+- CHỈ trả về một block JSON duy nhất.
+- KHÔNG kèm markdown \`\`\`json hay bất kỳ text giải thích nào khác.
+- JSON phải parse được bằng JSON.parse().`;
+
+  const messages: ApiChatMessage[] = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: prompt.trim() || "Tạo một nhân vật ngẫu nhiên chuẩn lore cho kỷ nguyên này." },
+  ];
+
+  let fullText = "";
+
+  const result = await streamChat(
+    overrideProfile,
+    messages,
+    {
+      onText: (t) => { fullText += t; },
+    },
+    signal
+  );
+
+  let jsonStr = result.text.trim();
+  if (jsonStr.startsWith("```json")) {
+    jsonStr = jsonStr.replace(/^```json/, "").replace(/```$/, "").trim();
+  } else if (jsonStr.startsWith("```")) {
+    jsonStr = jsonStr.replace(/^```/, "").replace(/```$/, "").trim();
+  }
+
+  try {
+    const parsed = JSON.parse(jsonStr);
+    return parsed as CanonCharacter;
+  } catch (e) {
+    console.error("AI Canon Generation JSON Parse Error:", e, jsonStr);
     throw new Error("AI trả về dữ liệu không đúng định dạng JSON.");
   }
 }
