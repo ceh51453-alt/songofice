@@ -9,7 +9,8 @@ import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { houseColor } from "../../content/westeros/houseColors";
 import { useChatStore } from "../../state/chatStore";
-
+import { useMvuStore } from "../../state/mvuStore";
+import { getPortraitForCharacter, SORTED_CHARS, CHAR_REGEX } from "./characterPortraits";
 function RavenScroll({ content }: { content: string }) {
   const { head, body } = splitTagParts(content);
   return (
@@ -165,22 +166,8 @@ function BattleReportCard({ content, attrs }: { content: string; attrs: Record<s
   );
 }
 
-const KNOWN_CHARACTERS = [
-  "Aegon Gardener", "Aegon Targaryen", "Aerys II Targaryen", "Argella Durrandon",
-  "Argilac Durrandon", "Corlys Velaryon", "Daemon Velaryon", "Eddard Stark",
-  "Edmyn Tully", "Elia Martell", "Harren the Black", "Hoster Tully",
-  "Howland Reed", "Jon Arryn", "Jon Connington", "Loren Lannister",
-  "Meria Martell", "Mern IX Gardener", "Orys Baratheon", "Quenton Qoherys",
-  "Rhaegar Targaryen", "Rhaenys Targaryen", "Robert Baratheon", "Ronnel Arryn",
-  "Sharra Arryn", "son of harren", "Stannis Baratheon", "Torrhen Stark",
-  "Vickon Greyjoy", "Visenya Targaryen"
-];
-
-const SORTED_CHARS = [...KNOWN_CHARACTERS].sort((a, b) => b.length - a.length);
-// Sử dụng lookahead/lookbehind hoặc \b cẩn thận. Với tiếng Anh \b đủ tốt.
-const CHAR_REGEX = new RegExp(`\\b(${SORTED_CHARS.join('|')})\\b`, 'gi');
-
 function CharacterMentionText({ text }: { text: string }) {
+  const currentYear = useMvuStore(s => s.stat["Thế Giới"]["Năm"]);
   if (!text) return null;
   const parts = text.split(CHAR_REGEX);
   
@@ -192,12 +179,13 @@ function CharacterMentionText({ text }: { text: string }) {
         const matchedChar = SORTED_CHARS.find(c => c.toLowerCase() === lowerPart);
         
         if (matchedChar) {
+          const image = getPortraitForCharacter(matchedChar, currentYear);
           return (
             <span key={i} className="group relative inline-block cursor-help font-medium text-[var(--accent-text)] hover:underline decoration-dashed decoration-1 underline-offset-2">
               {part}
               <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                 <div className="flex h-[150px] w-[150px] items-center justify-center overflow-hidden rounded-md border border-[var(--accent)] bg-black/80 shadow-[0_4px_24px_rgba(0,0,0,0.6)] backdrop-blur-sm">
-                  <img src={`/portraits/${matchedChar}.png`} alt={matchedChar} className="h-full w-full object-cover" />
+                  <img src={`/portraits/${image}`} alt={matchedChar} className="h-full w-full object-cover" />
                 </div>
               </span>
             </span>

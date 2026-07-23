@@ -146,6 +146,7 @@ export interface WizardData {
   /** Vị thế trong Nhà (Trực hệ, Nhánh phụ, Bề tôi, Kẻ đánh thuê) */
   houseRole?: "Trực hệ" | "Nhánh phụ" | "Bề tôi" | "Kẻ đánh thuê";
   originId: string;
+  customOrigin?: OriginDef;
   narrativeMode: "Theo Sát Nguyên Tác" | "Diễn Giải Tự Do";
   scenarioMode: "Người Chơi Là Trung Tâm" | "Người Chơi Là Bối Cảnh";
   difficulty: Difficulty;
@@ -267,7 +268,7 @@ function applyBase(state: StatData, era: EraData, d: Pick<WizardData, "narrative
 /** Dựng StatData từ wizard (8.6b). */
 export function buildStateFromWizard(d: WizardData): StatData {
   const era = ERAS_BY_ID[d.eraId];
-  const origin: OriginDef = ORIGINS_BY_ID[d.originId];
+  const origin: OriginDef = d.originId === "custom" && d.customOrigin ? d.customOrigin : ORIGINS_BY_ID[d.originId];
   const cultureDef = CULTURES_BY_ID[d.culture];
   if (!era || !origin) throw new Error(`Era/Xuất thân không hợp lệ: ${d.eraId}/${d.originId}`);
   const hook = era.startingHooks.find((h) => h.id === d.hookId);

@@ -281,14 +281,9 @@ export const useChatStore = create<ChatState>()(
           // khôi phục snapshot → áp ops của bản được chọn (19.1)
           useMvuStore.getState().restoreSnapshot(last.stateBefore);
           const variant = last.variants[next];
-          extractAndApply(variant);
+          applyVariant(variant);
           const updated: UiChatMessage = { ...last, activeVariant: next, content: variant.display };
           set({ messages: [...msgs.slice(0, -1), updated] });
-
-          function extractAndApply(v: MessageVariant): void {
-            const { ops } = extractUpdates(v.raw);
-            useMvuStore.getState().applyAiOps(ops);
-          }
         },
 
         cancel: () => {

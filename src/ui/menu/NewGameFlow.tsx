@@ -27,8 +27,9 @@ import { CULTURES } from "../../content/westeros/cultures";
 import { genId } from "../../lib/id";
 import { useUiStore } from "../../state/uiStore";
 import { CharacterPreview } from "./CharacterPreview";
-import { CustomForceEditor } from "./CustomForceEditor";
 import { StartingLocationMap } from "./StartingLocationMap";
+import { AiWizardAssistant } from "./AiWizardAssistant";
+import { CustomOriginEditor } from "./CustomOriginEditor";
 import { GlassButton } from "../components/GlassButton";
 import { GlassInput, GlassTextarea } from "../components/GlassInput";
 import { IconCheck, IconChevronLeft, IconSpinner } from "../icons";
@@ -257,6 +258,12 @@ export function NewGameFlow() {
           <div>
             <StepHeader title="Chọn Điểm Bắt Đầu" hint={canonChar?.name} />
             <div className="space-y-2.5">
+              {hooks.length === 0 && (
+                <Card selected={canonHook === null} onClick={() => { setCanonHook(null); setStage("canon-confirm"); }}>
+                  <span className="text-[14px] text-[var(--text-soft)]">Bắt đầu ở tình trạng mặc định</span>
+                  <span className="block mt-0.5 text-[12.5px] text-[var(--text-muted)]">Tiếp nối bối cảnh và mốc thời gian gốc của nhân vật trong kỷ nguyên này.</span>
+                </Card>
+              )}
               {hooks.map((h) => (
                 <Card key={h.id} selected={canonHook?.id === h.id} onClick={() => { setCanonHook(h); setStage("canon-confirm"); }}>
                   <span className="text-[14px] text-[var(--text-soft)]">{h.title}</span>
@@ -295,15 +302,50 @@ export function NewGameFlow() {
         );
 
       default:
-        return renderWizardStep();
+        const stepNameMap: Record<string, string> = {
+          "w1": "Nhà & Xuất Thân",
+          "w2": "Huyết Thống & Đặc Quyền",
+          "w3": "Tên & Tuổi",
+          "w4": "Phân Bổ Chỉ Số",
+          "w5": "Thiên Phú & Khiếm Khuyết",
+          "w6": "Kỹ Năng Khởi Đầu",
+          "w7": "Thế Lực Tuỳ Tùng",
+          "w8": "Nhân Dạng & Tiểu Sử",
+          "w9": "Khủng Hoảng Khởi Đầu",
+          "w10": "Một Tâm Phúc Khởi Đầu",
+          "w11": "Điểm Bắt Đầu",
+          "w12": "Cuộn Giấy Vận Mệnh"
+        };
+        const currentStepName = stepNameMap[stage as string];
+
+        return (
+          <div className="flex flex-col">
+            {renderWizardStep()}
+            {isWizard && currentStepName && stage !== "w12" && (
+              <AiWizardAssistant
+                currentData={wiz}
+                stepName={currentStepName}
+                onApplyPatch={patch}
+              />
+            )}
+          </div>
+        );
     }
   }
 
   // ─────────────────────────── wizard 10 bước ───────────────────────────
   function renderWizardStep(): React.ReactNode {
     const stepNum = Number(String(stage).slice(1));
-    const back = () => setStage(stepNum === 1 ? "path" : (`w${stepNum - 1}` as Stage));
-    const next = () => setStage(`w${stepNum + 1}` as Stage);
+    const back = () => {
+      let prev = stepNum - 1;
+      if (prev === 6 && !(era?.hasMagic)) prev = 5;
+      setStage(prev === 0 ? "path" : (`w${prev}` as Stage));
+    };
+    const next = () => {
+      let n = stepNum + 1;
+      if (n === 6 && !(era?.hasMagic)) n = 7;
+      setStage(`w${n}` as Stage);
+    };
     const stepLabel = `TỰ TẠO NHÂN VẬT — BƯỚC ${stepNum}/${WIZARD_STEPS}`;
 
     switch (stepNum) {
@@ -499,12 +541,6 @@ export function NewGameFlow() {
                     )}
                   </div>
                 </div>
-                {wiz.customForce && (
-                  <CustomForceEditor
-                    force={wiz.customForce}
-                    onChange={(newForce) => patch({ customForce: newForce })}
-                  />
-                )}
               </div>
             )}
 
@@ -525,7 +561,25 @@ export function NewGameFlow() {
                   </span>
                 </Card>
               ))}
+              <Card selected={wiz.originId === "custom"} onClick={() => patch({ originId: "custom" })}>
+                <span className="text-[14px] text-[var(--accent-text)]">Tùy Chỉnh (Tạo bằng AI)</span>
+                <span className="block mt-0.5 text-[12px] leading-relaxed text-[var(--text-faint)]">
+                  {wiz.customOrigin ? wiz.customOrigin.desc : "Hãy dùng Trợ lý AI bên dưới để tạo chi tiết xuất thân của bạn."}
+                </span>
+                {wiz.customOrigin && (
+                  <span className="block mt-1 text-[11.5px] text-[var(--accent-text)]">
+                    {wiz.customOrigin.name} · {Object.entries(wiz.customOrigin.statBonus || {}).map(([s, v]) => `${s} +${v}`).join(", ")}
+                  </span>
+                )}
+              </Card>
             </div>
+            
+            {wiz.originId === "custom" && (
+              <CustomOriginEditor
+                origin={wiz.customOrigin}
+                onChange={(o) => patch({ customOrigin: o })}
+              />
+            )}
 
             {/* ── Tuổi ── */}
             <span className="block mb-1.5 mt-4 text-[13px] text-[var(--text-muted)]">Tuổi</span>
@@ -819,12 +873,10 @@ export function NewGameFlow() {
       }
 
       case 6: {
-        // Bước Rồng — chỉ hiện khi Era có magic; không có magic thì auto-skip
+        // Bước Rồng — chỉ hiện khi Era có magic
         const canHaveDragon = era?.hasMagic ?? false;
         if (!canHaveDragon) {
-          // auto-skip: nhảy thẳng bước tiếp
-          setStage("w7");
-          return null;
+          return null; // Được skip qua logic next()/back()
         }
         const freshDragon = (): DragonWizardData => ({
           name: "", color: "Đen", size: "Non",
