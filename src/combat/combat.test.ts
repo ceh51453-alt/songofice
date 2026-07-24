@@ -55,7 +55,7 @@ describe("Battle Resolver (7.9)", () => {
     expect(gradeBattle(3.0 - 0.25)).toBe("Đại Thắng");
     // fog map đúng bảng
     for (let seed = 0; seed < 50; seed++) {
-      const f = fogRoll(makeRng(seed));
+      const f = fogRoll(makeRng(seed), "Trời Quang");
       const sum = f.dice[0] + f.dice[1];
       expect(sum).toBeGreaterThanOrEqual(2);
       expect(sum).toBeLessThanOrEqual(12);
@@ -69,8 +69,8 @@ describe("Battle Resolver (7.9)", () => {
       totalTroops: 3000, morale: 85, training: 85, logistics: 85, equipment: 85,
       general: { name: "Danh tướng", command: 90, cunning: 80, traits: [] },
     });
-    const pMob = battlePower(mob, elite, undefined);
-    const pElite = battlePower(elite, mob, undefined);
+    const pMob = battlePower(mob, elite, undefined, "Trời Quang");
+    const pElite = battlePower(elite, mob, undefined, "Trời Quang");
     // 8000 ô hợp vs 3000 tinh nhuệ: tinh nhuệ phải gần ngang hoặc hơn
     expect(pElite / pMob).toBeGreaterThan(0.85);
   });
@@ -220,7 +220,7 @@ describe("Duel 1v1 (7.1/7.2/7.14)", () => {
 
 describe("Giao Tranh (7.13)", () => {
   function sideS(partial?: Partial<SkirmishSide>): SkirmishSide {
-    return { name: "x", troops: 10, quality: "Thường", keyFighters: [], ...partial };
+    return { name: "x", troops: 10, quality: "Thường", morale: 50, logistics: "Đầy Đủ", troopType: "Bộ Binh", keyFighters: [], ...partial };
   }
 
   it("cùng seed cùng kết quả; phe mạnh hơn thắng", () => {

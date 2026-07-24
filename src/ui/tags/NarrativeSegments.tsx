@@ -171,7 +171,9 @@ function CharacterMentionText({ text }: { text: string }) {
   if (!text) return null;
   const parts = text.split(CHAR_REGEX);
   
-  return (
+  const mentionedChars: Array<{ name: string; image: string }> = [];
+
+  const renderedText = (
     <span className="whitespace-pre-wrap">
       {parts.map((part, i) => {
         if (!part) return null;
@@ -180,20 +182,36 @@ function CharacterMentionText({ text }: { text: string }) {
         
         if (matchedChar) {
           const image = getPortraitForCharacter(matchedChar, currentYear);
+          if (image && !mentionedChars.some(c => c.name === matchedChar)) {
+            mentionedChars.push({ name: matchedChar, image });
+          }
           return (
-            <span key={i} className="group relative inline-block cursor-help font-medium text-[var(--accent-text)] hover:underline decoration-dashed decoration-1 underline-offset-2">
+            <span key={i} className="font-medium text-[var(--accent-text)]">
               {part}
-              <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                <div className="flex h-[150px] w-[150px] items-center justify-center overflow-hidden rounded-md border border-[var(--accent)] bg-black/80 shadow-[0_4px_24px_rgba(0,0,0,0.6)] backdrop-blur-sm">
-                  <img src={`/portraits/${image}`} alt={matchedChar} className="h-full w-full object-cover" />
-                </div>
-              </span>
             </span>
           );
         }
         return <span key={i}>{part}</span>;
       })}
     </span>
+  );
+
+  return (
+    <>
+      {renderedText}
+      {mentionedChars.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-4 justify-center">
+          {mentionedChars.map(char => (
+            <div key={char.name} className="flex flex-col items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--glass-bg)] p-2 shadow-sm">
+              <div className="flex h-[280px] w-[220px] items-center justify-center overflow-hidden rounded-sm bg-black/50">
+                <img src={`/portraits/${char.image}`} alt={char.name} className="h-full w-full object-cover" />
+              </div>
+              <span className="font-display text-[13px] font-medium tracking-wide text-[var(--accent-text)]">{char.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 

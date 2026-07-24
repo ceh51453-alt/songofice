@@ -16,6 +16,7 @@ import { TALENTS_BY_ID, type TalentDef } from "../content/westeros/talents";
 import { SKILLS_BY_ID, STARTING_SKILLS_BY_ORIGIN } from "../content/westeros/skills";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
 import { ERAS_BY_ID, parseHookYear, type CanonCharacter, type EraData, type StartingHook } from "../content/westeros/eras";
+import { LORE_EQUIPMENT_BY_ID } from "../content/westeros/equipment";
 import { STARTING_CRISES } from "../content/westeros/startingCrises";
 import { COMPANIONS_BY_ID } from "../content/westeros/companions";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
@@ -76,10 +77,14 @@ export function npcAffinityOffset(talentIds: string[]): number {
 // Point-buy (8.5 Bước 2): 6 chỉ số từ 8, quỹ cố định, hạ tối thiểu 6 lấy điểm,
 // trần 15 lúc tạo. Tuyến tính 1 điểm = +1. Khiếm khuyết hoàn |cost| điểm.
 // ---------------------------------------------------------------------------
-export function pointBuySpent(alloc: Record<CoreStat, number>): number {
+export function pointBuySpent(alloc: Record<CoreStat, number>, loreEquipmentIds: string[] = []): number {
   let spent = 0;
   for (const stat of CORE_STATS) {
     spent += (alloc[stat] ?? STAT_BASE) - STAT_BASE; // âm khi hạ dưới 8 (hoàn điểm)
+  }
+  for (const eqId of loreEquipmentIds) {
+    const eq = LORE_EQUIPMENT_BY_ID[eqId];
+    if (eq && eq.pointCost) spent += eq.pointCost;
   }
   return spent;
 }
@@ -98,7 +103,8 @@ export function validatePointBuy(
   alloc: Record<CoreStat, number>,
   difficulty: Difficulty,
   talentIds: string[],
-  age: number
+  age: number,
+  loreEquipmentIds: string[] = []
 ): { ok: boolean; spent: number; budget: number; error?: string } {
   const budget = getCalculatedBudgets(difficulty, age).pointBuy + flawRefund(talentIds);
   for (const stat of CORE_STATS) {
@@ -107,7 +113,7 @@ export function validatePointBuy(
       return { ok: false, spent: 0, budget, error: `${stat} phải trong ${STAT_MIN_CREATE}–${STAT_MAX_CREATE}` };
     }
   }
-  const spent = pointBuySpent(alloc);
+  const spent = pointBuySpent(alloc, loreEquipmentIds);
   if (spent > budget) return { ok: false, spent, budget, error: `Vượt quỹ điểm (${spent}/${budget})` };
   return { ok: true, spent, budget };
 }
@@ -205,6 +211,17 @@ export interface WizardData {
     characterId: string;
     relation: string;
   };
+  /** Danh sách ID trang bị Lore đã chọn */
+  loreEquipmentIds?: string[];
+  /** Danh sách trang bị tự rèn/đặt rèn */
+  customEquipments?: CraftingRequest[];
+}
+
+export interface CraftingRequest {
+  name: string;
+  slot: "Vũ Khí Chính" | "Vũ Khí Phụ" | "Giáp Thân" | "Áo Choàng" | "Vật Phẩm Đặc Biệt";
+  material: "Thép Thường" | "Thép Tinh Luyện" | "Thép Valyria" | "Da Thú" | "Sắt Đen";
+  crafter: "Bản thân" | "Thợ rèn Qohor" | "Thợ rèn Lâu Đài";
 }
 
 function talentToStateEntry(t: TalentDef): Record<string, unknown> {
@@ -397,7 +414,49 @@ export function buildStateFromWizard(d: WizardData): StatData {
   for (const item of origin.items) {
     (state["Túi Đồ"] as Record<string, unknown>)[item.ten] = { "Số Lượng": item.soLuong, "Mô Tả": item.moTa };
   }
-  info["Vàng"] = origin.assets.vang;
+  
+  let startingGold = origin.assets.vang;
+
+  // Áp dụng trang bị Lore
+  if (d.loreEquipmentIds) {
+    for (const loreId of d.loreEquipmentIds) {
+      const loreDef = LORE_EQUIPMENT_BY_ID[loreId];
+      if (loreDef) {
+        if (loreDef.goldCost) startingGold = Math.max(0, startingGold - loreDef.goldCost);
+        (state["Trang Bị Đang Mặc"] as Record<string, unknown>)[loreDef.slot] = { ...loreDef.itemData };
+      }
+    }
+  }
+
+  // Áp dụng trang bị Tự Rèn
+  if (d.customEquipments) {
+    for (const custom of d.customEquipments) {
+      let cost = 100;
+      let phamChat = "Thường";
+      let dmg = 2;
+      let def = 2;
+      let traits = ["tự rèn"];
+      
+      if (custom.material === "Thép Tinh Luyện") { cost += 300; phamChat = "Tinh Xảo"; dmg += 2; def += 2; }
+      else if (custom.material === "Thép Valyria") { cost += 2000; phamChat = "Thép Valyria"; dmg += 4; def += 4; traits.push("valyrian"); }
+      
+      if (custom.crafter === "Thợ rèn Qohor") { cost += 500; phamChat = phamChat === "Thường" ? "Tinh Xảo" : "Thượng Hạng"; dmg += 1; def += 1; traits.push("chế tác hoàn mỹ"); }
+      
+      startingGold = Math.max(0, startingGold - cost);
+      
+      (state["Trang Bị Đang Mặc"] as Record<string, unknown>)[custom.slot] = {
+        "Tên": custom.name,
+        "Phẩm Chất": phamChat,
+        "Chất Liệu": custom.material,
+        "Người Rèn": custom.crafter,
+        "Thuộc Tính": custom.slot.includes("Vũ Khí") ? { "Sát Thương Cận": dmg } : { "Phòng Thủ": def },
+        "Đặc Tính": traits,
+        "Mô Tả": `Một món đồ được đặt làm riêng bởi ${custom.crafter}.`,
+      };
+    }
+  }
+
+  info["Vàng"] = startingGold;
   if (origin.assets.lanhDia) {
     (state["Lãnh Địa"] as Record<string, unknown>)[origin.assets.lanhDia.ten] = {
       "Mô Tả": origin.assets.lanhDia.moTa,

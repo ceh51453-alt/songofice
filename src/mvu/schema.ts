@@ -224,10 +224,11 @@ export const EquipItemSchema = z
   .object({
     "Tên": safeString().prefault(""),
     "Phẩm Chất": z
-      .enum(["Thô Kệch", "Thường", "Tinh Xảo", "Thượng Hạng", "Thép Valyria", "Vô Giá"])
+      .enum(["Thô Kệch", "Thường", "Tinh Xảo", "Thượng Hạng", "Thép Valyria", "Huyền Thoại", "Độc Nhất", "Vô Giá"])
       .catch("Thường")
       .prefault("Thường"),
     "Chất Liệu": safeString().optional(),
+    "Người Rèn": safeString().optional(),
     "Thuộc Tính": z.record(safeString(), z.coerce.number().catch(0)).catch({}).prefault({}), // {"Sát Thương Cận":5,"Phòng Thủ":3}
     "Đặc Tính": z.array(safeString()).catch([]).prefault([]), // tag: "valyrian","obsidian","xuyên giáp","gia truyền"
     "Mô Tả": safeString().prefault(""),

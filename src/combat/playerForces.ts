@@ -13,12 +13,14 @@ function mod(stat: number): number {
   return Math.floor((stat - 10) / 2); // quy đổi 1-20 → bonus kiểu D&D (7.1)
 }
 
-/** Duelist của NGƯỜI CHƠI từ state (7.2 — attackerModifier = mod(chỉ số) + cấp kỹ năng vũ khí). */
 export function playerDuelist(state: StatData): Duelist {
   const core = state["Chỉ Số Cốt Lõi"];
   const derived = state["Chỉ Số Phái Sinh"];
   const vitals = state["Chỉ Số Sinh Tồn"];
-  const weapon = state["Trang Bị Đang Mặc"]["Vũ Khí Chính"];
+  const equipped = state["Trang Bị Đang Mặc"];
+  const weapon = equipped["Vũ Khí Chính"];
+  const armor = equipped["Giáp Thân"];
+  
   // cấp kỹ năng vũ khí cao nhất nhóm Chiến Đấu (trừ Chỉ Huy)
   const weaponSkill = Math.max(
     0,
@@ -26,6 +28,26 @@ export function playerDuelist(state: StatData): Duelist {
       .filter(([name, s]) => s["Nhóm"] === "Chiến Đấu" && name !== "Chỉ Huy Quân")
       .map(([, s]) => s["Cấp"]),
   );
+
+  // Aggregate traits from all equipped items
+  const equipmentTraits = new Set<string>();
+  for (const item of Object.values(equipped)) {
+    if (item && item["Đặc Tính"]) {
+      for (const t of item["Đặc Tính"]) {
+        equipmentTraits.add(t);
+      }
+    }
+  }
+
+  let agilityMod = mod(core["Nhanh Nhẹn"]);
+  if (equipmentTraits.has("giáp_nặng") || (armor?.["Đặc Tính"]?.includes("Giáp Nặng"))) {
+    agilityMod -= 2;
+  }
+
+  // Also convert equipment traits to camel/snake case if needed, or just keep them as is. 
+  // Our system expects "poisoned_blade", "riposte", "brute_force", "agile_dancer", "second_wind"
+  const traits = Array.from(equipmentTraits);
+
   return {
     name: state["Thông Tin Nhân Vật"]["Họ Tên"],
     hp: vitals["HP"],
@@ -33,13 +55,14 @@ export function playerDuelist(state: StatData): Duelist {
     armorClass: derived["_Phòng Thủ"],
     attackMod: mod(core["Sức Mạnh"]) + weaponSkill,
     damageBonus: derived["_Sát Thương Cận"],
-    weaponDice: "1d8",
-    damageReduction: 2,
-    agilityMod: mod(core["Nhanh Nhẹn"]),
+    weaponDice: "1d8", // In the future, this can be parsed from weapon properties
+    damageReduction: 2, // In the future, this can be derived from armor properties
+    agilityMod,
     stamina: vitals["Thể Lực"],
     maxStamina: derived["_Thể Lực Tối Đa"],
     valyrianOrObsidian:
-      weapon?.["Đặc Tính"]?.some((t) => t === "valyrian" || t === "obsidian") ?? false,
+      equipmentTraits.has("valyrian") || equipmentTraits.has("obsidian"),
+    traits
   };
 }
 

@@ -31,6 +31,7 @@ import { StartingLocationMap } from "./StartingLocationMap";
 import { AiWizardAssistant } from "./AiWizardAssistant";
 import { AiCanonAssistant } from "./AiCanonAssistant";
 import { CustomOriginEditor } from "./CustomOriginEditor";
+import { WizardEquipment } from "./WizardEquipment";
 import { GlassButton } from "../components/GlassButton";
 import { GlassInput, GlassTextarea } from "../components/GlassInput";
 import { IconCheck, IconChevronLeft, IconSpinner } from "../icons";
@@ -38,7 +39,7 @@ import type { CoreStat } from "../../content/westeros/skills";
 
 type Stage = "era" | "modes" | "path" | "canon-char" | "canon-hook" | "canon-confirm" | `w${number}` | "starting";
 
-const WIZARD_STEPS = 12;
+const WIZARD_STEPS = 13;
 
 function freshWizard(): WizardData {
   return {
@@ -777,7 +778,7 @@ export function NewGameFlow() {
 
       case 3: {
         const budget = getCalculatedBudgets(wiz.difficulty, wiz.age).pointBuy + flawRefund(wiz.talentIds);
-        const spent = pointBuySpent(wiz.pointBuy);
+        const spent = pointBuySpent(wiz.pointBuy, wiz.loreEquipmentIds);
         const setStat = (s: CoreStat, delta: number) => {
           const v = (wiz.pointBuy[s] ?? STAT_BASE) + delta;
           if (v < STAT_MIN_CREATE || v > STAT_MAX_CREATE) return;
@@ -1163,6 +1164,21 @@ export function NewGameFlow() {
         );
 
       case 12:
+        return (
+          <div>
+            <StepHeader step={stepLabel} title="Trang Bị Đặc Biệt" hint="Chọn bảo vật truyền thuyết hoặc đặt rèn món đồ riêng (Tốn Vàng/Điểm)." />
+            <WizardEquipment
+              wiz={wiz}
+              patch={patch}
+              gold={origin?.assets.vang ?? 0}
+            />
+            <div className="mt-4">
+              <NavButtons onBack={back} onNext={next} />
+            </div>
+          </div>
+        );
+
+      case 13:
         return (
           <div>
             <StepHeader step={stepLabel} title="Cuộn Giấy Vận Mệnh" hint="Xem lại nhân vật lần cuối." />

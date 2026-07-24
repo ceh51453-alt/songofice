@@ -12,7 +12,7 @@ import type { SkirmishDirective } from "../../combat/skirmish";
 import { GlassButton } from "../components/GlassButton";
 import { IconChevronDown, IconCrossedSwords, IconShield } from "../icons";
 
-function HpBar({ name, hp, maxHp, color }: { name: string; hp: number; maxHp: number; color: string }) {
+function HpBar({ name, hp, maxHp, color, wounds = [] }: { name: string; hp: number; maxHp: number; color: string; wounds?: string[] }) {
   const pct = maxHp > 0 ? Math.max(0, Math.round((hp / maxHp) * 100)) : 0;
   return (
     <div className="flex-1">
@@ -23,6 +23,15 @@ function HpBar({ name, hp, maxHp, color }: { name: string; hp: number; maxHp: nu
       <div className="h-2 overflow-hidden rounded-full bg-[rgba(0,0,0,0.35)]">
         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: pct > 50 ? color : pct > 20 ? "var(--warn)" : "var(--danger)" }} />
       </div>
+      {wounds.length > 0 && (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {wounds.map(w => (
+            <span key={w} className="rounded bg-[rgba(200,50,50,0.2)] px-1 py-0.5 text-[9px] uppercase tracking-wider text-[var(--danger)]">
+              {w}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -142,8 +151,8 @@ export function CombatPanel() {
           {combat.phase === "duel" && combat.duelState && (
             <div className="space-y-3">
               <div className="flex gap-4">
-                <HpBar name={combat.duelState.a.name} hp={combat.duelState.a.hp} maxHp={combat.duelState.a.maxHp} color="var(--ok)" />
-                <HpBar name={combat.duelState.b.name} hp={combat.duelState.b.hp} maxHp={combat.duelState.b.maxHp} color="var(--danger)" />
+                <HpBar name={combat.duelState.a.name} hp={combat.duelState.a.hp} maxHp={combat.duelState.a.maxHp} color="var(--ok)" wounds={combat.duelState.a.wounds} />
+                <HpBar name={combat.duelState.b.name} hp={combat.duelState.b.hp} maxHp={combat.duelState.b.maxHp} color="var(--danger)" wounds={combat.duelState.b.wounds} />
               </div>
               <p className="text-[12px] text-[var(--text-faint)]">
                 Vòng {combat.duelState.round + 1} · Thể lực {combat.duelState.a.stamina}/{combat.duelState.a.maxStamina} · chọn Thế Đứng:
