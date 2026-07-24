@@ -7,6 +7,15 @@
 import type { CoreStat } from "./skills";
 import type { EquipGrant } from "./origins";
 import type { DragonStat, DragonSize } from "../../mvu/schema";
+import { dawnAgeCharacters } from "./eras/dawnAge";
+import { aegonConquestCharacters } from "./eras/aegonConquest";
+import { danceOfDragonsCharacters } from "./eras/danceOfDragons";
+import { blackfyreRebellionCharacters } from "./eras/blackfyreRebellion";
+import { dunkAndEggCharacters } from "./eras/dunkAndEgg";
+import { robertsRebellionCharacters } from "./eras/robertsRebellion";
+import { warOfFiveKingsCharacters } from "./eras/warOfFiveKings";
+import { windsOfWinterCharacters } from "./eras/windsOfWinter";
+
 
 export interface StartingHook {
   id: string;
@@ -97,6 +106,7 @@ export const ERAS: EraData[] = [
     availableHouses: ["stark"],
     hasMagic: true,
     canonCharacters: [
+      ...dawnAgeCharacters,
       {
         id: "last-hero", name: "Anh Hùng Cuối Cùng", house: "Stark", role: "Kẻ Tìm Kiếm", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Người đàn ông cầm kiếm đi vào bóng tối — một mình, với mười hai người bạn, một con chó, và một thanh kiếm. Tất cả sẽ chết, trừ ông.",
@@ -168,6 +178,7 @@ export const ERAS: EraData[] = [
     hasMagic: true,
     loreNotes: "Gia phả Nhà Targaryen: Aegon là em trai của Visenya và anh trai của Rhaenys. Aegon cưới cả hai chị em của mình. Orys Baratheon được đồn là anh em cùng cha khác mẹ của Aegon. Harren Hoare là vị vua tàn bạo của Vùng Sông và Đảo Sắt. Các thành viên Nhà Targaryen rất gắn kết nhưng cũng có sự cạnh tranh ngầm giữa Visenya và Rhaenys.",
     canonCharacters: [
+      ...aegonConquestCharacters,
       {
         id: "aegon-targaryen", name: "Aegon Targaryen", house: "Targaryen", role: "Kẻ Chinh Phạt", tuocVi: "Vua Bảy Vương Quốc", religion: "Thất Diện Thần",
         blurb: "Chúa rồng của Dragonstone, người cưỡi Balerion Hắc Vong — kẻ sắp bẻ cong cả lục địa.",
@@ -308,6 +319,7 @@ export const ERAS: EraData[] = [
     availableHouses: ["targaryen", "velaryon", "stark", "lannister", "baratheon", "greyjoy", "tyrell", "martell", "arryn", "tully"],
     hasMagic: true,
     canonCharacters: [
+      ...danceOfDragonsCharacters,
       {
         id: "rhaenyra-targaryen", name: "Rhaenyra Targaryen", house: "Targaryen", role: "Nữ Vương Đen", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Con gái trưởng của Viserys I, được cha chọn làm người kế vị — nhưng dì ghẻ và em cùng cha khác mẹ nghĩ khác.",
@@ -454,6 +466,7 @@ export const ERAS: EraData[] = [
     availableHouses: ["targaryen", "blackfyre", "stark", "lannister", "baratheon", "greyjoy", "tyrell", "martell", "arryn", "tully"],
     hasMagic: false,
     canonCharacters: [
+      ...blackfyreRebellionCharacters,
       {
         id: "daemon-blackfyre", name: "Daemon Blackfyre", house: "Blackfyre", role: "Rồng Đen Nổi Loạn", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
         blurb: "Đẹp trai, tay kiếm xuất chúng, cầm thanh kiếm Blackfyre do chính vua cha ban — và tin rằng mình mới là vua thật.",
@@ -531,6 +544,7 @@ export const ERAS: EraData[] = [
     availableHouses: ["targaryen", "stark", "lannister", "baratheon", "greyjoy", "tyrell", "martell", "arryn", "tully"],
     hasMagic: false,
     canonCharacters: [
+      ...dunkAndEggCharacters,
       {
         id: "duncan-the-tall", name: "Ser Duncan Cao Lớn", house: "Không Nhà", role: "Hiệp Sĩ Giang Hồ", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
         blurb: "Cao gần bảy bộ, con mồ côi Flea Bottom, cựu giám mã của Hiệp Sĩ Giang Hồ già Arlan xứ Pennytree. Không gia huy, không dòng họ — chỉ có thanh kiếm và lời thề.",
@@ -598,6 +612,7 @@ export const ERAS: EraData[] = [
     availableHouses: ["stark", "baratheon", "targaryen", "lannister", "arryn", "tully", "tyrell", "martell", "greyjoy"],
     hasMagic: false,
     canonCharacters: [
+      ...robertsRebellionCharacters,
       {
         id: "robert-baratheon", name: "Robert Baratheon", house: "Baratheon", role: "Thủ Lĩnh Phiến Quân", tuocVi: "Vua Bảy Vương Quốc", religion: "Thất Diện Thần",
         blurb: "Chiếc búa chiến trong tay, cơn thịnh nộ trong tim — Robert của Storm's End đòi lại người mình yêu bằng chiến tranh.",
@@ -695,6 +710,7 @@ export const ERAS: EraData[] = [
     availableHouses: ["greyjoy", "stark", "lannister", "baratheon", "arryn", "tully", "tyrell", "martell", "targaryen"],
     hasMagic: false,
     canonCharacters: [
+      ...warOfFiveKingsCharacters,
       {
         id: "balon-greyjoy", name: "Balon Greyjoy", house: "Greyjoy", role: "Vua Quần Đảo Sắt", tuocVi: "Đại Lãnh Chúa", religion: "Thần Chết Chìm",
         blurb: "Con trai Quellon, Lãnh chúa Pyke — tin rằng người Sắt phải cai trị bằng giá sắt, không phải vàng. Và thời khắc đã đến.",
@@ -928,6 +944,7 @@ export const ERAS: EraData[] = [
     availableHouses: ["stark", "lannister", "baratheon", "targaryen", "greyjoy", "tyrell", "martell", "arryn", "tully", "bolton"],
     hasMagic: true,
     canonCharacters: [
+      ...windsOfWinterCharacters,
       {
         id: "jon-snow-resurrected", name: "Jon Snow", house: "Stark", role: "Sói Trắng", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Bị phản bội và ám sát bởi chính người của mình, cậu được đưa về từ cõi chết. Tuần Đêm đã ở lại phía sau, phía trước là Winterfell.",

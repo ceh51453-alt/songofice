@@ -588,15 +588,124 @@ export function buildStateFromWizard(d: WizardData): StatData {
   return state;
 }
 
+function adjustCanonCharacterByAge(original: CanonCharacter, targetAge: number, actualStartYear: number): CanonCharacter {
+  const c = JSON.parse(JSON.stringify(original)) as CanonCharacter;
+  
+  // Normalize core stats keys to Vietnamese for easier processing
+  const statMap: Record<string, CoreStat> = { 'STR': 'Sức Mạnh', 'AGI': 'Nhanh Nhẹn', 'END': 'Thể Chất', 'INT': 'Trí Tuệ', 'WIL': 'Tinh Tường', 'CHA': 'Uy Tín' };
+  for (const [en, vn] of Object.entries(statMap)) {
+    if (c.coreStats[en] !== undefined) {
+      c.coreStats[vn] = c.coreStats[en];
+      delete c.coreStats[en];
+    }
+  }
+
+  // 1. Core stats scaling
+  if (targetAge < 18) {
+    const physMult = Math.max(0.1, targetAge / 18);
+    const mentMult = Math.max(0.1, Math.min(1, targetAge / 14));
+    for (const stat of ['Sức Mạnh', 'Nhanh Nhẹn', 'Thể Chất']) {
+      c.coreStats[stat] = Math.max(1, Math.floor((c.coreStats[stat] || 10) * physMult));
+    }
+    for (const stat of ['Trí Tuệ', 'Tinh Tường', 'Uy Tín']) {
+      c.coreStats[stat] = Math.max(1, Math.floor((c.coreStats[stat] || 10) * mentMult));
+    }
+    if (targetAge < 8) {
+      for (const stat of Object.keys(c.coreStats)) {
+        c.coreStats[stat] = Math.min(c.coreStats[stat] as number, 6);
+      }
+    }
+  } else if (targetAge > original.age + 15 && targetAge > 50) {
+    const ageDiff = targetAge - Math.max(50, original.age);
+    const drop = Math.floor(ageDiff / 10);
+    if (drop > 0) {
+      for (const stat of ['Sức Mạnh', 'Nhanh Nhẹn', 'Thể Chất']) {
+        c.coreStats[stat] = Math.max(1, (c.coreStats[stat] as number || 10) - drop);
+      }
+      for (const stat of ['Trí Tuệ', 'Tinh Tường']) {
+        c.coreStats[stat] = Math.min(20, (c.coreStats[stat] as number || 10) + Math.floor(drop / 2));
+      }
+    }
+  }
+
+  // 2. Skills scaling
+  let skillCap = 20;
+  if (targetAge < 10) skillCap = 2;
+  else if (targetAge < 14) skillCap = 8;
+  else if (targetAge < 18) skillCap = 14;
+
+  for (const sk in c.skills) {
+    c.skills[sk] = Math.min(c.skills[sk], skillCap);
+    if (c.skills[sk] <= 0) delete c.skills[sk];
+  }
+
+  // 3. Holdings, Army, Equipment, Gold
+  if (targetAge < 16) {
+    c.startArmy = undefined;
+    c.startHoldings = undefined;
+    c.startRegions = undefined;
+    
+    c.gold = Math.max(0, Math.floor(c.gold * (targetAge / 25)));
+
+    c.equipment = c.equipment.filter(eq => {
+      const isValyrian = eq.phamChat === 'Thép Valyria' || (eq.dacTinh && eq.dacTinh.includes('valyrian'));
+      return !isValyrian;
+    });
+
+    if (c.tuocVi === 'Lãnh Chúa' || c.tuocVi === 'Vua') {
+      c.tuocVi = 'Người Thừa Kế';
+    }
+  }
+
+  // 4. Dragon scaling
+  if (c.dragon && original.birthYear !== undefined) {
+    const yearDiff = actualStartYear - original.birthYear - original.age;
+    c.dragon.age += yearDiff;
+    
+    if (c.dragon.age <= 0) {
+      c.dragon = undefined;
+      c.items.push({ ten: 'Trứng Rồng', soLuong: 1, moTa: 'Một quả trứng rồng chưa nở.' });
+    } else {
+      if (c.dragon.age < 5) c.dragon.size = 'Non';
+      else if (c.dragon.age < 20) c.dragon.size = 'Trưởng Thành';
+      else c.dragon.size = 'Khổng Lồ';
+      
+      const dragonMult = c.dragon.age / (original.dragon?.age || 1);
+      if (dragonMult < 1) {
+        for (const stat in c.dragon.stats) {
+          c.dragon.stats[stat as DragonStat] = Math.max(1, Math.floor((c.dragon.stats[stat as DragonStat] || 10) * dragonMult));
+        }
+      } else {
+        for (const stat in c.dragon.stats) {
+          c.dragon.stats[stat as DragonStat] = Math.min(20, (c.dragon.stats[stat as DragonStat] || 10) + Math.floor((c.dragon.age - (original.dragon?.age || 0)) / 20));
+        }
+      }
+    }
+  }
+
+  return c;
+}
+
 /** Dựng StatData từ nhân vật canon (8.4b) — chỉ số khoá theo nguyên tác. */
+
+function autoAssignBloodlineAndCulture(house: string, name: string): { bloodline: string, culture: string } {
+  const h = (house || "").trim();
+  if (["Targaryen", "Velaryon", "Celtigar", "Blackfyre"].includes(h) || name.includes("Targaryen")) return { bloodline: "Máu Valyria Cổ Đại", culture: "Valyrian" };
+  if (["Stark", "Bolton", "Umber", "Karstark", "Mormont", "Glover", "Dustin", "Reed", "Tallhart", "Ryswell", "Blackwood", "Royce", "Dayne"].includes(h) || name.includes("Stark")) return { bloodline: "Máu Tiền Nhân", culture: "First Men" };
+  if (["Greyjoy", "Harlaw", "Goodbrother", "Drumm", "Botley", "Blacktyde"].includes(h)) return { bloodline: "Máu Ironborn", culture: "Ironborn" };
+  if (["Martell", "Yronwood", "Fowler", "Manwoody", "Gargalen", "Uller", "Qorgyle", "Toland"].includes(h)) return { bloodline: "Máu Rhoynar", culture: "Dornish" };
+  if (!h || h === "Không Rõ") return { bloodline: "Không Rõ Huyết Mạch", culture: "Thường Dân" };
+  return { bloodline: "Máu Andal", culture: "Andal" };
+}
+
 export function buildStateFromCanon(
   c: CanonCharacter,
   era: EraData,
   modes: Pick<WizardData, "narrativeMode" | "scenarioMode" | "difficulty">,
-  extras?: { persona?: WizardData["persona"]; portraitKey?: string; hookId?: string },
+  extras?: { persona?: WizardData["persona"]; portraitKey?: string; hookId?: string; customStartYear?: number },
 ): StatData {
-  const hook = extras?.hookId ? era.startingHooks.find((h) => h.id === extras.hookId) : undefined;
-  const actualStartYear = parseHookYear(hook, era.startYear);
+  const hook = extras?.hookId ? (era.startingHooks.find((h) => h.id === extras.hookId) || c.personalHooks?.find((h) => h.id === extras.hookId)) : undefined;
+  const actualStartYear = extras?.customStartYear ?? parseHookYear(hook, era.startYear);
   const state = makeDefaultState();
   applyBase(state, era, modes, actualStartYear);
 
@@ -605,13 +714,18 @@ export function buildStateFromCanon(
     ? Math.max(0, actualStartYear - c.birthYear)
     : c.age;
 
+  // Điểu chỉnh nhân vật (thay đổi c) dựa theo năm
+  const adjustedC = adjustCanonCharacterByAge(c, canonAge, actualStartYear);
+
   const info = state["Thông Tin Nhân Vật"];
-  info["Họ Tên"] = c.name;
-  info["Nhà"] = c.house as typeof info["Nhà"];
-  info["Xuất Thân"] = c.role;
-  info["Tước Vị"] = c.tuocVi;
+  info["Họ Tên"] = adjustedC.name;
+  info["Nhà"] = adjustedC.house as typeof info["Nhà"];
+  info["Xuất Thân"] = adjustedC.role;
+  info["Tước Vị"] = adjustedC.tuocVi;
   info["Lục Địa"] = "Westeros";
-  info["Văn Hoá"] = "First Men";
+  const bc = autoAssignBloodlineAndCulture(adjustedC.house as string, adjustedC.name);
+  info["Văn Hoá"] = (adjustedC as any).culture || bc.culture;
+  info["Huyết Mạch"] = (adjustedC as any).bloodline || bc.bloodline;
   info["Tôn Giáo"] = c.religion || "Thất Diện Thần";
   info["Thần Bảo Hộ"] = "";
   info["Đức Tin"] = 30;
@@ -630,35 +744,35 @@ export function buildStateFromCanon(
     state["Persona"]["Tính Cách"] = extras.persona.tinhCach;
     state["Persona"]["Tiểu Sử"] = extras.persona.tieuSu;
   } else {
-    state["Persona"]["Tiểu Sử"] = c.blurb;
+    state["Persona"]["Tiểu Sử"] = adjustedC.blurb;
   }
 
   const core = state["Chỉ Số Cốt Lõi"];
-  for (const stat of CORE_STATS) core[stat] = clamp(c.coreStats[stat], 1, 20);
+  for (const stat of CORE_STATS) core[stat] = clamp(adjustedC.coreStats[stat] as number || 10, 1, 20);
   // canon: chỉ số đã là con số CUỐI đúng nguyên tác — thiên phú chỉ thêm nhãn/narrative,
   // KHÔNG cộng effect vào cốt lõi lần nữa (tránh double-count)
-  for (const id of c.talentIds) {
+  for (const id of adjustedC.talentIds) {
     const t = TALENTS_BY_ID[id];
     if (t) (state["Thiên Phú"] as Record<string, unknown>)[t.name] = talentToStateEntry(t);
   }
-  for (const [skillId, lv] of Object.entries(c.skills)) {
+  for (const [skillId, lv] of Object.entries(adjustedC.skills)) {
     const def = SKILLS_BY_ID[skillId];
     if (!def) continue;
     (state["Kỹ Năng"] as Record<string, unknown>)[def.name] = { "Cấp": clamp(lv, 0, 10), "Kinh Nghiệm": 0, "Nhóm": def.group };
   }
-  applyEquipment(state, c.equipment);
-  for (const item of c.items) {
+  applyEquipment(state, adjustedC.equipment);
+  for (const item of adjustedC.items) {
     (state["Túi Đồ"] as Record<string, unknown>)[item.ten] = { "Số Lượng": item.soLuong, "Mô Tả": item.moTa };
   }
 
   // ---- rồng canon (nếu có) ----
-  if (c.dragon) {
-    const drg = c.dragon;
+  if (adjustedC.dragon) {
+    const drg = adjustedC.dragon;
     const hpMax = DRAGON_SIZE_HP[drg.size] + (drg.stats["Giáp Vảy"] ?? 3) * 20;
     (state["Rồng"] as Record<string, unknown>)[drg.name] = {
       "Tên": drg.name,
       "Kích Cỡ": drg.size,
-      "Kỵ Sĩ": c.name,
+      "Kỵ Sĩ": adjustedC.name,
       "Tình Trạng": "Khỏe",
       "_HP": hpMax,
       "_HP Tối Đa": hpMax,
@@ -674,17 +788,17 @@ export function buildStateFromCanon(
   seedRegionControl(state, era.id, { createIfMissing: true });
 
   // ---- Cập nhật tài sản khởi điểm tuỳ chỉnh của nhân vật (nếu có) ----
-  if (c.startRegions) {
-    for (const rid of c.startRegions) {
+  if (adjustedC.startRegions) {
+    for (const rid of adjustedC.startRegions) {
       if (state["Chủ Quyền Lãnh Thổ"][rid]) {
-        state["Chủ Quyền Lãnh Thổ"][rid]["Nhà Kiểm Soát"] = c.house;
+        state["Chủ Quyền Lãnh Thổ"][rid]["Nhà Kiểm Soát"] = adjustedC.house;
         state["Chủ Quyền Lãnh Thổ"][rid]["Là Của Người Chơi"] = true;
       }
     }
   }
 
-  if (c.startHoldings) {
-    for (const sid of c.startHoldings) {
+  if (adjustedC.startHoldings) {
+    for (const sid of adjustedC.startHoldings) {
       const marker = MAP_MARKERS.find(m => m.id === sid);
       state["Lãnh Địa"][sid] = {
         "Mô Tả": marker?.name || sid,
@@ -699,18 +813,18 @@ export function buildStateFromCanon(
     }
   }
 
-  if (c.startArmy && c.startHoldings && c.startHoldings.length > 0) {
-    const firstHolding = c.startHoldings[0];
+  if (adjustedC.startArmy && adjustedC.startHoldings && adjustedC.startHoldings.length > 0) {
+    const firstHolding = adjustedC.startHoldings[0];
     const unitId = genId("army");
     state["Biên Chế Quân Sự"][unitId] = {
-      "Tướng Chỉ Huy": c.name,
-      "Số Lượng": c.startArmy.size,
+      "Tướng Chỉ Huy": adjustedC.name,
+      "Số Lượng": adjustedC.startArmy.size,
       "Loại Quân": "Bộ Binh",
       "Thành Phần": {},
       "Hậu Cần": "Dồi Dào",
       "Sĩ Khí": "Ổn Định",
       "Trang Bị": "Đồng Bộ Chỉnh Tề",
-      "Huấn Luyện": c.startArmy.quality === "Tân Binh" ? "Mới Lập Đội" : c.startArmy.quality === "Thiện Chiến" ? "Thành Thạo" : c.startArmy.quality,
+      "Huấn Luyện": adjustedC.startArmy.quality === "Tân Binh" ? "Mới Lập Đội" : adjustedC.startArmy.quality === "Thiện Chiến" ? "Thành Thạo" : adjustedC.startArmy.quality,
       "Lãnh Địa Đồn Trú": firstHolding,
       "Turn Di Chuyển Còn Lại": 1,
       "Turn Huấn Luyện": 0,

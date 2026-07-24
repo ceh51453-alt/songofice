@@ -9,6 +9,7 @@ import type { Npc } from "./npcSchema";
 import { formatPersonalityForPrompt } from "../npc/personalityEngine";
 import { renderReputationForAI } from "../npc/reputationEngine";
 import { ERAS_BY_ID } from "../content/westeros/eras";
+import { getTimelineContext } from "../content/westeros/timeline";
 
 const MAX_NPC_RENDERED = 10;
 
@@ -82,6 +83,7 @@ export function renderStateForAI(state: StatData): string {
   if (eraData) {
     lines.push(
       `[BỐI CẢNH THỜI KỲ] ${eraData.name} | Năm: ${world["Năm"]} AC | Mùa: ${world["Mùa"]}`,
+      getTimelineContext(world["Năm"]),
       `⛔ GIỚI HẠN KIẾN THỨC: Mọi thông tin chỉ hợp lệ tới năm ${world["Năm"]} AC. KHÔNG tham chiếu sự kiện/nhân vật sau mốc này.`,
     );
   }
@@ -128,16 +130,24 @@ export function renderStateForAI(state: StatData): string {
     for (const [, drg] of dragons) {
       const stats = drg["Chỉ Số"];
       const drgSkills = Object.entries(drg["Kỹ Năng"]).filter(([, lv]) => lv > 0);
+      const affinity = Object.entries(drg["Độ Hảo Cảm"] || {}).map(([n, a]) => `${n}(${a})`).join(", ");
+      
       lines.push(
-        `• ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi). ` +
-          `HP ${drg["_HP"]}/${drg["_HP Tối Đa"]}. Tình Trạng: ${drg["Tình Trạng"]}.` +
-          (drg["Kỵ Sĩ"] ? ` Kỵ Sĩ: ${drg["Kỵ Sĩ"]}.` : ""),
+        `• ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi, ${drg["Trạng Thái Thu Phục"]}). ` +
+          `HP ${drg["_HP"]}/${drg["_HP Tối Đa"]}. Tình Trạng: ${drg["Tình Trạng"]}. ` +
+          (drg["Đang Bị Xích"] ? `ĐANG BỊ XÍCH (${drg["Nơi Ổ"] || "Chưa rõ"}). ` : "") +
+          (drg["Kỵ Sĩ"] ? ` Kỵ Sĩ: ${drg["Kỵ Sĩ"]}. ` : ` Mức Độ Thuần Hóa: ${drg["Mức Độ Thuần Hóa"]}/100. `) +
+          (affinity ? ` Hảo cảm: ${affinity}. ` : "")
       );
       if (stats) {
         lines.push(
           `  Chỉ số: Sức Lửa ${stats["Sức Lửa"]} · Sức Bay ${stats["Sức Bay"]} · Giáp Vảy ${stats["Giáp Vảy"]} · ` +
-            `Hung Dữ ${stats["Hung Dữ"]} · Trung Thành ${stats["Trung Thành"]}.`,
+            `Hung Dữ ${stats["Hung Dữ"]} · Trung Thành ${stats["Trung Thành"]}.`
         );
+      }
+      const dTraits = drg["Đặc Tính"] || [];
+      if (dTraits.length > 0) {
+        lines.push(`  Đặc tính: ${dTraits.join(", ")}`);
       }
       if (drgSkills.length > 0) {
         lines.push(`  Kỹ năng: ${drgSkills.map(([name, lv]) => `${name} cấp ${lv}`).join(" · ")}.`);
@@ -145,6 +155,15 @@ export function renderStateForAI(state: StatData): string {
       if (drg["Mô Tả"]) {
         lines.push(`  Mô tả: ${drg["Mô Tả"]}`);
       }
+    }
+  }
+
+  // trứng rồng
+  const eggs = Object.entries(state["Trứng Rồng"] || {});
+  if (eggs.length > 0) {
+    lines.push("", "Trứng rồng:");
+    for (const [id, egg] of eggs) {
+      lines.push(`• ${egg["Tên"] || id} (Màu: ${egg["Màu Sắc"]}) — Nhiệt độ: ${egg["Nhiệt Độ"]}, Tình trạng: ${egg["Tình Trạng"]}${egg["Chủ Nhân"] ? `, Chủ nhân: ${egg["Chủ Nhân"]}` : ""}. ${egg["Mô Tả"]}`);
     }
   }
 

@@ -83,6 +83,9 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
   = "nội dung bí mật". Đừng tự chỉnh "Bị Nghi Ngờ"/"Độ Sâu Thâm Nhập"/"Tiến Độ"/"Độ Bại Lộ" (cỗ máy giữ số
   điệp viên + âm mưu). Khi lời kể có người bị bắt làm con tin, thêm vào stat_data.Tù Binh.<Tên> =
   { "Họ Tên", "Nhà", "Vai Trò", "Giá Chuộc", "Đối Xử":"Giam Lỏng" }.
+- TƯƠNG TÁC RỒNG VÀ TRỨNG (Mới): Dùng "replace" hoặc "delta" với path stat_data.Rồng.<Tên rồng> hoặc stat_data.Trứng Rồng.<Tên trứng>. 
+  Cập nhật Đặc Tính, Độ Hảo Cảm, Trạng Thái Thu Phục ("Đang Cảm Hóa", "Đã Có Chủ"), Tình Trạng Trứng ("Hóa Đá", "Đang Ấp", "Nứt Vỏ").
+  Ví dụ tăng hảo cảm rồng: { "op": "delta", "path": "stat_data.Rồng.Drogon.Độ Hảo Cảm.Jon Snow", "value": 10 }
 - THÊM NPC MỚI: dùng "replace" với path tới tên NPC chưa có, value là object đầy đủ:
     { "op": "replace", "path": "stat_data.Mối Quan Hệ.NPC Chính.Ser Jorah Mormont",
       "value": { "Họ Tên": "Ser Jorah Mormont", "Tuổi": 50, "Độ Hảo Cảm": 10,
@@ -235,8 +238,56 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), K
 - HP, thời gian, vàng, kỹ năng: dùng delta (hp = hp - 10) KHÔNG dùng giá trị tuyệt đối.
 - NPC: dùng WHERE ho_ten = 'Tên NPC' để định vị (KHÔNG dùng row_id cho NPC).
 - Vật phẩm: INSERT khi nhận mới, UPDATE so_luong khi nhận thêm, DELETE khi dùng hết.
+- Rồng & Trứng rồng: UPDATE bảng rong (hoặc trung_rong) để thay đổi do_hao_cam, trang_thai_thu_phuc, tinh_trang_trung tuỳ theo lời kể (tăng hảo cảm, thuần hóa, ấp trứng).
 - Quan hệ thay đổi? UPDATE do_hao_cam / tin_cay của NPC tương ứng.
 - Di chuyển? UPDATE the_gioi SET vi_tri = 'Nơi mới' WHERE row_id = 1.
 - Thời gian trôi? UPDATE the_gioi SET ngay = ngay + N WHERE row_id = 1.
 
 Tham khảo DDL và ví dụ SQL trong khối CƠ SỞ DỮ LIỆU TRẠNG THÁI bên dưới.`;
+
+
+/**
+ * Prompt chống Toàn Tri (Fog of War) - Dùng để ép AI không cho người chơi hoặc NPC
+ * biết những thông tin không thể biết được theo logic thông thường.
+ */
+export const ANTI_OMNISCIENCE_PROMPT = `# QUY TẮC CỨNG: CHỐNG TOÀN TRI, TOÀN NĂNG & METAGAMING (FOG OF WAR LÀ TUYỆT ĐỐI)
+
+NGƯƠI PHẢI BẢO VỆ TÍNH CHÂN THỰC CỦA THẾ GIỚI BẰNG MỌI GIÁ. Nếu người chơi có dấu hiệu "God-mode" (lạm dụng kiến thức ngoài game hoặc làm việc phi lý), ngươi PHẢI TỪ CHỐI hành động đó và trừng phạt sự phi lý của họ ngay trong lời kể.
+
+1. BỨC TƯỜNG SƯƠNG MÙ LÀ TUYỆT ĐỐI (FOG OF WAR):
+   - Ngươi KHÔNG BAO GIỜ được cung cấp thông tin, báo cáo hay tin tức từ một lục địa, vương quốc hay thành phố khác nếu không có thời gian trễ.
+   - Quạ đưa thư mất nhiều ngày. Tàu bè mất nhiều tuần. Tin đồn mất hàng tháng.
+   - Nếu người chơi tự ý nói "Tôi nghe tin X ở kinh đô" (trong khi họ ở Phương Bắc và tin vừa xảy ra), hãy để NPC cười nhạo họ hoặc coi đó là lời tiên tri điên rồ.
+
+2. CẤM METAGAMING (SỬ DỤNG KIẾN THỨC BÊN NGOÀI):
+   - Người chơi KHÔNG ĐƯỢC PHÉP biết những bí mật (ví dụ: mẹ của Jon Snow, Cersei loạn luân, Huyết Hôn) trừ khi họ TỰ MÌNH cử điệp viên điều tra hoặc tự mình khám phá ra trong game.
+   - Nếu người chơi dùng kiến thức này để đe dọa hoặc đàm phán, các NPC phải coi họ là kẻ nói dối, vu khống và có thể tức giận chém đầu họ.
+
+3. KHÔNG CÓ PHÉP MÀU DỊCH CHUYỂN & KIẾN TẠO:
+   - Dịch chuyển tức thời là CẤM. Nếu người chơi viết "Tôi đi từ Winterfell tới King's Landing", ngươi phải mô tả chuyến hành trình vất vả mất hàng tháng ròng rã, rủi ro cướp bóc, thời tiết khắc nghiệt.
+   - Xây dựng, tuyển quân, rèn vũ khí tốn thời gian thực. Không có chuyện "Tôi dựng một lâu đài" và nó xong trong 1 lượt.
+
+4. CẤM ĐỌC SUY NGHĨ NPC:
+   - Tâm trí của NPC là một hòm kín. Cấm tuyệt đối việc ngươi tự kể ra "NPC đang nghĩ gì" hay "Âm mưu thầm kín của hắn là gì" cho người chơi nghe. Người chơi chỉ được thấy NÉT MẶT, LỜI NÓI, HÀNH ĐỘNG của NPC.
+
+5. QUYỀN LỰC TỐI THƯỢNG CỦA GAME MASTER:
+   - Nếu người chơi cố tình viết ra kết quả (Ví dụ: "Tôi đâm chết hắn", "Tôi thuyết phục thành công bá tước"), NGƯƠI CÓ QUYỀN VÔ HIỆU HÓA KẾT QUẢ ĐÓ. Ngươi tung xúc xắc ngầm (DICE ROLL) để quyết định họ thành công hay bị phản đòn. Đừng bao giờ chiều chuộng một người chơi thích làm thần thánh!`;
+
+export const DRAGON_MECHANICS_PROMPT = `# CƠ CHẾ TƯƠNG TÁC VÀ THU PHỤC RỒNG (DRAGON TAMING)
+
+Ngươi phải quản lý việc tương tác, ấp trứng và thu phục rồng cực kỳ nghiêm ngặt dựa trên Lore của A Song of Ice and Fire:
+
+1. HUYẾT MẠCH LÀ ĐIỀU KIỆN TIÊN QUYẾT:
+   - Hãy kiểm tra chỉ số "Huyết Mạch" của nhân vật trong bảng trạng thái. NẾU VÀ CHỈ NẾU nhân vật sở hữu "Máu Valyria Cổ Đại" (hoặc mang phép thuật máu cổ xưa), họ mới có khả năng thu phục rồng. 
+   - Nếu không có "Máu Valyria Cổ Đại" mà dám lại gần đòi cưỡi/thu phục rồng, tỉ lệ thất bại là 99.9%. Rồng sẽ phun lửa thiêu rụi hoặc ăn thịt kẻ mạo phạm.
+
+2. CƠ CHẾ XÁC SUẤT (DICE ROLL) THU PHỤC:
+   - Độ Khó (DC): Rồng hoang dã (DC 25+), Rồng đã từng có chủ (DC 20+). Phải đổ xúc xắc Uy Tín.
+   - Thất bại nhẹ (kém 1-3 điểm): Rồng hất văng, dọa khè lửa hoặc bỏ lơ.
+   - Thất bại nặng (kém 4-8 điểm): Phỏng nặng, gãy xương.
+   - Thất bại thảm hại: Rồng nhai đầu hoặc thiêu chết.
+
+3. TĂNG ĐỘ HẢO CẢM & ẤP TRỨNG (THEO DÒNG THỜI GIAN):
+   - TRƯỚC VÀ TRONG VŨ ĐIỆU CỦA BẦY RỒNG (Trước năm 153 AC): Trứng rồng có thể nở bình thường nếu được đặt trong nôi của trẻ em Targaryen hoặc được ấp ở nơi có nhiệt độ núi lửa cực lớn (như Dragonmont).
+   - SAU KHI LOÀI RỒNG TUYỆT DIỆT (Sau năm 153 AC): Toàn bộ trứng rồng còn sót lại đều hóa đá. Trứng KHÔNG THỂ nở bằng nhiệt độ thông thường. CHỈ CÓ THỂ nở nếu xuất hiện một hiện tượng thiên văn kỳ vĩ (như Sao Chổi Đỏ) KẾT HỢP với nghi thức hiến tế ma thuật máu (đốt sống một nhân mạng có giá trị pháp thuật/hoàng gia). Nếu người chơi ở kỷ nguyên này mà ném trứng vào lò sưởi, trứng sẽ mãi là đá.
+   - Hảo cảm (Affinity) tăng rất chậm (1-5 điểm/lần thành công). Bắt buộc gieo xúc xắc mỗi khi tương tác.`;

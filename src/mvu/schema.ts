@@ -363,12 +363,32 @@ export const DRAGON_SIZE_HP: Record<DragonSize, number> = {
   "Khổng Lồ (Balerion-class)": 1000,
 };
 
+
+/** Trứng rồng (Hóa đá, đang ấp, chuẩn bị nở) */
+export const DragonEggSchema = z
+  .object({
+    "Tên": safeString().optional(),
+    "Màu Sắc": safeString().prefault("Đen Tuyền"),
+    "Nhiệt Độ": z.enum(["Nguội Lạnh", "Ấm", "Nóng Rực"]).catch("Nguội Lạnh").prefault("Nguội Lạnh"),
+    "Tình Trạng": z.enum(["Hóa Đá", "Đang Ấp", "Nứt Vỏ"]).catch("Hóa Đá").prefault("Hóa Đá"),
+    "Chủ Nhân": safeString().optional(),
+    "Mô Tả": safeString().prefault("Một quả trứng to bằng đầu người."),
+  })
+  .prefault({});
+export type DragonEgg = z.infer<typeof DragonEggSchema>;
+
 /** Rồng (7.15) — hệ số phi đối xứng, gate theo Era. */
 export const DragonSchema = z
   .object({
     "Tên": safeString().prefault(""),
     "Kích Cỡ": z.enum(DRAGON_SIZES).catch("Non").prefault("Non"),
     "Kỵ Sĩ": safeString().optional(),
+    "Độ Hảo Cảm": z.record(safeString(), clampedStat(0, 100, 0)).catch({}).prefault({}),
+    "Mức Độ Thuần Hóa": clampedStat(0, 100, 0),
+    "Trạng Thái Thu Phục": z.enum(["Hoang Dã", "Đang Cảm Hóa", "Đã Có Chủ"]).catch("Hoang Dã").prefault("Hoang Dã"),
+    "Đặc Tính": z.array(z.enum(["Hung Dữ", "Hiền Hòa", "Lười Biếng", "Khát Máu", "Trung Thành", "Bất Trị"])).catch([]).prefault([]),
+    "Đang Bị Xích": z.boolean().catch(false).prefault(false),
+    "Nơi Ổ": safeString().optional(),
     "Tình Trạng": z.enum(["Khỏe", "Bị Thương", "Kiệt Sức", "Đang Hồi Phục"]).catch("Khỏe").prefault("Khỏe"),
     "_HP": clampedStat(0, 2000, 200),
     "_HP Tối Đa": safeInt(200),
@@ -729,6 +749,7 @@ export const StatDataSchema = z
 
     // ── RỒNG (7.15) — gate theo Era; hệ số phi đối xứng vào chiến lực. ──
     "Rồng": z.record(safeString(), DragonSchema).catch({}).prefault({}),
+    "Trứng Rồng": z.record(safeString(), DragonEggSchema).catch({}).prefault({}),
 
     // ── CUNG ĐÌNH (13.1) — Tiểu Hội Đồng + thẩm quyền triều chính. Năng Lực người
     // giữ chức ảnh hưởng hiệu quả lĩnh vực (vd Ngân Khố cao → +% thu Vàng 10.3),

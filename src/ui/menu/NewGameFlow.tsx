@@ -96,6 +96,7 @@ export function NewGameFlow() {
   const [canonChar, setCanonChar] = useState<CanonCharacter | null>(null);
   const [customCanonChars, setCustomCanonChars] = useState<CanonCharacter[]>([]);
   const [canonHook, setCanonHook] = useState<StartingHook | null>(null);
+  const [customStartYear, setCustomStartYear] = useState<number | undefined>(undefined);
   const [portraitFile, setPortraitFile] = useState<File | null>(null);
   const [isMapOpen, setMapOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -115,13 +116,12 @@ export function NewGameFlow() {
   }, [wiz, era, origin, stage]);
 
   const canonPreview = useMemo(() => {
-    if (!canonChar || !era) return null;
-    try {
-      return buildStateFromCanon(canonChar, era, wiz, { hookId: canonHook?.id });
-    } catch {
-      return null;
+    if (stage.startsWith("canon-")) {
+      if (!canonChar) return null;
+      return buildStateFromCanon(canonChar, era!, wiz, { hookId: canonHook?.id, customStartYear });
     }
-  }, [canonChar, era, wiz, canonHook]);
+    return null;
+  }, [canonChar, era, wiz, canonHook, customStartYear, stage]);
 
   async function confirmAndStart() {
     if (!era) return;
@@ -132,7 +132,7 @@ export function NewGameFlow() {
         portraitKey = await savePortrait(genId("portrait"), portraitFile);
       }
       if (canonChar) {
-        const state = buildStateFromCanon(canonChar, era, wiz, { portraitKey, hookId: canonHook?.id });
+        const state = buildStateFromCanon(canonChar, era, wiz, { portraitKey, hookId: canonHook?.id, customStartYear });
         await startNewGame(state, era, canonHook, null);
       } else {
         const hook = era.startingHooks.find((h) => h.id === wiz.hookId) ?? null;
@@ -239,7 +239,7 @@ export function NewGameFlow() {
                 const notBorn = c.birthYear !== undefined && c.birthYear > hookYear;
                 const displayAge = c.birthYear !== undefined ? Math.max(0, hookYear - c.birthYear) : c.age;
                 return (
-                <Card key={c.id} selected={canonChar?.id === c.id} onClick={() => { setCanonChar(c); setCanonHook(null); setStage("canon-hook"); }}>
+                <Card key={c.id} selected={canonChar?.id === c.id} onClick={() => { setCanonChar(c); setCanonHook(null); setCustomStartYear(undefined); setStage("canon-hook"); }}>
                   <span className="font-display block text-[15px] text-[var(--text-soft)]">{c.name}</span>
                   <span className="text-[12px] text-[var(--accent-text)]">
                     Nhà {c.house} · {c.role} · {notBorn
@@ -251,7 +251,7 @@ export function NewGameFlow() {
                 );
               })}
               {customCanonChars.map((c) => (
-                <Card key={c.id} selected={canonChar?.id === c.id} onClick={() => { setCanonChar(c); setCanonHook(null); setStage("canon-hook"); }}>
+                <Card key={c.id} selected={canonChar?.id === c.id} onClick={() => { setCanonChar(c); setCanonHook(null); setCustomStartYear(undefined); setStage("canon-hook"); }}>
                   <span className="font-display block text-[15px] text-[var(--text-soft)]">{c.name} <span className="text-[10px] text-[var(--accent)] border border-[var(--accent-border)] rounded-sm px-1 py-0.5 ml-1 bg-[rgba(234,179,8,0.1)]">AI Tự Tạo</span></span>
                   <span className="text-[12px] text-[var(--accent-text)]">
                     Nhà {c.house} · {c.role} · {c.age} tuổi
@@ -277,24 +277,62 @@ export function NewGameFlow() {
         );
 
       case "canon-hook": {
-        const hooks = era?.startingHooks.filter((h) => canonChar?.startingHookIds.includes(h.id)) ?? [];
+        const eraHooks = era?.startingHooks.filter((h) => canonChar?.startingHookIds.includes(h.id)) ?? [];
+        const personalHooks = canonChar?.personalHooks ?? [];
+        const allHooks = [...eraHooks, ...personalHooks];
+        
+        // Setup year slider bounds
+        const defaultStartYear = era?.startYear ?? 0;
+        const minYear = canonChar?.birthYear !== undefined ? canonChar.birthYear + 14 : (era?.startYear ?? 0);
+        const maxYear = canonChar?.deathYear !== undefined ? canonChar.deathYear : (minYear + 80);
+        
         return (
           <div>
             <StepHeader title="Chọn Điểm Bắt Đầu" hint={canonChar?.name} />
             <div className="space-y-2.5">
-              {hooks.length === 0 && (
-                <Card selected={canonHook === null} onClick={() => { setCanonHook(null); setStage("canon-confirm"); }}>
+              {allHooks.length === 0 && (
+                <Card selected={canonHook === null && customStartYear === undefined} onClick={() => { setCanonHook(null); setCustomStartYear(undefined); setStage("canon-confirm"); }}>
                   <span className="text-[14px] text-[var(--text-soft)]">Bắt đầu ở tình trạng mặc định</span>
                   <span className="block mt-0.5 text-[12.5px] text-[var(--text-muted)]">Tiếp nối bối cảnh và mốc thời gian gốc của nhân vật trong kỷ nguyên này.</span>
                 </Card>
               )}
-              {hooks.map((h) => (
-                <Card key={h.id} selected={canonHook?.id === h.id} onClick={() => { setCanonHook(h); setStage("canon-confirm"); }}>
+              {allHooks.map((h) => (
+                <Card key={h.id} selected={canonHook?.id === h.id} onClick={() => { setCanonHook(h); setCustomStartYear(h.numericYear ?? parseHookYear(h, defaultStartYear)); setStage("canon-confirm"); }}>
                   <span className="text-[14px] text-[var(--text-soft)]">{h.title}</span>
                   <span className="ml-2 text-[12px] text-[var(--accent-text)]">{h.year}</span>
                   <span className="block mt-0.5 text-[12.5px] text-[var(--text-muted)]">{h.desc}</span>
                 </Card>
               ))}
+
+              {canonChar?.birthYear !== undefined && (
+                <div className="p-4 border border-[var(--border)] rounded-md bg-[var(--surface-bg)]">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[14px] text-[var(--text-soft)]">Hoặc chọn năm bắt đầu tuỳ chỉnh:</span>
+                    <span className="text-[14px] text-[var(--accent-text)] font-semibold">{customStartYear ?? defaultStartYear} AC</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min={minYear} 
+                    max={maxYear} 
+                    value={customStartYear ?? defaultStartYear}
+                    onChange={(e) => {
+                      setCustomStartYear(parseInt(e.target.value));
+                      setCanonHook(null);
+                    }}
+                    className="w-full accent-[var(--accent)] cursor-pointer"
+                  />
+                  <div className="flex justify-between mt-1 text-[12px] text-[var(--text-muted)]">
+                    <span>{minYear} AC</span>
+                    <span>{maxYear} AC</span>
+                  </div>
+                  <button 
+                    className="mt-3 w-full py-2 bg-[var(--accent)]/10 text-[var(--accent-text)] text-[13px] rounded hover:bg-[var(--accent)]/20 transition-colors"
+                    onClick={() => { setStage("canon-confirm"); }}
+                  >
+                    Bắt đầu ở năm {customStartYear ?? defaultStartYear} AC
+                  </button>
+                </div>
+              )}
             </div>
             <NavButtons onBack={() => setStage("canon-char")} />
           </div>
