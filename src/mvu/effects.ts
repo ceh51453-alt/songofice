@@ -15,6 +15,7 @@ import { clamp } from "./helpers";
 import { computeRenown } from "../npc/reputationEngine";
 import { decayAllMemories } from "../npc/memoryEngine";
 import { humanAgeMod, dragonAgeMod } from "../character/ageSystem";
+import { processExperience } from "../character/experienceSystem";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("mvu/effects");
@@ -208,6 +209,9 @@ export function runCascadeEffects(prev: StatData, next: StatData): CascadeResult
   // ---- 4+5. chỉ số phái sinh + clamp sinh tồn ----
   recomputeDerived(next);
   recomputeDragonDerived(next);
+
+  // ---- Kiểm tra tiến trình thăng cấp kinh nghiệm ----
+  processExperience(next, events);
 
   // ---- 4b. Bậc Danh Vọng (16.4) ----
   const prevRenown = prev["Danh Vọng"]["_Bậc Danh Vọng"];

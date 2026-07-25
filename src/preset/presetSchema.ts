@@ -6,6 +6,23 @@
  */
 import { z } from "zod";
 
+import { z } from "zod";
+
+export const STRegexScriptSchema = z
+  .object({
+    id: z.string().optional(),
+    scriptName: z.string().prefault("Regex Script"),
+    disabled: z.boolean().prefault(false),
+    findRegex: z.string().prefault(""),
+    replaceString: z.string().prefault(""),
+    placement: z.array(z.coerce.number().int()).prefault([]),
+    minDepth: z.number().nullable().optional(),
+    maxDepth: z.number().nullable().optional(),
+    markdownOnly: z.boolean().prefault(false),
+    promptOnly: z.boolean().prefault(false),
+  })
+  .passthrough();
+
 export const STPromptSchema = z
   .object({
     identifier: z.string(), // UUID hoặc tên marker ("main", "chatHistory"...)
@@ -59,9 +76,17 @@ export const STPresetSchema = z
     wi_format: z.string().optional(),
     scenario_format: z.string().optional(),
     personality_format: z.string().optional(),
+    extensions: z
+      .object({
+        regex_scripts: z.array(STRegexScriptSchema).prefault([]),
+      })
+      .passthrough()
+      .optional(),
     // ... field khác giữ qua passthrough
   })
   .passthrough();
+
+export type STRegexScript = z.infer<typeof STRegexScriptSchema>;
 
 export type STPrompt = z.infer<typeof STPromptSchema>;
 export type STPreset = z.infer<typeof STPresetSchema>;

@@ -91,6 +91,10 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
       "value": { "Họ Tên": "Ser Jorah Mormont", "Tuổi": 50, "Độ Hảo Cảm": 10,
                  "Chức Vụ": "Hiệp sĩ lưu vong", "Nhà": "Mormont" } }
   (Không cần khai báo trước — hệ thống tự nhận path mới là "tạo mới".)
+- TĂNG KINH NGHIỆM: Khi người chơi có hành động thành công (chiến đấu, luyện tập, học hỏi, thuyết phục...), hãy thưởng điểm kinh nghiệm bằng "delta":
+    { "op": "delta", "path": "stat_data.Kỹ Năng.Kiếm Thuật.Kinh Nghiệm", "value": 20 }
+    { "op": "delta", "path": "stat_data.Kinh Nghiệm Chỉ Số.Sức Mạnh", "value": 15 }
+  Thưởng 10-20 điểm cho hành động thường, 50-100 cho hành động xuất chúng hoặc chiến thắng. Game sẽ tự tính toán thăng cấp.
 
 ## ĐIỀU CẤM (QUAN TRỌNG)
 
@@ -203,7 +207,9 @@ Ngươi đóng vai trò là một Game Master VÔ TƯ và NGHIÊM KHẮC. Mọi 
 5. HỆ THỐNG TÍN NGƯỠNG:
    - Nếu có hành động tế lễ, cầu nguyện chân thành hoặc hợp ý Thần: Hãy thưởng điểm Đức Tin/Ân Sủng (thông qua SQL Update).
    - Nếu báng bổ, phá đền, phá lời thề: Trừ nặng Đức Tin/Ân Sủng, đồng thời tạo ra "Vận rủi" (Tăng DC của các hành động tiếp theo).
-   - Nếu Ân Sủng > 50: Đôi khi hãy ngầm cộng thêm buff vào xúc xắc của người chơi, giải thích ngầm bằng việc "Thần linh phù hộ".`;
+   - Nếu Ân Sủng > 50: Đôi khi hãy ngầm cộng thêm buff vào xúc xắc của người chơi, giải thích ngầm bằng việc "Thần linh phù hộ".
+6. THƯỞNG KINH NGHIỆM:
+   - Khi người chơi hành động thành công (chiến đấu, luyện tập, thuyết phục), hãy dùng khối <UpdateVariable> (hoặc SQL Update nếu dùng chế độ DB) để tăng Kinh Nghiệm cho Kỹ Năng hoặc Kinh Nghiệm Chỉ Số tương ứng (từ 10-20 điểm, max 100 điểm cho chiến thắng cực lớn).`;
 
 export const SQL_UPDATE_PROMPT = `# QUY TẮC CẬP NHẬT CƠ SỞ DỮ LIỆU
 

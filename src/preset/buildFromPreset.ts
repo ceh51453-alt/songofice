@@ -14,6 +14,7 @@ import { isMarkerId, type MarkerSources } from "./markers";
 import { renderMacros } from "../prompt/macroEngine";
 import type { MacroContext } from "../prompt/macroContext";
 import { countTokens } from "../prompt/tokenizer";
+import { applyRegexScripts } from "./regexEngine";
 
 export interface BlockTrace {
   identifier: string;
@@ -175,11 +176,18 @@ export function buildFromPreset(preset: STPreset, opts: BuildOptions): BuildResu
   let budget = maxContext - maxOutputTokens - fixedTokens - prefillTokens;
   const included: ApiChatMessage[] = [];
   let dropped = 0;
-  for (let i = history.length - 1; i >= 0; i--) {
-    const cost = countTokens(history[i].content) + MSG_OVERHEAD_TOKENS;
+  
+  // Áp dụng Regex Scripts của preset (nếu có) vào lịch sử chat
+  let workingHistory = history;
+  if (preset.extensions?.regex_scripts && preset.extensions.regex_scripts.length > 0) {
+    workingHistory = applyRegexScripts(history, preset.extensions.regex_scripts, false);
+  }
+
+  for (let i = workingHistory.length - 1; i >= 0; i--) {
+    const cost = countTokens(workingHistory[i].content) + MSG_OVERHEAD_TOKENS;
     if (cost <= budget || included.length === 0) {
       // luôn giữ ít nhất tin nhắn mới nhất (kể cả khi vượt — cảnh báo bên dưới)
-      included.unshift(history[i]);
+      included.unshift(workingHistory[i]);
       budget -= cost;
     } else {
       dropped = i + 1;

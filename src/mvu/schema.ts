@@ -554,6 +554,17 @@ export const StatDataSchema = z
       })
       .prefault({}),
 
+    "Kinh Nghiệm Chỉ Số": z
+      .object({
+        "Sức Mạnh": clampedStat(0, 9999, 0),
+        "Nhanh Nhẹn": clampedStat(0, 9999, 0),
+        "Thể Chất": clampedStat(0, 9999, 0),
+        "Trí Tuệ": clampedStat(0, 9999, 0),
+        "Tinh Tường": clampedStat(0, 9999, 0),
+        "Uy Tín": clampedStat(0, 9999, 0),
+      })
+      .prefault({}),
+
     // ── CHỈ SỐ PHÁI SINH (5.1f-B) — prefix _: engine tự tính, AI không ghi ──
     "Chỉ Số Phái Sinh": z
       .object({
@@ -594,7 +605,7 @@ export const StatDataSchema = z
         z
           .object({
             "Cấp": clampedStat(0, 10, 0),
-            "Kinh Nghiệm": clampedStat(0, 100, 0),
+            "Kinh Nghiệm": clampedStat(0, 9999, 0),
             "Nhóm": z
               .enum(["Chiến Đấu", "Sinh Tồn", "Xã Hội", "Trí Tuệ", "Thủ Công", "Ma Thuật"])
               .catch("Chiến Đấu")

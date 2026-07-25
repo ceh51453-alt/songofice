@@ -10,6 +10,7 @@ import { useT } from "../../i18n";
 import { GlassButton } from "../components/GlassButton";
 import { NarrativeContent } from "../tags/NarrativeSegments";
 import { ActionDeck } from "../layout/ActionDeck";
+import { useMarkdownRegex } from "./useMarkdownRegex";
 import {
   IconAlert, IconChevronLeft, IconChevronRight, IconRefresh, IconSend, IconSpinner, IconStop, IconZap,
 } from "../icons";
@@ -106,6 +107,7 @@ export function ChatScreen() {
   const setInput = useUiStore((s) => s.setComposerText);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const applyMarkdown = useMarkdownRegex();
 
   const busy = status !== "idle";
   const lastAssistantIdx = messages.length > 0 && messages[messages.length - 1].role === "assistant" ? messages.length - 1 : -1;
@@ -137,10 +139,12 @@ export function ChatScreen() {
           {messages.map((m, i) => {
             if (m.hidden) return null; // tin hệ thống — AI thấy, người chơi không (6.2)
             const variant = m.variants?.[m.activeVariant ?? 0];
+            const depth = messages.length - 1 - i;
+            const processedContent = applyMarkdown(m.content, m.role, depth);
             return (
               <div key={m.id}>
                 <Bubble role={m.role} stopped={variant?.stopped}>
-                  {m.role === "assistant" ? <NarrativeContent text={m.content} /> : m.content}
+                  {m.role === "assistant" ? <NarrativeContent text={processedContent} /> : processedContent}
                 </Bubble>
                 {i === lastAssistantIdx && m.variants && <VariantControls msg={m} />}
               </div>

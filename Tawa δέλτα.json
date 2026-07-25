@@ -3372,7 +3372,7 @@
                 "scriptName": "Chống cắt cụt luồng-Ẩn <safe>",
                 "disabled": false,
                 "runOnEdit": true,
-                "findRegex": "/`?<safe>`?/gi ",
+                "findRegex": "/`?<safe>`?/gi",
                 "trimStrings": [],
                 "replaceString": " ",
                 "placement": [
