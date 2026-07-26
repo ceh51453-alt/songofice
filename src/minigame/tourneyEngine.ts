@@ -8,7 +8,7 @@
 import { makeRng, type RNG } from "../probability/rng";
 import {
   TOURNEY_EVENTS,
-  GENERIC_TOURNEY_NPCS,
+  
   getAliveNPCs,
   getNPCsForTourney,
   type TourneyEventType,
@@ -135,7 +135,7 @@ const FALLBACK_NPC: TourneyNPC = {
  * Đã loại những NPC đã đấu vòng trước (tránh trùng).
  */
 function pickOpponent(
-  eventType: TourneyEventType,
+  _eventType: TourneyEventType,
   round: number,
   totalRounds: number,
   tourney: CanonTourney | null,
@@ -217,7 +217,6 @@ function generateNarration(
   totalRounds: number,
 ): string {
   const isFinale = round === totalRounds - 1;
-  const info = TOURNEY_EVENTS[eventType];
 
   switch (eventType) {
     case "joust": {

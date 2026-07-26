@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import { useTavernStore } from "../../state/tavernStore";
-import { IconCoin } from "./TavernIcons";
+// import { IconCoin } from "./TavernIcons";
 import type { CoinSide } from "../../minigame/coinFlip";
 import { useT } from "../../i18n";
 

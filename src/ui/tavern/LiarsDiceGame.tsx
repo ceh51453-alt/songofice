@@ -3,7 +3,7 @@
  * Hiển thị xúc xắc người chơi, bid của AI, nút Challenge / Accept.
  */
 import { useTavernStore } from "../../state/tavernStore";
-import { IconLiar, IconDice } from "./TavernIcons";
+import { IconLiar } from "./TavernIcons";
 import { useT } from "../../i18n";
 
 function DiceRow({ dice, hidden = false, label }: { dice: number[]; hidden?: boolean; label: string }) {
@@ -34,7 +34,7 @@ export function LiarsDiceGame() {
 
   const { rounds, currentRound, playerDice, currentBid, aiDice, phase } = liarsState;
   const isBidding = phase === "bidding";
-  const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
+  // const _lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
 
   return (
     <div className="flex flex-col items-center gap-5">

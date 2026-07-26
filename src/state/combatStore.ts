@@ -107,7 +107,8 @@ function enemyDragon(attrs: Record<string, string>): number {
   return dragonSideFactor([{
     "Tên": "Rồng địch", "Kích Cỡ": size, "Tình Trạng": "Khỏe", "_HP": 1000, "_HP Tối Đa": 1000,
     "Màu Sắc": "Đen", "Tuổi": 50, "Chỉ Số": { "Sức Lửa": 10, "Sức Bay": 10, "Giáp Vảy": 10, "Hung Dữ": 10, "Trung Thành": 10 },
-    "Kỹ Năng": {}, "Mô Tả": "",
+    "Kỹ Năng": {}, "Mô Tả": "", "Độ Hảo Cảm": {}, "Mức Độ Thuần Hóa": 0,
+    "Trạng Thái Thu Phục": "Hoang Dã", "Đặc Tính": [], "Đang Bị Xích": false,
   }]);
 }
 
@@ -233,6 +234,9 @@ export const useCombatStore = create<CombatState>()(
             name: "Phe ta",
             troops: Math.min(50, Math.max(3, Number(attrs.ally_size) || 8)),
             quality: "Thường",
+            morale: 70,
+            logistics: "Tạm Được",
+            troopType: "Bộ Binh",
             keyFighters: [{ name: stat["Thông Tin Nhân Vật"]["Họ Tên"], damagePerRound: 8 + stat["Chỉ Số Phái Sinh"]["_Sát Thương Cận"] }],
             ambusher: attrs.ambush === "player",
           };
@@ -240,6 +244,9 @@ export const useCombatStore = create<CombatState>()(
             name: attrs.enemy ?? "Địch",
             troops: Math.min(50, Math.max(3, Number(attrs.enemy_size) || 10)),
             quality: (attrs.enemy_quality === "Tinh Nhuệ" ? "Tinh Nhuệ" : attrs.enemy_quality === "Rời Rạc" ? "Ô Hợp" : "Thường"),
+            morale: 60,
+            logistics: "Tạm Được",
+            troopType: "Bộ Binh",
             keyFighters: [],
             ambusher: attrs.ambush === "enemy",
           };
@@ -315,8 +322,15 @@ export const useCombatStore = create<CombatState>()(
 
         // rồng/siêu nhiên (7.15) — hệ số phi đối xứng + đốt cổng thành khi công thành
         const playerDragons = Object.values(stat["Rồng"]);
-        player.dragonFactor = dragonSideFactor(playerDragons);
-        enemy.dragonFactor = enemyDragon(attrs);
+        const playerDragonFactor = dragonSideFactor(playerDragons);
+        const enemyDragonFactor = enemyDragon(attrs);
+        if (playerDragonFactor > 1 && playerDragons.length > 0) {
+          const avgDragonPower = (playerDragonFactor - 1) * 2 + 1.5;
+          player.dragon = { name: playerDragons[0]["Đang Bị Xích"] ? "Rồng (xích)" : playerDragons[0]["Tên"], isRidden: !!playerDragons[0]["Kỵ Sĩ"], power: avgDragonPower, loyalty: playerDragons[0]["Chỉ Số"]["Trung Thành"] };
+        }
+        if (enemyDragonFactor > 1) {
+          enemy.dragon = { name: "Rồng địch", isRidden: true, power: (enemyDragonFactor - 1) * 2 + 1.5, loyalty: 15 };
+        }
         if (scale === "Vây Thành" && dragonBurnsGate(playerDragons) && enemy.siegeRole === "defender") {
           enemy.siegeRole = undefined; // rồng đốt cổng → bỏ qua biến tường thành (7.15)
         }
@@ -395,15 +409,23 @@ export const useCombatStore = create<CombatState>()(
         const taSide: MatchupSide = { composition: playerUnits.length > 0 ? compositionFromUnits(playerUnits) : { [player.troopType]: 1 }, training: player.training, house: player.house };
         const dichSide: MatchupSide = { composition: attrs.enemy_composition ? safeComposition(attrs.enemy_composition) : { [enemy.troopType]: 1 }, training: enemy.training, house: enemy.house };
         const siegeCtx = scale === "Vây Thành";
-        player.matchupFactor = troopMatchup(taSide, dichSide, { terrain, siege: siegeCtx });
-        enemy.matchupFactor = troopMatchup(dichSide, taSide, { terrain, siege: siegeCtx });
-        player.dragonFactor = dragonSideFactor(Object.values(stat["Rồng"]));
-        enemy.dragonFactor = enemyDragon(attrs);
+        const weather = (stat["Thế Giới"]["Thời Tiết"] ?? "Trời Quang") as import("../combat/battleResolver").WeatherCondition;
+        player.matchupFactor = troopMatchup(taSide, dichSide, { terrain, weather, siege: siegeCtx });
+        enemy.matchupFactor = troopMatchup(dichSide, taSide, { terrain, weather, siege: siegeCtx });
+        const playerDragonsP = Object.values(stat["Rồng"]);
+        const playerDragonFactorP = dragonSideFactor(playerDragonsP);
+        const enemyDragonFactorP = enemyDragon(attrs);
+        if (playerDragonFactorP > 1 && playerDragonsP.length > 0) {
+          player.dragon = { name: playerDragonsP[0]["Tên"], isRidden: !!playerDragonsP[0]["Kỵ Sĩ"], power: (playerDragonFactorP - 1) * 2 + 1.5, loyalty: playerDragonsP[0]["Chỉ Số"]["Trung Thành"] };
+        }
+        if (enemyDragonFactorP > 1) {
+          enemy.dragon = { name: "Rồng địch", isRidden: true, power: (enemyDragonFactorP - 1) * 2 + 1.5, loyalty: 15 };
+        }
         return {
           scale, terrain,
           playerLabel: "Quân ta", enemyLabel: attrs.enemy ?? "Quân địch",
           playerTroops: player.totalTroops, enemyTroops: enemy.totalTroops,
-          playerStrength: battlePower(player, enemy, terrain), enemyStrength: battlePower(enemy, player, terrain),
+          playerStrength: battlePower(player, enemy, terrain, weather), enemyStrength: battlePower(enemy, player, terrain, weather),
           matchup: player.matchupFactor ?? 1,
         };
       },

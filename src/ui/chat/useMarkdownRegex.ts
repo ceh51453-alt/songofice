@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { usePresetStore } from "../../state/presetStore";
-import { applyRegexScripts } from "../../preset/regexEngine";
 import type { ApiChatMessage } from "../../types/connection";
 
 /**

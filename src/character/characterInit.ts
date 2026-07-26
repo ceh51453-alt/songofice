@@ -594,9 +594,9 @@ function adjustCanonCharacterByAge(original: CanonCharacter, targetAge: number, 
   // Normalize core stats keys to Vietnamese for easier processing
   const statMap: Record<string, CoreStat> = { 'STR': 'Sức Mạnh', 'AGI': 'Nhanh Nhẹn', 'END': 'Thể Chất', 'INT': 'Trí Tuệ', 'WIL': 'Tinh Tường', 'CHA': 'Uy Tín' };
   for (const [en, vn] of Object.entries(statMap)) {
-    if (c.coreStats[en] !== undefined) {
-      c.coreStats[vn] = c.coreStats[en];
-      delete c.coreStats[en];
+    if ((c.coreStats as Record<string, number>)[en] !== undefined) {
+      (c.coreStats as Record<string, number>)[vn] = (c.coreStats as Record<string, number>)[en];
+      delete (c.coreStats as Record<string, number>)[en];
     }
   }
 
@@ -604,14 +604,14 @@ function adjustCanonCharacterByAge(original: CanonCharacter, targetAge: number, 
   if (targetAge < 18) {
     const physMult = Math.max(0.1, targetAge / 18);
     const mentMult = Math.max(0.1, Math.min(1, targetAge / 14));
-    for (const stat of ['Sức Mạnh', 'Nhanh Nhẹn', 'Thể Chất']) {
+    for (const stat of (['Sức Mạnh', 'Nhanh Nhẹn', 'Thể Chất'] as CoreStat[])) {
       c.coreStats[stat] = Math.max(1, Math.floor((c.coreStats[stat] || 10) * physMult));
     }
-    for (const stat of ['Trí Tuệ', 'Tinh Tường', 'Uy Tín']) {
+    for (const stat of (['Trí Tuệ', 'Tinh Tường', 'Uy Tín'] as CoreStat[])) {
       c.coreStats[stat] = Math.max(1, Math.floor((c.coreStats[stat] || 10) * mentMult));
     }
     if (targetAge < 8) {
-      for (const stat of Object.keys(c.coreStats)) {
+      for (const stat of (Object.keys(c.coreStats) as CoreStat[])) {
         c.coreStats[stat] = Math.min(c.coreStats[stat] as number, 6);
       }
     }
@@ -619,10 +619,10 @@ function adjustCanonCharacterByAge(original: CanonCharacter, targetAge: number, 
     const ageDiff = targetAge - Math.max(50, original.age);
     const drop = Math.floor(ageDiff / 10);
     if (drop > 0) {
-      for (const stat of ['Sức Mạnh', 'Nhanh Nhẹn', 'Thể Chất']) {
+      for (const stat of (['Sức Mạnh', 'Nhanh Nhẹn', 'Thể Chất'] as CoreStat[])) {
         c.coreStats[stat] = Math.max(1, (c.coreStats[stat] as number || 10) - drop);
       }
-      for (const stat of ['Trí Tuệ', 'Tinh Tường']) {
+      for (const stat of (['Trí Tuệ', 'Tinh Tường'] as CoreStat[])) {
         c.coreStats[stat] = Math.min(20, (c.coreStats[stat] as number || 10) + Math.floor(drop / 2));
       }
     }
@@ -668,7 +668,7 @@ function adjustCanonCharacterByAge(original: CanonCharacter, targetAge: number, 
     } else {
       if (c.dragon.age < 5) c.dragon.size = 'Non';
       else if (c.dragon.age < 20) c.dragon.size = 'Trưởng Thành';
-      else c.dragon.size = 'Khổng Lồ';
+      else c.dragon.size = 'Khổng Lồ (Balerion-class)';
       
       const dragonMult = c.dragon.age / (original.dragon?.age || 1);
       if (dragonMult < 1) {

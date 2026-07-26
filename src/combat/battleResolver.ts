@@ -39,6 +39,8 @@ export interface BattleSideInput extends AggregatedSide {
   supplyLine?: "Đầy Đủ" | "Tạm Được" | "Thiếu Hụt" | "Bị Cắt Đứt";
   matchupFactor?: number;
   dragon?: BattleDragonInfo;
+  /** Extra casualties (e.g. dragon rampage). */
+  casualtiesPlayer?: number;
 }
 
 export interface BattleInput {
@@ -107,7 +109,7 @@ function postureFactor(side: BattleSideInput, opp: BattleSideInput, terrain: Ter
 
   // Weather modifiers
   let weatherMod = 1.0;
-  if (side.troopType === "Cung Binh" && (weather === "Mưa Lớn" || weather === "Bão Tuyết")) {
+  if (side.troopType === "Cung Thủ" && (weather === "Mưa Lớn" || weather === "Bão Tuyết")) {
     weatherMod = 0.5; // Cung ướt vô dụng
   }
   if (side.troopType === "Kỵ Binh" && weather === "Sương Mù") {
@@ -208,7 +210,7 @@ export function resolveBattle(input: BattleInput): BattleResult {
   let weather = input.weather;
   if (!weather) {
     const wRoll = rng();
-    if (input.terrain === "Tuyết") {
+    if (input.terrain === "Tuyết/Băng Giá") {
       weather = wRoll > 0.6 ? "Bão Tuyết" : (wRoll > 0.4 ? "Sương Mù" : "Trời Quang");
     } else {
       weather = wRoll > 0.8 ? "Mưa Lớn" : (wRoll > 0.6 ? "Sương Mù" : "Trời Quang");

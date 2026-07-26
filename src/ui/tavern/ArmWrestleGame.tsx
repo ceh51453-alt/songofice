@@ -64,7 +64,7 @@ export function ArmWrestleGame() {
 
   const { rounds, currentRound, currentForce, roundActive, phase } = armState;
   const isReady = phase === "ready";
-  const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
+  // const _lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
 
   return (
     <div className="flex flex-col items-center gap-5">

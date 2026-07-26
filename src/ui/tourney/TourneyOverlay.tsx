@@ -4,8 +4,8 @@
  */
 import { useTourneyStore } from "../../state/tourneyStore";
 import { TOURNEY_EVENTS, CANON_TOURNEYS, type TourneyEventType } from "../../content/westeros/tourneyData";
-import type { TourneyMatchResult, TourneyEventState } from "../../minigame/tourneyEngine";
-import { IconTrophy, IconLance, IconSword, IconBow, IconHorse, IconBanner } from "./TourneyIcons";
+import type { TourneyMatchResult } from "../../minigame/tourneyEngine";
+import { IconTrophy, IconLance, IconSword, IconBow, IconHorse } from "./TourneyIcons";
 import { IconX } from "../icons";
 import { useT } from "../../i18n";
 

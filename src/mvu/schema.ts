@@ -499,7 +499,7 @@ export const StatDataSchema = z
         "Tuổi": safeInt(25),
         "Năm Sinh": z.coerce.number().int().optional(),
         "Giai Đoạn Đời": z.enum(LIFE_STAGES).catch("Trưởng Thành").prefault("Trưởng Thành"),
-        "Tước Vị": z.enum(["Thường Dân", "Hiệp Sĩ", "Lãnh Chúa", "Đại Lãnh Chúa", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế"]).catch("Thường Dân").prefault("Thường Dân"),
+        "Tước Vị": z.enum(["Thường Dân", "Người Thừa Kế", "Hiệp Sĩ", "Lãnh Chúa", "Đại Lãnh Chúa", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế", "Hoàng Tử", "Vương Hậu", "Công Chúa", "Tiểu Thư", "Vương Thân", "Vương phi"]).catch("Thường Dân").prefault("Thường Dân"),
       })
       .prefault({}),
 

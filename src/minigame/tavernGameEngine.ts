@@ -87,7 +87,7 @@ export const GAME_INFO: Record<TavernGameType, {
 export function calculateReward(
   gameType: TavernGameType,
   bet: number,
-  playerGold: number,
+  _playerGold: number,
   /** Hệ số nhân bổ sung (coin flip multiplier). */
   extraMultiplier = 1,
 ): TavernReward {

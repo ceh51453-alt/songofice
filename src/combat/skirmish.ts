@@ -6,8 +6,7 @@
  * và Binh chủng (Troop Matchup). Quân sẽ Vỡ Trận (Rout) khi Sĩ khí tụt, không cần đánh đến chết hết.
  */
 import { makeRng } from "../probability/rng";
-import { clamp } from "../mvu/helpers";
-import { type TroopType, terrainMultiplier } from "./terrain";
+import { type TroopType } from "./terrain";
 
 export type SkirmishQuality = "Tinh Nhuệ" | "Thường" | "Ô Hợp";
 
@@ -38,10 +37,10 @@ export interface SkirmishResult {
 
 // Bảng khắc hệ đơn giản hoá cho Skirmish
 function getMatchupMult(atk: TroopType, def: TroopType): number {
-  if (atk === "Kỵ Binh" && def === "Cung Binh") return 1.3;
-  if (atk === "Lính Giáo" && def === "Kỵ Binh") return 1.4;
-  if (atk === "Cung Binh" && def === "Bộ Binh Nặng") return 1.2;
-  if (atk === "Bộ Binh Nặng" && def === "Lính Giáo") return 1.3;
+  if (atk === "Kỵ Binh" && def === "Cung Thủ") return 1.3;
+  if (atk === "Trường Thương" && def === "Kỵ Binh") return 1.4;
+  if (atk === "Cung Thủ" && def === "Bộ Binh") return 1.2;
+  if (atk === "Bộ Binh" && def === "Trường Thương") return 1.3;
   return 1.0; // Mặc định
 }
 

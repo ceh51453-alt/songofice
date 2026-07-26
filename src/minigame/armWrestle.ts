@@ -27,7 +27,7 @@ export interface ArmWrestleState {
   difficulty: number;
 }
 
-export function createArmWrestle(seed: number): ArmWrestleState {
+export function createArmWrestle(_seed: number): ArmWrestleState {
   return {
     rounds: [],
     currentRound: 0,

@@ -18,9 +18,10 @@ export function playerDuelist(state: StatData): Duelist {
   const derived = state["Chỉ Số Phái Sinh"];
   const vitals = state["Chỉ Số Sinh Tồn"];
   const equipped = state["Trang Bị Đang Mặc"];
-  const weapon = equipped["Vũ Khí Chính"];
   const armor = equipped["Giáp Thân"];
+
   
+
   // cấp kỹ năng vũ khí cao nhất nhóm Chiến Đấu (trừ Chỉ Huy)
   const weaponSkill = Math.max(
     0,

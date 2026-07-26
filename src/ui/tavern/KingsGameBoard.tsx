@@ -73,13 +73,7 @@ function SkullIcon({ size = 12 }: { size?: number }) {
   );
 }
 
-function ShieldSmallIcon({ size = 10 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M8 2 L3 5 L3 9 C3 12 8 14 8 14 C8 14 13 12 13 9 L13 5 Z" />
-    </svg>
-  );
-}
+
 
 const TYPE_ICON: Record<CardType, React.ReactNode> = {
   creature: <SwordIcon size={9} />,

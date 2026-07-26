@@ -122,8 +122,8 @@ function CraftingForm({ onAdd }: { onAdd: (req: CraftingRequest) => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 p-3 glass">
+      <label className="block text-[11px] uppercase tracking-wider text-[var(--text-faint)] mb-1">Tên trang bị</label>
       <GlassInput
-        label="Tên trang bị"
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="VD: Kiếm Băng"

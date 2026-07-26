@@ -12,17 +12,16 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 114,
     deathYear: 130,
     age: 15,
-    coreStats: { STR: 10, AGI: 12, END: 12, INT: 15, WIL: 14, CHA: 16 },
+    coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 12, "Thể Chất": 12, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 16 },
     talentIds: ["born-leader", "diplomat", "brave"],
     skills: { "Ngoại Giao": 14, "Cưỡi Rồng": 12, "Cận Chiến (Kiếm)": 10 },
     equipment: [],
     items: [],
-    gold: 500,
-    startingHookIds: [],
+    gold: 500, startingHookIds: [],
     dragon: {
-      name: "Vermax", color: "Xanh Lục", size: "Lớn", age: 14,
+      name: "Vermax", color: "Xanh Lục", size: "Trưởng Thành", age: 14,
       description: "Con rồng trẻ đang độ lớn, bay rất nhanh và hung dữ.",
-      stats: { HP: 200, STR: 15, AGI: 18, INT: 10, WIL: 15 },
+      stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
       skills: { "Lửa Rồng": 10, "Bay Lượn": 14, "Săn Mồi": 10 }
     },
     personalHooks: [
@@ -40,17 +39,16 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 115,
     deathYear: 129,
     age: 14,
-    coreStats: { STR: 8, AGI: 10, END: 10, INT: 12, WIL: 12, CHA: 14 },
+    coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 14 },
     talentIds: ["brave", "innocent"],
     skills: { "Cưỡi Rồng": 10, "Cận Chiến (Kiếm)": 6 },
     equipment: [],
     items: [],
-    gold: 300,
-    startingHookIds: [],
+    gold: 300, startingHookIds: [],
     dragon: {
       name: "Arrax", color: "Trắng Ngọc Trai", size: "Trưởng Thành", age: 13,
       description: "Con rồng trẻ, nhanh nhẹn nhưng chưa đủ sức chiến đấu với những con rồng khổng lồ.",
-      stats: { HP: 150, STR: 10, AGI: 20, INT: 10, WIL: 12 },
+      stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
       skills: { "Lửa Rồng": 8, "Bay Lượn": 16, "Săn Mồi": 8 }
     },
     personalHooks: [
@@ -68,17 +66,16 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 120,
     deathYear: 157,
     age: 9,
-    coreStats: { STR: 6, AGI: 8, END: 8, INT: 14, WIL: 10, CHA: 8 },
+    coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 14, "Tinh Tường": 10, "Uy Tín": 8 },
     talentIds: ["depressed", "observant"],
     skills: { "Lịch Sử": 5 },
     equipment: [],
     items: [],
-    gold: 100,
-    startingHookIds: [],
+    gold: 100, startingHookIds: [],
     dragon: {
-      name: "Stormcloud", color: "Xám Xịt", size: "Nhỏ", age: 9,
+      name: "Stormcloud", color: "Xám Xịt", size: "Non", age: 9,
       description: "Con rồng nhỏ chưa từng được cưỡi.",
-      stats: { HP: 80, STR: 5, AGI: 15, INT: 8, WIL: 10 },
+      stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
       skills: { "Bay Lượn": 10 }
     },
     personalHooks: [
@@ -96,17 +93,16 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 109,
     deathYear: 130,
     age: 20,
-    coreStats: { STR: 6, AGI: 8, END: 8, INT: 15, WIL: 12, CHA: 16 },
+    coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 15, "Tinh Tường": 12, "Uy Tín": 16 },
     talentIds: ["prophetic", "gentle", "madness"],
     skills: { "Ma Thuật (Tiên Tri)": 15 },
     equipment: [],
     items: [],
-    gold: 1000,
-    startingHookIds: [],
+    gold: 1000, startingHookIds: [],
     dragon: {
-      name: "Dreamfyre", color: "Xanh Nhạt và Bạc", size: "Lớn", age: 97,
+      name: "Dreamfyre", color: "Xanh Nhạt và Bạc", size: "Trưởng Thành", age: 97,
       description: "Con rồng già dặn, duyên dáng và hiền hòa.",
-      stats: { HP: 300, STR: 20, AGI: 14, INT: 15, WIL: 15 },
+      stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
       skills: { "Lửa Rồng": 14, "Bay Lượn": 12 }
     },
     personalHooks: [
@@ -124,17 +120,16 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 114,
     deathYear: 130,
     age: 15,
-    coreStats: { STR: 10, AGI: 12, END: 12, INT: 14, WIL: 12, CHA: 15 },
+    coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 12, "Thể Chất": 12, "Trí Tuệ": 14, "Tinh Tường": 12, "Uy Tín": 15 },
     talentIds: ["brave", "chivalrous"],
     skills: { "Cưỡi Rồng": 12, "Cận Chiến (Kiếm)": 12, "Chỉ Huy": 8 },
     equipment: [],
     items: [],
-    gold: 800,
-    startingHookIds: [],
+    gold: 800, startingHookIds: [],
     dragon: {
       name: "Tessarion", color: "Xanh Cô-ban và Đồng", size: "Trưởng Thành", age: 10,
       description: "Nữ hoàng Xanh, rực rỡ và nguy hiểm.",
-      stats: { HP: 180, STR: 14, AGI: 18, INT: 12, WIL: 14 },
+      stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
       skills: { "Lửa Rồng": 12, "Bay Lượn": 15 }
     },
     personalHooks: [
@@ -152,13 +147,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 76,
     deathYear: 130,
     age: 53,
-    coreStats: { STR: 8, AGI: 8, END: 9, INT: 18, WIL: 16, CHA: 14 },
+    coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 9, "Trí Tuệ": 18, "Tinh Tường": 16, "Uy Tín": 14 },
     talentIds: ["cunning", "strategic-mind", "ambitious"],
     skills: { "Chính Trị": 18, "Lừa Lọc": 15, "Ngoại Giao": 16, "Học Thuật": 14 },
     equipment: [],
     items: [],
-    gold: 3000,
-    startingHookIds: [],
+    gold: 3000, startingHookIds: [],
     startHoldings: [],
     startRegions: [],
     personalHooks: [
@@ -176,13 +170,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 90,
     deathYear: 131,
     age: 39,
-    coreStats: { STR: 5, AGI: 4, END: 8, INT: 19, WIL: 18, CHA: 10 },
+    coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 4, "Thể Chất": 8, "Trí Tuệ": 19, "Tinh Tường": 18, "Uy Tín": 10 },
     talentIds: ["cunning", "crippled", "secret-keeper"],
     skills: { "Lừa Lọc": 20, "Chính Trị": 15, "Ám Sát": 10 },
     equipment: [],
     items: [],
-    gold: 2000,
-    startingHookIds: [],
+    gold: 2000, startingHookIds: [],
     startHoldings: ["harrenhal"],
     startRegions: [],
     personalHooks: [
@@ -200,13 +193,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 108,
     deathYear: 157,
     age: 21,
-    coreStats: { STR: 16, AGI: 14, END: 18, INT: 12, WIL: 18, CHA: 14 },
+    coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 14, "Thể Chất": 18, "Trí Tuệ": 12, "Tinh Tường": 18, "Uy Tín": 14 },
     talentIds: ["honorable", "fearsome-warrior", "wolfblood"],
     skills: { "Cận Chiến (Kiếm)": 18, "Chỉ Huy": 15, "Cưỡi Ngựa": 14 },
-    equipment: [{ slot: "Tay Phải", ten: "Ice", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 30 }, moTa: "Thanh trọng kiếm khổng lồ bằng thép Valyria của Nhà Stark." }],
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Ice", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 30 }, moTa: "Thanh trọng kiếm khổng lồ bằng thép Valyria của Nhà Stark." }],
     items: [],
-    gold: 1500,
-    startingHookIds: [],
+    gold: 1500, startingHookIds: [],
     startHoldings: ["winterfell"],
     startRegions: ["the-north"],
     personalHooks: [
@@ -224,13 +216,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 94,
     deathYear: 134,
     age: 35,
-    coreStats: { STR: 8, AGI: 10, END: 10, INT: 15, WIL: 16, CHA: 15 },
+    coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 15, "Tinh Tường": 16, "Uy Tín": 15 },
     talentIds: ["stubborn", "diplomat"],
     skills: { "Ngoại Giao": 16, "Chính Trị": 14, "Quản Lý": 15 },
     equipment: [],
     items: [],
-    gold: 2500,
-    startingHookIds: [],
+    gold: 2500, startingHookIds: [],
     startHoldings: ["the-eyrie"],
     startRegions: ["the-vale"],
     personalHooks: [
@@ -248,13 +239,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 85,
     deathYear: 131,
     age: 44,
-    coreStats: { STR: 16, AGI: 10, END: 16, INT: 6, WIL: 14, CHA: 12 },
+    coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 10, "Thể Chất": 16, "Trí Tuệ": 6, "Tinh Tường": 14, "Uy Tín": 12 },
     talentIds: ["arrogant", "illiterate", "fearsome-warrior"],
     skills: { "Cận Chiến (Kiếm)": 15, "Chỉ Huy": 12 },
     equipment: [],
     items: [],
-    gold: 2000,
-    startingHookIds: [],
+    gold: 2000, startingHookIds: [],
     startHoldings: ["storms-end"],
     startRegions: ["the-stormlands"],
     personalHooks: [
@@ -272,13 +262,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 113,
     deathYear: 133,
     age: 16,
-    coreStats: { STR: 15, AGI: 16, END: 15, INT: 10, WIL: 14, CHA: 14 },
+    coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 16, "Thể Chất": 15, "Trí Tuệ": 10, "Tinh Tường": 14, "Uy Tín": 14 },
     talentIds: ["ironborn", "bloodthirsty", "fearsome-warrior"],
     skills: { "Hàng Hải": 18, "Cận Chiến (Kiếm)": 16, "Cướp Bóc": 18 },
-    equipment: [{ slot: "Tay Phải", ten: "Nightfall", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 20 }, moTa: "Thanh kiếm Thép Valyria cướp được từ một hải tặc." }],
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Nightfall", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 20 }, moTa: "Thanh kiếm Thép Valyria cướp được từ một hải tặc." }],
     items: [],
-    gold: 3000,
-    startingHookIds: [],
+    gold: 3000, startingHookIds: [],
     startHoldings: ["pyke"],
     startRegions: ["the-iron-islands"],
     personalHooks: [
@@ -295,13 +284,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     blurb: "Người phụ nữ bí ẩn, được cho là phù thủy, có khả năng nhìn thấu ảo ảnh. Cô quyến rũ Aemond Targaryen và trở thành người tình của hắn tại Harrenhal.",
     birthYear: 90,
     age: 39,
-    coreStats: { STR: 6, AGI: 10, END: 10, INT: 16, WIL: 18, CHA: 16 },
+    coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 16, "Tinh Tường": 18, "Uy Tín": 16 },
     talentIds: ["mystic", "seductive"],
     skills: { "Ma Thuật (Tiên Tri)": 15, "Thuyết Phục": 14, "Thảo Dược": 12 },
     equipment: [],
     items: [],
-    gold: 50,
-    startingHookIds: [],
+    gold: 50, startingHookIds: [],
     startHoldings: [],
     startRegions: [],
     personalHooks: [
@@ -319,17 +307,16 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 95,
     deathYear: 130,
     age: 34,
-    coreStats: { STR: 18, AGI: 9, END: 17, INT: 7, WIL: 10, CHA: 8 },
+    coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 9, "Thể Chất": 17, "Trí Tuệ": 7, "Tinh Tường": 10, "Uy Tín": 8 },
     talentIds: ["strong", "arrogant", "ambitious"],
     skills: { "Cận Chiến (Búa)": 15, "Cưỡi Rồng": 10, "Thợ Rèn": 12 },
-    equipment: [{ slot: "Tay Phải", ten: "Búa Tạ", phamChat: "Thường", thuocTinh: { "Sát Thương": 15 }, moTa: "Cây búa khổng lồ của thợ rèn." }],
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Búa Tạ", phamChat: "Thường", thuocTinh: { "Sát Thương": 15 }, moTa: "Cây búa khổng lồ của thợ rèn." }],
     items: [],
-    gold: 20,
-    startingHookIds: [],
+    gold: 20, startingHookIds: [],
     dragon: {
-      name: "Vermithor", color: "Đồng", size: "Khổng Lồ", age: 95,
+      name: "Vermithor", color: "Đồng", size: "Khổng Lồ (Balerion-class)", age: 95,
       description: "Cơn thịnh nộ bằng đồng, từng là rồng của vua Jaehaerys I.",
-      stats: { HP: 400, STR: 25, AGI: 12, INT: 14, WIL: 20 },
+      stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
       skills: { "Lửa Rồng": 16, "Bay Lượn": 10, "Săn Mồi": 12 }
     },
     personalHooks: [
@@ -347,17 +334,16 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     birthYear: 114,
     deathYear: 130,
     age: 15,
-    coreStats: { STR: 12, AGI: 14, END: 14, INT: 12, WIL: 18, CHA: 14 },
+    coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 14, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 18, "Uy Tín": 14 },
     talentIds: ["loyal", "brave"],
     skills: { "Cưỡi Rồng": 14, "Hàng Hải": 12, "Cận Chiến (Kiếm)": 12 },
     equipment: [],
     items: [],
-    gold: 100,
-    startingHookIds: [],
+    gold: 100, startingHookIds: [],
     dragon: {
       name: "Seasmoke", color: "Xám Bạc", size: "Trưởng Thành", age: 29,
       description: "Con rồng nhanh nhẹn từng thuộc về Laenor Velaryon.",
-      stats: { HP: 200, STR: 15, AGI: 18, INT: 12, WIL: 14 },
+      stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
       skills: { "Lửa Rồng": 12, "Bay Lượn": 18, "Nhào Lộn": 15 }
     },
     personalHooks: [
@@ -374,17 +360,16 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     blurb: "Cô bé thấp bé, da ngăm đen và miệng hôi, không có nét gì của Valyria nhưng lại thuần phục được con rồng hoang dã Sheepstealer bằng cách cho nó ăn cừu mỗi ngày.",
     birthYear: 113,
     age: 16,
-    coreStats: { STR: 7, AGI: 16, END: 14, INT: 14, WIL: 16, CHA: 8 },
+    coreStats: { "Sức Mạnh": 7, "Nhanh Nhẹn": 16, "Thể Chất": 14, "Trí Tuệ": 14, "Tinh Tường": 16, "Uy Tín": 8 },
     talentIds: ["cunning", "survivor"],
     skills: { "Cưỡi Rồng": 15, "Lén Lút": 16, "Sinh Tồn": 15 },
     equipment: [],
     items: [{ ten: "Cừu giết sẵn", soLuong: 2, moTa: "Dùng để cho rồng ăn." }],
-    gold: 5,
-    startingHookIds: [],
+    gold: 5, startingHookIds: [],
     dragon: {
-      name: "Sheepstealer", color: "Nâu Bùn", size: "Lớn", age: 80,
+      name: "Sheepstealer", color: "Nâu Bùn", size: "Trưởng Thành", age: 80,
       description: "Con rồng hoang dã cực kỳ hung dữ và thích ăn thịt cừu chó.",
-      stats: { HP: 250, STR: 18, AGI: 15, INT: 10, WIL: 16 },
+      stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
       skills: { "Lửa Rồng": 14, "Bay Lượn": 12, "Săn Mồi": 20 }
     },
     personalHooks: [
@@ -395,74 +380,74 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
   {
     id: "baela-targaryen", name: "Baela Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Cô Gái Cưỡi Rồng", religion: "Thất Diện Thần",
     blurb: "Con gái của Daemon. Bướng bỉnh, hoang dại, giống cha mình y hệt. Cô cưỡi con rồng Moondancer.",
-    birthYear: 116, age: 13, coreStats: { STR: 9, AGI: 15, END: 11, INT: 12, WIL: 16, CHA: 14 },
+    birthYear: 116, age: 13, coreStats: { "Sức Mạnh": 9, "Nhanh Nhẹn": 15, "Thể Chất": 11, "Trí Tuệ": 12, "Tinh Tường": 16, "Uy Tín": 14 },
     talentIds: ["brave", "hot-tempered"], skills: { "Cưỡi Rồng": 12, "Cận Chiến (Kiếm)": 8 },
-    equipment: [], items: [], gold: 500,
-    dragon: { name: "Moondancer", color: "Xanh lá nhạt", size: "Nhỏ", age: 10, description: "Con rồng nhỏ nhưng bay cực kỳ nhanh", stats: { HP: 100, STR: 6, AGI: 22, INT: 12, WIL: 16 }, skills: { "Bay Lượn": 18, "Lửa Rồng": 8 } }
+    equipment: [], items: [], gold: 500, startingHookIds: [],
+    dragon: { name: "Moondancer", color: "Xanh lá nhạt", size: "Non", age: 10, description: "Con rồng nhỏ nhưng bay cực kỳ nhanh", stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 }, skills: { "Bay Lượn": 18, "Lửa Rồng": 8 } }
   },
   {
     id: "rhaena-targaryen", name: "Rhaena Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Cô Gái Dịu Dàng", religion: "Thất Diện Thần",
     blurb: "Em gái sinh đôi của Baela. Dịu dàng, thích múa và quần áo đẹp hơn là kiếm thuật.",
-    birthYear: 116, age: 13, coreStats: { STR: 6, AGI: 10, END: 8, INT: 14, WIL: 12, CHA: 16 },
+    birthYear: 116, age: 13, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 8, "Trí Tuệ": 14, "Tinh Tường": 12, "Uy Tín": 16 },
     talentIds: ["gentle", "charming"], skills: { "Chính Trị": 10, "Ngoại Giao": 12 },
-    equipment: [], items: [], gold: 500
+    equipment: [], items: [], gold: 500, startingHookIds: []
   },
   {
     id: "harwin-strong", name: "Harwin Strong", tuocVi: "Hiệp Sĩ", house: "Strong", role: "Người Mẻ Cốt", religion: "Cựu Thần",
     blurb: "Người đàn ông mạnh nhất Bảy Vương Quốc, Đội trưởng Đội Gác Thành, và được cho là cha ruột của các con trai Rhaenyra.",
-    birthYear: 90, deathYear: 120, age: 30, coreStats: { STR: 20, AGI: 11, END: 18, INT: 9, WIL: 15, CHA: 14 },
+    birthYear: 90, deathYear: 120, age: 30, coreStats: { "Sức Mạnh": 20, "Nhanh Nhẹn": 11, "Thể Chất": 18, "Trí Tuệ": 9, "Tinh Tường": 15, "Uy Tín": 14 },
     talentIds: ["giant-frame", "strong"], skills: { "Cận Chiến (Kiếm)": 18, "Chỉ Huy": 12 },
-    equipment: [], items: [], gold: 800
+    equipment: [], items: [], gold: 800, startingHookIds: []
   },
   {
     id: "mysaria", name: "Mysaria", tuocVi: "Thường Dân", house: "Khác", role: "Sâu Trắng", religion: "Khác",
     blurb: "Cựu kỹ nữ đến từ Lys, trở thành người tình của Daemon và là bậc thầy gián điệp của Rhaenyra.",
-    birthYear: 88, age: 41, coreStats: { STR: 5, AGI: 12, END: 8, INT: 18, WIL: 16, CHA: 18 },
+    birthYear: 88, age: 41, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 12, "Thể Chất": 8, "Trí Tuệ": 18, "Tinh Tường": 16, "Uy Tín": 18 },
     talentIds: ["schemer", "seductive"], skills: { "Tình Báo": 18, "Lừa Lọc": 16, "Quyến Rũ": 18 },
-    equipment: [], items: [], gold: 2000
+    equipment: [], items: [], gold: 2000, startingHookIds: []
   },
   {
     id: "tyland-lannister", name: "Tyland Lannister", tuocVi: "Hiệp Sĩ", house: "Lannister", role: "Quản Lý Ngân Khố", religion: "Thất Diện Thần",
     blurb: "Phục vụ phe Xanh, đã nhanh tay phân tán ngân khố hoàng gia trước khi Rhaenyra chiếm được vương đô.",
-    birthYear: 90, age: 39, coreStats: { STR: 10, AGI: 10, END: 12, INT: 17, WIL: 16, CHA: 13 },
+    birthYear: 90, age: 39, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 17, "Tinh Tường": 16, "Uy Tín": 13 },
     talentIds: ["schemer", "loyal"], skills: { "Tài Chính": 18, "Chính Trị": 15 },
-    equipment: [], items: [], gold: 10000
+    equipment: [], items: [], gold: 10000, startingHookIds: []
   },
   {
     id: "jason-lannister", name: "Jason Lannister", tuocVi: "Lãnh Chúa", house: "Lannister", role: "Lãnh Chúa Casterly Rock", religion: "Thất Diện Thần",
     blurb: "Anh trai sinh đôi của Tyland, lãnh chúa giàu có, kiêu ngạo. Dẫn dắt quân đội Tây chiến đấu cho vua Aegon II.",
-    birthYear: 90, age: 39, coreStats: { STR: 12, AGI: 11, END: 12, INT: 13, WIL: 12, CHA: 15 },
+    birthYear: 90, age: 39, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 12, "Trí Tuệ": 13, "Tinh Tường": 12, "Uy Tín": 15 },
     talentIds: ["proud", "wealthy"], skills: { "Chỉ Huy": 14, "Tài Chính": 15 },
-    equipment: [], items: [], gold: 30000, startArmy: { size: 10000, quality: "Thiện Chiến" }
+    equipment: [], items: [], gold: 30000, startingHookIds: [], startArmy: { size: 10000, quality: "Thiện Chiến" }
   },
   {
     id: "ulf-white", name: "Ulf Trắng", tuocVi: "Thường Dân", house: "Khác", role: "Kẻ Nát Rượu", religion: "Thất Diện Thần",
     blurb: "Một kỵ sĩ hạt giống, nát rượu và tham lam, cưỡi con rồng Silverwing.",
-    birthYear: 90, age: 39, coreStats: { STR: 14, AGI: 9, END: 13, INT: 6, WIL: 7, CHA: 10 },
+    birthYear: 90, age: 39, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 9, "Thể Chất": 13, "Trí Tuệ": 6, "Tinh Tường": 7, "Uy Tín": 10 },
     talentIds: ["drunkard", "treacherous"], skills: { "Cưỡi Rồng": 10 },
-    equipment: [], items: [], gold: 10,
-    dragon: { name: "Silverwing", color: "Bạc", size: "Lớn", age: 93, description: "Rồng hiền hòa", stats: { HP: 280, STR: 18, AGI: 15, INT: 14, WIL: 14 }, skills: { "Lửa Rồng": 14, "Bay Lượn": 14 } }
+    equipment: [], items: [], gold: 10, startingHookIds: [],
+    dragon: { name: "Silverwing", color: "Bạc", size: "Trưởng Thành", age: 93, description: "Rồng hiền hòa", stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 }, skills: { "Lửa Rồng": 14, "Bay Lượn": 14 } }
   },
   {
     id: "orwyle", name: "Orwyle", tuocVi: "Thường Dân", house: "Khác", role: "Đại Maester", religion: "Thất Diện Thần",
     blurb: "Đại Maester của Tiểu Hội Đồng, theo phe Xanh.",
-    birthYear: 70, age: 59, coreStats: { STR: 5, AGI: 6, END: 8, INT: 18, WIL: 12, CHA: 10 },
+    birthYear: 70, age: 59, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 6, "Thể Chất": 8, "Trí Tuệ": 18, "Tinh Tường": 12, "Uy Tín": 10 },
     talentIds: ["learned"], skills: { "Y Thuật": 18, "Lịch Sử": 18, "Học Thuật": 18 },
-    equipment: [], items: [], gold: 100
+    equipment: [], items: [], gold: 100, startingHookIds: []
   },
   {
     id: "jasper-wylde", name: "Jasper Wylde", tuocVi: "Lãnh Chúa", house: "Wylde", role: "Gậy Sắt", religion: "Thất Diện Thần",
     blurb: "Quan quản pháp của Vua Viserys, vô cùng cứng nhắc về luật lệ. Ông theo phe Xanh vì luật truyền ngôi cho con trai trưởng.",
-    birthYear: 75, age: 54, coreStats: { STR: 9, AGI: 8, END: 12, INT: 16, WIL: 18, CHA: 11 },
+    birthYear: 75, age: 54, coreStats: { "Sức Mạnh": 9, "Nhanh Nhẹn": 8, "Thể Chất": 12, "Trí Tuệ": 16, "Tinh Tường": 18, "Uy Tín": 11 },
     talentIds: ["strict", "just"], skills: { "Luật Pháp": 18, "Chính Trị": 14 },
-    equipment: [], items: [], gold: 1000
+    equipment: [], items: [], gold: 1000, startingHookIds: []
   },
   {
     id: "sabitha-frey", name: "Sabitha Frey", tuocVi: "Tiểu Thư", house: "Frey", role: "Nữ Tướng", religion: "Thất Diện Thần",
     blurb: "Vợ của lãnh chúa Frey, thích chiến tranh hơn thêu thùa, dẫn dắt quân Frey chiến đấu cho phe Đen.",
-    birthYear: 100, age: 29, coreStats: { STR: 13, AGI: 14, END: 15, INT: 12, WIL: 15, CHA: 11 },
+    birthYear: 100, age: 29, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 15, "Trí Tuệ": 12, "Tinh Tường": 15, "Uy Tín": 11 },
     talentIds: ["warrior-blood", "ruthless"], skills: { "Chỉ Huy": 14, "Cận Chiến (Kiếm)": 14 },
-    equipment: [], items: [], gold: 800
+    equipment: [], items: [], gold: 800, startingHookIds: []
   }
 ];
 

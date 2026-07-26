@@ -40,7 +40,7 @@ export interface CanonEquipGrant {
 export interface CanonCharacter {
   id: string;
   name: string;
-  tuocVi: "Thường Dân" | "Hiệp Sĩ" | "Lãnh Chúa" | "Đại Lãnh Chúa" | "Vua" | "Vua Bảy Vương Quốc" | "Hoàng Đế";
+  tuocVi: "Thường Dân" | "Hiệp Sĩ" | "Lãnh Chúa" | "Đại Lãnh Chúa" | "Vua" | "Vua Bảy Vương Quốc" | "Hoàng Đế" | "Hoàng Tử" | "Vương Hậu" | "Công Chúa" | "Tiểu Thư" | "Vương Thân" | "Vương phi" | "Người Thừa Kế";
   /** schemaName của Nhà (khớp enum HOUSES trong schema). */
   house: string;
   role: string;
@@ -57,6 +57,10 @@ export interface CanonCharacter {
   items: { ten: string; soLuong: number; moTa: string }[];
   gold: number;
   startingHookIds: string[];
+  /** Hook riêng cho nhân vật (không phải hook chung của era). */
+  personalHooks?: StartingHook[];
+  /** Năm chết (AC) — dùng để giới hạn year slider. */
+  deathYear?: number;
   /** Mã (seatId) các thành trì nhân vật cai trị ngay từ đầu (vd: "the-north-seat") */
   startHoldings?: string[];
   /** Mã (regionId) các vương quốc nhân vật kiểm soát vĩ mô (vd: "the-north") */

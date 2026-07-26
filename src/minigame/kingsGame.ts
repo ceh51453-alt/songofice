@@ -9,7 +9,7 @@
  * - AI nâng cấp: biết dùng trap/spell
  */
 import {
-  type GameCard, type TrapCondition, type SpellEffect,
+  type GameCard,
   BASE_DECK, HOUSE_COMBO_BONUS,
 } from "./cardData";
 import { makeRng, type RNG } from "../probability/rng";
@@ -181,7 +181,7 @@ function applyTrapEffect(
   trap: GameCard,
   opponentCard: GameCard,
   opponentHand: GameCard[],
-  rng: RNG,
+  _rng: RNG,
 ): {
   atkMod: number;
   defMod: number;
@@ -248,7 +248,7 @@ function applySpellEffect(
   spell: GameCard,
   state: KingsGameState,
   isPlayer: boolean,
-  rng: RNG,
+  _rng: RNG,
 ): { stateChanges: Partial<KingsGameState>; narration: string } {
   const hand = isPlayer ? state.playerHand : state.aiHand;
   const graveyard = isPlayer ? state.playerGraveyard : state.aiGraveyard;
@@ -326,7 +326,7 @@ function applySpellEffect(
 // ═══════════════════════════════════════════════════════════════
 
 /** AI chiến lược V3: xét trap/spell + creature. */
-function aiPickCard(hand: GameCard[], rng: RNG, penalty: number, lastHouse: string | null, hasFogTrap: boolean): GameCard {
+function aiPickCard(hand: GameCard[], rng: RNG, _penalty: number, lastHouse: string | null, hasFogTrap: boolean): GameCard {
   if (hand.length === 0) throw new Error("AI hand empty");
 
   // Nếu bị Sương Mù → random

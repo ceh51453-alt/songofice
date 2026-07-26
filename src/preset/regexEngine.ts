@@ -16,7 +16,7 @@ export function compileRegex(regexString: string): RegExp | null {
     // Nếu không bọc trong /.../ thì coi như chuỗi thường nhưng parse thành Regex
     return new RegExp(regexString, "gi");
   } catch (err) {
-    log.warn("Lỗi biên dịch regex:", regexString, err);
+    log.warn(`Lỗi biên dịch regex: ${regexString}`, err);
     return null;
   }
 }

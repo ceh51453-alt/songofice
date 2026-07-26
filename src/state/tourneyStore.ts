@@ -11,15 +11,15 @@ import {
   startEvent,
   playTourneyRound,
   finishEvent,
-  finishTourney,
+  
   type TourneyState,
   type PlayerStats,
 } from "../minigame/tourneyEngine";
 import {
-  TOURNEY_EVENTS,
+  
   CANON_TOURNEYS,
   type TourneyEventType,
-  type CanonTourney,
+  
 } from "../content/westeros/tourneyData";
 import { createLogger } from "../lib/log";
 
