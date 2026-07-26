@@ -108,14 +108,57 @@ export function validatePointBuy(
   const budget = getCalculatedBudgets(difficulty, age).pointBuy + flawRefund(talentIds);
   for (const stat of CORE_STATS) {
     const v = alloc[stat] ?? STAT_BASE;
-    if (v < STAT_MIN_CREATE || v > STAT_MAX_CREATE) {
-      return { ok: false, spent: 0, budget, error: `${stat} phải trong ${STAT_MIN_CREATE}–${STAT_MAX_CREATE}` };
-    }
+    if (v < STAT_MIN_CREATE || v > STAT_MAX_CREATE) return { ok: false, spent: 0, budget, error: `Chỉ số ${stat} ngoài giới hạn.` };
   }
   const spent = pointBuySpent(alloc, loreEquipmentIds);
-  if (spent > budget) return { ok: false, spent, budget, error: `Vượt quỹ điểm (${spent}/${budget})` };
+  if (spent > budget) return { ok: false, spent, budget, error: `Vượt quỹ point-buy (${spent}/${budget}).` };
   return { ok: true, spent, budget };
 }
+
+export const autoBuildCity = (level: number) => {
+  const b: Record<string, any> = {};
+  const center = 750;
+  b[`Lâu Đài_${center}_${center}`] = { "Loại": "Lâu Đài", "Cấp Độ": level, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": center, "Tọa Độ Y": center, "Kích Thước": 2 };
+  
+  const tryPlace = (type: string, count: number, size: number = 1) => {
+      for (let i = 0; i < count; i++) {
+          let placedHere = false;
+          let radius = 3;
+          while (!placedHere && radius < 15 + level * 5) {
+              for (let attempt = 0; attempt < 10; attempt++) {
+                  const angle = Math.random() * Math.PI * 2;
+                  const x = Math.floor(center + Math.cos(angle) * radius);
+                  const y = Math.floor(center + Math.sin(angle) * radius);
+                  let collides = false;
+                  for (const existing of Object.values(b)) {
+                      const ex = existing["Tọa Độ X"];
+                      const ey = existing["Tọa Độ Y"];
+                      const es = existing["Kích Thước"];
+                      if (x < ex + es && x + size > ex && y < ey + es && y + size > ey) {
+                          collides = true;
+                          break;
+                      }
+                  }
+                  if (!collides) {
+                      b[`${type}_${x}_${y}`] = { "Loại": type, "Cấp Độ": Math.max(1, level - 1), "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": x, "Tọa Độ Y": y, "Kích Thước": size };
+                      placedHere = true;
+                      break;
+                  }
+              }
+              radius += 2;
+          }
+      }
+  };
+  
+  tryPlace("Nông Trại", level * 2);
+  tryPlace("Chợ", level);
+  tryPlace("Doanh Trại", level);
+  if (level >= 2) tryPlace("Sept/Rừng Thần", 1, 2);
+  if (level >= 4) tryPlace("Học Viện Nhỏ", 1, 2);
+  
+  return b;
+};
+
 
 /** Số slot thiên phú tích cực: cơ bản theo Độ Khó + 1 slot mỗi khiếm khuyết nhận (8.5 Bước 3). */
 export function talentSlots(difficulty: Difficulty, talentIds: string[]): { used: number; max: number } {
@@ -214,6 +257,10 @@ export interface WizardData {
   loreEquipmentIds?: string[];
   /** Danh sách trang bị tự rèn/đặt rèn */
   customEquipments?: CraftingRequest[];
+  /** Tuỳ chỉnh Lãnh Địa khởi điểm */
+  hasCustomTerritory?: boolean;
+  customTerritoryLevel?: number;
+  customTerritoryName?: string;
 }
 
 export interface CraftingRequest {
@@ -456,14 +503,80 @@ export function buildStateFromWizard(d: WizardData): StatData {
   }
 
   info["Vàng"] = startingGold;
-  if (origin.assets.lanhDia) {
+  
+  if (d.hasCustomTerritory && d.customTerritoryName) {
+    const lvl = d.customTerritoryLevel || 1;
+    const basePop = 5000;
+    const pop = basePop * lvl;
+    const factor = lvl;
+    
+    (state["Lãnh Địa"] as Record<string, unknown>)[d.customTerritoryName] = {
+      "Nhà Kiểm Soát": d.houseId || d.customHouseName || "Vô Danh",
+      "Người Kiểm Soát": d.name,
+      "Tình Trạng": "Ổn Định",
+      "Mô Tả": `Thành trì của ${d.name}`,
+      "Dân Số": pop,
+      "Dân Số Chi Tiết": { 
+          "Nông Dân": Math.floor(pop * 0.5), 
+          "Thợ Thủ Công": Math.floor(pop * 0.1), 
+          "Thợ Mỏ": Math.floor(pop * 0.1), 
+          "Tiều Phu": Math.floor(pop * 0.1), 
+          "Thương Nhân": Math.floor(pop * 0.1), 
+          "Nghề Khác": Math.floor(pop * 0.05), 
+          "Thất Nghiệp": Math.floor(pop * 0.05) 
+      },
+      "Lòng Dân": 80,
+      "Trung Thành": 80,
+      "Dự Trữ Lương Thực": 1000 * factor,
+      "Thu Nhập Bình Quân": 10 * factor,
+      "Sự Kiện Đặc Biệt": [],
+      "Tài Nguyên": { 
+          "Vàng": 1000 * factor, 
+          "Lương Thực": 5000 * factor, 
+          "Gỗ": 1000 * factor, 
+          "Đá": 1000 * factor, 
+          "Quặng Sắt": 500 * factor 
+      },
+      "Vật Phẩm": {},
+      "Điểm Khám Phá": [],
+      "Pháp Lệnh": {},
+      "Tường Thành": [],
+      "Đường Đi": [],
+      "Khủng Hoảng": [],
+      "Thuộc Vùng": d.startingLocation || state["Thế Giới"]["Vị Trí"],
+      "Ven Biển": false,
+      "Công Trình": autoBuildCity(lvl),
+    };
+    
+    // Đăng ký vùng này thuộc về người chơi
+    if (!state["Chủ Quyền Lãnh Thổ"]) state["Chủ Quyền Lãnh Thổ"] = {};
+    const regionId = d.startingLocation || state["Thế Giới"]["Vị Trí"];
+    if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
+      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Đổi Chủ Turn": 0 };
+    }
+    state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = d.houseId || d.customHouseName || "Vô Danh";
+    state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
+  } else if (origin.assets.lanhDia) {
+    const regionId = d.startingLocation || state["Thế Giới"]["Vị Trí"];
     (state["Lãnh Địa"] as Record<string, unknown>)[origin.assets.lanhDia.ten] = {
       "Mô Tả": origin.assets.lanhDia.moTa,
       "Dân Số": origin.assets.lanhDia.danSo,
       "Trung Thành": origin.assets.lanhDia.trungThanh,
       "Tài Nguyên": { "Vàng": 0, "Lương Thực": origin.assets.luongThuc, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150 },
       "Khủng Hoảng": [],
+      "Thuộc Vùng": regionId,
+      "Ven Biển": false,
+      "Người Kiểm Soát": d.name,
+      "Công Trình": autoBuildCity(3),
     };
+
+    if (!state["Chủ Quyền Lãnh Thổ"]) state["Chủ Quyền Lãnh Thổ"] = {};
+    if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
+      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Đổi Chủ Turn": 0 };
+    }
+    state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = d.houseId || d.customHouseName || "Vô Danh";
+    state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
+    state["Chủ Quyền Lãnh Thổ"][regionId]["Người Kiểm Soát"] = d.name;
   }
 
   // ---- danh vọng khởi điểm (Bước 7 / 16.4) ----
@@ -841,44 +954,151 @@ export function buildStateFromCanon(
       }
     }
   }
-
   if (adjustedC.startHoldings) {
     for (const sid of adjustedC.startHoldings) {
       const marker = MAP_MARKERS.find(m => m.id === sid);
       const lvl = adjustedC.holdingsLevel?.[sid] || 1;
+      const basePop = marker?.population || 5000;
+      const pop = basePop * lvl;
+      const factor = lvl;
+      
+      let regionId = "the-crownlands"; // default fallback
+      if (marker && marker.regionId) {
+        regionId = marker.regionId;
+      } else if (sid.endsWith("-seat")) {
+        regionId = sid.replace("-seat", "");
+      }
+      
       state["Lãnh Địa"][sid] = {
+        "Thuộc Vùng": regionId,
         "Nhà Kiểm Soát": adjustedC.house,
         "Người Kiểm Soát": adjustedC.name,
         "Tình Trạng": "Ổn Định",
         "Mô Tả": marker?.name || sid,
-        "Dân Số": marker?.population || 5000,
+        "Dân Số": pop,
+        "Dân Số Chi Tiết": { 
+            "Nông Dân": Math.floor(pop * 0.5), 
+            "Thợ Thủ Công": Math.floor(pop * 0.1), 
+            "Thợ Mỏ": Math.floor(pop * 0.1), 
+            "Tiều Phu": Math.floor(pop * 0.1), 
+            "Thương Nhân": Math.floor(pop * 0.1), 
+            "Nghề Khác": Math.floor(pop * 0.05), 
+            "Thất Nghiệp": Math.floor(pop * 0.05) 
+        },
+        "Lòng Dân": 80,
         "Trung Thành": 80,
-        "Tài Nguyên": { "Vàng": 1000, "Lương Thực": 5000, "Gỗ": 1000, "Đá": 1000, "Quặng Sắt": 500 },
+        "Dự Trữ Lương Thực": 1000 * factor,
+        "Thu Nhập Bình Quân": 10 * factor,
+        "Sự Kiện Đặc Biệt": [],
+        "Tài Nguyên": { 
+            "Vàng": 1000 * factor, 
+            "Lương Thực": 5000 * factor, 
+            "Gỗ": 1000 * factor, 
+            "Đá": 1000 * factor, 
+            "Quặng Sắt": 500 * factor 
+        },
+        "Vật Phẩm": {},
+        "Điểm Khám Phá": [],
+        "Pháp Lệnh": {},
+        "Tường Thành": [],
+        "Đường Đi": [],
         "Khủng Hoảng": [],
-        "Thuộc Vùng": sid,
         "Ven Biển": false,
-        "Công Trình": { "Lâu Đài": { "Loại": "Lâu Đài", "Cấp Độ": lvl, "Đang Xây": false, "Turn Còn Lại": 0 } },
+        "Công Trình": autoBuildCity(lvl),
       };
     }
   }
 
-  if (adjustedC.startArmy && adjustedC.startHoldings && adjustedC.startHoldings.length > 0) {
-    const armyId = `army_${adjustedC.id}`;
-    const loc = adjustedC.startHoldings[0];
-    state["Biên Chế Quân Sự"][armyId] = {
-      "Tướng Chỉ Huy": adjustedC.name,
-      "Nhà": adjustedC.house as string,
-      "Số Lượng": adjustedC.startArmy.size,
-      "Loại Quân": "Bộ Binh",
-      "Thành Phần": {},
-      "Hậu Cần": "Dồi Dào",
-      "Sĩ Khí": "Hăng Hái",
-      "Trang Bị": "Đồng Bộ Chỉnh Tề",
-      "Huấn Luyện": adjustedC.startArmy.quality,
-      "Lãnh Địa Đồn Trú": loc,
-      "Turn Di Chuyển Còn Lại": 0,
-      "Turn Huấn Luyện": 0
+  const createRichArmies = (chId: string, name: string, house: string, totalSize: number, quality: string, loc: string) => {
+    let armyCount = 0;
+    const addArmy = (type: string, fraction: number) => {
+      if (fraction <= 0) return;
+      const size = Math.max(1, Math.floor(totalSize * fraction));
+      if (size === 0) return;
+      armyCount++;
+      state["Biên Chế Quân Sự"][`army_${chId}_${armyCount}`] = {
+        "Tướng Chỉ Huy": name,
+        "Nhà": house,
+        "Số Lượng": size,
+        "Loại Quân": type as any,
+        "Thành Phần": {},
+        "Hậu Cần": "Dồi Dào",
+        "Sĩ Khí": "Hăng Hái",
+        "Trang Bị": "Đồng Bộ Chỉnh Tề",
+        "Huấn Luyện": quality as any,
+        "Lãnh Địa Đồn Trú": loc,
+        "Turn Di Chuyển Còn Lại": 0,
+        "Turn Huấn Luyện": 0
+      };
     };
+
+    const addFleet = (size: number) => {
+      if (size <= 0) return;
+      state["Hạm Đội"][`fleet_${chId}`] = {
+        "Đô Đốc": name,
+        "Nhà": house as any,
+        "Số Chiến Thuyền": size,
+        "Loại Hạm": house === "Greyjoy" ? "Thuyền Dài (Greyjoy)" : "Chiến Thuyền Nặng",
+        "Tình Trạng": "Sẵn Sàng",
+        "Lãnh Địa Neo Đậu": loc,
+        "Bộ Binh Trên Thuyền": 0,
+        "Đang Phong Toả": undefined
+      };
+    };
+
+    if (house === "Lannister") {
+      addArmy("Bộ Binh", 0.7);
+      addArmy("Kỵ Binh", 0.2);
+      addArmy("Trường Thương", 0.1);
+      addFleet(20);
+    } else if (house === "Stark") {
+      addArmy("Bộ Binh", 0.8);
+      addArmy("Kỵ Binh Nhẹ", 0.2);
+    } else if (house === "Greyjoy") {
+      addArmy("Người Sắt (Ironborn)", 1.0);
+      addFleet(150);
+    } else if (house === "Tyrell") {
+      addArmy("Bộ Binh", 0.6);
+      addArmy("Kỵ Binh", 0.4);
+      addFleet(80);
+    } else if (house === "Martell") {
+      addArmy("Trường Thương", 0.7);
+      addArmy("Kỵ Binh Nhẹ", 0.3);
+    } else if (house === "Targaryen") {
+      if (["aegon-conquest", "dance-of-dragons"].includes(era.id)) {
+        addArmy("Rồng", 0.005);
+      }
+      addArmy("Bộ Binh", 0.7);
+      addArmy("Kỵ Binh", 0.3);
+      addFleet(50);
+    } else if (house === "Arryn") {
+      addArmy("Bộ Binh", 0.6);
+      addArmy("Kỵ Binh", 0.4);
+    } else if (house === "Baratheon") {
+      addArmy("Bộ Binh", 0.7);
+      addArmy("Kỵ Binh", 0.3);
+      addFleet(60);
+    } else if (house === "Velaryon") {
+      addArmy("Bộ Binh", 0.7);
+      addFleet(Math.floor(totalSize / 50));
+    } else if (house === "Redwyne") {
+      addArmy("Bộ Binh", 0.6);
+      addFleet(Math.floor(totalSize / 40));
+    } else if (house === "Hightower") {
+      addArmy("Bộ Binh", 0.7);
+      addArmy("Kỵ Binh", 0.3);
+      addFleet(Math.floor(totalSize / 200));
+    } else if (house === "Manderly") {
+      addArmy("Bộ Binh", 0.8);
+      addArmy("Kỵ Binh", 0.2);
+      addFleet(Math.floor(totalSize / 100));
+    } else {
+      addArmy("Bộ Binh", 1.0);
+    }
+  };
+
+  if (adjustedC.startArmy && adjustedC.startHoldings && adjustedC.startHoldings.length > 0) {
+    createRichArmies(adjustedC.id, adjustedC.name, adjustedC.house as string, adjustedC.startArmy.size, adjustedC.startArmy.quality, adjustedC.startHoldings[0]);
   }
 
   // ---- TỰ ĐỘNG KHỞI TẠO QUÂN ĐỘI VÀ LÃNH ĐỊA LORE CHO TẤT CẢ PHE PHÁI ----
@@ -892,7 +1112,10 @@ export function buildStateFromCanon(
     "Arryn": { size: 35000, quality: "Thành Thạo", seat: "the-vale-seat", region: "the-vale" },
     "Tully": { size: 20000, quality: "Mới Lập Đội", seat: "the-riverlands-seat", region: "the-riverlands" },
     "Greyjoy": { size: 15000, quality: "Thành Thạo", seat: "the-iron-islands-seat", region: "the-iron-islands" },
-    "Targaryen": { size: 10000, quality: "Tinh Nhuệ", seat: "the-crownlands-seat", region: "the-crownlands" }
+    "Targaryen": { size: 10000, quality: "Tinh Nhuệ", seat: "the-crownlands-seat", region: "the-crownlands" },
+    "Hoare": { size: 18000, quality: "Thành Thạo", seat: "the-riverlands-seat", region: "the-riverlands" },
+    "Durrandon": { size: 25000, quality: "Thành Thạo", seat: "the-stormlands-seat", region: "the-stormlands" },
+    "Gardener": { size: 70000, quality: "Đồng Bộ Chỉnh Tề", seat: "the-reach-seat", region: "the-reach" }
   };
 
   for (const ch of era.canonCharacters) {
@@ -910,22 +1133,11 @@ export function buildStateFromCanon(
           "Tình Trạng": "Ổn Định",
           "_Đổi Chủ Turn": 0
         };
-        // Cấp quân đội
-        const armyId = `army_${ch.id}`;
-        state["Biên Chế Quân Sự"][armyId] = {
-          "Tướng Chỉ Huy": ch.name,
-          "Nhà": ch.house,
-          "Số Lượng": ch.startArmy?.size || def.size,
-          "Loại Quân": "Bộ Binh",
-          "Thành Phần": {},
-          "Hậu Cần": "Dồi Dào",
-          "Sĩ Khí": "Hăng Hái",
-          "Trang Bị": "Đồng Bộ Chỉnh Tề",
-          "Huấn Luyện": (ch.startArmy?.quality || def.quality) as any,
-          "Lãnh Địa Đồn Trú": ch.startHoldings?.[0] || def.seat,
-          "Turn Di Chuyển Còn Lại": 0,
-          "Turn Huấn Luyện": 0
-        };
+        
+        const loc = ch.startHoldings?.[0] || def.seat;
+        const totalSize = ch.startArmy?.size || def.size;
+        const quality = ch.startArmy?.quality || def.quality;
+        createRichArmies(ch.id, ch.name, ch.house, totalSize, quality, loc);
       }
     }
   }

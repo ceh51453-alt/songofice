@@ -147,7 +147,7 @@ export const REGION_CONTROL_OVERRIDES: Record<string, Record<string, string>> = 
     "the-reach": "gardener", // Vua Mern Gardener (trước Tyrell)
     "the-stormlands": "durrandon", // Vua Bão Argilac (trước Baratheon)
   },
-  // Vũ Điệu Rồng (129 AC): Targaryen nắm Crownlands, nội chiến hai phe.
+  // Vũ Điệu Rồng (129 AC): Targaryen nắm Crownlands, nội chiến hai phe. (Thực tế phe Đen/Xanh, nhưng về cơ bản nhà thống trị vẫn là các Đại Lãnh Chúa, Riverlands là Tully, v.v.)
   "dance-of-dragons": {
     "the-crownlands": "targaryen",
   },
@@ -165,9 +165,24 @@ export const REGION_CONTROL_OVERRIDES: Record<string, Record<string, string>> = 
   },
   // Loạn Greyjoy (289): giống hậu Loạn Robert — Robert nắm Crownlands.
   "greyjoy-rebellion": {
-    // dùng bảng mặc định 298 (Robert là vua).
+    "the-crownlands": "baratheon",
   },
   // Chiến Tranh Ngũ Vương + Sandbox: dùng bảng mặc định 298.
+  "war-of-five-kings": {
+    "the-crownlands": "baratheon",
+  },
+  // Những Ngọn Gió Mùa Đông (Winds of Winter - 300 AC): Bản đồ thay đổi nhiều sau WOTFK
+  "winds-of-winter": {
+    "the-north": "bolton", // Roose Bolton làm Bảo Hộ Phương Bắc
+    "the-riverlands": "frey", // Frey (và Lannister) kiểm soát
+    "the-crownlands": "lannister", // Tommen/Cersei (de facto Lannister)
+    "the-stormlands": "baratheon", // Bị tranh chấp bởi Stannis/Connington, nhưng về mặt danh nghĩa của Tommen/Stannis
+    "the-reach": "tyrell",
+    "the-westerlands": "lannister",
+    "the-iron-islands": "greyjoy",
+    "the-vale": "arryn",
+    "dorne": "martell"
+  }
 };
 
 /** Bản đồ chủ quyền đầy đủ cho 1 Era (kế thừa mặc định + override). */

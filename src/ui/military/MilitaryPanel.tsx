@@ -107,7 +107,7 @@ function ForcesTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
   const [msg, setMsg] = useState<string | null>(null);
 
   const pHouse = playerHouseId(stat);
-  const units = Object.entries(stat["Biên Chế Quân Sự"]).filter(([, u]) => u["Số Lượng"] > 0);
+  const units = Object.entries(stat["Biên Chế Quân Sự"]).filter(([, u]) => u["Số Lượng"] > 0 && String(u["Nhà"]).toLowerCase() === String(pHouse).toLowerCase());
 
   if (units.length === 0) {
     return <p className="text-[13px] italic text-[var(--text-muted)]">{t("mil.noUnits")}</p>;
@@ -287,7 +287,7 @@ function FleetTab({ stat }: { stat: Stat }) {
   const amphibious = useMilitaryStore((s) => s.amphibiousLanding);
   const blockade = useMilitaryStore((s) => s.blockade);
   const pHouse = playerHouseId(stat);
-  const fleets = Object.entries(stat["Hạm Đội"]).filter(([, f]) => f["Số Chiến Thuyền"] > 0);
+  const fleets = Object.entries(stat["Hạm Đội"]).filter(([, f]) => f["Số Chiến Thuyền"] > 0 && String(f["Nhà"]).toLowerCase() === String(pHouse).toLowerCase());
   const coastalEnemy = REGIONS.filter((r) => r.coastal && regionController(stat, r.id) !== pHouse);
   const [dest, setDest] = useState<Record<string, string>>({});
   const [msg, setMsg] = useState<string | null>(null);
@@ -340,7 +340,6 @@ function FleetTab({ stat }: { stat: Stat }) {
 // ── Ngoại Giao + Tù Binh ─────────────────────────────────────────────────────
 function DiplomacyTab({ stat }: { stat: Stat }) {
   const t = useT();
-  const setWar = useMilitaryStore((s) => s.setWar);
   const pHouse = playerHouseId(stat);
   const captives = Object.entries(stat["Tù Binh"]);
 
@@ -385,13 +384,9 @@ function DiplomacyTab({ stat }: { stat: Stat }) {
                 </div>
               </div>
             )}
-            <div className="mt-2">
-              {atWar ? (
-                <GlassButton size="sm" onClick={() => setWar(hid, false)}>{t("mil.makePeace")}</GlassButton>
-              ) : (
-                <GlassButton size="sm" variant="danger" onClick={() => setWar(hid, true)}>{t("mil.declareWar")}</GlassButton>
-              )}
-            </div>
+              <p className="mt-2 text-[11.5px] italic text-[var(--text-faint)]">
+                {atWar ? "Cuộc chiến sẽ kết thúc thông qua sự kiện cốt truyện hoặc khi một bên đầu hàng." : "Quan hệ ngoại giao tự động diễn biến theo thái độ và sự kiện cốt truyện."}
+              </p>
           </div>
         );
       })}

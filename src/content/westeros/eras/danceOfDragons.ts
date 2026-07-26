@@ -20,9 +20,9 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     gold: 500, startingHookIds: [],
     father: "laenor-velaryon", mother: "rhaenyra-targaryen",
     spouse: "baela-targaryen",
-    siblings: ["lucerys-velaryon", "joffrey-velaryon", "aegon-iii", "viserys-ii-targaryen"],
-    allies: ["rhaenyra-targaryen", "lucerys-velaryon", "cregan-stark"],
-    rivals: ["aegon-ii", "aemond-targaryen"],
+    siblings: ["lucerys-velaryon", "joffrey-velaryon"],
+    allies: ["cregan-stark", "jeyne-arryn"],
+    rivals: ["aegon-ii-targaryen"],
     dragon: {
       name: "Vermax", color: "Xanh Lục", size: "Trưởng Thành", age: 14,
       description: "Con rồng trẻ đang độ lớn, bay rất nhanh và hung dữ.",
@@ -31,7 +31,11 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     },
     personalHooks: [
       { id: "jace-north", title: "Hành Trình Lên Bắc", year: "129 AC", numericYear: 129, desc: "Mẹ giao cho ngươi nhiệm vụ đến Eyrie, White Harbor và Winterfell để giành sự ủng hộ của lãnh chúa Stark và Arryn." }
-    ]
+    ],
+    children: [],
+    startArmy: { size: 800, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "lucerys-velaryon",
@@ -52,9 +56,9 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     gold: 300, startingHookIds: [],
     father: "laenor-velaryon", mother: "rhaenyra-targaryen",
     spouse: "rhaena-targaryen",
-    siblings: ["jacaerys-velaryon", "joffrey-velaryon", "aegon-iii", "viserys-ii-targaryen"],
-    allies: ["rhaenyra-targaryen", "jacaerys-velaryon"],
-    rivals: ["aemond-targaryen", "borros-baratheon"],
+    siblings: ["jacaerys-velaryon", "joffrey-velaryon"],
+    allies: ["borros-baratheon"],
+    rivals: ["aemond-targaryen"],
     dragon: {
       name: "Arrax", color: "Trắng Ngọc Trai", size: "Trưởng Thành", age: 13,
       description: "Con rồng trẻ, nhanh nhẹn nhưng chưa đủ sức chiến đấu với những con rồng khổng lồ.",
@@ -63,7 +67,11 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     },
     personalHooks: [
       { id: "luke-storms-end", title: "Bay Tới Storm's End", year: "129 AC", numericYear: 129, desc: "Bầu trời u ám báo hiệu một cơn bão lớn. Ngươi cưỡi Arrax đến lâu đài của Vua Bão với một lá thư mỏng manh." }
-    ]
+    ],
+    children: [],
+    startArmy: { size: 800, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "aegon-iii",
@@ -84,9 +92,9 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     gold: 100, startingHookIds: [],
     father: "daemon-targaryen", mother: "rhaenyra-targaryen",
     spouse: "jaehaera-targaryen",
-    siblings: ["jacaerys-velaryon", "lucerys-velaryon", "joffrey-velaryon", "viserys-ii-targaryen", "baela-targaryen", "rhaena-targaryen"],
-    allies: ["viserys-ii-targaryen"],
-    rivals: ["aegon-ii"],
+    siblings: ["viserys-ii-targaryen"],
+    allies: [],
+    rivals: [],
     dragon: {
       name: "Stormcloud", color: "Xám Xịt", size: "Non", age: 9,
       description: "Con rồng nhỏ chưa từng được cưỡi.",
@@ -95,7 +103,11 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     },
     personalHooks: [
       { id: "aegon-gay-abandon", title: "Tháo Chạy Trên Biển", year: "129 AC", numericYear: 129, desc: "Ngươi đang trên tàu Gay Abandon chạy trốn đến Pentos thì bị hạm đội Triarchy tập kích." }
-    ]
+    ],
+    children: [],
+    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "helaena-targaryen",
@@ -114,12 +126,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 1000, startingHookIds: [],
-    father: "viserys-i-targaryen", mother: "alicent-hightower",
-    spouse: "aegon-ii",
+    father: "viserys-i", mother: "alicent-hightower",
+    spouse: "aegon-ii-targaryen",
     children: ["jaehaerys-targaryen", "jaehaera-targaryen", "maelour-targaryen"],
-    siblings: ["rhaenyra-targaryen", "aegon-ii", "aemond-targaryen", "daeron-targaryen"],
-    allies: ["aegon-ii", "alicent-hightower"],
-    rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
+    siblings: ["aegon-ii-targaryen", "aemond-targaryen", "daeron-targaryen"],
+    allies: [],
+    rivals: ["rhaenyra-targaryen"],
     dragon: {
       name: "Dreamfyre", color: "Xanh Nhạt và Bạc", size: "Trưởng Thành", age: 97,
       description: "Con rồng già dặn, duyên dáng và hiền hòa.",
@@ -128,7 +140,10 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     },
     personalHooks: [
       { id: "blood-and-cheese", title: "Máu và Phô Mai", year: "129 AC", numericYear: 129, desc: "Hai kẻ sát thủ đang đứng trong phòng ngươi. Chúng bắt ngươi phải chọn một đứa con để chết." }
-    ]
+    ],
+    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "daeron-targaryen",
@@ -147,9 +162,9 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 800, startingHookIds: [],
-    father: "viserys-i-targaryen", mother: "alicent-hightower",
-    siblings: ["rhaenyra-targaryen", "aegon-ii", "helaena-targaryen", "aemond-targaryen"],
-    allies: ["aegon-ii", "ormund-hightower"],
+    father: "viserys-i", mother: "alicent-hightower",
+    siblings: ["aegon-ii-targaryen", "aemond-targaryen", "helaena-targaryen"],
+    allies: ["ormund-hightower"],
     rivals: ["rhaenyra-targaryen"],
     dragon: {
       name: "Tessarion", color: "Xanh Cô-ban và Đồng", size: "Trưởng Thành", age: 10,
@@ -159,7 +174,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     },
     personalHooks: [
       { id: "daeron-honeywine", title: "Trận Honeywine", year: "130 AC", numericYear: 130, desc: "Quân Hightower đang bị vây hãm và sắp thua. Ngươi cưỡi Tessarion đến giải cứu họ." }
-    ]
+    ],
+    spouse: "",
+    children: [],
+    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "otto-hightower",
@@ -181,16 +201,23 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     startHoldings: [],
     startRegions: [],
     children: ["alicent-hightower", "gwayne-hightower"],
-    allies: ["alicent-hightower", "aegon-ii", "ormund-hightower"],
-    rivals: ["daemon-targaryen", "rhaenyra-targaryen"],
+    allies: ["aegon-ii-targaryen", "larys-strong"],
+    rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
     personalHooks: [
       { id: "otto-council", title: "Cuộc Bỏ Phiếu Bí Mật", year: "129 AC", numericYear: 129, desc: "Viserys vừa tắt thở. Ngươi triệu tập Tiểu Hội Đồng để phong vương cho Aegon và nhốt kín mọi kẻ phản đối." }
-    ]
+    ],
+    father: "",
+    mother: "",
+    spouse: "",
+    siblings: [],
+    startArmy: { size: 240, quality: "Thành Thạo" },
+    baseIncome: 125,
+    holdingsLevel: {}
   },
   {
     id: "larys-strong",
     name: "Larys Strong",
-    tuocVi: "Lãnh Chúa",
+    tuocVi: "Lãnh Chúa Thành Trì",
     house: "Strong",
     role: "Lãnh Chúa Chân Khoèo",
     religion: "Cựu Thần",
@@ -208,16 +235,22 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     startRegions: [],
     father: "lyonel-strong",
     siblings: ["harwin-strong"],
-    allies: ["alicent-hightower", "aegon-ii"],
-    rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
+    allies: ["otto-hightower", "alicent-hightower"],
+    rivals: ["rhaenyra-targaryen"],
     personalHooks: [
       { id: "larys-schemes", title: "Những Lời Thì Thầm", year: "129 AC", numericYear: 129, desc: "Ngươi ở trong bóng tối, thao túng cuộc chiến bằng những lời nói dối và những cái chết bất ngờ." }
-    ]
+    ],
+    startArmy: { size: 2000, quality: "Thành Thạo" },
+    baseIncome: 100,
+    holdingsLevel: { "harrenhal": 3 },
+    mother: "",
+    spouse: "",
+    children: []
   },
   {
     id: "cregan-stark",
     name: "Cregan Stark",
-    tuocVi: "Lãnh Chúa",
+    tuocVi: "Đại Lãnh Chúa",
     house: "Stark",
     role: "Sói Phương Bắc",
     religion: "Cựu Thần",
@@ -231,21 +264,26 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Ice", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 30 }, moTa: "Thanh trọng kiếm khổng lồ bằng thép Valyria của Nhà Stark." }],
     items: [],
     gold: 1500, startingHookIds: [],
-    startHoldings: ["winterfell"],
+    startHoldings: ["the-north-seat"],
     startRegions: ["the-north"],
     father: "rickon-stark",
     spouse: "arra-norrey",
-    children: ["rickon-stark-jr"],
+    children: ["rickon-stark-son"],
     allies: ["jacaerys-velaryon", "rhaenyra-targaryen"],
-    rivals: ["aegon-ii"],
+    rivals: ["aegon-ii-targaryen"],
     personalHooks: [
       { id: "hour-of-the-wolf", title: "Giờ Của Sói", year: "131 AC", numericYear: 131, desc: "Cuộc chiến đã vãn, các vị vua đã chết. Ngươi kéo quân phương Bắc xuống King's Landing để phán xét những kẻ phản bội." }
-    ]
+    ],
+    startArmy: { size: 30000, quality: "Thành Thạo" },
+    baseIncome: 300,
+    holdingsLevel: { "the-north-seat": 5 },
+    mother: "",
+    siblings: []
   },
   {
     id: "jeyne-arryn",
     name: "Jeyne Arryn",
-    tuocVi: "Lãnh Chúa",
+    tuocVi: "Đại Lãnh Chúa",
     house: "Arryn",
     role: "Nữ Trinh Tượng Thung Lũng",
     religion: "Thất Diện Thần",
@@ -259,19 +297,26 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 2500, startingHookIds: [],
-    startHoldings: ["the-eyrie"],
+    startHoldings: ["the-vale-seat"],
     startRegions: ["the-vale"],
     father: "arnold-arryn",
     allies: ["rhaenyra-targaryen"],
     rivals: ["arnold-arryn", "aegon-ii"],
     personalHooks: [
       { id: "jeyne-choice", title: "Lựa Chọn Của Nữ Trinh", year: "129 AC", numericYear: 129, desc: "Hoàng tử Jacaerys đến xin viện binh. Ngươi sẽ đòi hỏi gì để đổi lấy những thanh kiếm của Vale?" }
-    ]
+    ],
+    startArmy: { size: 35000, quality: "Thành Thạo" },
+    baseIncome: 300,
+    holdingsLevel: { "the-vale-seat": 5 },
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: []
   },
   {
     id: "borros-baratheon",
     name: "Borros Baratheon",
-    tuocVi: "Lãnh Chúa",
+    tuocVi: "Đại Lãnh Chúa",
     house: "Baratheon",
     role: "Lãnh Chúa Storm's End",
     religion: "Thất Diện Thần",
@@ -285,7 +330,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 2000, startingHookIds: [],
-    startHoldings: ["storms-end"],
+    startHoldings: ["the-stormlands-seat"],
     startRegions: ["the-stormlands"],
     father: "boremund-baratheon",
     spouse: "elenda-caron",
@@ -294,12 +339,17 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     rivals: ["rhaenyra-targaryen"],
     personalHooks: [
       { id: "borros-choice", title: "Sứ Giả Hai Mang", year: "129 AC", numericYear: 129, desc: "Hoàng tử Aemond và Lucerys đang gầm gừ nhau trong sảnh đường của ngươi. Ngươi sẽ chọn ai?" }
-    ]
+    ],
+    startArmy: { size: 25000, quality: "Thành Thạo" },
+    baseIncome: 250,
+    holdingsLevel: { "the-stormlands-seat": 5 },
+    mother: "",
+    siblings: []
   },
   {
     id: "dalton-greyjoy",
     name: "Dalton Greyjoy",
-    tuocVi: "Lãnh Chúa",
+    tuocVi: "Đại Lãnh Chúa",
     house: "Greyjoy",
     role: "Thủy Quái Đỏ",
     religion: "Thần Chết Chìm",
@@ -313,14 +363,21 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Nightfall", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 20 }, moTa: "Thanh kiếm Thép Valyria cướp được từ một hải tặc." }],
     items: [],
     gold: 3000, startingHookIds: [],
-    startHoldings: ["pyke"],
+    startHoldings: ["the-iron-islands-seat"],
     startRegions: ["the-iron-islands"],
     father: "greyjoy-father",
     allies: ["rhaenyra-targaryen"],
     rivals: ["jason-lannister", "aegon-ii"],
     personalHooks: [
       { id: "red-kraken-rises", title: "Thủy Quái Trỗi Dậy", year: "129 AC", numericYear: 129, desc: "Vương quốc chìm trong chiến tranh. Đây là cơ hội để bầy thiết dân đi cướp bóc khắp các vùng duyên hải." }
-    ]
+    ],
+    startArmy: { size: 15000, quality: "Thành Thạo" },
+    baseIncome: 200,
+    holdingsLevel: { "the-iron-islands-seat": 5 },
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: []
   },
   {
     id: "alys-rivers",
@@ -346,7 +403,13 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
     personalHooks: [
       { id: "alys-aemond", title: "Phù Thủy Bắt Rồng", year: "130 AC", numericYear: 130, desc: "Aemond Targaryen chiếm Harrenhal. Ngươi dùng sắc đẹp và phép thuật để trói buộc hoàng tử một mắt." }
-    ]
+    ],
+    mother: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "hugh-hammer",
@@ -375,7 +438,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     },
     personalHooks: [
       { id: "hugh-sowing", title: "Cuộc Gieo Hạt Lửa", year: "129 AC", numericYear: 129, desc: "Phe Đen gọi những hạt giống rồng. Ngươi mang theo chiếc búa thợ rèn, bước vào hang của Vermithor." }
-    ]
+    ],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "addam-velaryon",
@@ -406,7 +477,13 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     },
     personalHooks: [
       { id: "addam-tumbleton", title: "Trận Tumbleton Thứ Hai", year: "130 AC", numericYear: 130, desc: "Bị nghi ngờ là kẻ phản bội, ngươi tập hợp đội quân Riverlands và cưỡi Seasmoke lao vào trận chiến cuối cùng để chứng minh lòng trung thành." }
-    ]
+    ],
+    mother: "",
+    spouse: "",
+    children: [],
+    startArmy: { size: 80, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "nettles",
@@ -434,7 +511,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     },
     personalHooks: [
       { id: "nettles-tame", title: "Thuần Phục Kẻ Trộm Cừu", year: "129 AC", numericYear: 129, desc: "Ngươi mang những con cừu máu me đến tổ rồng trên ngọn Dragonmont ngày qua ngày." }
-    ]
+    ],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   }
   ,
   {
@@ -448,7 +533,11 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     siblings: ["rhaena-targaryen", "aegon-iii", "viserys-ii-targaryen"],
     allies: ["rhaenyra-targaryen", "corlys-velaryon"],
     rivals: ["aegon-ii"],
-    dragon: { name: "Moondancer", color: "Xanh lá nhạt", size: "Non", age: 10, description: "Con rồng nhỏ nhưng bay cực kỳ nhanh", stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 }, skills: { "Bay Lượn": 18, "Lửa Rồng": 8 } }
+    dragon: { name: "Moondancer", color: "Xanh lá nhạt", size: "Non", age: 10, description: "Con rồng nhỏ nhưng bay cực kỳ nhanh", stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 }, skills: { "Bay Lượn": 18, "Lửa Rồng": 8 } },
+    children: [],
+    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "rhaena-targaryen", name: "Rhaena Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Cô Gái Dịu Dàng", religion: "Thất Diện Thần",
@@ -460,7 +549,11 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "lucerys-velaryon",
     siblings: ["baela-targaryen", "aegon-iii", "viserys-ii-targaryen"],
     allies: ["rhaenyra-targaryen", "corlys-velaryon"],
-    rivals: ["aegon-ii"]
+    rivals: ["aegon-ii"],
+    children: [],
+    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "harwin-strong", name: "Harwin Strong", tuocVi: "Hiệp Sĩ", house: "Strong", role: "Người Mẻ Cốt", religion: "Cựu Thần",
@@ -472,7 +565,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     siblings: ["larys-strong"],
     children: ["jacaerys-velaryon", "lucerys-velaryon", "joffrey-velaryon"],
     allies: ["rhaenyra-targaryen", "viserys-i-targaryen"],
-    rivals: ["criston-cole", "aegon-ii"]
+    rivals: ["criston-cole", "aegon-ii"],
+    mother: "",
+    spouse: "",
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "mysaria", name: "Mysaria", tuocVi: "Thường Dân", house: "Khác", role: "Sâu Trắng", religion: "Khác",
@@ -481,7 +579,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     talentIds: ["schemer", "seductive"], skills: { "Tình Báo": 18, "Lừa Lọc": 16, "Quyến Rũ": 18 },
     equipment: [], items: [], gold: 2000, startingHookIds: [],
     allies: ["daemon-targaryen", "rhaenyra-targaryen"],
-    rivals: ["larys-strong", "aegon-ii"]
+    rivals: ["larys-strong", "aegon-ii"],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "tyland-lannister", name: "Tyland Lannister", tuocVi: "Hiệp Sĩ", house: "Lannister", role: "Quản Lý Ngân Khố", religion: "Thất Diện Thần",
@@ -491,7 +597,14 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [], items: [], gold: 10000, startingHookIds: [],
     siblings: ["jason-lannister"],
     allies: ["aegon-ii", "alicent-hightower", "otto-hightower"],
-    rivals: ["rhaenyra-targaryen", "daemon-targaryen"]
+    rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    startArmy: { size: 500, quality: "Tinh Nhuệ" },
+    baseIncome: 150,
+    holdingsLevel: {}
   },
   {
     id: "jason-lannister", name: "Jason Lannister", tuocVi: "Lãnh Chúa", house: "Lannister", role: "Lãnh Chúa Casterly Rock", religion: "Thất Diện Thần",
@@ -503,7 +616,11 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     children: ["cerelle-lannister", "tyshara-lannister"],
     siblings: ["tyland-lannister"],
     allies: ["aegon-ii", "alicent-hightower"],
-    rivals: ["dalton-greyjoy", "rhaenyra-targaryen"]
+    rivals: ["dalton-greyjoy", "rhaenyra-targaryen"],
+    father: "",
+    mother: "",
+    baseIncome: 150,
+    holdingsLevel: {}
   },
   {
     id: "ulf-white", name: "Ulf Trắng", tuocVi: "Thường Dân", house: "Khác", role: "Kẻ Nát Rượu", religion: "Thất Diện Thần",
@@ -513,7 +630,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [], items: [], gold: 10, startingHookIds: [],
     allies: ["hugh-hammer", "aegon-ii"],
     rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
-    dragon: { name: "Silverwing", color: "Bạc", size: "Trưởng Thành", age: 93, description: "Rồng hiền hòa", stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 }, skills: { "Lửa Rồng": 14, "Bay Lượn": 14 } }
+    dragon: { name: "Silverwing", color: "Bạc", size: "Trưởng Thành", age: 93, description: "Rồng hiền hòa", stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 }, skills: { "Lửa Rồng": 14, "Bay Lượn": 14 } },
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "orwyle", name: "Orwyle", tuocVi: "Thường Dân", house: "Khác", role: "Đại Maester", religion: "Thất Diện Thần",
@@ -522,7 +647,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     talentIds: ["learned"], skills: { "Y Thuật": 18, "Lịch Sử": 18, "Học Thuật": 18 },
     equipment: [], items: [], gold: 100, startingHookIds: [],
     allies: ["alicent-hightower", "aegon-ii"],
-    rivals: ["rhaenyra-targaryen"]
+    rivals: ["rhaenyra-targaryen"],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "jasper-wylde", name: "Jasper Wylde", tuocVi: "Lãnh Chúa", house: "Wylde", role: "Gậy Sắt", religion: "Thất Diện Thần",
@@ -531,7 +664,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     talentIds: ["strict", "just"], skills: { "Luật Pháp": 18, "Chính Trị": 14 },
     equipment: [], items: [], gold: 1000, startingHookIds: [],
     allies: ["aegon-ii", "alicent-hightower"],
-    rivals: ["rhaenyra-targaryen"]
+    rivals: ["rhaenyra-targaryen"],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 600, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "sabitha-frey", name: "Sabitha Frey", tuocVi: "Tiểu Thư", house: "Frey", role: "Nữ Tướng", religion: "Thất Diện Thần",
@@ -541,7 +682,14 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [], items: [], gold: 800, startingHookIds: [],
     spouse: "forrest-frey",
     allies: ["rhaenyra-targaryen", "cregan-stark"],
-    rivals: ["aegon-ii", "jason-lannister"]
+    rivals: ["aegon-ii", "jason-lannister"],
+    father: "",
+    mother: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 800, quality: "Mới Lập Đội" },
+    baseIncome: 100,
+    holdingsLevel: {}
   }
 ];
 

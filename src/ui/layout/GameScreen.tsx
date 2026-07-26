@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { ChatScreen } from "../chat/ChatScreen";
 import { MapScreen } from "../map/MapScreen";
 import { InteractiveMap } from "../map/InteractiveMap";
-import { TerritoryPanel } from "../territory/TerritoryPanel";
+import { DashboardLanhChua } from "../territory/DashboardLanhChua";
 import { MilitaryPanel } from "../military/MilitaryPanel";
 import { CourtPanel } from "../court/CourtPanel";
 import { IntriguePanel } from "../intrigue/IntriguePanel";
@@ -80,11 +80,23 @@ export function GameScreen() {
   /** Mở Lãnh Địa: vào bản đồ + chọn vùng người chơi quản lý (ưu tiên có holding). */
   const openTerritory = () => {
     setGameView("map");
-    const firstHolding = Object.values(holdings)[0];
-    const withHolding = firstHolding ? firstHolding["Thuộc Vùng"] : undefined;
+    
+    // Tìm vùng do người chơi sở hữu
     const owned = Object.entries(sovereignty).find(([, s]) => s["Là Của Người Chơi"])?.[0];
-    const target = withHolding ?? owned ?? null;
-    if (target) selectRegion(target);
+    
+    // Tìm holding do người chơi kiểm soát
+    const playerHolding = Object.values(holdings).find((h: any) => h["Người Kiểm Soát"] === stat["Thông Tin Nhân Vật"]["Họ Tên"]);
+    const withHolding = playerHolding ? playerHolding["Thuộc Vùng"] : undefined;
+    
+    const target = owned ?? withHolding ?? null;
+    if (target) {
+        selectRegion(target);
+    } else {
+        if (playerHolding && !playerHolding["Thuộc Vùng"]) {
+            console.warn(`Lỗi: Nhân vật có sở hữu lãnh địa [${playerHolding["Mô Tả"]}] nhưng lãnh địa này không được khai báo Thuộc Vùng! Cần cập nhật dữ liệu cốt truyện.`);
+        }
+        alert("Ngài là kẻ lang thang, không tấc đất cắm dùi. Hãy chiếm lấy một vùng đất trước!");
+    }
   };
 
   const railItems: RailItem[] = [
@@ -106,7 +118,7 @@ export function GameScreen() {
     <div className="flex h-full min-h-0">
       <Toasts />
       <CombatPanel />
-      <TerritoryPanel />
+      <DashboardLanhChua />
       <MilitaryPanel open={militaryOpen} onClose={() => setMilitaryOpen(false)} />
       <CourtPanel open={courtOpen} onClose={() => setCourtOpen(false)} />
       <IntriguePanel open={intrigueOpen} onClose={() => setIntrigueOpen(false)} />

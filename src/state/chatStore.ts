@@ -86,7 +86,7 @@ interface ChatState {
   cancel: () => void;
   clearChat: () => void;
   /** Sửa tin nhắn user rồi sinh lại phản hồi AI (edit & reroll). */
-  editAndReroll: (messageId: string, newText: string) => Promise<void>;
+  editAndReroll: (index: number, newText: string) => Promise<void>;
   /** Gọi extra model thủ công cho tin nhắn AI cụ thể. */
   triggerExtraForMessage: (messageId: string) => Promise<void>;
 }
@@ -394,11 +394,10 @@ export const useChatStore = create<ChatState>()(
           set({ messages: [], status: "idle", draft: "", draftReasoning: "", retryInfo: null, error: null });
         },
 
-        editAndReroll: async (messageId, newText) => {
+        editAndReroll: async (idx, newText) => {
           if (get().status !== "idle") return;
           const msgs = get().messages;
-          const idx = msgs.findIndex((m) => m.id === messageId);
-          if (idx < 0 || msgs[idx].role !== "user") return;
+          if (idx < 0 || idx >= msgs.length || msgs[idx].role !== "user") return;
           const trimmed = newText.trim();
           if (!trimmed) return;
 
@@ -430,7 +429,7 @@ export const useChatStore = create<ChatState>()(
             offscreenNews: wfResult.offscreenNews.length > 0 ? wfResult.offscreenNews : undefined,
           };
           set({ messages: [...get().messages, aiMsg] });
-          log.info(`Edit & reroll: sửa tin ${messageId}, sinh lại AI`);
+          log.info(`Edit & reroll: sửa tin tại index ${idx}, sinh lại AI`);
         },
 
         triggerExtraForMessage: async (messageId) => {

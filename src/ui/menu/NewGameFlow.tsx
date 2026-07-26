@@ -39,7 +39,7 @@ import type { CoreStat } from "../../content/westeros/skills";
 
 type Stage = "era" | "modes" | "path" | "canon-char" | "canon-hook" | "canon-confirm" | `w${number}` | "starting";
 
-const WIZARD_STEPS = 13;
+const WIZARD_STEPS = 14;
 
 function freshWizard(): WizardData {
   return {
@@ -52,6 +52,9 @@ function freshWizard(): WizardData {
     crisisId: null, companionId: null, hookId: "ai-random",
     dragon: null,
     canonRelation: undefined,
+    hasCustomTerritory: false,
+    customTerritoryLevel: 1,
+    customTerritoryName: "",
   };
 }
 
@@ -1201,7 +1204,72 @@ export function NewGameFlow() {
           </div>
         );
 
-      case 12:
+      case 12: {
+        const canHaveTerritory = !!origin?.assets.lanhDia || ["lord-heir", "landed-knight", "minor-lord"].includes(wiz.originId);
+        if (!canHaveTerritory) {
+          // If cannot have territory, skip automatically to the next step
+          return (
+            <div>
+              <StepHeader step={stepLabel} title="Lãnh Địa Bắt Đầu" hint="Xuất thân của ngươi không có đặc quyền cai trị đất đai." />
+              <div className="glass px-4 py-3 opacity-70">
+                <p className="text-[13px] text-[var(--text-soft)]">Kẻ lang thang không tấc đất cắm dùi.</p>
+              </div>
+              <NavButtons onBack={back} onNext={next} />
+            </div>
+          );
+        }
+
+        return (
+          <div>
+            <StepHeader step={stepLabel} title="Lãnh Địa Bắt Đầu" hint="Tùy chỉnh thành trì của ngươi, hoặc từ chối để bắt đầu như một Lãnh chúa lưu vong." />
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <Card selected={!wiz.hasCustomTerritory} onClick={() => patch({ hasCustomTerritory: false })}>
+                  <span className="text-[13.5px] text-[var(--text-soft)]">Ta không muốn nhận đất</span>
+                  <span className="block text-[12px] text-[var(--text-faint)]">Bắt đầu game dưới dạng lưu vong, phải tự chiếm hoặc xin phong đất</span>
+                </Card>
+                <Card selected={wiz.hasCustomTerritory} onClick={() => patch({ hasCustomTerritory: true })}>
+                  <span className="text-[13.5px] text-[var(--accent-text)]">Ta sẽ cai quản lãnh địa của mình</span>
+                  <span className="block text-[12px] text-[var(--text-faint)]">Thiết lập chi tiết thành trì của ngươi</span>
+                </Card>
+              </div>
+
+              {wiz.hasCustomTerritory && (
+                <div className="glass p-4 space-y-3">
+                  <div>
+                    <label className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Tên Lãnh Địa</label>
+                    <GlassInput 
+                      placeholder="Nhập tên vùng đất của ngài..." 
+                      value={wiz.customTerritoryName || ""} 
+                      onChange={(e) => patch({ customTerritoryName: e.target.value })} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Cấp Độ Lâu Đài (1 - 3)</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3].map((lvl) => (
+                        <Card key={lvl} selected={wiz.customTerritoryLevel === lvl} onClick={() => patch({ customTerritoryLevel: lvl })}>
+                          <span className="text-[13px]">Cấp {lvl}</span>
+                        </Card>
+                      ))}
+                    </div>
+                    <span className="block mt-1.5 text-[11px] text-[var(--text-muted)] italic">
+                      Cấp càng cao, dân số và tài nguyên khởi điểm càng nhiều, quy mô thành phố càng lớn.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <NavButtons 
+              onBack={back} 
+              onNext={wiz.hasCustomTerritory && (!wiz.customTerritoryName || wiz.customTerritoryName.trim() === "") ? undefined : next} 
+              blockedReason="Hãy đặt tên cho Lãnh Địa" 
+            />
+          </div>
+        );
+      }
+
+      case 13:
         return (
           <div>
             <StepHeader step={stepLabel} title="Trang Bị Đặc Biệt" hint="Chọn bảo vật truyền thuyết hoặc đặt rèn món đồ riêng (Tốn Vàng/Điểm)." />
@@ -1216,7 +1284,7 @@ export function NewGameFlow() {
           </div>
         );
 
-      case 13:
+      case 14:
         return (
           <div>
             <StepHeader step={stepLabel} title="Cuộn Giấy Vận Mệnh" hint="Xem lại nhân vật lần cuối." />

@@ -246,9 +246,34 @@ export const BuildingSchema = z
     "Cấp Độ": safeInt(1, 1),
     "Đang Xây": z.boolean().catch(false).prefault(false),
     "Turn Còn Lại": safeInt(0),
+    "Tọa Độ X": safeInt(0),
+    "Tọa Độ Y": safeInt(0),
+    "Kích Thước": safeInt(1),
   })
   .prefault({});
 export type Building = z.infer<typeof BuildingSchema>;
+
+export const ExplorationPointSchema = z.object({
+  "Loại": z.enum(["Rừng rậm", "Mạch khoáng", "Nguồn nước", "Di tích"]).catch("Rừng rậm").prefault("Rừng rậm"),
+  "Kích Thước": safeInt(1),
+  "Trạng Thái": z.enum(["An toàn", "Nguy hiểm", "Đang khai thác", "Cạn kiệt", "Đã thám hiểm", "Đang dỡ bỏ", "Đang cải tạo"]).catch("Nguy hiểm").prefault("Nguy hiểm"),
+  "Tọa Độ X": safeInt(0),
+  "Tọa Độ Y": safeInt(0),
+  "Sinh Thái": z.object({
+    "Khai Thác": safeInt(0),
+    "Phục Hồi": safeInt(0),
+    "Nước": safeInt(0)
+  }).prefault({})
+}).prefault({});
+export type ExplorationPoint = z.infer<typeof ExplorationPointSchema>;
+
+export const DecreeSchema = z.object({
+  "Trạng Thái": z.enum(["Đang hiệu lực", "Đình trệ", "Đã bãi bỏ"]).catch("Đang hiệu lực").prefault("Đang hiệu lực"),
+  "Tên": safeString().prefault(""),
+  "Loại": z.enum(["Thuế", "Luật", "Chính sách kinh tế", "Chính sách quân sự", "Bất biến"]).catch("Luật").prefault("Luật"),
+  "Hiệu Ứng": safeString().optional(),
+}).prefault({});
+export type Decree = z.infer<typeof DecreeSchema>;
 
 /**
  * Chi tiết NỘI BỘ 1 vùng người chơi quản lý (10.1). KHÔNG lưu "Nhà Kiểm Soát" —
@@ -262,7 +287,20 @@ export const TerritorySchema = z
     "Tình Trạng": z.enum(["Ổn Định", "Đang Tranh Chấp", "Bị Vây", "Mới Chiếm", "Nổi Loạn"]).catch("Ổn Định").prefault("Ổn Định"),
     "Mô Tả": safeString().prefault(""),
     "Dân Số": safeInt(1000),
-    "Trung Thành": clampedStat(0, 100, 60),
+    "Dân Số Chi Tiết": z.object({
+      "Nông Dân": safeInt(0),
+      "Thợ Thủ Công": safeInt(0),
+      "Thợ Mỏ": safeInt(0),
+      "Tiều Phu": safeInt(0),
+      "Thương Nhân": safeInt(0),
+      "Nghề Khác": safeInt(0),
+      "Thất Nghiệp": safeInt(0),
+    }).prefault({}),
+    "Lòng Dân": clampedStat(0, 100, 60),
+    "Trung Thành": clampedStat(0, 100, 60), // kept for backwards compatibility
+    "Dự Trữ Lương Thực": safeInt(0),
+    "Thu Nhập Bình Quân": safeInt(0),
+    "Sự Kiện Đặc Biệt": z.array(safeString()).catch([]).prefault([]),
     "Thuộc Vùng": safeString().prefault(""), // regionId mà thành trì này toạ lạc
     "Địa Hình": TerrainSchema.optional(),
     "Ven Biển": z.boolean().catch(false).prefault(false),
@@ -275,7 +313,12 @@ export const TerritorySchema = z
         "Quặng Sắt": safeInt(0),
       })
       .prefault({}),
+    "Vật Phẩm": z.record(safeString(), safeInt(0)).catch({}).prefault({}),
     "Công Trình": z.record(safeString(), BuildingSchema).catch({}).prefault({}),
+    "Điểm Khám Phá": z.array(ExplorationPointSchema).catch([]).prefault([]),
+    "Pháp Lệnh": z.record(safeString(), DecreeSchema).catch({}).prefault({}),
+    "Tường Thành": z.array(z.object({ x1: safeInt(0), y1: safeInt(0), x2: safeInt(0), y2: safeInt(0), material: safeString() })).catch([]).prefault([]),
+    "Đường Đi": z.array(z.object({ x1: safeInt(0), y1: safeInt(0), x2: safeInt(0), y2: safeInt(0) })).catch([]).prefault([]),
     // ── Khủng hoảng đang diễn ra (15.4 — M12) ──
     "Khủng Hoảng": z.array(CrisisSchema).catch([]).prefault([]),
   })
@@ -290,6 +333,7 @@ export const FLEET_TYPES = ["Thuyền Dài (Greyjoy)", "Chiến Thuyền Nặng"
 export const FleetSchema = z
   .object({
     "Đô Đốc": safeString().prefault("Khuyết"), // có thể là 1 General
+    "Nhà": safeString().prefault(""), // Phe phái sở hữu hạm đội
     "Số Chiến Thuyền": safeInt(0),
     "Loại Hạm": z.enum(FLEET_TYPES).catch("Chiến Thuyền Nặng").prefault("Chiến Thuyền Nặng"),
     "Tình Trạng": z.enum(["Sẵn Sàng", "Hư Hại", "Đang Sửa"]).catch("Sẵn Sàng").prefault("Sẵn Sàng"),

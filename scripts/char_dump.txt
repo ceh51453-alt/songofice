@@ -1,0 +1,544 @@
+
+--- dawnAge ---
+- Lann Kẻ Trí [lann-the-clever] (House Lannister) - Vua
+  Holdings: ["the-westerlands-seat"]
+  Regions: ["the-westerlands"]
+- Garth Bàn Tay Xanh [garth-greenhand] (House Gardener) - Vua
+  Holdings: ["the-reach-seat"]
+  Regions: ["the-reach"]
+- Durran Than Thở Trời [durran-godsgrief] (House Durrandon) - Vua
+  Holdings: ["the-stormlands-seat"]
+  Regions: ["the-stormlands"]
+- Vua Xám [grey-king] (House Greyiron) - Vua
+  Holdings: ["the-iron-islands-seat"]
+  Regions: ["the-iron-islands"]
+- Symeon Mắt Sao [symeon-star-eyes] (House Không Nhà) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+
+--- aegonConquest ---
+- Loren Lannister [loren-lannister] (House Lannister) - Vua
+  Holdings: ["the-westerlands-seat"]
+  Regions: ["the-westerlands"]
+- Mern IX Gardener [mern-ix-gardener] (House Gardener) - Vua
+  Holdings: ["the-reach-seat"]
+  Regions: ["the-reach"]
+- Sharra Arryn [sharra-arryn] (House Arryn) - Vua
+  Holdings: ["the-vale-seat"]
+  Regions: ["the-vale"]
+- Ronnel Arryn [ronnel-arryn] (House Arryn) - Vua
+  Holdings: ["the-vale-seat"]
+  Regions: ["the-vale"]
+- Edmyn Tully [edmyn-tully] (House Tully) - Lãnh Chúa
+  Holdings: ["the-riverlands-seat"]
+  Regions: ["the-riverlands"]
+- Vickon Greyjoy [vickon-greyjoy] (House Greyjoy) - Lãnh Chúa
+  Holdings: ["the-iron-islands-seat"]
+  Regions: ["the-iron-islands"]
+- Meria Martell [meria-martell] (House Martell) - Vua
+  Holdings: ["dorne-seat"]
+  Regions: ["dorne"]
+- Nymor Martell [nymor-martell] (House Martell) - Vua
+  Holdings: ["dorne-seat"]
+  Regions: ["dorne"]
+- Deria Martell [deria-martell] (House Martell) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Dickon Morrigen [dickon-morrigen] (House Khác) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Cựu Vương Lannister [lannister-father-loren] (House Lannister) - Thường Dân
+  Holdings: []
+  Regions: []
+- Vương Hậu Lannister [lannister-wife-loren] (House Lannister) - Vương Hậu
+  Holdings: []
+  Regions: []
+- Lyman Lannister [lyman-lannister] (House Lannister) - Vương Thân
+  Holdings: []
+  Regions: []
+- Edmund Gardener [edmund-gardener] (House Gardener) - Vương Thân
+  Holdings: []
+  Regions: []
+- Gawen Gardener [gawen-gardener] (House Gardener) - Vương Thân
+  Holdings: []
+  Regions: []
+- Garth Gardener [garth-gardener] (House Gardener) - Vương Thân
+  Holdings: []
+  Regions: []
+- Moryn Gardener [moryn-gardener] (House Gardener) - Vương Thân
+  Holdings: []
+  Regions: []
+- Cựu Vương Arryn [arryn-king-sharra] (House Arryn) - Thường Dân
+  Holdings: []
+  Regions: []
+- Jonos Arryn [jonos-arryn] (House Arryn) - Vương Thân
+  Holdings: []
+  Regions: []
+- Con trai Edmyn [tully-son-edmyn] (House Tully) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Goren Greyjoy [goren-greyjoy] (House Greyjoy) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Nymor Martell [nymor-martell] (House Martell) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Aerion Targaryen [aerion-targaryen] (House Targaryen) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Valaena Velaryon [valaena-velaryon] (House Velaryon) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Thái Tử Hoare [hoare-son-harren] (House Hoare) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Brandon Snow [brandon-snow] (House Stark) - Thường Dân
+  Holdings: []
+  Regions: []
+- Con trai Torrhen [stark-son-torrhen] (House Stark) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Argella Durrandon [argella-durrandon] (House Durrandon) - Công Chúa
+  Holdings: []
+  Regions: []
+
+--- danceOfDragons ---
+- Jacaerys Velaryon [jacaerys-velaryon] (House Velaryon) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Lucerys Velaryon [lucerys-velaryon] (House Velaryon) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Aegon III Targaryen [aegon-iii] (House Targaryen) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Helaena Targaryen [helaena-targaryen] (House Targaryen) - Vương Hậu
+  Holdings: []
+  Regions: []
+- Daeron Targaryen [daeron-targaryen] (House Targaryen) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Otto Hightower [otto-hightower] (House Hightower) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Larys Strong [larys-strong] (House Strong) - Lãnh Chúa
+  Holdings: ["harrenhal"]
+  Regions: []
+- Cregan Stark [cregan-stark] (House Stark) - Lãnh Chúa
+  Holdings: ["the-north-seat"]
+  Regions: ["the-north"]
+- Jeyne Arryn [jeyne-arryn] (House Arryn) - Lãnh Chúa
+  Holdings: ["the-vale-seat"]
+  Regions: ["the-vale"]
+- Borros Baratheon [borros-baratheon] (House Baratheon) - Lãnh Chúa
+  Holdings: ["the-stormlands-seat"]
+  Regions: ["the-stormlands"]
+- Dalton Greyjoy [dalton-greyjoy] (House Greyjoy) - Lãnh Chúa
+  Holdings: ["the-iron-islands-seat"]
+  Regions: ["the-iron-islands"]
+- Alys Rivers [alys-rivers] (House Strong) - Thường Dân
+  Holdings: []
+  Regions: []
+- Hugh Búa Tạ [hugh-hammer] (House Khác) - Thường Dân
+  Holdings: []
+  Regions: []
+- Addam Velaryon [addam-velaryon] (House Velaryon) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Nettles [nettles] (House Khác) - Thường Dân
+  Holdings: []
+  Regions: []
+- Baela Targaryen [baela-targaryen] (House Targaryen) - Công Chúa
+  Holdings: []
+  Regions: []
+- Rhaena Targaryen [rhaena-targaryen] (House Targaryen) - Công Chúa
+  Holdings: []
+  Regions: []
+- Harwin Strong [harwin-strong] (House Strong) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Mysaria [mysaria] (House Khác) - Thường Dân
+  Holdings: []
+  Regions: []
+- Tyland Lannister [tyland-lannister] (House Lannister) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Jason Lannister [jason-lannister] (House Lannister) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Ulf Trắng [ulf-white] (House Khác) - Thường Dân
+  Holdings: []
+  Regions: []
+- Orwyle [orwyle] (House Khác) - Thường Dân
+  Holdings: []
+  Regions: []
+- Jasper Wylde [jasper-wylde] (House Wylde) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Sabitha Frey [sabitha-frey] (House Frey) - Tiểu Thư
+  Holdings: []
+  Regions: []
+
+--- blackfyreRebellion ---
+- Baelor Breakspear [baelor-breakspear] (House Targaryen) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Maekar Targaryen [maekar-i-targaryen] (House Targaryen) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Shiera Seastar [shiera-seastar] (House Khác) - Thường Dân
+  Holdings: []
+  Regions: []
+- Gwayne Corbray [gwayne-corbray] (House Corbray) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Quentyn Ball [quentyn-ball] (House Ball) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Robb Reyne [robb-reyne] (House Reyne) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Leo Tyrell [leo-tyrell] (House Tyrell) - Lãnh Chúa
+  Holdings: ["the-reach-seat"]
+  Regions: ["the-reach"]
+- Donnel Arryn [donnel-arryn] (House Arryn) - Lãnh Chúa
+  Holdings: ["the-vale-seat"]
+  Regions: ["the-vale"]
+- Damon Lannister [damon-lannister] (House Lannister) - Lãnh Chúa
+  Holdings: ["the-westerlands-seat"]
+  Regions: ["the-westerlands"]
+- Otho Bracken [otho-bracken] (House Bracken) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+
+--- dunkAndEgg ---
+- Aerion Brightflame [aerion-brightflame] (House Targaryen) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Daeron Mập Mạp [daeron-the-drunken] (House Targaryen) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Rohanne Webber [rohanne-webber] (House Webber) - Lãnh Chúa
+  Holdings: ["coldmoat"]
+  Regions: ["the-reach"]
+- Eustace Osgrey [eustace-osgrey] (House Osgrey) - Hiệp Sĩ
+  Holdings: ["standfast"]
+  Regions: ["the-reach"]
+- Daemon II Blackfyre [daemon-ii-blackfyre] (House Blackfyre) - Thường Dân
+  Holdings: []
+  Regions: []
+
+--- robertsRebellion ---
+- Eddard Stark [eddard-stark] (House Stark) - Lãnh Chúa
+  Holdings: ["the-north-seat"]
+  Regions: ["the-north"]
+- Jon Arryn [jon-arryn] (House Arryn) - Lãnh Chúa
+  Holdings: ["the-vale-seat"]
+  Regions: ["the-vale"]
+- Hoster Tully [hoster-tully] (House Tully) - Lãnh Chúa
+  Holdings: ["the-riverlands-seat"]
+  Regions: ["the-riverlands"]
+- Tywin Lannister [tywin-lannister] (House Lannister) - Lãnh Chúa
+  Holdings: ["the-westerlands-seat"]
+  Regions: ["the-westerlands"]
+- Rhaegar Targaryen [rhaegar-targaryen] (House Targaryen) - Hoàng Tử
+  Holdings: ["the-crownlands-seat"]
+  Regions: []
+- Aerys II Targaryen [aerys-ii] (House Targaryen) - Vua Bảy Vương Quốc
+  Holdings: ["the-crownlands-seat"]
+  Regions: ["the-crownlands"]
+- Jaime Lannister [jaime-lannister] (House Lannister) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Barristan Selmy [barristan-selmy] (House Selmy) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Arthur Dayne [arthur-dayne] (House Dayne) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Mace Tyrell [mace-tyrell] (House Tyrell) - Lãnh Chúa
+  Holdings: ["the-reach-seat"]
+  Regions: ["the-reach"]
+- Randyll Tarly [randyll-tarly] (House Tarly) - Lãnh Chúa
+  Holdings: ["horn-hill-seat"]
+  Regions: []
+- Doran Martell [doran-martell] (House Martell) - Vương Thân
+  Holdings: ["dorne-seat"]
+  Regions: ["dorne"]
+- Oberyn Martell [oberyn-martell] (House Martell) - Vương Thân
+  Holdings: []
+  Regions: []
+- Balon Greyjoy [balon-greyjoy] (House Greyjoy) - Lãnh Chúa
+  Holdings: ["the-iron-islands-seat"]
+  Regions: ["the-iron-islands"]
+- Stannis Baratheon [stannis-baratheon] (House Baratheon) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Renly Baratheon [renly-baratheon] (House Baratheon) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Elia Martell [elia-martell] (House Martell) - Vương phi
+  Holdings: []
+  Regions: []
+- Rhaella Targaryen [rhaella-targaryen] (House Targaryen) - Vương Hậu
+  Holdings: []
+  Regions: []
+- Catelyn Tully [catelyn-tully] (House Tully) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Lysa Tully [lysa-tully] (House Tully) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Roose Bolton [roose-bolton-robert] (House Bolton) - Lãnh Chúa
+  Holdings: ["the-dreadfort-seat"]
+  Regions: []
+- Jon Connington [jon-connington] (House Connington) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Viserys Targaryen [viserys-targaryen] (House Targaryen) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Gerold Hightower [gerold-hightower] (House Hightower) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Oswell Whent [oswell-whent] (House Whent) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Richard Lonmouth [richard-lonmouth] (House Lonmouth) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Robert Baratheon [robert-baratheon] (House Baratheon) - Lãnh Chúa
+  Holdings: ["the-stormlands-seat"]
+  Regions: ["the-stormlands"]
+- Steffon Baratheon [steffon-baratheon] (House Baratheon) - Cố Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Cassana Estermont [cassana-estermont] (House Estermont) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Selyse Florent [selyse-florent] (House Florent) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Rickard Stark [rickard-stark] (House Stark) - Cố Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Lyarra Stark [lyarra-stark] (House Stark) - Phu Nhân
+  Holdings: []
+  Regions: []
+- Brandon Stark [brandon-stark-rebel] (House Stark) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Lyanna Stark [lyanna-stark] (House Stark) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Benjen Stark [benjen-stark] (House Stark) - Thường Dân
+  Holdings: []
+  Regions: []
+- Jasper Arryn [jasper-arryn] (House Arryn) - Cố Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Minisa Whent [minisa-whent] (House Whent) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Edmure Tully [edmure-tully] (House Tully) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Tytos Lannister [tytos-lannister] (House Lannister) - Cố Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Joanna Lannister [joanna-lannister] (House Lannister) - Phu Nhân
+  Holdings: []
+  Regions: []
+- Cersei Lannister [cersei-lannister] (House Lannister) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Tyrion Lannister [tyrion-lannister] (House Lannister) - Người Lùn
+  Holdings: []
+  Regions: []
+- Luthor Tyrell [luthor-tyrell] (House Tyrell) - Cố Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Olenna Redwyne [olenna-redwyne] (House Tyrell) - Phu Nhân
+  Holdings: []
+  Regions: []
+- Alerie Hightower [alerie-hightower] (House Tyrell) - Phu Nhân
+  Holdings: []
+  Regions: []
+- Willas Tyrell [willas-tyrell] (House Tyrell) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Garlan Tyrell [garlan-tyrell] (House Tyrell) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Loras Tyrell [loras-tyrell] (House Tyrell) - Thường Dân
+  Holdings: []
+  Regions: []
+- Margaery Tyrell [margaery-tyrell] (House Tyrell) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Quellon Greyjoy [quellon-greyjoy] (House Greyjoy) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Euron Greyjoy [euron-greyjoy] (House Greyjoy) - Thuyền Trưởng
+  Holdings: []
+  Regions: []
+- Victarion Greyjoy [victarion-greyjoy] (House Greyjoy) - Thuyền Trưởng
+  Holdings: []
+  Regions: []
+- Aeron Greyjoy [aeron-greyjoy] (House Greyjoy) - Thường Dân
+  Holdings: []
+  Regions: []
+- Alannys Harlaw [alannys-harlaw] (House Greyjoy) - Phu Nhân
+  Holdings: []
+  Regions: []
+- Rodrik Greyjoy [rodrik-greyjoy] (House Greyjoy) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Maron Greyjoy [maron-greyjoy] (House Greyjoy) - Con Trai Thứ
+  Holdings: []
+  Regions: []
+- Asha Greyjoy [asha-greyjoy] (House Greyjoy) - Tiểu Thư
+  Holdings: []
+  Regions: []
+- Theon Greyjoy [theon-greyjoy] (House Greyjoy) - Con Út
+  Holdings: []
+  Regions: []
+- Rhaenys Targaryen [rhaenys-targaryen-daughter] (House Targaryen) - Công Chúa
+  Holdings: []
+  Regions: []
+- Aegon Targaryen (Trẻ sơ sinh) [aegon-targaryen-son] (House Targaryen) - Hoàng Tử
+  Holdings: []
+  Regions: []
+- Mellario [mellario-of-norvos] (House Martell) - Phu Nhân
+  Holdings: []
+  Regions: []
+- Arianne Martell [arianne-martell] (House Martell) - Người Thừa Kế
+  Holdings: []
+  Regions: []
+- Quentyn Martell [quentyn-martell] (House Martell) - Vương Tôn
+  Holdings: []
+  Regions: []
+- Trystane Martell [trystane-martell] (House Martell) - Vương Tôn
+  Holdings: []
+  Regions: []
+
+--- warOfFiveKings ---
+- Tywin Lannister [tywin-lannister] (House Lannister) - Đại Lãnh Chúa
+  Holdings: ["the-westerlands-seat"]
+  Regions: ["the-westerlands"]
+- Jaime Lannister [jaime-lannister] (House Lannister) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Arya Stark [arya-stark] (House Stark) - Thường Dân
+  Holdings: []
+  Regions: []
+- Sansa Stark [sansa-stark] (House Stark) - Thường Dân
+  Holdings: []
+  Regions: []
+- Bran Stark [bran-stark] (House Stark) - Thường Dân
+  Holdings: []
+  Regions: []
+- Theon Greyjoy [theon-greyjoy] (House Greyjoy) - Thường Dân
+  Holdings: []
+  Regions: []
+- Asha Greyjoy [asha-greyjoy] (House Greyjoy) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Euron Greyjoy [euron-greyjoy] (House Greyjoy) - Vua
+  Holdings: ["the-iron-islands-seat"]
+  Regions: ["the-iron-islands"]
+- Margaery Tyrell [margaery-tyrell] (House Tyrell) - Vương Hậu
+  Holdings: []
+  Regions: []
+- Olenna Tyrell [olenna-tyrell] (House Tyrell) - Đại Lãnh Chúa
+  Holdings: ["the-reach-seat"]
+  Regions: ["the-reach"]
+- Roose Bolton [roose-bolton] (House Bolton) - Lãnh Chúa
+  Holdings: ["the-dreadfort-seat"]
+  Regions: []
+- Ramsay Snow [ramsay-snow] (House Bolton) - Thường Dân
+  Holdings: []
+  Regions: []
+- Brienne xứ Tarth [brienne-tarth] (House Tarth) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Davos Seaworth [davos-seaworth] (House Seaworth) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Balon Greyjoy [balon-greyjoy] (House Greyjoy) - Vua
+  Holdings: ["the-iron-islands-seat"]
+  Regions: ["the-iron-islands"]
+- Catelyn Stark [catelyn-tully] (House Tully) - Thường Dân
+  Holdings: []
+  Regions: []
+- Rickon Stark [rickon-stark] (House Stark) - Thường Dân
+  Holdings: []
+  Regions: []
+- Lysa Arryn [lysa-tully] (House Tully) - Thường Dân
+  Holdings: ["the-vale-seat"]
+  Regions: ["the-vale"]
+- Edmure Tully [edmure-tully] (House Tully) - Lãnh Chúa
+  Holdings: ["the-riverlands-seat"]
+  Regions: ["the-riverlands"]
+- Brynden Tully [brynden-tully] (House Tully) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Mace Tyrell [mace-tyrell] (House Tyrell) - Đại Lãnh Chúa
+  Holdings: ["the-reach-seat"]
+  Regions: ["the-reach"]
+- Loras Tyrell [loras-tyrell] (House Tyrell) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Victarion Greyjoy [victarion-greyjoy] (House Greyjoy) - Thường Dân
+  Holdings: []
+  Regions: []
+- Aeron Greyjoy [aeron-greyjoy] (House Greyjoy) - Thường Dân
+  Holdings: []
+  Regions: []
+- Kevan Lannister [kevan-lannister] (House Lannister) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Lancel Lannister [lancel-lannister] (House Lannister) - Hiệp Sĩ
+  Holdings: []
+  Regions: []
+- Selyse Florent [selyse-florent] (House Baratheon) - Vương Hậu
+  Holdings: []
+  Regions: []
+- Shireen Baratheon [shireen-baratheon] (House Baratheon) - Thường Dân
+  Holdings: []
+  Regions: []
+- Melisandre [melisandre] (House Không Nhà) - Thường Dân
+  Holdings: []
+  Regions: []
+
+--- windsOfWinter ---
+- Tormund Giantsbane [tormund-giantsbane] (House Không Nhà) - Thường Dân
+  Holdings: []
+  Regions: []
+- Mance Rayder [mance-rayder] (House Không Nhà) - Vua
+  Holdings: []
+  Regions: []
+- Melisandre [melisandre] (House Khác) - Thường Dân
+  Holdings: []
+  Regions: []
+- Shireen Baratheon [shireen-baratheon] (House Baratheon) - Vương Hậu
+  Holdings: []
+  Regions: []
+- Victarion Greyjoy [victarion-greyjoy] (House Greyjoy) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Doran Martell [doran-martell] (House Martell) - Đại Lãnh Chúa
+  Holdings: ["dorne-seat"]
+  Regions: ["dorne"]
+- Arianne Martell [arianne-martell] (House Martell) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Petyr Baelish [petyr-baelish] (House Baelish) - Lãnh Chúa
+  Holdings: []
+  Regions: []
+- Varys [varys] (House Không Nhà) - Thường Dân
+  Holdings: []
+  Regions: []
+- Sandor Clegane [sandor-clegane] (House Clegane) - Thường Dân
+  Holdings: []
+  Regions: []

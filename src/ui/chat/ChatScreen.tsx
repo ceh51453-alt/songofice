@@ -103,7 +103,7 @@ function ExtraModelButton({ msg }: { msg: UiChatMessage }) {
 }
 
 /** Bubble người chơi có nút sửa — bấm → inline textarea → sửa xong bấm gửi lại. */
-function EditableUserBubble({ msg, displayContent, busy }: { msg: UiChatMessage; displayContent: string; busy: boolean }) {
+function EditableUserBubble({ msg, index, displayContent, busy }: { msg: UiChatMessage; index: number; displayContent: string; busy: boolean }) {
   const t = useT();
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(msg.content);
@@ -125,7 +125,7 @@ function EditableUserBubble({ msg, displayContent, busy }: { msg: UiChatMessage;
     const trimmed = editText.trim();
     if (!trimmed || busy) return;
     setEditing(false);
-    await editAndReroll(msg.id, trimmed);
+    await editAndReroll(index, trimmed);
   }
 
   if (editing) {
@@ -169,20 +169,22 @@ function EditableUserBubble({ msg, displayContent, busy }: { msg: UiChatMessage;
   }
 
   return (
-    <div className="group anim-in flex justify-end">
-      <div className="glass max-w-[92%] border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap sm:max-w-[80%]">
-        {displayContent}
+    <div className="anim-in flex justify-end">
+      <div className="relative flex max-w-[92%] flex-col items-end sm:max-w-[80%]">
+        <div className="glass w-full border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
+          {displayContent}
+        </div>
+        {!busy && (
+          <button
+            onClick={startEdit}
+            title={t("chat.edit")}
+            aria-label={t("chat.edit")}
+            className="mt-1 flex items-center gap-1 rounded bg-[var(--glass-bg)] px-2 py-0.5 text-[11px] text-[var(--text-faint)] transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--accent-text)]"
+          >
+            <IconPencil size={11} /> {t("chat.edit")}
+          </button>
+        )}
       </div>
-      {!busy && (
-        <button
-          onClick={startEdit}
-          title={t("chat.edit")}
-          aria-label={t("chat.edit")}
-          className="ml-1 mt-1 self-start rounded p-1 text-[var(--text-faint)] opacity-0 transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--accent-text)] group-hover:opacity-100"
-        >
-          <IconPencil size={13} />
-        </button>
-      )}
     </div>
   );
 }
@@ -229,9 +231,9 @@ export function ChatScreen() {
             const depth = messages.length - 1 - i;
             const processedContent = applyMarkdown(m.content, m.role, depth);
             return (
-              <div key={m.id}>
+              <div key={m.id || i}>
                 {m.role === "user" ? (
-                  <EditableUserBubble msg={m} displayContent={processedContent} busy={busy} />
+                  <EditableUserBubble msg={m} index={i} displayContent={processedContent} busy={busy} />
                 ) : (
                   <Bubble role="assistant" stopped={variant?.stopped}>
                     <NarrativeContent text={processedContent} />

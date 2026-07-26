@@ -198,3 +198,138 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
     changedTurn,
   };
 }
+
+// ── Tính toán Lãnh Địa (V9) ─────────────────────────────────────────────────
+
+export function calculateYield(territory: Record<string, any>, weatherFactor: number, month: number): { Vàng: number; "Lương Thực": number; Gỗ: number; Đá: number; "Quặng Sắt": number } {
+  // Mùa factor
+  let muaFactor = 1.0;
+  if (month >= 1 && month <= 3) muaFactor = 1.0;
+  else if (month >= 4 && month <= 6) muaFactor = 1.2;
+  else if (month >= 7 && month <= 9) muaFactor = 1.5;
+  else muaFactor = 0.2;
+
+  // Lòng dân factor
+  const loyalty = typeof territory["Lòng Dân"] === "number" ? territory["Lòng Dân"] : 60;
+  let ktFactor = 1.0;
+  if (loyalty < 30) ktFactor = 0.7;
+  else if (loyalty < 50) ktFactor = 0.9;
+  else if (loyalty < 70) ktFactor = 1.0;
+  else if (loyalty < 90) ktFactor = 1.15;
+  else ktFactor = 1.3;
+
+  // Tính sản lượng cơ bản (stub cho logic quy hoạch chi tiết)
+  const danSo = territory["Dân Số Chi Tiết"] || {};
+  const nongDan = danSo["Nông Dân"] || (territory["Dân Số"] * 0.5) || 500;
+  const thợMỏ = danSo["Thợ Mỏ"] || 50;
+  const tiềuPhu = danSo["Tiều Phu"] || 50;
+  
+  // Nông nghiệp: sl = Nông_dân * 3 * muaFactor * weatherFactor * ktFactor
+  const food = Math.floor(nongDan * 3 * muaFactor * weatherFactor * ktFactor);
+  
+  // Khai thác: giả sử điểm bình thường (10 cân/người)
+  const wood = Math.floor(tiềuPhu * 10 * ktFactor);
+  const stone = Math.floor(thợMỏ * 5 * ktFactor);
+  const iron = Math.floor(thợMỏ * 5 * ktFactor);
+  
+  // Thương mại (Vàng)
+  const thuongNhan = danSo["Thương Nhân"] || 100;
+  const gold = Math.floor(thuongNhan * 0.5 * ktFactor);
+  
+  return { Vàng: gold, "Lương Thực": food, Gỗ: wood, Đá: stone, "Quặng Sắt": iron };
+}
+
+export function monthlyTick(state: StatData): PatchOp[] {
+  const ops: PatchOp[] = [];
+  const month = state["Thế Giới"]["Ngày"] > 30 ? Math.floor(state["Thế Giới"]["Ngày"]/30) + 1 : 1; // Giả sử mỗi tháng 30 ngày
+  const weatherFactor = 1.0; // Tạm thời 1.0
+  
+  const holdings = state["Lãnh Địa"] as Record<string, any>;
+  
+  for (const [id, holding] of Object.entries(holdings)) {
+    const yieldRes = calculateYield(holding, weatherFactor, month);
+    
+    // Nông nghiệp (Bước 2)
+    const currentFood = holding["Tài Nguyên"]["Lương Thực"] || 0;
+    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Lương Thực`, value: currentFood + yieldRes["Lương Thực"] });
+    
+    // Khai thác (Bước 3)
+    const currentWood = holding["Tài Nguyên"]["Gỗ"] || 0;
+    const currentStone = holding["Tài Nguyên"]["Đá"] || 0;
+    const currentIron = holding["Tài Nguyên"]["Quặng Sắt"] || 0;
+    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Gỗ`, value: currentWood + yieldRes.Gỗ });
+    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Đá`, value: currentStone + yieldRes.Đá });
+    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Quặng Sắt`, value: currentIron + yieldRes["Quặng Sắt"] });
+    
+    // Tiêu hao lương quân (Bước 5) - Giả sử 2 bao/lính
+    // Tìm quân đồn trú
+    let troopsInHolding = 0;
+    const units = state["Biên Chế Quân Sự"] || {};
+    for (const unit of Object.values(units)) {
+        if (unit["Lãnh Địa Đồn Trú"] === id) {
+            troopsInHolding += (unit["Số Lượng"] || 0);
+        }
+    }
+    const foodConsumed = troopsInHolding * 2;
+    if (foodConsumed > 0) {
+        ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Lương Thực`, value: -foodConsumed });
+        // TODO: Sĩ khí giảm nếu thiếu lương thực
+    }
+    
+    // Cập nhật Vàng cho Lãnh Chúa (Bước 8-10)
+    // Thực tế vàng đi vào ví nhân vật
+    if (holding["Người Kiểm Soát"] === state["Thông Tin Nhân Vật"]["Họ Tên"] || state["Chủ Quyền Lãnh Thổ"][holding["Thuộc Vùng"]]?.["Là Của Người Chơi"]) {
+        ops.push({ op: "delta", path: `stat_data.Thông Tin Nhân Vật.Vàng`, value: yieldRes.Vàng });
+    }
+  }
+  
+  return ops;
+}
+
+export function getBuildableRadius(castleLevel: number): number {
+    return 10 + castleLevel * 10; // Cấp 1 -> 20 ô, Cấp 5 -> 60 ô
+}
+
+export function placeBuilding(state: StatData, territoryId: string, buildingType: string, x: number, y: number): PatchOp[] {
+  const territory = state["Lãnh Địa"][territoryId] as any;
+  if (!territory) return [];
+  
+  // Find Castle level to determine bounds
+  let castleLevel = 1;
+  const buildings = territory["Công Trình"] || {};
+  for (const b of Object.values(buildings)) {
+      if ((b as any)["Loại"] === "Lâu Đài") {
+          castleLevel = (b as any)["Cấp Độ"] || 1;
+          break;
+      }
+  }
+
+  const radius = getBuildableRadius(castleLevel);
+  const centerX = 750;
+  const centerY = 750;
+
+  // Basic validation (e.g. check bounds)
+  if (Math.abs(x - centerX) > radius || Math.abs(y - centerY) > radius) {
+      throw new Error(`Vị trí (${x}, ${y}) vượt quá khu vực quy hoạch (Bán kính: ${radius} ô) của Thành Trì cấp ${castleLevel}.`);
+  }
+  
+  const bId = `${buildingType}_${x}_${y}`;
+  if (territory["Công Trình"] && territory["Công Trình"][bId]) {
+      throw new Error("Vị trí đã có công trình");
+  }
+  
+  // Create patch op
+  return [{
+      op: "insert",
+      path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${bId}`,
+      value: {
+          "Loại": buildingType,
+          "Cấp Độ": 1,
+          "Đang Xây": true,
+          "Turn Còn Lại": 3,
+          "Tọa Độ X": x,
+          "Tọa Độ Y": y,
+          "Kích Thước": 1
+      }
+  }];
+}

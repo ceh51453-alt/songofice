@@ -7,16 +7,16 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 242, age: 56, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 18, "Tinh Tường": 17, "Uy Tín": 18 },
     talentIds: ["schemer", "commander-instinct"],
     skills: { "command": 9, "cunning": 8, "commerce": 8, "intimidation": 9 },
-    equipment: [], items: [{ ten: "Vàng Lannister", soLuong: 50000, moTa: "Sự giàu có vô tận" }], gold: 50000, startingHookIds: [], startArmy: { size: 30000, quality: "Tinh Nhuệ" }, startHoldings: ["the-westerlands-seat"], startRegions: ["the-westerlands"],
+    equipment: [], items: [{ ten: "Vàng Lannister", soLuong: 50000, moTa: "Sự giàu có vô tận" }], gold: 100000, startingHookIds: [], startArmy: { size: 35000, quality: "Tinh Nhuệ" }, startHoldings: ["the-westerlands-seat"], startRegions: ["the-westerlands"],
     holdingsLevel: { "the-westerlands-seat": 5 },
-    baseIncome: 500,
+    baseIncome: 1000,
     father: "tytos-lannister",
     mother: "jeyne-marbrand",
     spouse: "joanna-lannister",
-    children: ["cersei-lannister", "jaime-lannister", "tyrion-lannister"],
-    siblings: ["kevan-lannister", "genna-lannister", "tygett-lannister", "gerion-lannister"],
-    allies: ["kevan-lannister", "roose-bolton", "walder-frey"],
-    rivals: ["stannis-baratheon", "robb-stark", "eddard-stark"]
+    children: ["jaime-lannister", "cersei-lannister", "tyrion-lannister"],
+    siblings: ["kevan-lannister", "tygett-lannister", "gerion-lannister", "genna-lannister"],
+    allies: ["aerys-ii", "robert-baratheon"],
+    rivals: ["aerys-ii", "robb-stark"]
   },
   {
     id: "jaime-lannister", name: "Jaime Lannister", house: "Lannister", role: "Kẻ Sát Vương", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
@@ -31,8 +31,10 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     spouse: "cersei-lannister", // Mối quan hệ bí mật
     children: ["joffrey-baratheon", "myrcella-baratheon", "tommen-baratheon"], // Dưới góc nhìn lore
     siblings: ["cersei-lannister", "tyrion-lannister"],
-    allies: ["tyrion-lannister"],
-    rivals: ["eddard-stark", "robb-stark"]
+    allies: ["cersei-lannister"],
+    rivals: ["eddard-stark", "brienne-tarth"],
+    baseIncome: 150,
+    holdingsLevel: {}
   },
   // Đã xóa tyrion-lannister bị trùng lặp với eras.ts
   {
@@ -45,8 +47,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     father: "eddard-stark",
     mother: "catelyn-tully",
     siblings: ["robb-stark", "sansa-stark", "bran-stark", "rickon-stark", "jon-snow"],
-    allies: ["jon-snow", "syrio-forel"],
-    rivals: ["joffrey-baratheon", "cersei-lannister", "sandor-clegane"]
+    allies: ["sandor-clegane", "jaqen-hghar"],
+    rivals: ["cersei-lannister", "joffrey-baratheon"],
+    spouse: "",
+    children: [],
+    startArmy: { size: 300, quality: "Thành Thạo" },
+    baseIncome: 75,
+    holdingsLevel: {}
   },
   {
     id: "sansa-stark", name: "Sansa Stark", house: "Stark", role: "Tiểu Thư Mơ Mộng", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
@@ -59,8 +66,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     mother: "catelyn-tully",
     spouse: "tyrion-lannister",
     siblings: ["robb-stark", "arya-stark", "bran-stark", "rickon-stark", "jon-snow"],
-    allies: ["margaery-tyrell", "petyr-baelish"],
-    rivals: ["cersei-lannister", "joffrey-baratheon"]
+    allies: ["petyr-baelish"],
+    rivals: ["cersei-lannister", "joffrey-baratheon", "ramsay-snow"],
+    children: [],
+    startArmy: { size: 300, quality: "Thành Thạo" },
+    baseIncome: 75,
+    holdingsLevel: {}
   },
   {
     id: "bran-stark", name: "Bran Stark", house: "Stark", role: "Sói Cụt Chân", tuocVi: "Thường Dân", religion: "Cựu Thần",
@@ -72,8 +83,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     father: "eddard-stark",
     mother: "catelyn-tully",
     siblings: ["robb-stark", "sansa-stark", "arya-stark", "rickon-stark", "jon-snow"],
-    allies: ["jojen-reed", "meera-reed", "hodor"],
-    rivals: ["jaime-lannister"]
+    allies: ["meera-reed", "jojen-reed", "bloodraven"],
+    rivals: ["night-king"],
+    spouse: "",
+    children: [],
+    startArmy: { size: 300, quality: "Thành Thạo" },
+    baseIncome: 75,
+    holdingsLevel: {}
   },
   {
     id: "theon-greyjoy", name: "Theon Greyjoy", house: "Greyjoy", role: "Con Tin Sắt", tuocVi: "Thường Dân", religion: "Thần Chết Chìm",
@@ -84,9 +100,14 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Cung Dài Đảo Sắt", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Xa": 5 }, moTa: "Bắn xa rất tốt" }], items: [], gold: 500, startingHookIds: [],
     father: "balon-greyjoy",
     mother: "alannys-harlaw",
-    siblings: ["asha-greyjoy", "rodrik-greyjoy", "maron-greyjoy"],
+    siblings: ["asha-greyjoy"],
     allies: ["robb-stark"],
-    rivals: ["ramsay-snow"]
+    rivals: ["ramsay-snow"],
+    spouse: "",
+    children: [],
+    startArmy: { size: 100, quality: "Thành Thạo" },
+    baseIncome: 40,
+    holdingsLevel: {}
   },
   {
     id: "asha-greyjoy", name: "Asha Greyjoy", house: "Greyjoy", role: "Nữ Tướng Đảo Sắt", tuocVi: "Hiệp Sĩ", religion: "Thần Chết Chìm",
@@ -97,12 +118,16 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu chiến", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Rìu của Kraken" }], items: [], gold: 800, startingHookIds: [], startArmy: { size: 2000, quality: "Thành Thạo" },
     father: "balon-greyjoy",
     mother: "alannys-harlaw",
-    siblings: ["theon-greyjoy", "rodrik-greyjoy", "maron-greyjoy"],
-    allies: ["victarion-greyjoy"],
-    rivals: ["euron-greyjoy"]
+    siblings: ["theon-greyjoy"],
+    allies: [],
+    rivals: ["euron-greyjoy"],
+    spouse: "",
+    children: [],
+    baseIncome: 40,
+    holdingsLevel: {}
   },
   {
-    id: "euron-greyjoy", name: "Euron Greyjoy", house: "Greyjoy", role: "Mắt Quạ", tuocVi: "Vua", religion: "Thần Chết Chìm",
+    id: "euron-greyjoy", name: "Euron Greyjoy", house: "Greyjoy", role: "Mắt Quạ", tuocVi: "Quốc Vương", religion: "Thần Chết Chìm",
     blurb: "Độc ác, điên rồ, dùng phép thuật hắc ám và dong buồm trên tàu Im Lặng với thủy thủ đoàn bị cắt lưỡi.",
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 15, "Thể Chất": 15, "Trí Tuệ": 16, "Tinh Tường": 17, "Uy Tín": 16 },
     talentIds: ["schemer", "warrior-blood"],
@@ -110,7 +135,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép Valyria", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 8 }, dacTinh: ["valyrian"], moTa: "Tước đoạt từ phương đông" }], items: [], gold: 10000, startingHookIds: [], startArmy: { size: 5000, quality: "Tinh Nhuệ" },
     father: "quellon-greyjoy",
     siblings: ["balon-greyjoy", "victarion-greyjoy", "aeron-greyjoy"],
-    rivals: ["balon-greyjoy", "asha-greyjoy", "victarion-greyjoy"]
+    rivals: ["asha-greyjoy", "victarion-greyjoy"],
+    mother: "",
+    spouse: "",
+    children: [],
+    allies: [],
+    baseIncome: 80,
+    holdingsLevel: { "the-iron-islands-seat": 2 },
+    startHoldings: ["the-iron-islands-seat"],
+    startRegions: ["the-iron-islands"]
   },
   {
     id: "margaery-tyrell", name: "Margaery Tyrell", house: "Tyrell", role: "Hoa Hồng Mưu Mô", tuocVi: "Vương Hậu", religion: "Thất Diện Thần",
@@ -123,8 +156,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     mother: "alerie-hightower",
     spouse: "renly-baratheon",
     siblings: ["willas-tyrell", "garlan-tyrell", "loras-tyrell"],
-    allies: ["olenna-tyrell", "loras-tyrell"],
-    rivals: ["cersei-lannister"]
+    allies: ["olenna-tyrell"],
+    rivals: ["cersei-lannister"],
+    children: [],
+    startArmy: { size: 8000, quality: "Thành Thạo" },
+    baseIncome: 125,
+    holdingsLevel: {}
   },
   {
     id: "olenna-tyrell", name: "Olenna Tyrell", house: "Tyrell", role: "Nữ Hoàng Gai", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
@@ -134,23 +171,35 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     skills: { "cunning": 10, "court-etiquette": 9, "persuasion": 8, "gather-rumor": 9 },
     equipment: [], items: [{ ten: "Mạng lưới gián điệp", soLuong: 1, moTa: "Nhà Tyrell biết tất cả" }], gold: 20000, startingHookIds: [],
     spouse: "luthor-tyrell",
-    children: ["mace-tyrell", "mina-tyrell", "janna-tyrell"],
-    allies: ["margaery-tyrell", "mace-tyrell"],
-    rivals: ["cersei-lannister", "tywin-lannister"]
+    children: ["mace-tyrell"],
+    allies: ["margaery-tyrell"],
+    rivals: ["tywin-lannister", "cersei-lannister"],
+    father: "",
+    mother: "",
+    siblings: [],
+    startArmy: { size: 40000, quality: "Thành Thạo" },
+    baseIncome: 250,
+    holdingsLevel: { "the-reach-seat": 4 },
+    startHoldings: ["the-reach-seat"],
+    startRegions: ["the-reach"]
   },
   {
-    id: "roose-bolton", name: "Roose Bolton", house: "Bolton", role: "Lãnh Chúa Đỉa", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
+    id: "roose-bolton", name: "Roose Bolton", house: "Bolton", role: "Lãnh Chúa Đỉa", tuocVi: "Lãnh Chúa Thành Trì", religion: "Cựu Thần",
     blurb: "Giọng nói mềm mỏng, hành động tàn độc. Sẵn sàng lột da cả những đồng minh nếu có lợi.",
     birthYear: 255, age: 43, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 13 },
     talentIds: ["schemer"],
     skills: { "cunning": 8, "command": 7, "intimidation": 9, "sword-shield": 6 },
-    equipment: [], items: [], gold: 5000, startingHookIds: [], startArmy: { size: 4000, quality: "Thành Thạo" },
+    equipment: [], items: [], gold: 15000, startingHookIds: [], startArmy: { size: 8000, quality: "Thành Thạo" },
     holdingsLevel: { "dreadfort": 4 },
     baseIncome: 120,
-    spouse: "fat-walda",
+    spouse: "walda-frey",
     children: ["domeric-bolton", "ramsay-snow"],
     allies: ["walder-frey", "tywin-lannister"],
-    rivals: ["robb-stark", "stannis-baratheon"]
+    rivals: ["robb-stark", "stannis-baratheon"],
+    father: "",
+    mother: "",
+    siblings: [],
+    startHoldings: ["dreadfort"]
   },
   {
     id: "ramsay-snow", name: "Ramsay Snow", house: "Bolton", role: "Con Hoang Bolton", tuocVi: "Thường Dân", religion: "Cựu Thần",
@@ -161,7 +210,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Cung săn", phamChat: "Thường", thuocTinh: { "Sát Thương Xa": 4 }, moTa: "Dùng để săn người" }], items: [], gold: 200, startingHookIds: [], startArmy: { size: 500, quality: "Thành Thạo" },
     father: "roose-bolton",
     allies: ["roose-bolton"],
-    rivals: ["theon-greyjoy", "robb-stark", "jon-snow"]
+    rivals: ["jon-snow", "theon-greyjoy"],
+    mother: "",
+    spouse: "sansa-stark",
+    children: [],
+    siblings: [],
+    baseIncome: 50,
+    holdingsLevel: {}
   },
   {
     id: "brienne-tarth", name: "Brienne xứ Tarth", house: "Tarth", role: "Nữ Hiệp Sĩ", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
@@ -171,7 +226,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     skills: { "sword-shield": 9, "war-riding": 6, "brawling": 7 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép thường", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Một thanh kiếm xuất sắc" }, { slot: "Giáp Thân", ten: "Giáp xanh lam", phamChat: "Tinh Xảo", thuocTinh: { "Phòng Thủ": 4 }, moTa: "Giáp đặc trưng" }], items: [], gold: 200, startingHookIds: [],
     father: "selwyn-tarth",
-    allies: ["renly-baratheon", "catelyn-tully", "jaime-lannister"]
+    allies: ["catelyn-tully", "jaime-lannister", "renly-baratheon"],
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    rivals: ["stannis-baratheon"],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "davos-seaworth", name: "Davos Seaworth", house: "Seaworth", role: "Hiệp Sĩ Hành Tây", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
@@ -182,11 +245,16 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     equipment: [], items: [{ ten: "Đốt ngón tay may mắn", soLuong: 1, moTa: "Bị Stannis chặt" }], gold: 500, startingHookIds: [], startArmy: { size: 100, quality: "Thành Thạo" },
     spouse: "marya-seaworth",
     children: ["dale-seaworth", "allard-seaworth", "matthos-seaworth", "maric-seaworth", "devan-seaworth", "stannis-seaworth", "steffon-seaworth"],
-    allies: ["stannis-baratheon", "shireen-baratheon"],
-    rivals: ["melisandre"]
+    allies: ["stannis-baratheon"],
+    rivals: ["melisandre"],
+    father: "",
+    mother: "",
+    siblings: [],
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
-    id: "balon-greyjoy", name: "Balon Greyjoy", house: "Greyjoy", role: "Vua Quần Đảo Sắt", tuocVi: "Vua", religion: "Thần Chết Chìm",
+    id: "balon-greyjoy", name: "Balon Greyjoy", house: "Greyjoy", role: "Vua Quần Đảo Sắt", tuocVi: "Quốc Vương", religion: "Thần Chết Chìm",
     blurb: "Lần thứ hai xưng vương, lần này đánh vào Phương Bắc yếu ớt thay vì Lannisport.",
     birthYear: 256, age: 42, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 12, "Tinh Tường": 11, "Uy Tín": 14 },
     talentIds: ["warrior-blood", "hot-tempered"],
@@ -198,7 +266,9 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     spouse: "alannys-harlaw",
     children: ["rodrik-greyjoy", "maron-greyjoy", "asha-greyjoy", "theon-greyjoy"],
     siblings: ["euron-greyjoy", "victarion-greyjoy", "aeron-greyjoy"],
-    rivals: ["robb-stark", "eddard-stark"]
+    rivals: ["robert-baratheon", "eddard-stark", "robb-stark"],
+    mother: "",
+    allies: []
   },
   {
     id: "catelyn-tully", name: "Catelyn Stark", house: "Tully", role: "Phu Nhân Winterfell", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
@@ -211,8 +281,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     spouse: "eddard-stark",
     children: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "rickon-stark"],
     siblings: ["lysa-tully", "edmure-tully"],
-    allies: ["eddard-stark", "robb-stark", "edmure-tully", "brynden-tully"],
-    rivals: ["cersei-lannister", "tywin-lannister", "jon-snow"]
+    allies: ["brynden-tully"],
+    rivals: ["cersei-lannister", "jaime-lannister", "walder-frey"],
+    startArmy: { size: 240, quality: "Thành Thạo" },
+    baseIncome: 70,
+    holdingsLevel: {}
   },
   {
     id: "rickon-stark", name: "Rickon Stark", house: "Stark", role: "Sói Út", tuocVi: "Thường Dân", religion: "Cựu Thần",
@@ -222,10 +295,16 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     equipment: [], items: [], gold: 10, startingHookIds: [],
     father: "eddard-stark", mother: "catelyn-tully",
     siblings: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "jon-snow"],
-    allies: ["osha"]
+    allies: ["osha"],
+    spouse: "",
+    children: [],
+    rivals: ["ramsay-snow"],
+    startArmy: { size: 300, quality: "Thành Thạo" },
+    baseIncome: 75,
+    holdingsLevel: {}
   },
   {
-    id: "lysa-tully", name: "Lysa Arryn", house: "Tully", role: "Phu Nhân Eyrie", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
+    id: "lysa-tully", name: "Lysa Arryn", house: "Tully", role: "Phu Nhân Eyrie", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
     blurb: "Hoang tưởng và ích kỷ, cô giữ chặt con trai ở The Eyrie, từ chối tham gia cuộc chiến.",
     birthYear: 266, age: 32, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 7, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 11 },
     talentIds: ["master-liar"], skills: { "deception": 7, "persuasion": 6 },
@@ -237,10 +316,10 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     children: ["robert-arryn"],
     siblings: ["catelyn-tully", "edmure-tully"],
     allies: ["petyr-baelish"],
-    rivals: ["cersei-lannister"]
+    rivals: ["catelyn-tully"]
   },
   {
-    id: "edmure-tully", name: "Edmure Tully", house: "Tully", role: "Người Thừa Kế Riverrun", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
+    id: "edmure-tully", name: "Edmure Tully", house: "Tully", role: "Người Thừa Kế Riverrun", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
     blurb: "Dũng cảm nhưng bốc đồng, muốn tự chứng tỏ khả năng lãnh đạo nhưng hay mắc sai lầm.",
     birthYear: 267, age: 31, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 14 },
     talentIds: ["beloved"], skills: { "command": 6, "sword-shield": 6, "war-riding": 6 },
@@ -249,7 +328,9 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     father: "hoster-tully", mother: "minisa-whent",
     siblings: ["catelyn-tully", "lysa-tully"],
     allies: ["robb-stark", "brynden-tully"],
-    rivals: ["jaime-lannister", "tywin-lannister"]
+    rivals: ["jaime-lannister", "tywin-lannister"],
+    spouse: "",
+    children: []
   },
   {
     id: "brynden-tully", name: "Brynden Tully", house: "Tully", role: "Cá Đen", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
@@ -258,20 +339,28 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     talentIds: ["commander-instinct", "warrior-blood"], skills: { "command": 9, "sword-shield": 8, "war-riding": 8 },
     equipment: [], items: [], gold: 500, startingHookIds: [], startArmy: { size: 500, quality: "Tinh Nhuệ" },
     siblings: ["hoster-tully"],
-    allies: ["robb-stark", "catelyn-tully", "edmure-tully"],
-    rivals: ["tywin-lannister", "jaime-lannister"]
+    allies: ["robb-stark", "catelyn-tully"],
+    rivals: ["jaime-lannister", "walder-frey"],
+    father: "hoster-tully-senior",
+    mother: "",
+    spouse: "",
+    children: [],
+    baseIncome: 70,
+    holdingsLevel: {}
   },
   {
     id: "mace-tyrell", name: "Mace Tyrell", house: "Tyrell", role: "Lãnh Chúa Highgarden", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
     blurb: "Lãnh chúa mập mạp của Highgarden, tham danh vọng nhưng để mẹ Olenna quyết định thực sự.",
     birthYear: 256, age: 42, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 8, "Thể Chất": 13, "Trí Tuệ": 11, "Tinh Tường": 10, "Uy Tín": 14 },
     talentIds: ["highborn-charm"], skills: { "command": 5, "court-etiquette": 7 },
-    equipment: [], items: [], gold: 15000, startingHookIds: [], startArmy: { size: 80000, quality: "Thành Thạo" },
+    equipment: [], items: [], gold: 80000, startingHookIds: [], startArmy: { size: 70000, quality: "Thành Thạo" },
     startHoldings: ["the-reach-seat"], startRegions: ["the-reach"], holdingsLevel: { "the-reach-seat": 5 }, baseIncome: 450,
-    father: "luthor-tyrell", mother: "olenna-tyrell",
+    father: "luthor-tyrell", mother: "olenna-redwyne",
     spouse: "alerie-hightower",
     children: ["willas-tyrell", "garlan-tyrell", "loras-tyrell", "margaery-tyrell"],
-    allies: ["renly-baratheon", "tywin-lannister"]
+    allies: ["randyll-tarly", "tywin-lannister"],
+    siblings: [],
+    rivals: ["stannis-baratheon"]
   },
   {
     id: "loras-tyrell", name: "Loras Tyrell", house: "Tyrell", role: "Hiệp Sĩ Hoa", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
@@ -282,7 +371,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     father: "mace-tyrell", mother: "alerie-hightower",
     siblings: ["willas-tyrell", "garlan-tyrell", "margaery-tyrell"],
     allies: ["renly-baratheon", "margaery-tyrell"],
-    rivals: ["stannis-baratheon", "brienne-tarth"]
+    rivals: [],
+    spouse: "",
+    children: [],
+    startArmy: { size: 800, quality: "Thành Thạo" },
+    baseIncome: 125,
+    holdingsLevel: {}
   },
   {
     id: "victarion-greyjoy", name: "Victarion Greyjoy", house: "Greyjoy", role: "Tư Lệnh Hạm Đội Sắt", tuocVi: "Thường Dân", religion: "Thần Chết Chìm",
@@ -292,8 +386,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu lớn của Victarion", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Vũ khí tử thần trên tàu chiến" }], items: [], gold: 1000, startingHookIds: [], startArmy: { size: 8000, quality: "Tinh Nhuệ" },
     father: "quellon-greyjoy",
     siblings: ["balon-greyjoy", "euron-greyjoy", "aeron-greyjoy"],
-    allies: ["balon-greyjoy"],
-    rivals: ["euron-greyjoy", "asha-greyjoy"]
+    allies: [],
+    rivals: ["euron-greyjoy"],
+    mother: "",
+    spouse: "",
+    children: [],
+    baseIncome: 40,
+    holdingsLevel: {}
   },
   {
     id: "aeron-greyjoy", name: "Aeron Greyjoy", house: "Greyjoy", role: "Tóc Ướt", tuocVi: "Thường Dân", religion: "Thần Chết Chìm",
@@ -304,7 +403,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     father: "quellon-greyjoy",
     siblings: ["balon-greyjoy", "euron-greyjoy", "victarion-greyjoy"],
     allies: ["victarion-greyjoy"],
-    rivals: ["euron-greyjoy"]
+    rivals: ["euron-greyjoy"],
+    mother: "",
+    spouse: "",
+    children: [],
+    startArmy: { size: 100, quality: "Thành Thạo" },
+    baseIncome: 40,
+    holdingsLevel: {}
   },
   {
     id: "kevan-lannister", name: "Kevan Lannister", house: "Lannister", role: "Cánh Tay Phải Của Tywin", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
@@ -316,7 +421,10 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     spouse: "dorna-swyft",
     children: ["lancel-lannister", "willem-lannister", "martyn-lannister", "janei-lannister"],
     siblings: ["tywin-lannister", "genna-lannister", "tygett-lannister", "gerion-lannister"],
-    allies: ["tywin-lannister"]
+    allies: ["tywin-lannister"],
+    rivals: [],
+    baseIncome: 150,
+    holdingsLevel: {}
   },
   {
     id: "lancel-lannister", name: "Lancel Lannister", house: "Lannister", role: "Hiệp Sĩ Trẻ", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
@@ -327,7 +435,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     father: "kevan-lannister", mother: "dorna-swyft",
     siblings: ["willem-lannister", "martyn-lannister", "janei-lannister"],
     allies: ["cersei-lannister", "tywin-lannister"],
-    rivals: ["tyrion-lannister"]
+    rivals: ["tyrion-lannister"],
+    spouse: "",
+    children: [],
+    startArmy: { size: 500, quality: "Tinh Nhuệ" },
+    baseIncome: 150,
+    holdingsLevel: {}
   },
   {
     id: "selyse-florent", name: "Selyse Florent", house: "Baratheon", role: "Vương Hậu Của Stannis", tuocVi: "Vương Hậu", religion: "Thần Ánh Sáng (R'hllor)",
@@ -338,7 +451,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     spouse: "stannis-baratheon",
     children: ["shireen-baratheon"],
     allies: ["melisandre"],
-    rivals: ["renly-baratheon"]
+    rivals: ["renly-baratheon"],
+    father: "",
+    mother: "",
+    siblings: [],
+    startArmy: { size: 3000, quality: "Thành Thạo" },
+    baseIncome: 90,
+    holdingsLevel: {}
   },
   {
     id: "shireen-baratheon", name: "Shireen Baratheon", house: "Baratheon", role: "Công Chúa Nhỏ", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
@@ -347,7 +466,14 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     talentIds: ["learned"], skills: { "lore": 6, "languages": 4 },
     equipment: [], items: [{ ten: "Sách truyện cổ", soLuong: 5, moTa: "Shireen rất thích đọc sách" }], gold: 50, startingHookIds: [],
     father: "stannis-baratheon", mother: "selyse-florent",
-    allies: ["davos-seaworth", "stannis-baratheon"]
+    allies: ["davos-seaworth", "stannis-baratheon"],
+    spouse: "",
+    children: [],
+    siblings: [],
+    rivals: [],
+    startArmy: { size: 300, quality: "Thành Thạo" },
+    baseIncome: 90,
+    holdingsLevel: {}
   },
   {
     id: "melisandre", name: "Melisandre", house: "Không Nhà", role: "Nữ Tư Tế Đỏ", tuocVi: "Thường Dân", religion: "Thần Ánh Sáng (R'hllor)",
@@ -355,7 +481,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 0, age: 400, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 14, "Trí Tuệ": 17, "Tinh Tường": 18, "Uy Tín": 19 },
     talentIds: ["master-liar", "schemer"], skills: { "persuasion": 9, "lore": 10, "deception": 9, "intimidation": 7 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Hồng ngọc cổ", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, dacTinh: ["phép thuật"], moTa: "Viên đá phát sáng trên cổ" }], items: [], gold: 1000, startingHookIds: [],
-    allies: ["stannis-baratheon", "selyse-florent"],
-    rivals: ["davos-seaworth"]
+    allies: ["stannis-baratheon"],
+    rivals: ["davos-seaworth"],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   }
 ];

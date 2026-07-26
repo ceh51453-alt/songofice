@@ -81,9 +81,14 @@ interface CombatState {
 }
 
 function scaleFromAttrs(attrs: Record<string, string>): CombatScale {
-  const s = attrs.scale;
-  if (s === "Giao Tranh" || s === "Đại Chiến" || s === "Vây Thành" || s === "Hải Chiến") return s;
-  if (s === "Đấu Tay Đôi") return s;
+  const s = (attrs.scale || "").toLowerCase();
+  if (s === "giao tranh" || s === "đại chiến" || s === "vây thành" || s === "hải chiến") {
+    if (s === "giao tranh") return "Giao Tranh";
+    if (s === "đại chiến") return "Đại Chiến";
+    if (s === "vây thành") return "Vây Thành";
+    return "Hải Chiến";
+  }
+  if (s === "đấu tay đôi") return "Đấu Tay Đôi";
   // suy từ enemy_size nếu AI quên scale
   const size = Number(attrs.enemy_size);
   if (Number.isFinite(size)) {

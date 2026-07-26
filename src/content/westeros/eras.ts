@@ -366,11 +366,11 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "landing-at-blackwater", title: "Đổ Bộ Cửa Sông Blackwater", year: "1 AC", desc: "Hạm đội Targaryen vừa cập bờ nơi cửa sông Blackwater. Ba con rồng lượn trên trời. Các vua Westeros bắt đầu tập hợp quân." },
-      { id: "council-of-conquest", title: "Hội Nghị Trước Chinh Phạt", year: "2 BC", desc: "Trên bàn đá Dragonstone, tấm bản đồ Westeros trải rộng. Phải quyết: đánh đâu trước, dụ ai hàng, đốt ai làm gương." },
-      { id: "harrenhal-defiance", title: "Cố Thủ Harrenhal", year: "1 AC", desc: "Bọn nhãi ranh Targaryen đòi ngươi quỳ gối. Nhưng ngươi có Harrenhal - pháo đài bằng đá đen kiên cố nhất thế giới. Đá không cháy, ngươi tự nhủ." },
-      { id: "march-south", title: "Nam Tiến Lục Địch", year: "1 AC", desc: "Ba vạn quân phương Bắc đang rầm rập tiến qua Neck. Ngươi định nghiền nát bọn ngoại bang Targaryen, cho đến khi thấy ba con rồng bay lượn ở phương trời nam." },
-      { id: "storm-king-defiance", title: "Sự Kiêu Ngạo Của Vua Bão", year: "1 AC", desc: "Một gã con hoang được Aegon cử đến đòi lấy con gái ngươi. Ngươi đã chặt tay hắn và gửi trả về. Giờ Orys Baratheon đang dẫn quân tới Storm's End." },
+      { id: "landing-at-blackwater", title: "Đổ Bộ Cửa Sông Blackwater", year: "1 AC", numericYear: 1, desc: "Hạm đội Targaryen vừa cập bờ nơi cửa sông Blackwater. Ba con rồng lượn trên trời. Các vua Westeros bắt đầu tập hợp quân." },
+      { id: "council-of-conquest", title: "Hội Nghị Trước Chinh Phạt", year: "2 BC", numericYear: -2, desc: "Trên bàn đá Dragonstone, tấm bản đồ Westeros trải rộng. Phải quyết: đánh đâu trước, dụ ai hàng, đốt ai làm gương." },
+      { id: "harrenhal-defiance", title: "Cố Thủ Harrenhal", year: "1 AC", numericYear: 1, desc: "Bọn nhãi ranh Targaryen đòi ngươi quỳ gối. Nhưng ngươi có Harrenhal - pháo đài bằng đá đen kiên cố nhất thế giới. Đá không cháy, ngươi tự nhủ." },
+      { id: "march-south", title: "Nam Tiến Lục Địch", year: "1 AC", numericYear: 1, desc: "Ba vạn quân phương Bắc đang rầm rập tiến qua Neck. Ngươi định nghiền nát bọn ngoại bang Targaryen, cho đến khi thấy ba con rồng bay lượn ở phương trời nam." },
+      { id: "storm-king-defiance", title: "Sự Kiêu Ngạo Của Vua Bão", year: "1 AC", numericYear: 1, desc: "Một gã con hoang được Aegon cử đến đòi lấy con gái ngươi. Ngươi đã chặt tay hắn và gửi trả về. Giờ Orys Baratheon đang dẫn quân tới Storm's End." },
     ],
   },
   // ──────────────────────────────────────────────────────────────
@@ -546,11 +546,11 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "heir-proclaimed", title: "Người Thừa Kế Được Công Bố", year: "105 AC", desc: "Vua Viserys I công bố Rhaenyra là người thừa kế Ngai Sắt — phá vỡ tiền lệ truyền ngôi cho nam. Triều đình chia rẽ, phe cánh bắt đầu hình thành trong bóng tối." },
-      { id: "green-queen-rises", title: "Vương Hậu Mới Bước Lên", year: "109 AC", desc: "Viserys I cưới Alicent Hightower. Nàng sinh con trai — Aegon. Otto Hightower thì thầm rằng vương miện phải thuộc về con trai, không phải con gái. Cuộc đấu tranh bắt đầu." },
-      { id: "throne-stolen", title: "Ngai Vàng Bị Cướp", year: "129 AC", desc: "Vua Viserys vừa qua đời. Alicent Hightower giấu tin, và Otto Hightower đã đội vương miện cho Aegon II trước khi ngươi kịp biết cha mình đã chết." },
-      { id: "black-council", title: "Hội Đồng Đen Tại Dragonstone", year: "129 AC", desc: "Tin dữ truyền tới Dragonstone: ngôi vị đã bị cướp. Ngươi phải lập hội đồng chiến tranh — chọn đồng minh, điều rồng, và phản công." },
-      { id: "green-coronation", title: "Đăng Quang Vội Vàng", year: "129 AC", desc: "Vương miện trên đầu ngươi chưa ấm chỗ, và chị gái cùng cha đã tuyên bố chiến tranh. Cả vương quốc phải chọn phe." },
+      { id: "heir-proclaimed", title: "Người Thừa Kế Được Công Bố", year: "105 AC", numericYear: 105, desc: "Vua Viserys I công bố Rhaenyra là người thừa kế Ngai Sắt — phá vỡ tiền lệ truyền ngôi cho nam. Triều đình chia rẽ, phe cánh bắt đầu hình thành trong bóng tối." },
+      { id: "green-queen-rises", title: "Vương Hậu Mới Bước Lên", year: "109 AC", numericYear: 109, desc: "Viserys I cưới Alicent Hightower. Nàng sinh con trai — Aegon. Otto Hightower thì thầm rằng vương miện phải thuộc về con trai, không phải con gái. Cuộc đấu tranh bắt đầu." },
+      { id: "throne-stolen", title: "Ngai Vàng Bị Cướp", year: "129 AC", numericYear: 129, desc: "Vua Viserys vừa qua đời. Alicent Hightower giấu tin, và Otto Hightower đã đội vương miện cho Aegon II trước khi ngươi kịp biết cha mình đã chết." },
+      { id: "black-council", title: "Hội Đồng Đen Tại Dragonstone", year: "129 AC", numericYear: 129, desc: "Tin dữ truyền tới Dragonstone: ngôi vị đã bị cướp. Ngươi phải lập hội đồng chiến tranh — chọn đồng minh, điều rồng, và phản công." },
+      { id: "green-coronation", title: "Đăng Quang Vội Vàng", year: "129 AC", numericYear: 129, desc: "Vương miện trên đầu ngươi chưa ấm chỗ, và chị gái cùng cha đã tuyên bố chiến tranh. Cả vương quốc phải chọn phe." },
     ],
   },
   // ──────────────────────────────────────────────────────────────
@@ -648,8 +648,8 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "black-banner-rises", title: "Cờ Đen Phất Lên", year: "195 AC", desc: "Daemon Blackfyre công khai tuyên bố quyền thừa kế. Hơn nửa vương quốc ủng hộ — dòng máu chính thống bị thách thức bằng chính thanh kiếm mang tên vương triều." },
-      { id: "bastard-rebellion", title: "Cuộc Loạn Con Hoang", year: "196 AC", desc: "Đại quân Blackfyre đang tiến về phía nam. Ngươi phải tập hợp lực lượng trung thành, đối mặt tại Redgrass Field — trận đánh sẽ quyết định số phận vương triều." },
+      { id: "black-banner-rises", title: "Cờ Đen Phất Lên", year: "195 AC", numericYear: 195, desc: "Daemon Blackfyre công khai tuyên bố quyền thừa kế. Hơn nửa vương quốc ủng hộ — dòng máu chính thống bị thách thức bằng chính thanh kiếm mang tên vương triều." },
+      { id: "bastard-rebellion", title: "Cuộc Loạn Con Hoang", year: "196 AC", numericYear: 196, desc: "Đại quân Blackfyre đang tiến về phía nam. Ngươi phải tập hợp lực lượng trung thành, đối mặt tại Redgrass Field — trận đánh sẽ quyết định số phận vương triều." },
     ],
   },
   // ──────────────────────────────────────────────────────────────
@@ -726,9 +726,9 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "ashford-tourney", title: "Giải Đấu Ashford", year: "209 AC", desc: "Giải đấu lớn tại Ashford Meadow — nơi hiệp sĩ khắp vương quốc tụ về tranh tài. Cơ hội lập danh, nhưng cũng đầy nguy hiểm khi dòng máu hoàng gia xen vào." },
-      { id: "wander-the-reach", title: "Lang Thang Xứ Reach", year: "210 AC", desc: "Ngươi lang thang trên những con đường bụi bặm của Reach — tìm giải đấu, tìm việc, tìm danh dự. Một hiệp sĩ lang thang không có lãnh chúa nào che chở." },
-      { id: "whitewalls-conspiracy", title: "Âm Mưu Whitewalls", year: "212 AC", desc: "Tin tình báo: phe Blackfyre đang mưu tính cuộc nổi dậy thứ hai, núp dưới vỏ bọc giải đấu tại lâu đài Whitewalls. Phải phá tan âm mưu — hoặc lợi dụng nó.", mode: "Theo Sát Nguyên Tác" },
+      { id: "ashford-tourney", title: "Giải Đấu Ashford", year: "209 AC", numericYear: 209, desc: "Giải đấu lớn tại Ashford Meadow — nơi hiệp sĩ khắp vương quốc tụ về tranh tài. Cơ hội lập danh, nhưng cũng đầy nguy hiểm khi dòng máu hoàng gia xen vào." },
+      { id: "wander-the-reach", title: "Lang Thang Xứ Reach", year: "210 AC", numericYear: 210, desc: "Ngươi lang thang trên những con đường bụi bặm của Reach — tìm giải đấu, tìm việc, tìm danh dự. Một hiệp sĩ lang thang không có lãnh chúa nào che chở." },
+      { id: "whitewalls-conspiracy", title: "Âm Mưu Whitewalls", year: "212 AC", numericYear: 212, desc: "Tin tình báo: phe Blackfyre đang mưu tính cuộc nổi dậy thứ hai, núp dưới vỏ bọc giải đấu tại lâu đài Whitewalls. Phải phá tan âm mưu — hoặc lợi dụng nó.", mode: "Theo Sát Nguyên Tác" },
     ],
   },
   // ──────────────────────────────────────────────────────────────
@@ -823,10 +823,10 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "call-to-banners", title: "Hiệu Triệu Chư Hầu", year: "282 AC", desc: "Tin dữ từ King's Landing: Vua Điên đòi đầu ngươi. Jon Arryn từ chối giao nộp và phất cờ hiệu triệu — chiến tranh bắt đầu." },
-      { id: "battle-of-bells", title: "Trận Chuông Ngân", year: "283 AC", desc: "Ngươi bị thương, trốn trong thị trấn Stoney Sept. Quân triều đình lùng từng căn nhà. Chuông nhà thờ bắt đầu đổ." },
-      { id: "tower-of-joy", title: "Tháp Niềm Vui", year: "283 AC", desc: "Chiến tranh gần tàn. Ngươi cùng sáu người bạn phi về phía dãy núi Đỏ Dorne — nơi em gái ngươi được canh giữ bởi ba Ngự Lâm Quân giỏi nhất." },
-      { id: "trident-gathering", title: "Đại Quân Tụ Về Trident", year: "283 AC", desc: "Hai đại quân đang tiến về khúc cạn sông Trident. Trận đánh định đoạt vương triều sắp bắt đầu." },
+      { id: "call-to-banners", title: "Hiệu Triệu Chư Hầu", year: "282 AC", numericYear: 282, desc: "Tin dữ từ King's Landing: Vua Điên đòi đầu ngươi. Jon Arryn từ chối giao nộp và phất cờ hiệu triệu — chiến tranh bắt đầu." },
+      { id: "battle-of-bells", title: "Trận Chuông Ngân", year: "283 AC", numericYear: 283, desc: "Ngươi bị thương, trốn trong thị trấn Stoney Sept. Quân triều đình lùng từng căn nhà. Chuông nhà thờ bắt đầu đổ." },
+      { id: "tower-of-joy", title: "Tháp Niềm Vui", year: "283 AC", numericYear: 283, desc: "Chiến tranh gần tàn. Ngươi cùng sáu người bạn phi về phía dãy núi Đỏ Dorne — nơi em gái ngươi được canh giữ bởi ba Ngự Lâm Quân giỏi nhất." },
+      { id: "trident-gathering", title: "Đại Quân Tụ Về Trident", year: "283 AC", numericYear: 283, desc: "Hai đại quân đang tiến về khúc cạn sông Trident. Trận đánh định đoạt vương triều sắp bắt đầu." },
     ],
   },
   // ──────────────────────────────────────────────────────────────
@@ -903,9 +903,9 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "iron-price", title: "Giá Sắt", year: "289 AC", desc: "Balon Greyjoy đội vương miện bằng cá sấu biển và tuyên bố Quần Đảo Sắt độc lập. Người Sắt không mua — Người Sắt trả giá sắt." },
-      { id: "burn-lannisport", title: "Đốt Lannisport", year: "289 AC", desc: "Hạm đội Greyjoy đột kích Lannisport, đốt rụi cảng và tàu chiến Lannister. Tywin Lannister nổi giận — và Robert Baratheon đang tập hợp cả vương quốc để đáp trả." },
-      { id: "crush-the-squid", title: "Nghiền Nát Thủy Quái", year: "289 AC", desc: "Tin báo: Greyjoy đốt Lannisport và xưng vương. Ngươi triệu tập chư hầu — Ned Stark, Tywin Lannister, Stannis Baratheon — để tấn công thẳng vào Pyke." },
+      { id: "iron-price", title: "Giá Sắt", year: "289 AC", numericYear: 289, desc: "Balon Greyjoy đội vương miện bằng cá sấu biển và tuyên bố Quần Đảo Sắt độc lập. Người Sắt không mua — Người Sắt trả giá sắt." },
+      { id: "burn-lannisport", title: "Đốt Lannisport", year: "289 AC", numericYear: 289, desc: "Hạm đội Greyjoy đột kích Lannisport, đốt rụi cảng và tàu chiến Lannister. Tywin Lannister nổi giận — và Robert Baratheon đang tập hợp cả vương quốc để đáp trả." },
+      { id: "crush-the-squid", title: "Nghiền Nát Thủy Quái", year: "289 AC", numericYear: 289, desc: "Tin báo: Greyjoy đốt Lannisport và xưng vương. Ngươi triệu tập chư hầu — Ned Stark, Tywin Lannister, Stannis Baratheon — để tấn công thẳng vào Pyke." },
     ],
   },
   // ──────────────────────────────────────────────────────────────
@@ -1105,13 +1105,13 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "kings-arrival", title: "Ngự Giá Tới Winterfell", year: "298 AC", desc: "Đoàn ngự giá ba trăm người của Vua Robert đang tiến vào cổng Winterfell. Jon Arryn — Bàn Tay Nhà Vua — vừa chết đột ngột, và nhà vua cần một người thay thế." },
-      { id: "hand-of-king", title: "Bàn Tay Nhà Vua", year: "298 AC", desc: "Ngươi đã nhận chức Bàn Tay và đang trên đường nam tiến về King's Landing — nơi vợ ngươi tin rằng nhà Lannister đã ám sát người tiền nhiệm.", mode: "Theo Sát Nguyên Tác" },
-      { id: "journey-to-wall", title: "Đường Lên Tường Thành", year: "298 AC", desc: "Đoàn người ngược lên phương Bắc về Tường Thành — bức tường băng bảy trăm bộ và những lời thề trọn đời của Tuần Đêm." },
-        { id: "dothraki-wedding", title: "Hôn Lễ Dothraki", year: "298 AC", desc: "Bên kia Biển Hẹp, trong thành Pentos, hôn lễ của ngươi với Khal Drogo đang được chuẩn bị. Anh trai ngươi muốn đổi ngươi lấy một đạo quân." },
-      { id: "dragonstone-fleet", title: "Hạm Đội Dragonstone", year: "298 AC", desc: "Ngươi biết rõ Joffrey là con hoang. Ngươi đã rời thủ đô, rút về đảo Rồng, rèn gươm, sắm thuyền. Ngai Sắt là của ngươi theo huyết thống." },
-      { id: "highgarden-alliance", title: "Liên Minh Highgarden", year: "298 AC", desc: "Dân chúng yêu ngươi, nhà Tyrell ủng hộ ngươi với mười vạn quân, và chiếc vương miện thật vừa vặn trên đầu ngươi. Luật lệ chẳng là gì nếu ngươi có sức mạnh." },
-      { id: "boy-king-crowned", title: "Tiểu Vương Đăng Cơ", year: "298 AC", desc: "Vua cha đã chết vì lợn rừng. Giờ đây, Ngai Sắt là của ngươi. Mọi kẻ cản đường đều là kẻ phản nghịch cần phải bị chặt đầu." },
+      { id: "kings-arrival", title: "Ngự Giá Tới Winterfell", year: "298 AC", numericYear: 298, desc: "Đoàn ngự giá ba trăm người của Vua Robert đang tiến vào cổng Winterfell. Jon Arryn — Bàn Tay Nhà Vua — vừa chết đột ngột, và nhà vua cần một người thay thế." },
+      { id: "hand-of-king", title: "Bàn Tay Nhà Vua", year: "298 AC", numericYear: 298, desc: "Ngươi đã nhận chức Bàn Tay và đang trên đường nam tiến về King's Landing — nơi vợ ngươi tin rằng nhà Lannister đã ám sát người tiền nhiệm.", mode: "Theo Sát Nguyên Tác" },
+      { id: "journey-to-wall", title: "Đường Lên Tường Thành", year: "298 AC", numericYear: 298, desc: "Đoàn người ngược lên phương Bắc về Tường Thành — bức tường băng bảy trăm bộ và những lời thề trọn đời của Tuần Đêm." },
+        { id: "dothraki-wedding", title: "Hôn Lễ Dothraki", year: "298 AC", numericYear: 298, desc: "Bên kia Biển Hẹp, trong thành Pentos, hôn lễ của ngươi với Khal Drogo đang được chuẩn bị. Anh trai ngươi muốn đổi ngươi lấy một đạo quân." },
+      { id: "dragonstone-fleet", title: "Hạm Đội Dragonstone", year: "298 AC", numericYear: 298, desc: "Ngươi biết rõ Joffrey là con hoang. Ngươi đã rời thủ đô, rút về đảo Rồng, rèn gươm, sắm thuyền. Ngai Sắt là của ngươi theo huyết thống." },
+      { id: "highgarden-alliance", title: "Liên Minh Highgarden", year: "298 AC", numericYear: 298, desc: "Dân chúng yêu ngươi, nhà Tyrell ủng hộ ngươi với mười vạn quân, và chiếc vương miện thật vừa vặn trên đầu ngươi. Luật lệ chẳng là gì nếu ngươi có sức mạnh." },
+      { id: "boy-king-crowned", title: "Tiểu Vương Đăng Cơ", year: "298 AC", numericYear: 298, desc: "Vua cha đã chết vì lợn rừng. Giờ đây, Ngai Sắt là của ngươi. Mọi kẻ cản đường đều là kẻ phản nghịch cần phải bị chặt đầu." },
     ],
   },
   // ──────────────────────────────────────────────────────────────
@@ -1171,8 +1171,8 @@ export const ERAS: EraData[] = [
       }
     ],
     startingHooks: [
-      { id: "battle-of-bastards", title: "Trận Chiến Của Những Đứa Con Hoang", year: "300 AC", desc: "Bolton giữ Winterfell. Ngươi mang tàn quân Wildling và gia tộc phương Bắc đến để đoạt lại nhà. Trận chiến sinh tử sắp diễn ra." },
-      { id: "dragon-queen-sails", title: "Nữ Hoàng Rồng Khởi Hành", year: "300 AC", desc: "Hạm đội khổng lồ nhổ neo. Sau bao năm lưu vong, cuối cùng ngươi cũng mang ngọn lửa của Targaryen trở về Bảy Vương Quốc." },
+      { id: "battle-of-bastards", title: "Trận Chiến Của Những Đứa Con Hoang", year: "300 AC", numericYear: 300, desc: "Bolton giữ Winterfell. Ngươi mang tàn quân Wildling và gia tộc phương Bắc đến để đoạt lại nhà. Trận chiến sinh tử sắp diễn ra." },
+      { id: "dragon-queen-sails", title: "Nữ Hoàng Rồng Khởi Hành", year: "300 AC", numericYear: 300, desc: "Hạm đội khổng lồ nhổ neo. Sau bao năm lưu vong, cuối cùng ngươi cũng mang ngọn lửa của Targaryen trở về Bảy Vương Quốc." },
     ],
   },
   // ──────────────────────────────────────────────────────────────

@@ -115,9 +115,12 @@ export function MapScreen() {
     zoomAt(e.clientX - rect.left, e.clientY - rect.top, e.deltaY < 0 ? 1.12 : 1 / 1.12);
   };
 
+  const dragStartPos = useRef({ x: 0, y: 0 });
+
   const onPointerDown = (e: React.PointerEvent) => {
-    (e.target as Element).setPointerCapture?.(e.pointerId);
+    // DO NOT use setPointerCapture, it prevents child SVGs from receiving clicks
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
     dragMoved.current = 0;
     if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
@@ -142,7 +145,9 @@ export function MapScreen() {
     }
     const dx = e.clientX - prev.x;
     const dy = e.clientY - prev.y;
-    dragMoved.current += Math.abs(dx) + Math.abs(dy);
+    const totalDx = e.clientX - dragStartPos.current.x;
+    const totalDy = e.clientY - dragStartPos.current.y;
+    dragMoved.current = Math.sqrt(totalDx * totalDx + totalDy * totalDy);
     setView((v) => ({ ...v, tx: v.tx + dx, ty: v.ty + dy }));
   };
 
@@ -229,7 +234,7 @@ export function MapScreen() {
                       strokeLinejoin="round"
                       strokeLinecap="round"
                       onClick={() => {
-                        if (dragMoved.current < 6) onRegionClick(r.id);
+                        if (dragMoved.current < 15) onRegionClick(r.id);
                       }}
                       className="cursor-pointer hover:fill-opacity-80 transition-all"
                     />

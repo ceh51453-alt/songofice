@@ -12,12 +12,14 @@ export type NarrativeSegment =
   | { type: "text"; content: string; attrs: Record<string, string> }
   | { type: NarrativeTagType; content: string; attrs: Record<string, string> };
 
-const TAG_RE = new RegExp(`<(${KNOWN_TAGS.join("|")})((?:\\s+[\\w-]+\\s*=\\s*"[^"]*")*)\\s*>([\\s\\S]*?)</\\1>`, "gi");
-const ATTR_RE = /([\w-]+)\s*=\s*"([^"]*)"/g;
+const TAG_RE = new RegExp(`<(${KNOWN_TAGS.join("|")})([^>]*?)(?:>([\\s\\S]*?)</\\1>|/>)`, "gi");
+const ATTR_RE = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g;
 
 export function parseTagAttrs(raw: string): Record<string, string> {
   const attrs: Record<string, string> = {};
-  for (const m of raw.matchAll(ATTR_RE)) attrs[m[1].toLowerCase()] = m[2];
+  for (const m of raw.matchAll(ATTR_RE)) {
+    attrs[m[1].toLowerCase()] = m[2] !== undefined ? m[2] : (m[3] !== undefined ? m[3] : m[4]);
+  }
   return attrs;
 }
 
@@ -29,7 +31,7 @@ export function parseNarrative(text: string): NarrativeSegment[] {
     if (before) segments.push({ type: "text", content: before, attrs: {} });
     segments.push({
       type: m[1].toLowerCase() as NarrativeTagType,
-      content: m[3].trim(),
+      content: (m[3] || "").trim(),
       attrs: parseTagAttrs(m[2] ?? ""),
     });
     lastIndex = (m.index ?? 0) + m[0].length;

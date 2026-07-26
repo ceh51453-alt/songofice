@@ -18,15 +18,18 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 2000, startingHookIds: [],
-    father: "daeron-ii", mother: "myriah-martell",
+    father: "daeron-ii-targaryen", mother: "myriah-martell",
     spouse: "jena-dondarrion",
     children: ["valarr-targaryen", "matarys-targaryen"],
     siblings: ["aerys-i-targaryen", "rhaegel-targaryen", "maekar-i-targaryen"],
-    allies: ["daeron-ii", "maekar-i-targaryen"],
-    rivals: ["daemon-blackfyre", "bittersteel"],
+    allies: ["maekar-i-targaryen"],
+    rivals: ["daemon-blackfyre"],
     personalHooks: [
       { id: "baelor-redgrass", title: "Cánh Đồng Cỏ Đỏ", year: "196 AC", numericYear: 196, desc: "Ngươi dẫn đầu đội quân Dorne và Stormlands đánh bọc sườn phiến quân Blackfyre. Chiến thắng hay thảm bại phụ thuộc vào nhát chùy của ngươi." }
-    ]
+    ],
+    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "maekar-i-targaryen",
@@ -45,15 +48,18 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 1500, startingHookIds: [],
-    father: "daeron-ii", mother: "myriah-martell",
+    father: "daeron-ii-targaryen", mother: "myriah-martell",
     spouse: "dyanna-dayne",
-    children: ["daeron-targaryen-drunkard", "aerion-targaryen", "aemon-targaryen", "aegon-v-targaryen", "daella-targaryen", "rhae-targaryen"],
-    siblings: ["baelor-breakspear", "aerys-i-targaryen", "rhaegel-targaryen"],
-    allies: ["baelor-breakspear", "daeron-ii"],
-    rivals: ["daemon-blackfyre", "bittersteel", "bloodraven"],
+    children: ["daeron-the-drunken", "aerion-brightflame", "aemon-targaryen", "aegon-v-targaryen", "daella-targaryen", "rhae-targaryen"],
+    siblings: ["baelor-breakspear"],
+    allies: ["baelor-breakspear"],
+    rivals: ["daemon-blackfyre"],
     personalHooks: [
       { id: "maekar-anvil", title: "Cái Đe Của Maekar", year: "196 AC", numericYear: 196, desc: "Bức tường khiên của ngươi phải đứng vững trước cuộc tấn công mãnh liệt của Bittersteel, tạo thành cái đe cho chiếc búa của Baelor đập xuống." }
-    ]
+    ],
+    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
+    baseIncome: 100,
+    holdingsLevel: {}
   },
   {
     id: "shiera-seastar",
@@ -71,13 +77,18 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [{ ten: "Dây Chuyền Sao Biển", soLuong: 1, moTa: "Sợi dây chuyền bạc điểm những viên ngọc bích và ngọc lục bảo." }],
     gold: 500, startingHookIds: [],
-    father: "aegon-iv-targaryen", mother: "serenei-lyseni",
-    siblings: ["daeron-ii", "daemon-blackfyre", "bloodraven", "bittersteel"],
-    allies: ["bloodraven"],
-    rivals: ["bittersteel"],
+    father: "aegon-iv-targaryen", mother: "serenei-of-lys",
+    siblings: ["daemon-blackfyre", "aegor-rivers", "brynden-rivers"],
+    allies: ["brynden-rivers"],
+    rivals: [],
     personalHooks: [
       { id: "shiera-choice", title: "Lựa Chọn Của Ngôi Sao", year: "196 AC", numericYear: 196, desc: "Cả Bloodraven và Bittersteel đều cầu xin tình yêu của ngươi trước khi họ ra trận để chém giết lẫn nhau." }
-    ]
+    ],
+    spouse: "",
+    children: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "gwayne-corbray",
@@ -100,7 +111,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     rivals: ["daemon-blackfyre"],
     personalHooks: [
       { id: "corbray-duel", title: "Cuộc Đấu Huyền Thoại", year: "196 AC", numericYear: 196, desc: "Trực diện với Daemon Blackfyre. Lady Forlorn chạm trán thanh Blackfyre trong tiếng gầm thét của hàng vạn binh lính." }
-    ]
+    ],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "quentyn-ball",
@@ -123,7 +142,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     rivals: ["daeron-ii"],
     personalHooks: [
       { id: "fireball-strike", title: "Cơn Phẫn Nộ Của Fireball", year: "196 AC", numericYear: 196, desc: "Ngươi vượt sông Mander, đánh úp quân trung thành và tiêu diệt hoàn toàn gia tộc Lefford." }
-    ]
+    ],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "robb-reyne",
@@ -147,12 +174,20 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     rivals: ["daeron-ii", "damon-lannister"],
     personalHooks: [
       { id: "reyne-charge", title: "Tiếng Gầm Sư Tử Đỏ", year: "196 AC", numericYear: 196, desc: "Ngươi dẫn đầu kỵ binh tấn công vào sườn đội hình quân Targaryen." }
-    ]
+    ],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   },
   {
     id: "leo-tyrell",
     name: "Leo Tyrell",
-    tuocVi: "Lãnh Chúa",
+    tuocVi: "Đại Lãnh Chúa",
     house: "Tyrell",
     role: "Gai Dài",
     religion: "Thất Diện Thần",
@@ -165,18 +200,26 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 4000, startingHookIds: [],
-    startHoldings: ["highgarden"],
+    startHoldings: ["the-reach-seat"],
     startRegions: ["the-reach"],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre"],
     personalHooks: [
       { id: "longthorn-reach", title: "Bảo Vệ Vùng Reach", year: "196 AC", numericYear: 196, desc: "Trong khi các trận chiến lớn diễn ra ở phía Bắc, ngươi phải dọn dẹp các lãnh chúa phản nghịch ngay trong sân nhà mình." }
-    ]
+    ],
+    startArmy: { size: 80000, quality: "Thành Thạo" },
+    baseIncome: 450,
+    holdingsLevel: { "the-reach-seat": 5 },
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: []
   },
   {
     id: "donnel-arryn",
     name: "Donnel Arryn",
-    tuocVi: "Lãnh Chúa",
+    tuocVi: "Đại Lãnh Chúa",
     house: "Arryn",
     role: "Lãnh Chúa Eyrie",
     religion: "Thất Diện Thần",
@@ -190,18 +233,26 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 1500, startingHookIds: [],
-    startHoldings: ["the-eyrie"],
+    startHoldings: ["the-vale-seat"],
     startRegions: ["the-vale"],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre", "bittersteel"],
     personalHooks: [
       { id: "donnel-vanguard", title: "Tiên Phong Thất Bại", year: "196 AC", numericYear: 196, desc: "Ngươi dẫn quân tiên phong đối mặt với Daemon Blackfyre và thanh gươm của vương triều. Ngươi biết mình không có cơ hội." }
-    ]
+    ],
+    startArmy: { size: 35000, quality: "Thành Thạo" },
+    baseIncome: 300,
+    holdingsLevel: { "the-vale-seat": 5 },
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: []
   },
   {
     id: "damon-lannister",
     name: "Damon Lannister",
-    tuocVi: "Lãnh Chúa",
+    tuocVi: "Đại Lãnh Chúa",
     house: "Lannister",
     role: "Sư Tử Kiêu Hãnh",
     religion: "Thất Diện Thần",
@@ -215,13 +266,21 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 5000, startingHookIds: [],
-    startHoldings: ["casterly-rock"],
+    startHoldings: ["the-westerlands-seat"],
     startRegions: ["the-westerlands"],
     allies: ["daeron-ii"],
     rivals: ["quentyn-ball", "daemon-blackfyre"],
     personalHooks: [
       { id: "damon-defense", title: "Phòng Thủ Casterly Rock", year: "196 AC", numericYear: 196, desc: "Lực lượng của Fireball đang tàn phá Westerlands. Ngươi phải bảo vệ kho vàng và vinh quang của nhà Lannister." }
-    ]
+    ],
+    startArmy: { size: 40000, quality: "Tinh Nhuệ" },
+    baseIncome: 500,
+    holdingsLevel: { "the-westerlands-seat": 5 },
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: []
   },
   {
     id: "otho-bracken",
@@ -245,6 +304,14 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     rivals: ["bloodraven"],
     personalHooks: [
       { id: "bracken-charge", title: "Otho Kẻ Tàn Bạo", year: "196 AC", numericYear: 196, desc: "Ngươi chém giết trên Cánh Đồng Cỏ Đỏ, tìm kiếm những cái đầu của gia tộc Blackwood." }
-    ]
+    ],
+    father: "",
+    mother: "",
+    spouse: "",
+    children: [],
+    siblings: [],
+    startArmy: { size: 60, quality: "Mới Lập Đội" },
+    baseIncome: 25,
+    holdingsLevel: {}
   }
 ];

@@ -17,6 +17,8 @@ export interface MapMarker {
   onlyEras?: string[];
   /** Dân số của thành trì (để tạo Lãnh Địa nếu người chơi chiếm). */
   population?: number;
+  /** Vùng chứa địa danh này (the-north, the-reach...) */
+  regionId?: string;
 }
 
 export const MAP_MARKERS: MapMarker[] = [
@@ -27,65 +29,65 @@ export const MAP_MARKERS: MapMarker[] = [
   { id: "eastwatch", name: "Eastwatch-by-the-Sea", type: "castle", x: 680, y: 95, wikiSlug: "Eastwatch-by-the-Sea" },
 
   // ── Phương Bắc (The North) ──
-  { id: "dreadfort", name: "Dreadfort (Bolton)", type: "castle", x: 590, y: 250, wikiSlug: "Dreadfort", population: 15000 },
-  { id: "karhold", name: "Karhold (Karstark)", type: "castle", x: 740, y: 190, wikiSlug: "Karhold", population: 8000 },
-  { id: "white-harbor", name: "White Harbor", type: "city", x: 660, y: 430, wikiSlug: "White_Harbor", population: 80000 },
-  { id: "bear-island", name: "Đảo Gấu (Mormont)", type: "castle", x: 240, y: 150, wikiSlug: "Bear_Island" },
-  { id: "moat-cailin", name: "Moat Cailin (Ải Eo Đất)", type: "castle", x: 450, y: 470, wikiSlug: "Moat_Cailin" },
-  { id: "barrowton", name: "Thị Trấn Barrowton", type: "city", x: 350, y: 380, wikiSlug: "Barrowton" },
-  { id: "deepwood-motte", name: "Deepwood Motte (Glover)", type: "castle", x: 310, y: 210, wikiSlug: "Deepwood_Motte" },
-  { id: "torrhens-square", name: "Torrhen's Square", type: "castle", x: 380, y: 310, wikiSlug: "Torrhen%27s_Square" },
+  { id: "dreadfort", name: "Dreadfort (Bolton)", type: "castle", x: 590, y: 250, wikiSlug: "Dreadfort", population: 15000, regionId: "the-north" },
+  { id: "karhold", name: "Karhold (Karstark)", type: "castle", x: 740, y: 190, wikiSlug: "Karhold", population: 8000, regionId: "the-north" },
+  { id: "white-harbor", name: "White Harbor", type: "city", x: 660, y: 430, wikiSlug: "White_Harbor", population: 80000, regionId: "the-north" },
+  { id: "bear-island", name: "Đảo Gấu (Mormont)", type: "castle", x: 240, y: 150, wikiSlug: "Bear_Island", regionId: "the-north" },
+  { id: "moat-cailin", name: "Moat Cailin (Ải Eo Đất)", type: "castle", x: 450, y: 470, wikiSlug: "Moat_Cailin", regionId: "the-north" },
+  { id: "barrowton", name: "Thị Trấn Barrowton", type: "city", x: 350, y: 380, wikiSlug: "Barrowton", regionId: "the-north" },
+  { id: "deepwood-motte", name: "Deepwood Motte (Glover)", type: "castle", x: 310, y: 210, wikiSlug: "Deepwood_Motte", regionId: "the-north" },
+  { id: "torrhens-square", name: "Torrhen's Square", type: "castle", x: 380, y: 310, wikiSlug: "Torrhen%27s_Square", regionId: "the-north" },
 
   // ── Quần Đảo Sắt (Iron Islands) ──
-  { id: "harlaw", name: "Harlaw (Mười Tháp)", type: "castle", x: 95, y: 500, wikiSlug: "Harlaw" },
-  { id: "old-wyk", name: "Old Wyk (Cổ Nguyệt Đảo)", type: "landmark", x: 45, y: 485, wikiSlug: "Old_Wyk" },
+  { id: "harlaw", name: "Harlaw (Mười Tháp)", type: "castle", x: 95, y: 500, wikiSlug: "Harlaw", regionId: "the-iron-islands" },
+  { id: "old-wyk", name: "Old Wyk (Cổ Nguyệt Đảo)", type: "landmark", x: 45, y: 485, wikiSlug: "Old_Wyk", regionId: "the-iron-islands" },
 
   // ── Thung Lũng Arryn (The Vale) ──
-  { id: "gulltown", name: "Cảng Gulltown", type: "city", x: 850, y: 630, wikiSlug: "Gulltown", population: 50000 },
-  { id: "runestone", name: "Runestone (Royce)", type: "castle", x: 830, y: 590, wikiSlug: "Runestone" },
-  { id: "bloody-gate", name: "Cổng Máu", type: "landmark", x: 680, y: 560, wikiSlug: "Bloody_Gate" },
-  { id: "hearts-home", name: "Heart's Home (Corbray)", type: "castle", x: 770, y: 520, wikiSlug: "Heart%27s_Home" },
+  { id: "gulltown", name: "Cảng Gulltown", type: "city", x: 850, y: 630, wikiSlug: "Gulltown", population: 50000, regionId: "the-vale" },
+  { id: "runestone", name: "Runestone (Royce)", type: "castle", x: 830, y: 590, wikiSlug: "Runestone", regionId: "the-vale" },
+  { id: "bloody-gate", name: "Cổng Máu", type: "landmark", x: 680, y: 560, wikiSlug: "Bloody_Gate", regionId: "the-vale" },
+  { id: "hearts-home", name: "Heart's Home (Corbray)", type: "castle", x: 770, y: 520, wikiSlug: "Heart%27s_Home", regionId: "the-vale" },
 
   // ── Vùng Sông (The Riverlands) ──
-  { id: "harrenhal", name: "Harrenhal", type: "castle", x: 540, y: 630, wikiSlug: "Harrenhal" },
-  { id: "the-twins", name: "Song Sinh (Frey)", type: "castle", x: 440, y: 500, wikiSlug: "The_Twins" },
-  { id: "seagard", name: "Seagard (Mallister)", type: "castle", x: 370, y: 520, wikiSlug: "Seagard" },
-  { id: "maidenpool", name: "Maidenpool", type: "city", x: 640, y: 650, wikiSlug: "Maidenpool" },
-  { id: "stone-hedge", name: "Stone Hedge (Bracken)", type: "castle", x: 490, y: 650, wikiSlug: "Stone_Hedge" },
-  { id: "raventree-hall", name: "Raventree Hall (Blackwood)", type: "castle", x: 450, y: 590, wikiSlug: "Raventree_Hall" },
+  { id: "harrenhal", name: "Harrenhal", type: "castle", x: 540, y: 630, wikiSlug: "Harrenhal", regionId: "the-riverlands" },
+  { id: "the-twins", name: "Song Sinh (Frey)", type: "castle", x: 440, y: 500, wikiSlug: "The_Twins", regionId: "the-riverlands" },
+  { id: "seagard", name: "Seagard (Mallister)", type: "castle", x: 370, y: 520, wikiSlug: "Seagard", regionId: "the-riverlands" },
+  { id: "maidenpool", name: "Maidenpool", type: "city", x: 640, y: 650, wikiSlug: "Maidenpool", regionId: "the-riverlands" },
+  { id: "stone-hedge", name: "Stone Hedge (Bracken)", type: "castle", x: 490, y: 650, wikiSlug: "Stone_Hedge", regionId: "the-riverlands" },
+  { id: "raventree-hall", name: "Raventree Hall (Blackwood)", type: "castle", x: 450, y: 590, wikiSlug: "Raventree_Hall", regionId: "the-riverlands" },
 
   // ── Vùng Tây (The Westerlands) ──
-  { id: "lannisport", name: "Thành Lannisport", type: "city", x: 235, y: 720, wikiSlug: "Lannisport", population: 300000 },
-  { id: "golden-tooth", name: "Ải Răng Vàng", type: "castle", x: 330, y: 630, wikiSlug: "Golden_Tooth" },
-  { id: "crakehall", name: "Crakehall", type: "castle", x: 230, y: 780, wikiSlug: "Crakehall" },
-  { id: "castamere", name: "Phế Tích Castamere", type: "landmark", x: 260, y: 620, wikiSlug: "Castamere" },
-  { id: "ashemark", name: "Ashemark (Marbrand)", type: "castle", x: 280, y: 640, wikiSlug: "Ashemark" },
+  { id: "lannisport", name: "Thành Lannisport", type: "city", x: 235, y: 720, wikiSlug: "Lannisport", population: 300000, regionId: "the-westerlands" },
+  { id: "golden-tooth", name: "Ải Răng Vàng", type: "castle", x: 330, y: 630, wikiSlug: "Golden_Tooth", regionId: "the-westerlands" },
+  { id: "crakehall", name: "Crakehall", type: "castle", x: 230, y: 780, wikiSlug: "Crakehall", regionId: "the-westerlands" },
+  { id: "castamere", name: "Phế Tích Castamere", type: "landmark", x: 260, y: 620, wikiSlug: "Castamere", regionId: "the-westerlands" },
+  { id: "ashemark", name: "Ashemark (Marbrand)", type: "castle", x: 280, y: 640, wikiSlug: "Ashemark", regionId: "the-westerlands" },
 
   // ── Đất Vương Thất (The Crownlands) ──
-  { id: "dragonstone", name: "Dragonstone", type: "castle", x: 830, y: 745, wikiSlug: "Dragonstone", population: 10000 },
-  { id: "duskendale", name: "Duskendale", type: "city", x: 730, y: 710, wikiSlug: "Duskendale", population: 40000 },
-  { id: "driftmark", name: "Driftmark (Velaryon)", type: "castle", x: 790, y: 760, wikiSlug: "Driftmark" },
-  { id: "claw-isle", name: "Claw Isle (Celtigar)", type: "castle", x: 800, y: 690, wikiSlug: "Claw_Isle" },
+  { id: "dragonstone", name: "Dragonstone", type: "castle", x: 830, y: 745, wikiSlug: "Dragonstone", population: 10000, regionId: "the-crownlands" },
+  { id: "duskendale", name: "Duskendale", type: "city", x: 730, y: 710, wikiSlug: "Duskendale", population: 40000, regionId: "the-crownlands" },
+  { id: "driftmark", name: "Driftmark (Velaryon)", type: "castle", x: 790, y: 760, wikiSlug: "Driftmark", regionId: "the-crownlands" },
+  { id: "claw-isle", name: "Claw Isle (Celtigar)", type: "castle", x: 800, y: 690, wikiSlug: "Claw_Isle", regionId: "the-crownlands" },
 
   // ── Reach ──
-  { id: "oldtown", name: "Oldtown", type: "city", x: 250, y: 1120, wikiSlug: "Oldtown", population: 500000 },
-  { id: "the-arbor", name: "Đảo Rượu Vang Arbor", type: "city", x: 160, y: 1200, wikiSlug: "The_Arbor" },
-  { id: "horn-hill", name: "Horn Hill (Tarly)", type: "castle", x: 330, y: 1070, wikiSlug: "Horn_Hill" },
-  { id: "bitterbridge", name: "Bitterbridge (Caswell)", type: "castle", x: 440, y: 830, wikiSlug: "Bitterbridge" },
-  { id: "brightwater", name: "Brightwater Keep (Florent)", type: "castle", x: 310, y: 990, wikiSlug: "Brightwater_Keep" },
-  { id: "ashford", name: "Ashford", type: "castle", x: 500, y: 870, wikiSlug: "Ashford" },
+  { id: "oldtown", name: "Oldtown", type: "city", x: 250, y: 1120, wikiSlug: "Oldtown", population: 500000, regionId: "the-reach" },
+  { id: "the-arbor", name: "Đảo Rượu Vang Arbor", type: "city", x: 160, y: 1200, wikiSlug: "The_Arbor", regionId: "the-reach" },
+  { id: "horn-hill", name: "Horn Hill (Tarly)", type: "castle", x: 330, y: 1070, wikiSlug: "Horn_Hill", regionId: "the-reach" },
+  { id: "bitterbridge", name: "Bitterbridge (Caswell)", type: "castle", x: 440, y: 830, wikiSlug: "Bitterbridge", regionId: "the-reach" },
+  { id: "brightwater", name: "Brightwater Keep (Florent)", type: "castle", x: 310, y: 990, wikiSlug: "Brightwater_Keep", regionId: "the-reach" },
+  { id: "ashford", name: "Ashford", type: "castle", x: 500, y: 870, wikiSlug: "Ashford", regionId: "the-reach" },
 
   // ── Vùng Bão (The Stormlands) ──
-  { id: "evenfall-hall", name: "Đảo Tarth (Evenfall)", type: "castle", x: 830, y: 920, wikiSlug: "Evenfall_Hall" },
-  { id: "griffins-roost", name: "Griffin's Roost (Connington)", type: "castle", x: 740, y: 940, wikiSlug: "Griffin%27s_Roost" },
-  { id: "blackhaven", name: "Blackhaven (Dondarrion)", type: "castle", x: 610, y: 1040, wikiSlug: "Blackhaven" },
-  { id: "nightsong", name: "Nightsong (Caron)", type: "castle", x: 570, y: 1020, wikiSlug: "Nightsong" },
+  { id: "evenfall-hall", name: "Đảo Tarth (Evenfall)", type: "castle", x: 830, y: 920, wikiSlug: "Evenfall_Hall", regionId: "the-stormlands" },
+  { id: "griffins-roost", name: "Griffin's Roost (Connington)", type: "castle", x: 740, y: 940, wikiSlug: "Griffin%27s_Roost", regionId: "the-stormlands" },
+  { id: "blackhaven", name: "Blackhaven (Dondarrion)", type: "castle", x: 610, y: 1040, wikiSlug: "Blackhaven", regionId: "the-stormlands" },
+  { id: "nightsong", name: "Nightsong (Caron)", type: "castle", x: 570, y: 1020, wikiSlug: "Nightsong", regionId: "the-stormlands" },
 
   // ── Dorne ──
-  { id: "yronwood", name: "Yronwood", type: "castle", x: 480, y: 1200, wikiSlug: "Yronwood" },
-  { id: "starfall", name: "Starfall (Dayne)", type: "castle", x: 320, y: 1280, wikiSlug: "Starfall" },
-  { id: "water-gardens", name: "Vườn Nước (Water Gardens)", type: "landmark", x: 600, y: 1340, wikiSlug: "Water_Gardens" },
-  { id: "lemonwood", name: "Lemonwood (Dalt)", type: "castle", x: 630, y: 1370, wikiSlug: "Lemonwood" },
+  { id: "yronwood", name: "Yronwood", type: "castle", x: 480, y: 1200, wikiSlug: "Yronwood", regionId: "dorne" },
+  { id: "starfall", name: "Starfall (Dayne)", type: "castle", x: 320, y: 1280, wikiSlug: "Starfall", regionId: "dorne" },
+  { id: "water-gardens", name: "Vườn Nước (Water Gardens)", type: "landmark", x: 600, y: 1340, wikiSlug: "Water_Gardens", regionId: "dorne" },
+  { id: "lemonwood", name: "Lemonwood (Dalt)", type: "castle", x: 630, y: 1370, wikiSlug: "Lemonwood", regionId: "dorne" },
 
   // ── Mốc Essos ──
   { id: "braavos", name: "Braavos", type: "city", x: 950, y: 300, wikiSlug: "Braavos", population: 500000 },
