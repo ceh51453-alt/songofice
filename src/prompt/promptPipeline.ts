@@ -21,7 +21,7 @@ import { useMvuStore, currentSeedInfo } from "../state/mvuStore";
 import { useCombatStore } from "../state/combatStore";
 import { renderStateForAI } from "../mvu/stateRenderer";
 import { renderTablesForAI } from "../mvu/tableBridge";
-import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT, ANTI_OMNISCIENCE_PROMPT, DRAGON_MECHANICS_PROMPT } from "../mvu/mvuPrompt";
+import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT, ANTI_OMNISCIENCE_PROMPT, DRAGON_MECHANICS_PROMPT, WORLD_ENGINE_PROMPT, COT_INSTRUCTION_PROMPT } from "../mvu/mvuPrompt";
 import { useExtraModelStore } from "../state/extraModelStore";
 import { streamRng } from "../probability/rng";
 import { countTokens } from "./tokenizer";
@@ -81,12 +81,22 @@ function appLayerMessages(): ApiChatMessage[] {
   const engine = useExtraModelStore.getState().stateEngine;
   const updatePrompt = engine === "auto-database" ? SQL_UPDATE_PROMPT : MVU_UPDATE_PROMPT;
   const stateBlock = engine === "auto-database" ? renderTablesForAI(stat) : renderStateForAI(stat);
+
+  // GĐ2: Inject offscreen news vào world engine prompt
+  const offscreenNews = (stat["Thế Giới"] as Record<string, unknown>)["_Tin Nóng Off-screen"] as string | undefined;
+  const worldPrompt = WORLD_ENGINE_PROMPT.replace(
+    "{{offscreenNews}}",
+    offscreenNews ? `**Tin Off-screen:** ${offscreenNews}` : "_Không có tin off-screen mới._",
+  );
+
   const msgs: ApiChatMessage[] = [
     { role: "system", content: updatePrompt },
     { role: "system", content: NARRATIVE_TAGS_PROMPT },
     { role: "system", content: DICE_ROLL_PROMPT },
     { role: "system", content: ANTI_OMNISCIENCE_PROMPT },
     { role: "system", content: DRAGON_MECHANICS_PROMPT },
+    { role: "system", content: worldPrompt },           // GĐ2: World Background Engine
+    { role: "system", content: COT_INSTRUCTION_PROMPT }, // GĐ2: CoT 4-bước
     { role: "system", content: stateBlock },
   ];
   // trận vừa phân giải xong → bút pháp 7.11 + khối báo cáo engine điền (7.10)
@@ -169,6 +179,11 @@ export async function buildPipeline(history: ApiChatMessage[]): Promise<Pipeline
   const APP_LAYER_LABELS = [
     ["(app) mvu_update", "Luật cập nhật bảng (5.4b)"],
     ["(app) narrative_tags", "Thẻ ngữ nghĩa (5.6)"],
+    ["(app) dice_roll", "Luật gieo xúc xắc"],
+    ["(app) anti_omniscience", "Chống toàn tri (5.8)"],
+    ["(app) dragon_mechanics", "Cơ chế rồng"],
+    ["(app) world_engine", "Thế Giới Sống (GĐ2)"],
+    ["(app) cot_instruction", "Suy Luận CoT (GĐ2)"],
     ["(app) state_render", "Bảng Trạng Thái render (5.7.3)"],
     ["(app) battle_report", "Báo cáo trận + bút pháp (7.10/7.11)"],
   ];

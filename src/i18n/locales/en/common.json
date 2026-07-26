@@ -18,7 +18,10 @@
     "reasoningLabel": "Model reasoning",
     "reroll": "Reroll",
     "prevVariant": "Previous variant",
-    "nextVariant": "Next variant"
+    "nextVariant": "Next variant",
+    "edit": "Edit",
+    "editSave": "Save & resend",
+    "editCancel": "Cancel edit"
   },
   "game": {
     "navChat": "Roleplay",
@@ -148,7 +151,8 @@
     "zoomOut": "Zoom out",
     "recenter": "Recenter map",
     "moveHint": "Moving {unit} — click a destination region",
-    "cancelMove": "Cancel move"
+    "cancelMove": "Cancel move",
+    "goToPlayer": "Go to player"
   },
   "terr": {
     "tabOverview": "Overview",

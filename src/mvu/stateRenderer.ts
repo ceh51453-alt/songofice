@@ -266,10 +266,28 @@ export function renderStateForAI(state: StatData): string {
     }
   }
 
-  // tin tức off-screen (16.3) — NPC tự chủ
+  // tin tức off-screen (16.3 + GĐ2) — NPC tự chủ + vắng mặt
   const offscreenNews = world["_Tin Nóng Off-screen"];
   if (offscreenNews) {
     lines.push("", `Tin tức ngoài cảnh: ${offscreenNews}`);
+  }
+
+  // GĐ2: NPC vắng mặt — vị trí hiện tại + hoạt động gần nhất
+  const playerLoc = world["Vị Trí"]?.toString().toLowerCase().trim();
+  const absentNpcs: string[] = [];
+  for (const [name, npc] of Object.entries(state["Mối Quan Hệ"]["NPC Chính"]) as [string, Npc][]) {
+    if (!npc["Còn Sống"]) continue;
+    const npcLoc = npc["Vị Trí Hiện Tại"]?.toLowerCase().trim();
+    if (!npcLoc || npcLoc === playerLoc) continue; // cùng scene hoặc không rõ → bỏ qua
+    const lastMemory = npc["Ký Ức"].length > 0 ? npc["Ký Ức"][npc["Ký Ức"].length - 1] : null;
+    const activity = lastMemory ? `, gần nhất: ${lastMemory["Sự Việc"]}` : "";
+    absentNpcs.push(`${name}: ${npc["Vị Trí Hiện Tại"]}${npc["Tình Trạng"] !== "Bình Thường" ? ` [${npc["Tình Trạng"]}]` : ""}${activity}`);
+  }
+  if (absentNpcs.length > 0) {
+    lines.push("", "NPC vắng mặt (off-screen):");
+    for (const entry of absentNpcs.slice(0, 8)) {
+      lines.push(`  • ${entry}`);
+    }
   }
 
   // nhiệm vụ đang làm (17.2) — AI biết để tường thuật phù hợp

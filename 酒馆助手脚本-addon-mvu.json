@@ -1,0 +1,22 @@
+{
+  "type": "script",
+  "enabled": true,
+  "name": "addon-mvu",
+  "id": "740fa55e-45a9-43b3-a7cc-08b183e26e8f",
+  "content": "import 'https://testingcf.jsdelivr.net/gh/d1040426514-crypto/tavern_helper_template-main@v0.0.18/dist/addon-mvu/index.js'",
+  "info": "cancannide\n世界时局与经济简报变量脚本、悬浮球前端",
+  "button": {
+    "enabled": true,
+    "buttons": [
+      {
+        "name": "重新处理addon变量",
+        "visible": true
+      }
+    ]
+  },
+  "data": {},
+  "export_with": {
+    "data": true,
+    "button": true
+  }
+}

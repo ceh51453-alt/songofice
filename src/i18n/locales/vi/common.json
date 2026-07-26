@@ -18,7 +18,10 @@
     "reasoningLabel": "Suy nghĩ của model",
     "reroll": "Reroll",
     "prevVariant": "Bản trước",
-    "nextVariant": "Bản sau"
+    "nextVariant": "Bản sau",
+    "edit": "Sửa",
+    "editSave": "Sửa xong & gửi lại",
+    "editCancel": "Huỷ sửa"
   },
   "game": {
     "navChat": "Nhập vai",
@@ -148,7 +151,8 @@
     "zoomOut": "Thu nhỏ",
     "recenter": "Về giữa bản đồ",
     "moveHint": "Điều {unit} — bấm vùng đích trên bản đồ",
-    "cancelMove": "Huỷ điều quân"
+    "cancelMove": "Huỷ điều quân",
+    "goToPlayer": "Tới vị trí ta"
   },
   "terr": {
     "tabOverview": "Tổng Quan",

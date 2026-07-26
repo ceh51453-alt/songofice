@@ -21,9 +21,11 @@ import { extractSqlUpdates } from "../mvu/sqlExtractor";
 import { findCombatTrigger, findTerritoryChanges, findTavernGameTrigger, findTourneyTrigger } from "../ui/tags/parseNarrative";
 import type { StatData } from "../mvu/schema";
 import type { ApiChatMessage } from "../types/connection";
-import { callExtraModel } from "../mvu/extraModelCaller";
+import { callExtraModel, callOffscreenModel } from "../mvu/extraModelCaller";
 import { useExtraModelStore } from "../state/extraModelStore";
-import { useTavernStore } from "../state/tavernStore";
+import { runOffscreenSimAI } from "../npc/offscreenSim";
+import { getActiveWorkflowTasks, useWorkflowStore } from "../state/workflowStore";
+import { useWorldNewsStore } from "../state/worldNewsStore";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("chat");
@@ -52,6 +54,10 @@ export interface UiChatMessage {
   activeVariant?: number;
   /** snapshot state TRƯỚC khi áp patch của lượt này — rollback khi reroll/swipe. */
   stateBefore?: StatData;
+  /** GĐ3: danh sách path đã thay đổi (để VariableUpdateCard hiển thị). */
+  changedPaths?: string[];
+  /** GĐ3: tin NPC off-screen (nếu workflow chạy). */
+  offscreenNews?: import("../npc/offscreenSim").OffscreenAction[];
 }
 
 export interface RetryUiState {
@@ -79,6 +85,8 @@ interface ChatState {
   swipeVariant: (dir: 1 | -1) => void;
   cancel: () => void;
   clearChat: () => void;
+  /** Sửa tin nhắn user rồi sinh lại phản hồi AI (edit & reroll). */
+  editAndReroll: (messageId: string, newText: string) => Promise<void>;
   /** Gọi extra model thủ công cho tin nhắn AI cụ thể. */
   triggerExtraForMessage: (messageId: string) => Promise<void>;
 }
@@ -202,6 +210,75 @@ export const useChatStore = create<ChatState>()(
         }
       }
 
+      /**
+       * GĐ5: Chạy workflow pipeline sau khi AI trả lời.
+       * Tasks chạy tuần tự theo stage.
+       */
+      async function runWorkflowPipeline(): Promise<{
+        changedPaths: string[];
+        offscreenNews: import("../npc/offscreenSim").OffscreenAction[];
+      }> {
+        const tasks = getActiveWorkflowTasks();
+        if (tasks.length === 0) return { changedPaths: [], offscreenNews: [] };
+
+        const wfStore = useWorkflowStore.getState();
+        const collectedPaths: string[] = [];
+        const collectedNews: import("../npc/offscreenSim").OffscreenAction[] = [];
+
+        for (const task of tasks) {
+          wfStore.setStatus("running", task.id);
+          const start = Date.now();
+          try {
+            if (task.handlerKey === "offscreen-sim") {
+              const stat = useMvuStore.getState().stat;
+              const result = await runOffscreenSimAI(stat, callOffscreenModel);
+              if (result.aiResult && result.aiResult.actions.length > 0) {
+                for (const a of result.aiResult.actions) {
+                  collectedNews.push({ npcName: a.npcName, action: a.action, newsText: a.newsText });
+                  useWorldNewsStore.getState().addHeadline({
+                    turn: useMvuStore.getState().stat["_engineMeta"]["turnCount"],
+                    text: a.newsText,
+                    source: "offscreen",
+                  });
+                  if (a.stateChanges) {
+                    for (const sc of a.stateChanges) {
+                      collectedPaths.push(sc.path);
+                    }
+                    useMvuStore.getState().applyAiOps(
+                      a.stateChanges.map((sc) => ({ op: sc.op as "replace" | "delta", path: sc.path, value: sc.value })),
+                    );
+                  }
+                }
+              } else if (result.fallbackActions.length > 0) {
+                for (const a of result.fallbackActions) {
+                  collectedNews.push(a);
+                  useWorldNewsStore.getState().addHeadline({
+                    turn: useMvuStore.getState().stat["_engineMeta"]["turnCount"],
+                    text: a.newsText,
+                    source: "offscreen",
+                  });
+                }
+              }
+            }
+
+            wfStore.recordResult({
+              taskId: task.id, taskName: task.name,
+              status: "success", message: "OK", durationMs: Date.now() - start,
+            });
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            log.warn(`Workflow task ${task.name} lỗi:`, msg);
+            wfStore.recordResult({
+              taskId: task.id, taskName: task.name,
+              status: "error", message: msg, durationMs: Date.now() - start,
+            });
+          }
+        }
+
+        wfStore.setStatus("idle");
+        return { changedPaths: collectedPaths, offscreenNews: collectedNews };
+      }
+
       return {
         messages: [],
         status: "idle",
@@ -232,9 +309,15 @@ export const useChatStore = create<ChatState>()(
 
           applyVariant(variant);
           if (useCombatStore.getState().reportBlock) useCombatStore.getState().markNarrated();
+
+          // GĐ5: chạy workflow pipeline (offscreen sim, world news, etc.)
+          const wfResult = await runWorkflowPipeline();
+
           const msg: UiChatMessage = {
             id: genId("msg"), role: "assistant", content: variant.display, createdAt: Date.now(),
             variants: [variant], activeVariant: 0, stateBefore,
+            changedPaths: wfResult.changedPaths.length > 0 ? wfResult.changedPaths : undefined,
+            offscreenNews: wfResult.offscreenNews.length > 0 ? wfResult.offscreenNews : undefined,
           };
           set({ messages: [...get().messages, msg] });
         },
@@ -309,6 +392,45 @@ export const useChatStore = create<ChatState>()(
         clearChat: () => {
           abortController?.abort();
           set({ messages: [], status: "idle", draft: "", draftReasoning: "", retryInfo: null, error: null });
+        },
+
+        editAndReroll: async (messageId, newText) => {
+          if (get().status !== "idle") return;
+          const msgs = get().messages;
+          const idx = msgs.findIndex((m) => m.id === messageId);
+          if (idx < 0 || msgs[idx].role !== "user") return;
+          const trimmed = newText.trim();
+          if (!trimmed) return;
+
+          // Tìm tin AI ngay sau tin user này để lấy stateBefore (snapshot trước lượt)
+          const aiAfter = idx + 1 < msgs.length && msgs[idx + 1].role === "assistant" ? msgs[idx + 1] : null;
+
+          // Rollback state về TRƯỚC lượt đó
+          if (aiAfter?.stateBefore) {
+            useMvuStore.getState().restoreSnapshot(aiAfter.stateBefore);
+          }
+
+          // Sửa tin user + cắt mọi tin nhắn sau nó
+          const editedMsg: UiChatMessage = { ...msgs[idx], content: trimmed };
+          const truncated = [...msgs.slice(0, idx), editedMsg];
+          set({ messages: truncated, error: null });
+
+          // Sinh lại phản hồi AI
+          const stateBefore = useMvuStore.getState().getSnapshot();
+          const variant = await generate(toHistory(truncated), { freshSeed: true });
+          if (!variant) return;
+
+          applyVariant(variant);
+          const wfResult = await runWorkflowPipeline();
+
+          const aiMsg: UiChatMessage = {
+            id: genId("msg"), role: "assistant", content: variant.display, createdAt: Date.now(),
+            variants: [variant], activeVariant: 0, stateBefore,
+            changedPaths: wfResult.changedPaths.length > 0 ? wfResult.changedPaths : undefined,
+            offscreenNews: wfResult.offscreenNews.length > 0 ? wfResult.offscreenNews : undefined,
+          };
+          set({ messages: [...get().messages, aiMsg] });
+          log.info(`Edit & reroll: sửa tin ${messageId}, sinh lại AI`);
         },
 
         triggerExtraForMessage: async (messageId) => {

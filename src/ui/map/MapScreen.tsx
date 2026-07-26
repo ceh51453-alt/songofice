@@ -16,7 +16,7 @@ import { MAP_CONFIG } from "../../content/westeros/mapConfig";
 import { regionFill } from "../../territory/territoryEngine";
 import { HOUSE_COLORS, ATTITUDE_HEAT, PLAYER_HEAT_COLOR } from "../../content/westeros/houseColors";
 import { useT } from "../../i18n";
-import { IconLayers, IconTarget, IconPlus } from "../icons";
+import { IconLayers, IconTarget, IconPlus, IconPin, IconCheck, IconChevronDown } from "../icons";
 
 function centroid(poly: [number, number][]): [number, number] {
   const n = poly.length;
@@ -59,6 +59,9 @@ export function MapScreen() {
   const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
   const currentTurn = stat["_engineMeta"]["turnCount"];
   const playerLoc = stat["Thế Giới"]["Vị Trí"];
+  const playerName = stat["Thông Tin Nhân Vật"]["Họ Tên"];
+  const quests = stat["Nhiệm Vụ"];
+  const [questOpen, setQuestOpen] = useState(true);
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [view, setView] = useState<View>({ z: 0.5, tx: 0, ty: 0 });
@@ -73,6 +76,19 @@ export function MapScreen() {
     const z = Math.min(w / MAP_W, h / MAP_H) * 0.95;
     setView({ z, tx: (w - MAP_W * z) / 2, ty: (h - MAP_H * z) / 2 });
   }, []);
+
+  /** Center bản đồ vào vị trí nhân vật chính. */
+  const centerOnPlayer = useCallback(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const seat = REGIONS.find((r) => r.seat === playerLoc);
+    const marker = markersForEra("").find((m) => m.name === playerLoc);
+    const xy: [number, number] | null = seat ? seat.seatXY : marker ? [marker.x, marker.y] : null;
+    if (!xy) return;
+    const { clientWidth: w, clientHeight: h } = el;
+    const z = Math.max(view.z, 1.2); // zoom vào ít nhất 1.2x
+    setView({ z, tx: w / 2 - xy[0] * z, ty: h / 2 - xy[1] * z });
+  }, [playerLoc, view.z]);
 
   useEffect(() => {
     fitView();
@@ -292,7 +308,7 @@ export function MapScreen() {
               })}
 
             {/* vị trí nhân vật chính (đồng bộ Thế Giới.Vị Trí) */}
-            <PlayerMarker loc={playerLoc} />
+            <PlayerMarker loc={playerLoc} name={playerName} />
           </svg>
         </div>
       </div>
@@ -322,6 +338,14 @@ export function MapScreen() {
         <button onClick={fitView} title={t("map.recenter")} className="rounded-md p-1.5 text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-soft)]">
           <IconTarget size={16} />
         </button>
+        <div className="my-0.5 h-px bg-[var(--glass-border)]" />
+        <button
+          onClick={centerOnPlayer}
+          title={t("map.goToPlayer")}
+          className="rounded-md p-1.5 text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--accent-text)]"
+        >
+          <IconPin size={16} />
+        </button>
       </div>
 
       {/* ---- băng điều quân (11.5) ---- */}
@@ -333,6 +357,9 @@ export function MapScreen() {
           </button>
         </div>
       )}
+
+      {/* ---- Quest Tracker (thanh nhiệm vụ) ---- */}
+      <QuestTracker quests={quests} open={questOpen} onToggle={() => setQuestOpen((v) => !v)} />
 
       {/* ---- legend ---- */}
       <MapLegend mode={mode} stat={stat} />
@@ -369,16 +396,46 @@ function MarkerGlyph({ x, y, label, kind }: { x: number; y: number; label: strin
   );
 }
 
-function PlayerMarker({ loc }: { loc: string }) {
+function PlayerMarker({ loc, name }: { loc: string; name: string }) {
+  const [hover, setHover] = useState(false);
   // khớp Vị Trí với trọng trấn/địa danh cùng tên
   const seat = REGIONS.find((r) => r.seat === loc);
   const marker = markersForEra("").find((m) => m.name === loc);
   const xy: [number, number] | null = seat ? seat.seatXY : marker ? [marker.x, marker.y] : null;
   if (!xy) return null;
+  const [px, py] = xy;
   return (
-    <g pointerEvents="none">
-      <circle cx={xy[0]} cy={xy[1] - 18} r={9} fill="none" stroke={PLAYER_HEAT_COLOR} strokeWidth={2.5} className="anim-pulse" />
-      <path d={`M${xy[0]} ${xy[1] - 26} v16`} stroke={PLAYER_HEAT_COLOR} strokeWidth={2.5} />
+    <g
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+      style={{ cursor: "pointer" }}
+    >
+      {/* Glow hào quang bên dưới */}
+      <circle cx={px} cy={py} r={20} fill={PLAYER_HEAT_COLOR} opacity={0.12} className="anim-pulse" />
+      <circle cx={px} cy={py} r={12} fill={PLAYER_HEAT_COLOR} opacity={0.2} className="anim-pulse" />
+      {/* Ghim chính */}
+      <circle cx={px} cy={py - 18} r={10} fill="#1a1e26" stroke={PLAYER_HEAT_COLOR} strokeWidth={2.5} />
+      <circle cx={px} cy={py - 18} r={4} fill={PLAYER_HEAT_COLOR} />
+      <path d={`M${px} ${py - 8} v8`} stroke={PLAYER_HEAT_COLOR} strokeWidth={2.5} />
+      {/* Nhấp nháy vòng ngoài */}
+      <circle cx={px} cy={py - 18} r={14} fill="none" stroke={PLAYER_HEAT_COLOR} strokeWidth={1.5} opacity={0.5} className="anim-pulse" />
+      {/* Tooltip khi hover */}
+      {hover && (
+        <g pointerEvents="none">
+          <rect
+            x={px + 16} y={py - 36}
+            width={Math.max(name.length, loc.length) * 8.5 + 24} height={38}
+            rx={6} ry={6}
+            fill="rgba(10,13,18,0.92)" stroke="rgba(255,255,255,0.15)" strokeWidth={1}
+          />
+          <text x={px + 28} y={py - 20} style={{ fontFamily: "var(--font-display)", fontSize: 13, fill: PLAYER_HEAT_COLOR, fontWeight: "bold" }}>
+            {name}
+          </text>
+          <text x={px + 28} y={py - 7} style={{ fontFamily: "var(--font-body)", fontSize: 11, fill: "rgba(230,228,220,0.7)" }}>
+            📍 {loc}
+          </text>
+        </g>
+      )}
     </g>
   );
 }
@@ -404,6 +461,133 @@ function LegendBox({ items }: { items: { color: string; label: string }[] }) {
           {it.label}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ── Quest type → accent color ────────────────────────────────────────────────
+const QUEST_TYPE_COLORS: Record<string, string> = {
+  "Cốt Truyện Chính": "var(--accent-text)",
+  "Phụ": "var(--text-muted)",
+  "Gia Tộc": "#d4a853",
+  "Chính Trị": "#6ea8d4",
+  "Quân Sự": "#c76c6c",
+};
+
+interface QuestTrackerProps {
+  quests: Record<string, {
+    "Tiêu Đề": string;
+    "Loại": string;
+    "Trạng Thái": string;
+    "Mục Tiêu": { "Mô Tả": string; "Xong": boolean }[];
+    "Phần Thưởng": string;
+    "Hạn Chót Turn"?: number;
+    "Mô Tả": string;
+  }>;
+  open: boolean;
+  onToggle: () => void;
+}
+
+function QuestTracker({ quests, open, onToggle }: QuestTrackerProps) {
+  // Chỉ hiện quest "Đang Làm"
+  const activeQuests = Object.entries(quests).filter(([, q]) => q["Trạng Thái"] === "Đang Làm");
+  if (activeQuests.length === 0) return null;
+
+  return (
+    <div className="glass-strong absolute left-3 top-3 z-10 flex max-h-[60vh] w-[260px] flex-col overflow-hidden sm:w-[300px]">
+      {/* Header */}
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center justify-between px-3 py-2 text-left transition-colors hover:bg-[var(--glass-bg-hover)]"
+      >
+        <span className="flex items-center gap-1.5 text-[12px] font-semibold tracking-wide text-[var(--accent-text)]">
+          <IconPin size={13} />
+          Nhiệm Vụ
+          <span className="ml-1 rounded-full bg-[var(--accent-soft)] px-1.5 py-0.5 text-[10px] font-normal text-[var(--accent-text)]">
+            {activeQuests.length}
+          </span>
+        </span>
+        <IconChevronDown
+          size={14}
+          className={`text-[var(--text-faint)] transition-transform ${open ? "" : "-rotate-90"}`}
+        />
+      </button>
+
+      {/* Body */}
+      {open && (
+        <div className="flex-1 overflow-y-auto border-t border-[var(--glass-border)] px-3 pb-2 pt-1.5">
+          {activeQuests.map(([id, q], idx) => {
+            const done = q["Mục Tiêu"].filter((o) => o["Xong"]).length;
+            const total = q["Mục Tiêu"].length;
+            const progress = total > 0 ? (done / total) * 100 : 0;
+            const typeColor = QUEST_TYPE_COLORS[q["Loại"]] ?? "var(--text-muted)";
+
+            return (
+              <div key={id} className={idx > 0 ? "mt-2.5 border-t border-[var(--glass-border)] pt-2" : ""}>
+                {/* Quest title + type badge */}
+                <div className="flex items-start justify-between gap-1">
+                  <span className="text-[12.5px] font-medium leading-tight text-[var(--text-soft)]">
+                    {q["Tiêu Đề"] || id}
+                  </span>
+                  <span
+                    className="shrink-0 rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
+                    style={{ color: typeColor, background: "rgba(255,255,255,0.06)" }}
+                  >
+                    {q["Loại"]}
+                  </span>
+                </div>
+
+                {/* Description */}
+                {q["Mô Tả"] && (
+                  <p className="mt-0.5 text-[11px] leading-snug text-[var(--text-faint)]">
+                    {q["Mô Tả"]}
+                  </p>
+                )}
+
+                {/* Progress bar */}
+                {total > 0 && (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-[rgba(255,255,255,0.08)]">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%`, background: typeColor }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-[var(--text-faint)]">{done}/{total}</span>
+                  </div>
+                )}
+
+                {/* Objectives checklist */}
+                <div className="mt-1.5 space-y-0.5">
+                  {q["Mục Tiêu"].map((obj, oi) => (
+                    <div
+                      key={oi}
+                      className={`flex items-start gap-1.5 text-[11px] leading-snug ${
+                        obj["Xong"] ? "text-[var(--text-faint)] line-through" : "text-[var(--text-muted)]"
+                      }`}
+                    >
+                      {obj["Xong"] ? (
+                        <IconCheck size={11} className="mt-0.5 shrink-0 text-[var(--ok)]" />
+                      ) : (
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full border border-[var(--text-faint)]" />
+                      )}
+                      {obj["Mô Tả"]}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Reward + deadline */}
+                <div className="mt-1 flex items-center gap-2 text-[10px] text-[var(--text-faint)]">
+                  {q["Phần Thưởng"] && <span>🎁 {q["Phần Thưởng"]}</span>}
+                  {q["Hạn Chót Turn"] && (
+                    <span className="text-[var(--warn)]">⏳ Turn {q["Hạn Chót Turn"]}</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

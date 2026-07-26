@@ -2,7 +2,7 @@
  * Màn hình chat: lịch sử + streaming + retry banner + reroll/swipe (19.1)
  * + thẻ ngữ nghĩa render inline (5.6) + Action Deck (6.3).
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChatStore, type UiChatMessage } from "../../state/chatStore";
 import { useExtraModelStore } from "../../state/extraModelStore";
 import { useUiStore } from "../../state/uiStore";
@@ -11,8 +11,10 @@ import { GlassButton } from "../components/GlassButton";
 import { NarrativeContent } from "../tags/NarrativeSegments";
 import { ActionDeck } from "../layout/ActionDeck";
 import { useMarkdownRegex } from "./useMarkdownRegex";
+import { VariableUpdateCard } from "./VariableUpdateCard";
+import { OffscreenNewsCard } from "./OffscreenNewsCard";
 import {
-  IconAlert, IconChevronLeft, IconChevronRight, IconRefresh, IconSend, IconSpinner, IconStop, IconZap,
+  IconAlert, IconCheck, IconChevronLeft, IconChevronRight, IconPencil, IconRefresh, IconSend, IconSpinner, IconStop, IconX, IconZap,
 } from "../icons";
 
 function Bubble({ role, children, stopped }: { role: "user" | "assistant"; children: React.ReactNode; stopped?: boolean }) {
@@ -100,6 +102,91 @@ function ExtraModelButton({ msg }: { msg: UiChatMessage }) {
   );
 }
 
+/** Bubble người chơi có nút sửa — bấm → inline textarea → sửa xong bấm gửi lại. */
+function EditableUserBubble({ msg, busy }: { msg: UiChatMessage; busy: boolean }) {
+  const t = useT();
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(msg.content);
+  const editRef = useRef<HTMLTextAreaElement>(null);
+  const editAndReroll = useChatStore((s) => s.editAndReroll);
+
+  function startEdit() {
+    setEditText(msg.content);
+    setEditing(true);
+    requestAnimationFrame(() => editRef.current?.focus());
+  }
+
+  function cancelEdit() {
+    setEditing(false);
+    setEditText(msg.content);
+  }
+
+  async function submitEdit() {
+    const trimmed = editText.trim();
+    if (!trimmed || busy) return;
+    setEditing(false);
+    await editAndReroll(msg.id, trimmed);
+  }
+
+  if (editing) {
+    return (
+      <div className="anim-in flex justify-end">
+        <div className="glass max-w-[92%] border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2.5 sm:max-w-[80%]">
+          <textarea
+            ref={editRef}
+            value={editText}
+            rows={Math.min(8, Math.max(2, editText.split("\n").length))}
+            onChange={(e) => setEditText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void submitEdit();
+              }
+              if (e.key === "Escape") cancelEdit();
+            }}
+            className="w-full resize-none rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[rgba(0,0,0,0.2)] px-3 py-2 text-[15px] leading-relaxed text-[var(--text-soft)] placeholder:text-[var(--text-faint)] focus:border-[var(--accent-border)] focus:outline-none"
+          />
+          <div className="mt-2 flex items-center justify-end gap-1.5">
+            <button
+              onClick={cancelEdit}
+              title={t("chat.editCancel")}
+              className="flex items-center gap-1 rounded px-2 py-1 text-[12px] text-[var(--text-faint)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-soft)]"
+            >
+              <IconX size={13} /> {t("chat.editCancel")}
+            </button>
+            <button
+              onClick={() => void submitEdit()}
+              disabled={!editText.trim() || busy}
+              title={t("chat.editSave")}
+              className="flex items-center gap-1 rounded bg-[var(--accent-soft)] px-2.5 py-1 text-[12px] text-[var(--accent-text)] transition-colors hover:bg-[var(--accent-border)] disabled:opacity-40"
+            >
+              <IconCheck size={13} /> {t("chat.editSave")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group anim-in flex justify-end">
+      <div className="glass max-w-[92%] border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap sm:max-w-[80%]">
+        {msg.content}
+      </div>
+      {!busy && (
+        <button
+          onClick={startEdit}
+          title={t("chat.edit")}
+          aria-label={t("chat.edit")}
+          className="ml-1 mt-1 self-start rounded p-1 text-[var(--text-faint)] opacity-0 transition-all hover:bg-[var(--glass-bg-hover)] hover:text-[var(--accent-text)] group-hover:opacity-100"
+        >
+          <IconPencil size={13} />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function ChatScreen() {
   const t = useT();
   const { messages, status, draft, draftReasoning, retryInfo, error, send, retryLast, cancel } = useChatStore();
@@ -143,9 +230,19 @@ export function ChatScreen() {
             const processedContent = applyMarkdown(m.content, m.role, depth);
             return (
               <div key={m.id}>
-                <Bubble role={m.role} stopped={variant?.stopped}>
-                  {m.role === "assistant" ? <NarrativeContent text={processedContent} /> : processedContent}
-                </Bubble>
+                {m.role === "user" ? (
+                  <EditableUserBubble msg={m} busy={busy} />
+                ) : (
+                  <Bubble role="assistant" stopped={variant?.stopped}>
+                    <NarrativeContent text={processedContent} />
+                  </Bubble>
+                )}
+                {m.role === "assistant" && m.changedPaths && m.changedPaths.length > 0 && (
+                  <VariableUpdateCard changedPaths={m.changedPaths} stateBefore={m.stateBefore as Record<string, unknown> | undefined} />
+                )}
+                {m.role === "assistant" && m.offscreenNews && m.offscreenNews.length > 0 && (
+                  <OffscreenNewsCard actions={m.offscreenNews} />
+                )}
                 {i === lastAssistantIdx && m.variants && <VariantControls msg={m} />}
               </div>
             );

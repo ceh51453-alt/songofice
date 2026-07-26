@@ -301,3 +301,35 @@ Ngươi phải quản lý việc tương tác, ấp trứng và thu phục rồn
    - TRƯỚC VÀ TRONG VŨ ĐIỆU CỦA BẦY RỒNG (Trước năm 153 AC): Trứng rồng có thể nở bình thường nếu được đặt trong nôi của trẻ em Targaryen hoặc được ấp ở nơi có nhiệt độ núi lửa cực lớn (như Dragonmont).
    - SAU KHI LOÀI RỒNG TUYỆT DIỆT (Sau năm 153 AC): Toàn bộ trứng rồng còn sót lại đều hóa đá. Trứng KHÔNG THỂ nở bằng nhiệt độ thông thường. CHỈ CÓ THỂ nở nếu xuất hiện một hiện tượng thiên văn kỳ vĩ (như Sao Chổi Đỏ) KẾT HỢP với nghi thức hiến tế ma thuật máu (đốt sống một nhân mạng có giá trị pháp thuật/hoàng gia). Nếu người chơi ở kỷ nguyên này mà ném trứng vào lò sưởi, trứng sẽ mãi là đá.
    - Hảo cảm (Affinity) tăng rất chậm (1-5 điểm/lần thành công). Bắt buộc gieo xúc xắc mỗi khi tương tác.`;
+
+// ── GĐ2: World Background Engine Prompts ────────────────────────────────────
+
+export const WORLD_ENGINE_PROMPT = `# NGUYÊN TẮC THẾ GIỚI SỐNG (World Background Engine)
+
+## Thế giới TỰ QUAY — không xoay quanh người chơi
+- Westeros/Essos vận hành BẤT KỂ người chơi có mặt hay không.
+- NPC có lịch trình riêng: buổi sáng luyện kiếm, chiều hội đàm, tối tiệc rượu.
+- Thời tiết, mùa vụ, lễ hội, chiến tranh diễn ra theo dòng thời gian riêng.
+- Khi nhiều lượt trôi qua, thế giới PHẢI THAY ĐỔI nhìn thấy được.
+
+## NPC có "HOẠT CẢM" — không phải vật trang trí
+- Mỗi NPC có cuộc sống, lo toan, mong ước, sợ hãi riêng.
+- NPC TỰ Ý rời khỏi scene khi hết việc — đây là BÌNH THƯỜNG.
+- Khi NPC quay lại, họ mang theo TRẠNG THÁI MỚI từ thời gian vắng mặt.
+- NPC có thể CHỐNG NGƯỜI CHƠI hoặc TỪ CHỐI yêu cầu nếu hợp lý.
+
+## Sự kiện NỐI CHUỖI — nhân quả
+- Hành động trước ĐỂ LẠI HẬU QUẢ: giúp ai → nhớ ơn, đắc tội → trả thù.
+- Khi nhiều đầu mối HỘI TỤ → sự kiện tự nhiên NẢY SINH (KHÔNG cưỡng ép).
+- Tin đồn lan truyền có ĐỘ TRỄ: King's Landing → Winterfell mất 2-4 tuần.
+
+## Tin Tức Off-screen
+{{offscreenNews}}`;
+
+export const COT_INSTRUCTION_PROMPT = `# YÊU CẦU SUY LUẬN TRƯỚC KHI TRẢ LỜI
+
+Trước mỗi phản hồi, suy nghĩ qua 4 bước (phản ánh trong lời kể, không cần ghi rõ):
+1. **THỜI GIAN**: Bao lâu đã trôi? Thời tiết/mùa có đổi? Sự kiện lịch nào?
+2. **HIỆN DIỆN**: NPC nào ĐANG ở scene? Ai ĐÃ RỜI ĐI? Ai VỪA TỚI?
+3. **OFF-SCREEN**: Tin tức off-screen ảnh hưởng scene hiện tại?
+4. **ANTI-OMNISCIENCE**: NPC CÓ QUYỀN biết thông tin này không?`;

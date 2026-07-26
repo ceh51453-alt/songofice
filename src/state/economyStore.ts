@@ -17,6 +17,8 @@ interface EconomyState {
   panelOpen: boolean;
   goldHistory: GoldHistoryEntry[];
   maxHistoryLength: number;
+  /** GĐ4: xu hướng kinh tế toàn Westeros (không chỉ player). */
+  worldEconomicTrend: "rising" | "stable" | "declining" | "crisis";
 
   // actions
   openPanel: () => void;
@@ -25,12 +27,15 @@ interface EconomyState {
   /** Ghi snapshot Vàng vào history (gọi mỗi turn trong UI). */
   recordGold: (turn: number, gold: number) => void;
   clearHistory: () => void;
+  /** GĐ4: cập nhật xu hướng kinh tế thế giới. */
+  setWorldTrend: (trend: "rising" | "stable" | "declining" | "crisis") => void;
 }
 
 export const useEconomyStore = create<EconomyState>()((set) => ({
   panelOpen: false,
   goldHistory: [],
   maxHistoryLength: 30,
+  worldEconomicTrend: "stable",
 
   openPanel: () => set({ panelOpen: true }),
   closePanel: () => set({ panelOpen: false }),
@@ -48,6 +53,8 @@ export const useEconomyStore = create<EconomyState>()((set) => ({
     }),
 
   clearHistory: () => set({ goldHistory: [] }),
+
+  setWorldTrend: (trend) => set({ worldEconomicTrend: trend }),
 }));
 
 // ── Derived selectors (pure functions, đọc từ mvuStore.stat) ──

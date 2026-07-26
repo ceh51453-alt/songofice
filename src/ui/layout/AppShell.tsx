@@ -34,9 +34,11 @@ import { registerEconomyLoop } from "../../economy/economyEngine";
 import { registerOffscreenLoop } from "../../npc/offscreenSim";
 import { warmupTokenizer } from "../../prompt/tokenizer";
 import { initAudioEngine } from "../../audio/audioEngine";
+import { WorldNewsFab } from "../components/WorldNewsFab";
+import { WorkflowSettings } from "../menu/WorkflowSettings";
 import { IconBroom, IconCrossedSwords, IconInspect, IconSettings, IconBook } from "../icons";
 
-type SettingsTab = "connection" | "extra" | "prompt" | "lore" | "gameplay" | "data" | "audio";
+type SettingsTab = "connection" | "extra" | "prompt" | "lore" | "gameplay" | "data" | "audio" | "workflow";
 type SaveLoadMode = "save" | "load" | null;
 
 export function AppShell() {
@@ -49,7 +51,11 @@ export function AppShell() {
   const setScreen = useUiStore((s) => s.setScreen);
   const clearChat = useChatStore((s) => s.clearChat);
   const hasMessages = useChatStore((s) => s.messages.length > 0);
-  const profile = useConnectionStore((s) => s.activeProfile());
+  const profileModel = useConnectionStore((s) => {
+    const profs = s.profiles;
+    const p = profs.find((p) => p.id === s.activeProfileId) ?? profs[0];
+    return p?.model ?? "";
+  });
   const refreshPresets = usePresetStore((s) => s.refresh);
   const refreshLore = useLoreStore((s) => s.refresh);
   const activePresetId = usePresetStore((s) => s.activePresetId);
@@ -95,7 +101,7 @@ export function AppShell() {
               </h1>
               <p className="truncate text-[11px] leading-tight text-[var(--text-faint)]">
                 {t("app.subtitle")}
-                {profile.model ? ` · ${profile.model}` : ""}
+                {profileModel ? ` · ${profileModel}` : ""}
                 {activePresetName ? ` · ${activePresetName}` : ""}
               </p>
             </div>
@@ -150,6 +156,9 @@ export function AppShell() {
         )}
       </div>
 
+      {/* ---- World News FAB (GĐ4) ---- */}
+      {screen === "game" && <WorldNewsFab />}
+
       {/* ---- Cài đặt (tab) ---- */}
       <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title={t("conn.settings")}>
         <div className="mb-4 flex flex-wrap gap-1.5 border-b border-[var(--glass-border)] pb-3">
@@ -174,6 +183,9 @@ export function AppShell() {
           <button className={tabClass("audio")} onClick={() => setSettingsTab("audio")}>
             Âm Thanh
           </button>
+          <button className={tabClass("workflow")} onClick={() => setSettingsTab("workflow")}>
+            Workflow
+          </button>
         </div>
         {settingsTab === "connection" ? <ConnectionPanel /> :
          settingsTab === "extra" ? <ExtraModelPanel /> :
@@ -181,6 +193,7 @@ export function AppShell() {
          settingsTab === "lore" ? <LorePanel /> :
          settingsTab === "gameplay" ? <GameplaySettings /> :
          settingsTab === "audio" ? <AudioSettings /> :
+         settingsTab === "workflow" ? <WorkflowSettings /> :
          <DataSettings />}
       </Modal>
 

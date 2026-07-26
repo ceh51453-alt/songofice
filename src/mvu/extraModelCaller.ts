@@ -120,3 +120,36 @@ export async function triggerExtraModelForMessage(
   }
   return result;
 }
+
+// ── Offscreen Model Call (GĐ1) ───────────────────────────────────────────────
+
+/**
+ * Tạo hàm callModel tương thích với runOffscreenSimAI.
+ * Dùng cùng cấu hình extra model (rẻ/nhanh) nhưng prompt khác.
+ */
+export async function callOffscreenModel(
+  messages: { role: string; content: string }[],
+  signal?: AbortSignal,
+): Promise<string> {
+  const store = useExtraModelStore.getState();
+  if (!store.enabled || !store.baseUrl || !store.model) {
+    throw new Error("Extra model chưa được cấu hình — không thể gọi offscreen model");
+  }
+
+  const profile = buildExtraModelProfile();
+  // Offscreen cần output dài hơn → nới maxTokens
+  profile.params.max_tokens = Math.max(profile.params.max_tokens, 2048);
+
+  log.info(`Gọi offscreen model: ${profile.provider} / ${profile.model}`);
+
+  let fullText = "";
+  const result = await streamChat(
+    profile,
+    messages as { role: "system" | "user" | "assistant"; content: string }[],
+    { onText: (t) => { fullText += t; } },
+    signal,
+  );
+
+  return result.text;
+}
+
