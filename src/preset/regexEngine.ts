@@ -39,6 +39,52 @@ function roleMatchesPlacement(role: ApiChatMessage["role"], placement: number[])
 }
 
 /**
+ * Xóa escape cho các ký tự xuống dòng, tab trong chuỗi replace từ JSON.
+ */
+function unescapeReplaceString(str: string): string {
+  if (!str) return str;
+  return str.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
+}
+
+/**
+ * Áp dụng Regex Scripts cho một chuỗi văn bản đơn lẻ.
+ */
+export function applyRegexForSingleMessage(
+  content: string,
+  role: ApiChatMessage["role"],
+  depth: number,
+  scripts: STRegexScript[],
+  isForUI: boolean
+): string {
+  if (!scripts || scripts.length === 0) return content;
+
+  // Lọc scripts theo ngữ cảnh (UI vs API)
+  const activeScripts = scripts.filter(s => {
+    if (s.disabled) return false;
+    if (isForUI) return !s.promptOnly;
+    return !s.markdownOnly;
+  });
+
+  if (activeScripts.length === 0) return content;
+
+  let text = content;
+  for (const script of activeScripts) {
+    if (!roleMatchesPlacement(role, script.placement)) continue;
+    if (script.minDepth !== null && script.minDepth !== undefined && depth < script.minDepth) continue;
+    if (script.maxDepth !== null && script.maxDepth !== undefined && depth > script.maxDepth) continue;
+
+    const regex = compileRegex(script.findRegex);
+    if (regex) {
+      regex.lastIndex = 0;
+      text = text.replace(regex, unescapeReplaceString(script.replaceString));
+    }
+  }
+
+  return text;
+}
+
+
+/**
  * Áp dụng Regex Scripts lên danh sách tin nhắn.
  * 
  * @param messages Lịch sử tin nhắn
@@ -70,11 +116,7 @@ export function applyRegexScripts(
 
   if (activeScripts.length === 0) return result;
 
-  // Compile regex trước để tối ưu
-  const compiledScripts = activeScripts.map(s => ({
-    ...s,
-    regex: compileRegex(s.findRegex),
-  })).filter(s => s.regex !== null);
+
 
   // Depth trong SillyTavern đếm ngược từ tin mới nhất.
   // result = [tin 0, tin 1, ..., tin N] (tin N là mới nhất)
@@ -82,28 +124,9 @@ export function applyRegexScripts(
   for (let i = 0; i < result.length; i++) {
     const msg = result[i];
     const depth = result.length - 1 - i;
-
-    for (const script of compiledScripts) {
-      // Kiểm tra placement
-      if (!roleMatchesPlacement(msg.role, script.placement)) continue;
-
-      // Kiểm tra depth
-      if (script.minDepth !== null && script.minDepth !== undefined && depth < script.minDepth) continue;
-      if (script.maxDepth !== null && script.maxDepth !== undefined && depth > script.maxDepth) continue;
-
-      // Thực thi Regex
-      try {
-        // Reset lastIndex đề phòng flag g
-        script.regex!.lastIndex = 0;
-        // Chú ý: replace với string trong JS có thể dùng $1, $2 bình thường
-        // Tuy nhiên SillyTavern có escape một số thứ, nhưng replaceString của nó tương thích JS cơ bản.
-        // Hỗ trợ tag sandwich (dòng text có xuống dòng): 
-        // regex replacement sẽ xử lý bằng regex gốc của JS.
-        msg.content = msg.content.replace(script.regex!, script.replaceString);
-      } catch (err) {
-        log.warn(`Lỗi khi chạy regex script [${script.scriptName}]:`, err);
-      }
-    }
+    
+    // Gọi hàm dùng chung
+    msg.content = applyRegexForSingleMessage(msg.content, msg.role, depth, scripts, isForUI);
   }
 
   return result;

@@ -8,6 +8,8 @@ import { persist } from "zustand/middleware";
 import type { PresetRecord } from "./db";
 import type { STPreset } from "../preset/presetSchema";
 import { importPresetJson, listPresets, loadPreset, deletePreset, exportPresetRaw } from "../preset/importExport";
+import { mergePresetParams } from "../preset/mergeParams";
+import { useConnectionStore } from "./connectionStore";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("presetStore");
@@ -64,6 +66,14 @@ export const usePresetStore = create<PresetState>()(
           activePreset: parsed,
           activeWarnings: warnings,
         });
+        
+        // Cập nhật tham số sang connection profile hiện tại
+        const connStore = useConnectionStore.getState();
+        const profile = connStore.activeProfile();
+        if (profile) {
+          connStore.updateParams(profile.id, mergePresetParams(profile.params, parsed));
+        }
+        
         return { warnings };
       },
 
@@ -78,6 +88,13 @@ export const usePresetStore = create<PresetState>()(
           return;
         }
         set({ activePresetId: id, activePreset: loaded.parsed, activeWarnings: loaded.warnings });
+
+        // Cập nhật tham số sang connection profile hiện tại
+        const connStore = useConnectionStore.getState();
+        const profile = connStore.activeProfile();
+        if (profile) {
+          connStore.updateParams(profile.id, mergePresetParams(profile.params, loaded.parsed));
+        }
       },
 
       remove: async (id) => {

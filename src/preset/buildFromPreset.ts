@@ -14,7 +14,7 @@ import { isMarkerId, type MarkerSources } from "./markers";
 import { renderMacros } from "../prompt/macroEngine";
 import type { MacroContext } from "../prompt/macroContext";
 import { countTokens } from "../prompt/tokenizer";
-import { applyRegexScripts } from "./regexEngine";
+import { applyRegexScripts, applyRegexForSingleMessage } from "./regexEngine";
 
 export interface BlockTrace {
   identifier: string;
@@ -177,10 +177,27 @@ export function buildFromPreset(preset: STPreset, opts: BuildOptions): BuildResu
   const included: ApiChatMessage[] = [];
   let dropped = 0;
   
-  // Áp dụng Regex Scripts của preset (nếu có) vào lịch sử chat
+  // Áp dụng Regex Scripts của preset (nếu có) vào toàn bộ dữ liệu
   let workingHistory = history;
-  if (preset.extensions?.regex_scripts && preset.extensions.regex_scripts.length > 0) {
-    workingHistory = applyRegexScripts(history, preset.extensions.regex_scripts, false);
+  const regexScripts = preset.extensions?.regex_scripts ?? [];
+  if (regexScripts.length > 0) {
+    workingHistory = applyRegexScripts(history, regexScripts, false);
+
+    // Áp dụng Regex cho các khối prompt tuần tự (System, User)
+    for (const item of sequential) {
+      if (item.msg) {
+        item.msg.content = applyRegexForSingleMessage(item.msg.content, item.msg.role, 9999, regexScripts, false);
+        item.trace.content = item.msg.content;
+        item.trace.tokens = countTokens(item.msg.content);
+      }
+    }
+    
+    // Áp dụng Regex cho các injection (có kèm depth cụ thể)
+    for (const inj of injections) {
+      inj.msg.content = applyRegexForSingleMessage(inj.msg.content, inj.msg.role, inj.depth, regexScripts, false);
+      inj.trace.content = inj.msg.content;
+      inj.trace.tokens = countTokens(inj.msg.content);
+    }
   }
 
   for (let i = workingHistory.length - 1; i >= 0; i--) {

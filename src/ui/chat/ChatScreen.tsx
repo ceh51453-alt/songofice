@@ -103,7 +103,7 @@ function ExtraModelButton({ msg }: { msg: UiChatMessage }) {
 }
 
 /** Bubble người chơi có nút sửa — bấm → inline textarea → sửa xong bấm gửi lại. */
-function EditableUserBubble({ msg, busy }: { msg: UiChatMessage; busy: boolean }) {
+function EditableUserBubble({ msg, displayContent, busy }: { msg: UiChatMessage; displayContent: string; busy: boolean }) {
   const t = useT();
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(msg.content);
@@ -171,7 +171,7 @@ function EditableUserBubble({ msg, busy }: { msg: UiChatMessage; busy: boolean }
   return (
     <div className="group anim-in flex justify-end">
       <div className="glass max-w-[92%] border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap sm:max-w-[80%]">
-        {msg.content}
+        {displayContent}
       </div>
       {!busy && (
         <button
@@ -231,7 +231,7 @@ export function ChatScreen() {
             return (
               <div key={m.id}>
                 {m.role === "user" ? (
-                  <EditableUserBubble msg={m} busy={busy} />
+                  <EditableUserBubble msg={m} displayContent={processedContent} busy={busy} />
                 ) : (
                   <Bubble role="assistant" stopped={variant?.stopped}>
                     <NarrativeContent text={processedContent} />

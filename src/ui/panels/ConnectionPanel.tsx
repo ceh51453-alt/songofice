@@ -305,7 +305,7 @@ export function ConnectionPanel() {
           tooltip={t("params.max_tokens")}
           value={profile.params.max_tokens}
           min={64}
-          max={32768}
+          max={131072}
           step={64}
           defaultValue={2048}
           onChange={(v) => updateParams({ max_tokens: Math.max(1, Math.round(v ?? 2048)) })}
@@ -316,7 +316,7 @@ export function ConnectionPanel() {
           tooltip={t("params.max_context")}
           value={profile.params.max_context}
           min={2048}
-          max={1000000}
+          max={2097152}
           step={1024}
           defaultValue={32768}
           onChange={(v) => updateParams({ max_context: Math.max(2048, Math.round(v ?? 32768)) })}
