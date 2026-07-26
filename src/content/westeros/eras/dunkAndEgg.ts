@@ -18,6 +18,12 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 500, startingHookIds: [],
+    father: "maekar-i-targaryen", mother: "dyanna-dayne",
+    spouse: "daenora-targaryen",
+    children: ["maegor-targaryen"],
+    siblings: ["daeron-the-drunken", "aemon-targaryen", "aegon-egg", "daella-targaryen", "rhae-targaryen"],
+    allies: ["maekar-i-targaryen"],
+    rivals: ["duncan-the-tall", "aegon-egg"],
     personalHooks: [
       { id: "aerion-ashford", title: "Thử Thách Bằng Chiến Đấu", year: "209 AC", numericYear: 209, desc: "Một tên hiệp sĩ lang thang dám đánh ngươi. Ngươi đòi quyền Xét Xử Bằng Bảy Người để trừng phạt hắn." }
     ]
@@ -39,6 +45,11 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     equipment: [],
     items: [{ ten: "Bầu rượu", soLuong: 5, moTa: "Rượu vang chua." }],
     gold: 200, startingHookIds: [],
+    father: "maekar-i-targaryen", mother: "dyanna-dayne",
+    spouse: "kiera-tyrosh",
+    children: ["vaella-targaryen"],
+    siblings: ["aerion-brightflame", "aemon-targaryen", "aegon-egg", "daella-targaryen", "rhae-targaryen"],
+    allies: ["aegon-egg"],
     personalHooks: [
       { id: "daeron-dream", title: "Giấc Mơ Rồng Chết", year: "209 AC", numericYear: 209, desc: "Ngươi mơ thấy một con rồng khổng lồ ngã xuống một hiệp sĩ cao lớn. Giấc mơ đó ám ảnh ngươi đến mức ngươi trốn khỏi giải đấu." }
     ]
@@ -62,6 +73,10 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     gold: 1200, startingHookIds: [],
     startHoldings: ["coldmoat"],
     startRegions: [],
+    father: "wyndam-webber",
+    spouse: "eustace-osgrey",
+    allies: ["duncan-the-tall", "eustace-osgrey"],
+    rivals: ["lucas-inchfield"],
     personalHooks: [
       { id: "red-widow", title: "Tranh Chấp Đất Đai", year: "211 AC", numericYear: 211, desc: "Lão Eustace Osgrey đang phàn nàn về dòng suối bị chặn. Ngươi phải giải quyết lão già gàn dở này." }
     ]
@@ -84,6 +99,9 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     gold: 50, startingHookIds: [],
     startHoldings: ["standfast"],
     startRegions: [],
+    spouse: "rohanne-webber",
+    allies: ["duncan-the-tall"],
+    rivals: ["lucas-inchfield"],
     personalHooks: [
       { id: "eustace-pride", title: "Lòng Tự Hào Của Sư Tử Đốm", year: "211 AC", numericYear: 211, desc: "Nhà Webber đã chặn dòng suối. Dù chỉ có vài nông dân, ngươi vẫn muốn chiến đấu vì danh dự." }
     ]
@@ -105,6 +123,10 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 300, startingHookIds: [],
+    father: "daemon-blackfyre", mother: "rohanne-tyrosh",
+    siblings: ["aegon-blackfyre", "aemon-blackfyre", "haegon-blackfyre", "aenys-blackfyre"],
+    allies: ["bittersteel"],
+    rivals: ["bloodraven-hand"],
     personalHooks: [
       { id: "daemon-whitewalls", title: "Giấc Mơ Trứng Rồng", year: "212 AC", numericYear: 212, desc: "Ngươi mơ thấy một con rồng nở từ quả trứng tại Whitewalls. Cuộc nổi dậy thứ hai đang nhen nhóm." }
     ]

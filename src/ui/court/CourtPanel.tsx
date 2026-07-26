@@ -18,6 +18,7 @@ import {
 import { livingFamily, successionOrder, successionCrisisInfo, type SuccessionLaw } from "../../strategy/succession";
 import { HOUSE_ID_BY_SCHEMA } from "../../territory/territoryEngine";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
+import { REGIONS } from "../../content/westeros/regions";
 import { houseColor } from "../../content/westeros/houseColors";
 import type { Npc } from "../../mvu/npcSchema";
 import { GlassButton } from "../components/GlassButton";
@@ -26,7 +27,7 @@ import {
   IconX, IconCrown, IconCoins, IconScroll, IconEye, IconShield, IconUsers, IconBook, IconCrossedSwords, IconAlert, IconSpark,
 } from "../icons";
 
-type Tab = "council" | "power" | "dynasty";
+type Tab = "council" | "power" | "dynasty" | "kingdoms";
 
 const POSITION_ICON: Record<CourtPosition, React.ReactNode> = {
   "Bàn Tay Nhà Vua": <IconCrown size={15} />,
@@ -73,6 +74,7 @@ export function CourtPanel({ open, onClose }: { open: boolean; onClose: () => vo
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "council", label: "Tiểu Hội Đồng" },
+    { key: "kingdoms", label: "7 Vương Quốc" },
     { key: "power", label: "Phe Cánh" },
     { key: "dynasty", label: "Gia Tộc & Kế Vị" },
   ];
@@ -107,6 +109,7 @@ export function CourtPanel({ open, onClose }: { open: boolean; onClose: () => vo
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {tab === "council" && <CouncilTab stat={stat} onClose={onClose} />}
+          {tab === "kingdoms" && <KingdomsTab stat={stat} />}
           {tab === "power" && <PowerTab stat={stat} />}
           {tab === "dynasty" && <DynastyTab stat={stat} onClose={onClose} />}
         </div>
@@ -454,6 +457,50 @@ function DynastyTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
       </div>
 
       <p className="text-[11.5px] italic text-[var(--text-faint)]">Hôn nhân chính trị nâng thái độ Nhà đối tác (mở đường xin viện binh); của hồi môn là Vàng chuyển giao (13.4).</p>
+    </div>
+  );
+}
+
+// ── Bảy Vương Quốc ────────────────────────────────────────────────────────────
+function KingdomsTab({ stat }: { stat: Stat }) {
+  const territories = stat["Chủ Quyền Lãnh Thổ"];
+
+  return (
+    <div className="space-y-3">
+      <div className="glass rounded-[var(--radius-md)] bg-[linear-gradient(160deg,rgba(176,141,87,0.08),transparent)] px-3 py-2 text-center">
+        <p className="font-display text-[12px] uppercase tracking-widest text-[var(--accent-text)]">Bảy Vương Quốc</p>
+        <p className="mt-0.5 text-[11px] text-[var(--text-faint)]">Tình hình các vương quốc tại Westeros</p>
+      </div>
+      <div className="grid grid-cols-1 gap-2">
+        {REGIONS.map((region) => {
+          const territory = territories[region.id];
+          const houseId = territory?.["Nhà Kiểm Soát"];
+          const house = houseId ? HOUSES_BY_ID[houseId] : undefined;
+          const status = territory?.["Tình Trạng"] ?? "Trống";
+          
+          return (
+            <div key={region.id} className="glass flex flex-col gap-1.5 rounded-[var(--radius-sm)] px-3 py-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Avatar name={house?.name || "?"} house={house?.schemaName} size={24} />
+                  <span className="font-display text-[13.5px] tracking-wide text-[var(--text-soft)]">{region.name}</span>
+                </div>
+                <span className="text-[12px] font-medium text-[var(--text-muted)]">
+                  {house?.name ? `Nhà ${house.name}` : (houseId || "Vô Chủ")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11.5px] text-[var(--text-faint)] mt-1">
+                <span>Thủ phủ: <span className="text-[var(--text-muted)]">{region.seat}</span></span>
+                <span>Dân số: <span className="text-[var(--text-muted)]">{region.population.toLocaleString("vi-VN")}</span></span>
+              </div>
+              <div className="flex items-center justify-between text-[11.5px] text-[var(--text-faint)]">
+                <span>Trạng thái: <span className={status === "Bị Vây" ? "text-[var(--danger)]" : status === "Nổi Loạn" ? "text-[var(--warn)]" : "text-[var(--ok)]"}>{status}</span></span>
+                {territory?.["Là Của Người Chơi"] && <span className="text-[var(--accent-text)] flex items-center gap-1"><IconSpark size={12} /> Lãnh địa của ta</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

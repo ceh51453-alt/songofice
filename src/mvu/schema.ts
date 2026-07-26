@@ -180,6 +180,7 @@ export type CombatScale = z.infer<typeof CombatScaleSchema>;
 export const MilitaryUnitSchema = z
   .object({
     "Tướng Chỉ Huy": safeString().prefault("Tạm Khuyết"), // khớp key "Tướng Lĩnh" (7.7)
+    "Nhà": safeString().prefault(""), // Phe phái sở hữu quân đội
     "Số Lượng": safeInt(0),
     "Loại Quân": z.enum(TROOP_TYPES_ALL).catch("Bộ Binh").prefault("Bộ Binh"), // danh mục đầy đủ (11.2b)
     // thành phần hỗn hợp {loạiQuân: tỷ lệ 0-1}; rỗng = thuần "Loại Quân" (11.1 → ma trận 7.9.2b)
@@ -256,6 +257,9 @@ export type Building = z.infer<typeof BuildingSchema>;
  */
 export const TerritorySchema = z
   .object({
+    "Nhà Kiểm Soát": safeString().prefault(""),
+    "Người Kiểm Soát": safeString().prefault(""),
+    "Tình Trạng": z.enum(["Ổn Định", "Đang Tranh Chấp", "Bị Vây", "Mới Chiếm", "Nổi Loạn"]).catch("Ổn Định").prefault("Ổn Định"),
     "Mô Tả": safeString().prefault(""),
     "Dân Số": safeInt(1000),
     "Trung Thành": clampedStat(0, 100, 60),
@@ -696,6 +700,8 @@ export const StatDataSchema = z
         z
           .object({
             "Nhà Kiểm Soát": safeString().prefault(""), // houseId; "" = vô chủ/tranh chấp
+            "Người Kiểm Soát": safeString().prefault(""), // Tên vị lãnh chúa hiện tại
+
             "Tình Trạng": z.enum(REGION_STATUS).catch("Ổn Định").prefault("Ổn Định"),
             "Là Của Người Chơi": z.boolean().catch(false).prefault(false),
             "_Đổi Chủ Turn": z.coerce.number().int().catch(0).prefault(0), // readonly — turn đổi chủ gần nhất (animation + replay 9.3)

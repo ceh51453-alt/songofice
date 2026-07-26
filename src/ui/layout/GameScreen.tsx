@@ -21,6 +21,7 @@ import { IconCodex } from "../codex/CodexIcons";
 import { StatusPanel } from "../panels/status/StatusPanel";
 import { CombatPanel } from "../combat/CombatPanel";
 import { RelationshipNetworkPanel } from "../relationship/RelationshipNetworkPanel";
+import { KingdomsPanel } from "../kingdoms/KingdomsPanel";
 import { Toasts } from "./Toasts";
 import { useUiStore } from "../../state/uiStore";
 import { useMvuStore } from "../../state/mvuStore";
@@ -60,6 +61,7 @@ export function GameScreen() {
   const [codexOpen, setCodexOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [relationshipOpen, setRelationshipOpen] = useState(false);
+  const [kingdomsOpen, setKingdomsOpen] = useState(false);
   const sheetOpen = useUiStore((s) => s.statusSheetOpen);
   const setSheetOpen = useUiStore((s) => s.setStatusSheetOpen);
   const gameView = useUiStore((s) => s.gameView);
@@ -94,6 +96,7 @@ export function GameScreen() {
     { key: "economy", label: "Kinh Tế", icon: <IconCoin size={18} />, enabled: hasHoldings, active: economyOpen, onClick: toggleEconomy },
     { key: "court", label: t("game.navCourt"), icon: <IconCrown size={18} />, enabled: courtActive, active: courtOpen, onClick: () => setCourtOpen(true) },
     { key: "intrigue", label: t("game.navIntrigue"), icon: <IconMask size={18} />, enabled: intrigueActive, active: intrigueOpen, onClick: () => setIntrigueOpen(true) },
+    { key: "kingdoms", label: "7 Vương Quốc", icon: <IconCrown size={18} />, enabled: true, active: kingdomsOpen, onClick: () => setKingdomsOpen(true) },
     { key: "relationship", label: "Quan Hệ", icon: <IconUsers size={18} />, enabled: true, active: relationshipOpen, onClick: () => setRelationshipOpen(true) },
     { key: "codex", label: "So Tay", icon: <IconCodex size={18} />, enabled: true, active: codexOpen, onClick: () => setCodexOpen(true) },
     { key: "journal", label: t("game.navJournal"), icon: <IconBook size={18} />, enabled: true, active: journalOpen, onClick: () => setJournalOpen(true) },
@@ -108,6 +111,7 @@ export function GameScreen() {
       <CourtPanel open={courtOpen} onClose={() => setCourtOpen(false)} />
       <IntriguePanel open={intrigueOpen} onClose={() => setIntrigueOpen(false)} />
       <EconomyPanel />
+      <KingdomsPanel open={kingdomsOpen} onClose={() => setKingdomsOpen(false)} />
       <RelationshipNetworkPanel open={relationshipOpen} onClose={() => setRelationshipOpen(false)} />
       <CodexPanel open={codexOpen} onClose={() => setCodexOpen(false)} />
       {journalOpen && (

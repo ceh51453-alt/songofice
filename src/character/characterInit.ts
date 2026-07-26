@@ -21,7 +21,6 @@ import { STARTING_CRISES } from "../content/westeros/startingCrises";
 import { COMPANIONS_BY_ID } from "../content/westeros/companions";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 import { seedRegionControl } from "../territory/territoryEngine";
-import { genId } from "../lib/id";
 import type { CoreStat } from "../content/westeros/skills";
 import type { LoreEntry } from "../lorebook/loreSchema";
 
@@ -721,7 +720,7 @@ export function buildStateFromCanon(
   info["Họ Tên"] = adjustedC.name;
   info["Nhà"] = adjustedC.house as typeof info["Nhà"];
   info["Xuất Thân"] = adjustedC.role;
-  info["Tước Vị"] = adjustedC.tuocVi;
+  info["Tước Vị"] = (adjustedC.tuocVi as any) || "Thường Dân";
   info["Lục Địa"] = "Westeros";
   const bc = autoAssignBloodlineAndCulture(adjustedC.house as string, adjustedC.name);
   info["Văn Hoá"] = (adjustedC as any).culture || bc.culture;
@@ -784,6 +783,52 @@ export function buildStateFromCanon(
     };
   }
 
+  // ---- thiết lập Triều Đình nguyên tác ----
+  if (adjustedC.tuocVi === "Vua" || adjustedC.tuocVi === "Vua Bảy Vương Quốc") {
+    state["Triều Đình"]["Có Liên Quan"] = true;
+    state["Triều Đình"]["Quyền Bổ Nhiệm"] = true;
+    state["Triều Đình"]["Triều Đình Của"] = adjustedC.name;
+    
+    // Quét các nhân vật trong Era có liege là nhân vật này
+    for (const npc of era.canonCharacters) {
+      if (npc.liege === c.id) {
+        // Thêm vào Tướng Lĩnh
+        (state["Tướng Lĩnh"] as Record<string, unknown>)[npc.id] = {
+          "Họ Tên": npc.name,
+          "Chức Vụ": npc.role,
+          "Tuổi": npc.age,
+          "Độ Hảo Cảm": 80,
+          "Tin Cậy": true,
+          "Loại Quan Hệ": "Gia Thần",
+          "Đánh Giá": npc.blurb,
+          "Năng Lực": {
+             "Võ Lực": npc.coreStats["Sức Mạnh"] ?? 10,
+             "Thống Soái": npc.coreStats["Uy Tín"] ?? 10,
+             "Trí Mưu": npc.coreStats["Trí Tuệ"] ?? 10,
+             "Ngoại Giao": npc.coreStats["Tinh Tường"] ?? 10
+          },
+          "Nét Tính Cách": ["Trung Thành"],
+        };
+        // Gán vào Tiểu Hội Đồng nếu có chức vụ
+        if (npc.courtPosition && (npc.courtPosition in state["Triều Đình"]["Tiểu Hội Đồng"])) {
+          (state["Triều Đình"]["Tiểu Hội Đồng"] as any)[npc.courtPosition]["Người Giữ Chức"] = npc.name;
+        }
+      }
+    }
+  } else if (adjustedC.liege) {
+    const liegeChar = era.canonCharacters.find(ch => ch.id === adjustedC.liege);
+    if (liegeChar) {
+      state["Triều Đình"]["Có Liên Quan"] = true;
+      state["Triều Đình"]["Triều Đình Của"] = liegeChar.name;
+      if (adjustedC.courtPosition) {
+        state["Triều Đình"]["Chức Vụ Người Chơi"] = adjustedC.courtPosition;
+        if (adjustedC.courtPosition in state["Triều Đình"]["Tiểu Hội Đồng"]) {
+          (state["Triều Đình"]["Tiểu Hội Đồng"] as any)[adjustedC.courtPosition]["Người Giữ Chức"] = adjustedC.name;
+        }
+      }
+    }
+  }
+
   // canon: lãnh chúa cai quản vùng quê → mở holding nếu kiểm soát (9.6.1/10.1)
   seedRegionControl(state, era.id, { createIfMissing: true });
 
@@ -800,36 +845,148 @@ export function buildStateFromCanon(
   if (adjustedC.startHoldings) {
     for (const sid of adjustedC.startHoldings) {
       const marker = MAP_MARKERS.find(m => m.id === sid);
+      const lvl = adjustedC.holdingsLevel?.[sid] || 1;
       state["Lãnh Địa"][sid] = {
+        "Nhà Kiểm Soát": adjustedC.house,
+        "Người Kiểm Soát": adjustedC.name,
+        "Tình Trạng": "Ổn Định",
         "Mô Tả": marker?.name || sid,
         "Dân Số": marker?.population || 5000,
         "Trung Thành": 80,
         "Tài Nguyên": { "Vàng": 1000, "Lương Thực": 5000, "Gỗ": 1000, "Đá": 1000, "Quặng Sắt": 500 },
         "Khủng Hoảng": [],
-        "Thuộc Vùng": sid, // Default to sid if region mapping is complex
+        "Thuộc Vùng": sid,
         "Ven Biển": false,
-        "Công Trình": {},
+        "Công Trình": { "Lâu Đài": { "Loại": "Lâu Đài", "Cấp Độ": lvl, "Đang Xây": false, "Turn Còn Lại": 0 } },
       };
     }
   }
 
   if (adjustedC.startArmy && adjustedC.startHoldings && adjustedC.startHoldings.length > 0) {
-    const firstHolding = adjustedC.startHoldings[0];
-    const unitId = genId("army");
-    state["Biên Chế Quân Sự"][unitId] = {
+    const armyId = `army_${adjustedC.id}`;
+    const loc = adjustedC.startHoldings[0];
+    state["Biên Chế Quân Sự"][armyId] = {
       "Tướng Chỉ Huy": adjustedC.name,
+      "Nhà": adjustedC.house as string,
       "Số Lượng": adjustedC.startArmy.size,
       "Loại Quân": "Bộ Binh",
       "Thành Phần": {},
       "Hậu Cần": "Dồi Dào",
-      "Sĩ Khí": "Ổn Định",
+      "Sĩ Khí": "Hăng Hái",
       "Trang Bị": "Đồng Bộ Chỉnh Tề",
-      "Huấn Luyện": adjustedC.startArmy.quality === "Tân Binh" ? "Mới Lập Đội" : adjustedC.startArmy.quality === "Thiện Chiến" ? "Thành Thạo" : adjustedC.startArmy.quality,
-      "Lãnh Địa Đồn Trú": firstHolding,
-      "Turn Di Chuyển Còn Lại": 1,
-      "Turn Huấn Luyện": 0,
+      "Huấn Luyện": adjustedC.startArmy.quality,
+      "Lãnh Địa Đồn Trú": loc,
+      "Turn Di Chuyển Còn Lại": 0,
+      "Turn Huấn Luyện": 0
     };
   }
+
+  // ---- TỰ ĐỘNG KHỞI TẠO QUÂN ĐỘI VÀ LÃNH ĐỊA LORE CHO TẤT CẢ PHE PHÁI ----
+  // Dựa trên nguyên tác, các Đại Lãnh Chúa luôn có quân đội và lãnh thổ cụ thể, dù họ không phải là người chơi.
+  const factionLoreDefaults: Record<string, { size: number, quality: string, seat: string, region: string }> = {
+    "Stark": { size: 30000, quality: "Thành Thạo", seat: "the-north-seat", region: "the-north" },
+    "Lannister": { size: 40000, quality: "Tinh Nhuệ", seat: "the-westerlands-seat", region: "the-westerlands" },
+    "Tyrell": { size: 80000, quality: "Đồng Bộ Chỉnh Tề", seat: "the-reach-seat", region: "the-reach" },
+    "Baratheon": { size: 25000, quality: "Thành Thạo", seat: "the-stormlands-seat", region: "the-stormlands" },
+    "Martell": { size: 30000, quality: "Thành Thạo", seat: "dorne-seat", region: "dorne" },
+    "Arryn": { size: 35000, quality: "Thành Thạo", seat: "the-vale-seat", region: "the-vale" },
+    "Tully": { size: 20000, quality: "Mới Lập Đội", seat: "the-riverlands-seat", region: "the-riverlands" },
+    "Greyjoy": { size: 15000, quality: "Thành Thạo", seat: "the-iron-islands-seat", region: "the-iron-islands" },
+    "Targaryen": { size: 10000, quality: "Tinh Nhuệ", seat: "the-crownlands-seat", region: "the-crownlands" }
+  };
+
+  for (const ch of era.canonCharacters) {
+    if (ch.id === c.id) continue; // Bỏ qua người chơi vì đã được xử lý
+    
+    // Chỉ cấp quân cho Đại Lãnh Chúa, Vua, hoặc Lãnh Chúa (tuỳ thời kỳ)
+    if (["Đại Lãnh Chúa", "Vua", "Vua Bảy Vương Quốc"].includes(ch.tuocVi)) {
+      const def = factionLoreDefaults[ch.house];
+      if (def) {
+        // Cấp chủ quyền
+        state["Chủ Quyền Lãnh Thổ"][def.region] = {
+          "Nhà Kiểm Soát": ch.house,
+          "Người Kiểm Soát": ch.name,
+          "Là Của Người Chơi": false,
+          "Tình Trạng": "Ổn Định",
+          "_Đổi Chủ Turn": 0
+        };
+        // Cấp quân đội
+        const armyId = `army_${ch.id}`;
+        state["Biên Chế Quân Sự"][armyId] = {
+          "Tướng Chỉ Huy": ch.name,
+          "Nhà": ch.house,
+          "Số Lượng": ch.startArmy?.size || def.size,
+          "Loại Quân": "Bộ Binh",
+          "Thành Phần": {},
+          "Hậu Cần": "Dồi Dào",
+          "Sĩ Khí": "Hăng Hái",
+          "Trang Bị": "Đồng Bộ Chỉnh Tề",
+          "Huấn Luyện": (ch.startArmy?.quality || def.quality) as any,
+          "Lãnh Địa Đồn Trú": ch.startHoldings?.[0] || def.seat,
+          "Turn Di Chuyển Còn Lại": 0,
+          "Turn Huấn Luyện": 0
+        };
+      }
+    }
+  }
+
+  // (Thu nhập baseIncome được ẩn ý qua Lãnh Địa hoặc engine tính sau)
+
+  // ---- Xử lý gia phả và các mối quan hệ lore ----
+  const familyList = [
+    adjustedC.father, adjustedC.mother, adjustedC.spouse,
+    ...(adjustedC.children || []), ...(adjustedC.siblings || [])
+  ].filter(Boolean) as string[];
+
+  // Nếu người chơi có quan hệ gia đình, chúng ta tạo NpcSchema cho họ nếu họ chưa có
+  for (const relId of familyList) {
+    const relChar = era.canonCharacters.find(ch => ch.id === relId);
+    let name = relChar ? relChar.name : relId;
+    let house = relChar ? relChar.house : adjustedC.house;
+    (state["Mối Quan Hệ"]["Thành Viên Gia Tộc"] as Record<string, unknown>)[name] = {
+      "Họ Tên": name,
+      "Nhà": house,
+      "Tuổi": relChar?.age ?? 30,
+      "Độ Hảo Cảm": 60,
+      "Tin Cậy": 50,
+      "Loại Quan Hệ": ["Người Thân"],
+      "Còn Sống": true,
+      "Đánh Giá": relChar?.blurb || "Thành viên gia tộc.",
+    };
+  }
+  
+  if (adjustedC.allies) {
+    for (const relId of adjustedC.allies) {
+      const relChar = era.canonCharacters.find(ch => ch.id === relId);
+      let name = relChar ? relChar.name : relId;
+      (state["Mối Quan Hệ"]["NPC Chính"] as Record<string, unknown>)[name] = {
+        "Họ Tên": name,
+        "Tuổi": relChar?.age ?? 30,
+        "Độ Hảo Cảm": 80,
+        "Tin Cậy": 80,
+        "Loại Quan Hệ": ["Đồng Minh", "Bằng Hữu"],
+        "Còn Sống": true,
+        "Đánh Giá": relChar?.blurb || "Đồng minh thân cận.",
+      };
+    }
+  }
+
+  if (adjustedC.rivals) {
+    for (const relId of adjustedC.rivals) {
+      const relChar = era.canonCharacters.find(ch => ch.id === relId);
+      let name = relChar ? relChar.name : relId;
+      (state["Mối Quan Hệ"]["NPC Chính"] as Record<string, unknown>)[name] = {
+        "Họ Tên": name,
+        "Tuổi": relChar?.age ?? 30,
+        "Độ Hảo Cảm": -80,
+        "Tin Cậy": -80,
+        "Loại Quan Hệ": ["Kẻ Thù", "Đối Thủ"],
+        "Còn Sống": true,
+        "Đánh Giá": relChar?.blurb || "Kẻ thù không đội trời chung.",
+      };
+    }
+  }
+
 
   recomputeDerived(state);
   state["Chỉ Số Sinh Tồn"]["HP"] = state["Chỉ Số Phái Sinh"]["_HP Tối Đa"];
