@@ -4,7 +4,7 @@
  * (<combat_trigger scale="Đại Chiến">, <battle_report outcome="Thắng">...).
  * Thẻ KHÔNG nhận diện được → fallback text thường, không vỡ UI.
  */
-export const KNOWN_TAGS = ["raven_scroll", "royal_decree", "council_session", "event_popup", "combat_trigger", "battle_report", "siege_update", "territory_change"] as const;
+export const KNOWN_TAGS = ["raven_scroll", "royal_decree", "council_session", "event_popup", "combat_trigger", "battle_report", "siege_update", "territory_change", "tavern_game", "tourney"] as const;
 
 export type NarrativeTagType = (typeof KNOWN_TAGS)[number];
 
@@ -58,6 +58,22 @@ export function findTerritoryChanges(text: string): { regionId: string; houseId:
     if (regionId) out.push({ regionId, houseId, content: seg.content });
   }
   return out;
+}
+
+/** Tìm thẻ tavern_game đầu tiên (mini-game quán rượu — chỉ xuất hiện khi AI kể ngữ cảnh phù hợp). */
+export function findTavernGameTrigger(text: string): { attrs: Record<string, string>; content: string } | null {
+  for (const seg of parseNarrative(text)) {
+    if (seg.type === "tavern_game") return { attrs: seg.attrs, content: seg.content };
+  }
+  return null;
+}
+
+/** Tìm thẻ tourney đầu tiên (đại hội đấu — xuất hiện khi AI kể về đại hội theo lore). */
+export function findTourneyTrigger(text: string): { attrs: Record<string, string>; content: string } | null {
+  for (const seg of parseNarrative(text)) {
+    if (seg.type === "tourney") return { attrs: seg.attrs, content: seg.content };
+  }
+  return null;
 }
 
 /** Tách "tiêu đề | nội dung" cho thẻ 2 phần (raven_scroll, event_popup). */

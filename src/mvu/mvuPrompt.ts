@@ -162,6 +162,10 @@ viết bình thường, không JSON):
     (vd stark, lannister; rỗng nếu thành vô chủ)">bối cảnh đổi chủ ngắn</territory_change>
   Cỗ máy sẽ đổi màu bản đồ + mở/đóng quản trị lãnh địa. regionId hợp lệ: the-north, the-vale,
   the-riverlands, the-westerlands, the-crownlands, the-reach, the-stormlands, dorne, the-iron-islands.
+- Đại hội đấu / giải đấu / tourney (khi nhân vật tới nơi có đại hội hoặc nghe tin đại hội sắp diễn ra):
+  <tourney tourney-id="id_dai_hoi (xem gợi ý [ĐẠI HỘI ĐẤU] nếu có)" location="Địa điểm tổ chức"
+    name="Tên đại hội (nếu không có id)">mô tả bối cảnh, không khí đại hội</tourney>
+  Cỗ máy sẽ hiển thị card đại hội cho người chơi chọn tham gia. Chỉ phát khi bối cảnh phù hợp.
 
 Chỉ dùng khi thật sự có loại nội dung đó. Văn tường thuật bình thường KHÔNG bọc thẻ.`;
 

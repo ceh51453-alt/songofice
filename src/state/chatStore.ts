@@ -18,11 +18,12 @@ import { useTerritoryStore } from "./territoryStore";
 import { buildPipeline } from "../prompt/promptPipeline";
 import { extractUpdates } from "../mvu/extractor";
 import { extractSqlUpdates } from "../mvu/sqlExtractor";
-import { findCombatTrigger, findTerritoryChanges } from "../ui/tags/parseNarrative";
+import { findCombatTrigger, findTerritoryChanges, findTavernGameTrigger, findTourneyTrigger } from "../ui/tags/parseNarrative";
 import type { StatData } from "../mvu/schema";
 import type { ApiChatMessage } from "../types/connection";
 import { callExtraModel } from "../mvu/extraModelCaller";
 import { useExtraModelStore } from "../state/extraModelStore";
+import { useTavernStore } from "../state/tavernStore";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("chat");
@@ -183,6 +184,21 @@ export const useChatStore = create<ChatState>()(
         // AI kể vùng đổi chủ (chiếm/liên minh/thừa kế) → engine đồng bộ + bản đồ đổi màu (9.5.1)
         for (const tc of findTerritoryChanges(variant.display)) {
           useTerritoryStore.getState().captureRegion(tc.regionId, tc.houseId);
+        }
+        // AI kể tới quán rượu/thách đấu → chuẩn bị menu mini-game (tavern_game tag)
+        const tavernTrigger = findTavernGameTrigger(variant.display);
+        if (tavernTrigger) {
+          const opponent = tavernTrigger.attrs.opponent ?? "Kẻ lạ mặt";
+          const tavern = tavernTrigger.attrs.tavern ?? "Quán rượu";
+          // Không tự mở — chỉ đánh dấu; người chơi bấm nút trong TavernGameCard để vào
+          log.info(`Phát hiện tavern_game: ${tavern}, đối thủ: ${opponent}`);
+        }
+        // AI kể về đại hội đấu (tourney tag) → ghi nhận, TourneyCard render inline
+        const tourneyTrigger = findTourneyTrigger(variant.display);
+        if (tourneyTrigger) {
+          const tourneyId = tourneyTrigger.attrs["tourney-id"] ?? "";
+          const location = tourneyTrigger.attrs.location ?? "";
+          log.info(`Phát hiện tourney: ${tourneyId} tại ${location}`);
         }
       }
 

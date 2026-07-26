@@ -10,6 +10,7 @@ import { formatPersonalityForPrompt } from "../npc/personalityEngine";
 import { renderReputationForAI } from "../npc/reputationEngine";
 import { ERAS_BY_ID } from "../content/westeros/eras";
 import { getTimelineContext } from "../content/westeros/timeline";
+import { getTourneyHint } from "../content/westeros/tourneyData";
 
 const MAX_NPC_RENDERED = 10;
 
@@ -86,6 +87,13 @@ export function renderStateForAI(state: StatData): string {
       getTimelineContext(world["Năm"]),
       `⛔ GIỚI HẠN KIẾN THỨC: Mọi thông tin chỉ hợp lệ tới năm ${world["Năm"]} AC. KHÔNG tham chiếu sự kiện/nhân vật sau mốc này.`,
     );
+    // ── Đại hội đấu sắp diễn ra (tourney hint) ──
+    const tourneyHint = getTourneyHint(world["Năm"], world["Ngày"]);
+    if (tourneyHint) {
+      lines.push(
+        `[ĐẠI HỘI ĐẤU]\n${tourneyHint}\n→ Khi nhân vật đến gần hoặc nghe tin, dùng thẻ <tourney tourney-id="ID" location="Địa Điểm">mô tả</tourney> để hiển thị thông tin đại hội cho người chơi.`,
+      );
+    }
   }
   lines.push(
     `Nhân vật: ${info["Họ Tên"]}, ${info["Tuổi"]} tuổi (${info["Giai Đoạn Đời"]}), Nhà ${info["Nhà"]}. Cấp ${info["Cấp Độ"]} (EXP ${info["Kinh Nghiệm"]}). ` +
