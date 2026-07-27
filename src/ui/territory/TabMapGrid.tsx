@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useRef, useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { formatCurrencyShort, EXCHANGE_RATES } from "../../economy/currency";
@@ -19,7 +17,12 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: -14600, y: -14700 }); // (400 - 750*20), (300 - 750*20)
   const [selectedBuilding, setSelectedBuilding] = useState<any | null>(null);
-  const [dragStart, setDragStart] = useState<{x: number, y: number} | null>(null);
+  const dragInfoRef = useRef<{
+	  startX: number; startY: number;
+	  startOffsetX: number; startOffsetY: number;
+	  moved: boolean;
+	} | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
   
   // Xây Dựng
   const [showBuildMenu, setShowBuildMenu] = useState(false);
@@ -151,100 +154,199 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
 
   }, [buildings, walls, zoom, offset, selectedBuilding, placementMode, hoverGrid]);
 
-  // Pan handling
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.ctrlKey) {
-        const newZoom = Math.max(0.1, Math.min(5, zoom - e.deltaY * 0.01));
-        setZoom(newZoom);
-    } else {
-        setOffset({ x: offset.x - e.deltaX, y: offset.y - e.deltaY });
-    }
-  };
+	// Quy đổi toạ độ chuột (CSS px hiển thị) sang toạ độ vẽ nội bộ của canvas
+	// (bắt buộc vì canvas width/height=800x600 nhưng bị className w-full h-full kéo giãn)
+	const getCanvasPoint = (clientX: number, clientY: number) => {
+	  const canvas = canvasRef.current;
+	  if (!canvas) return null;
+	  const rect = canvas.getBoundingClientRect();
+	  const scaleX = canvas.width / rect.width;
+	  const scaleY = canvas.height / rect.height;
+	  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY, scaleX, scaleY };
+	};
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    setDragStart({ x: e.clientX, y: e.clientY });
-  };
-  
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (placementMode) {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        const mapX = mouseX - offset.x;
-        const mapY = mouseY - offset.y;
-        const gridSize = 20 * zoom;
-        setHoverGrid({ x: Math.floor(mapX / gridSize), y: Math.floor(mapY / gridSize) });
-    }
-  };
+	  const handleWheel = (e: WheelEvent) => {
+	  e.preventDefault();
+	  const point = getCanvasPoint(e.clientX, e.clientY);
+	  if (!point) return;
+	  if (placementMode) return;
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (!dragStart) return;
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
-      // It's a click!
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      
-      const mapX = mouseX - offset.x;
-      const mapY = mouseY - offset.y;
-      
-      const gridSize = 20 * zoom;
-      const gridX = Math.floor(mapX / gridSize);
-      const gridY = Math.floor(mapY / gridSize);
-      
-      if (placementMode) {
-          // Confirm Placement
-          // TODO: Check bounds and overlap
-          const newBuildingId = "B_" + Date.now();
-          const newBuilding = {
-              "Loại": placementMode.type,
-              "Cấp Độ": 1,
-              "Tọa Độ X": gridX,
-              "Tọa Độ Y": gridY,
-              "Kích Thước": placementMode.size,
-              "Đang Xây": true,
-              "Turn Còn Lại": placementMode.turns
-          };
-          
-          // Deduct resources
-          const cost = placementMode.cost;
-          const currentGold = resources["Ngân Khố"] || 0;
-          const currentWood = resources["Gỗ"] || 0;
-          const currentStone = resources["Đá"] || 0;
-          
-          setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Vàng`, currentGold - (cost["Ngân Khố"] || 0));
-          setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Gỗ`, currentWood - (cost["Gỗ"] || 0));
-          setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Đá`, currentStone - (cost["Đá"] || 0));
-          
-          // Add building
-          setByPath(`Lãnh Địa.${territoryId}.Công Trình.${newBuildingId}`, newBuilding);
-          
-          setPlacementMode(null);
-          setHoverGrid(null);
-          return;
-      }
-      
-      let found = null;
-      for (const [, b] of Object.entries(buildings)) {
-        const bx = (b as any)["Tọa Độ X"] || 0;
-        const by = (b as any)["Tọa Độ Y"] || 0;
-        const size = (b as any)["Kích Thước"] || 1;
-        if (gridX >= bx && gridX < bx + size && gridY >= by && gridY < by + size) {
-           found = b;
-           break;
-        }
-      }
-      setSelectedBuilding(found);
-    }
-    setDragStart(null);
-  };
+	  if (e.ctrlKey) {
+		// Zoom quanh vị trí con trỏ — điểm đang trỏ tới đứng yên khi zoom
+		const oldZoom = zoom;
+		const newZoom = Math.max(0.1, Math.min(5, zoom - e.deltaY * 0.01));
+		if (newZoom === oldZoom) return;
+
+		const mapX = (point.x - offset.x) / oldZoom;
+		const mapY = (point.y - offset.y) / oldZoom;
+
+		setZoom(newZoom);
+		setOffset({
+		  x: point.x - mapX * newZoom,
+		  y: point.y - mapY * newZoom,
+		});
+	  } else {
+		// Pan bằng scroll/trackpad — quy đổi theo scale để tốc độ khớp chuyển động thật
+		setOffset(o => ({ x: o.x - e.deltaX * point.scaleX, y: o.y - e.deltaY * point.scaleY }));
+	  }
+	};
+	
+	useEffect(() => {
+	  const canvas = canvasRef.current;
+	  if (!canvas) return;
+	  canvas.addEventListener("wheel", handleWheel, { passive: false });
+	  return () => canvas.removeEventListener("wheel", handleWheel);
+	}, [zoom, offset, placementMode]);
+
+	const handlePointerDown = (e: React.PointerEvent) => {
+	  const canvas = canvasRef.current;
+
+	  if (placementMode) {
+		if (e.button === 2 && e.ctrlKey) {
+		  if (canvas) canvas.setPointerCapture(e.pointerId);
+		  dragInfoRef.current = {
+			startX: e.clientX, startY: e.clientY,
+			startOffsetX: offset.x, startOffsetY: offset.y,
+			moved: false,
+		  };
+		  setIsPanning(true);
+		}
+		return; // các trường hợp khác (vd. chuột trái) không set drag -> để PointerUp xử lý đặt công trình
+	  }
+
+	  // Chế độ thường: giữ nguyên như code cũ
+	  if (canvas) canvas.setPointerCapture(e.pointerId);
+	  dragInfoRef.current = {
+		startX: e.clientX, startY: e.clientY,
+		startOffsetX: offset.x, startOffsetY: offset.y,
+		moved: false,
+	  };
+	  setIsPanning(true);
+	};
+
+	const handlePointerMove = (e: React.PointerEvent) => {
+	  if (placementMode) {
+		if (isPanning && dragInfoRef.current) {
+		  const drag = dragInfoRef.current;
+		  const dx = e.clientX - drag.startX;
+		  const dy = e.clientY - drag.startY;
+		  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) drag.moved = true;
+		  const point = getCanvasPoint(drag.startX, drag.startY);
+		  if (point) {
+			setOffset({
+			  x: drag.startOffsetX + dx * point.scaleX,
+			  y: drag.startOffsetY + dy * point.scaleY,
+			});
+		  }
+		  return;
+		}
+
+		const point = getCanvasPoint(e.clientX, e.clientY);
+		if (!point) return;
+		const mapX = point.x - offset.x;
+		const mapY = point.y - offset.y;
+		const gridSize = 20 * zoom;
+		setHoverGrid({ x: Math.floor(mapX / gridSize), y: Math.floor(mapY / gridSize) });
+		return;
+	  }
+
+	  // ── Chế độ tương tác thường: kéo chuột để pan bản đồ ──
+	  const drag = dragInfoRef.current;
+	  if (!drag) return;
+
+	  const dx = e.clientX - drag.startX;
+	  const dy = e.clientY - drag.startY;
+	  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) drag.moved = true;
+
+	  if (drag.moved) {
+		const point = getCanvasPoint(drag.startX, drag.startY);
+		if (!point) return;
+		setOffset({
+		  x: drag.startOffsetX + dx * point.scaleX,
+		  y: drag.startOffsetY + dy * point.scaleY,
+		});
+	  }
+	};
+
+	const handlePointerUp = (e: React.PointerEvent) => {
+	  const canvas = canvasRef.current;
+	  if (canvas) canvas.releasePointerCapture(e.pointerId);
+
+	  if (placementMode) {
+		const drag = dragInfoRef.current;
+		dragInfoRef.current = null;
+		setIsPanning(false);
+
+		if (e.button !== 0 || drag?.moved) return; // vừa pan bằng Ctrl+phải, hoặc không phải chuột trái -> không đặt
+
+		const point = getCanvasPoint(e.clientX, e.clientY);
+		if (!point) return;
+		const mapX = point.x - offset.x;
+		const mapY = point.y - offset.y;
+		const gridSize = 20 * zoom;
+		const gridX = Math.floor(mapX / gridSize);
+		const gridY = Math.floor(mapY / gridSize);
+		
+		// Xác nhận đặt công trình
+		// TODO: Check bounds and overlap
+		const newBuildingId = "B_" + Date.now();
+			const newBuilding = {
+				  "Loại": placementMode.type,
+				  "Cấp Độ": 1,
+				  "Tọa Độ X": gridX,
+				  "Tọa Độ Y": gridY,
+				  "Kích Thước": placementMode.size,
+				  "Đang Xây": true,
+				  "Turn Còn Lại": placementMode.turns,
+				};
+
+			const cost = placementMode.cost;
+			const currentGold = resources["Ngân Khố"] || 0;
+			const currentWood = resources["Gỗ"] || 0;
+			const currentStone = resources["Đá"] || 0;
+
+			setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Ngân Khố`, currentGold - (cost["Ngân Khố"] || 0));
+			setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Gỗ`, currentWood - (cost["Gỗ"] || 0));
+			setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Đá`, currentStone - (cost["Đá"] || 0));
+			setByPath(`Lãnh Địa.${territoryId}.Công Trình.${newBuildingId}`, newBuilding);
+
+			setPlacementMode(null);
+			setHoverGrid(null);
+			return;
+	    }
+
+		// Chế độ thường: chọn công trình theo vị trí click
+		setIsPanning(false);
+		  const drag = dragInfoRef.current;
+		  dragInfoRef.current = null;
+		  if (drag?.moved) return;
+
+		  const point = getCanvasPoint(e.clientX, e.clientY);
+		  if (!point) return;
+		  const mapX = point.x - offset.x;
+		  const mapY = point.y - offset.y;
+		  const gridSize = 20 * zoom;
+		  const gridX = Math.floor(mapX / gridSize);
+		  const gridY = Math.floor(mapY / gridSize);
+
+		  let found = null;
+		  for (const [, b] of Object.entries(buildings)) {
+			const bx = (b as any)["Tọa Độ X"] || 0;
+			const by = (b as any)["Tọa Độ Y"] || 0;
+			const size = (b as any)["Kích Thước"] || 1;
+			if (gridX >= bx && gridX < bx + size && gridY >= by && gridY < by + size) {
+			  found = b;
+			  break;
+			}
+		  }
+		  setSelectedBuilding(found);
+		};
+
+	const handlePointerLeave = () => {
+	  dragInfoRef.current = null;
+	  setIsPanning(false);
+	  setHoverGrid(null);
+	};
 
   return (
     <div className="flex flex-col h-full gap-4 relative">
@@ -316,18 +418,19 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
           </div>
       )}
 
-      <div className={`flex-1 bg-black/50 border border-white/10 rounded-lg overflow-hidden relative ${placementMode ? 'cursor-crosshair' : 'cursor-grab'}`}>
-        <canvas 
-          ref={canvasRef} 
-          width={800} 
-          height={600} 
-          className="w-full h-full"
-          onWheel={handleWheel}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={() => { setDragStart(null); setHoverGrid(null); }}
-        />
+		  <div className={`flex-1 bg-black/50 border border-white/10 rounded-lg overflow-hidden relative ${ placementMode ? 'cursor-crosshair' : isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}>
+			  <canvas 
+				ref={canvasRef} 
+				width={800} 
+				height={600} 
+				className="w-full h-full touch-none"
+				onPointerDown={handlePointerDown}
+				onPointerMove={handlePointerMove}
+				onPointerUp={handlePointerUp}
+				onPointerLeave={handlePointerLeave}
+				onPointerCancel={handlePointerLeave}
+				onContextMenu={(e) => e.preventDefault()}
+			/>
         
         {/* Detail Modal overlay */}
         {selectedBuilding && !placementMode && (

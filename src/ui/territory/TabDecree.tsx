@@ -26,7 +26,7 @@ export function TabDecree({ territoryId, holding, isOwner }: { territoryId: stri
       
       if (currentGold < tpl.costGold || currentFood < tpl.costFood) return;
       
-      setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Vàng`, currentGold - tpl.costGold);
+      setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Ngân Khố`, currentGold - tpl.costGold);
       setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Lương Thực`, currentFood - tpl.costFood);
       
       const newDecree = {
