@@ -44,11 +44,7 @@ father: "lannister-father-loren",
     ],
     mother: "lannister-wife-loren",
     siblings: [],
-    rivals: ["aegon-the-conqueror"],
-      startRegions: ["the-westerlands"],
-      startHoldings: ["the-westerlands-seat"],
-      holdingsLevel: {"the-westerlands-seat":5},
-      baseIncome: 800
+    rivals: ["aegon-the-conqueror"]
 },
   {
     id: "mern-ix-gardener",
@@ -181,11 +177,7 @@ father: "arryn-king-sharra",
           { name: "Chiến Binh Vùng Núi", type: "Bộ Binh", size: 10800, quality: "Thành Thạo" },
           { name: "Kỵ Sĩ Thung Lũng", type: "Kỵ Binh", size: 3600, quality: "Thành Thạo" },
           { name: "Cung Thủ Eyrie", type: "Cung Thủ", size: 3600, quality: "Thành Thạo" }
-        ],
-      startRegions: ["the-vale"],
-      startHoldings: ["the-vale-seat"],
-      holdingsLevel: {"the-vale-seat":5},
-      baseIncome: 400
+        ]
 },
   {
     id: "edmyn-tully",
@@ -229,11 +221,7 @@ children: ["tully-son-edmyn"],
     father: "",
     mother: "",
     spouse: "",
-    siblings: [],
-      startRegions: ["the-riverlands"],
-      startHoldings: ["the-riverlands-seat"],
-      holdingsLevel: {"the-riverlands-seat":5},
-      baseIncome: 450
+    siblings: []
 },
   {
     id: "vickon-greyjoy",
@@ -413,11 +401,7 @@ personalHooks: [
           { name: "Đội Tiên Phong Xứ Dorne", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
           { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
           { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
-        ],
-      startRegions: [],
-      startHoldings: [],
-      holdingsLevel: {},
-      baseIncome: 25
+        ]
 },
   {
     id: "dickon-morrigen",
