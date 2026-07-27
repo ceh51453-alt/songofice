@@ -1,194 +1,181 @@
-import React, { useState } from "react";
-import type { StatData, EquipItem, BodyPartSchema } from "../../../mvu/schema";
+import { useState } from "react";
+import type { BodyPartSchema } from "../../../mvu/schema";
 import { z } from "zod";
-import { EquipmentTooltip } from "./EquipmentTooltip";
 
 type BodyPart = z.infer<typeof BodyPartSchema>;
 
 interface Props {
   body: Record<string, BodyPart>;
-  equipped: StatData["Trang Bị Đang Mặc"];
   onClick?: () => void;
-  onDropItem?: (slot: keyof StatData["Trang Bị Đang Mặc"], itemName: string) => void;
   className?: string;
 }
 
-export function BodyVisualizer({ body, equipped, onClick, onDropItem, className = "" }: Props) {
-  const [hoveredSlot, setHoveredSlot] = useState<keyof StatData["Trang Bị Đang Mặc"] | null>(null);
+export function BodyVisualizer({ body, onClick, className = "" }: Props) {
+  const [selectedPart, setSelectedPart] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
-  const getPart = (name: string) => body[name] || { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] };
+  const getPart = (name: string) => body[name] || { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 };
 
   const getFill = (partData: BodyPart) => {
     const hp = partData["Tình Trạng"];
     const ailments = partData["Triệu Chứng"] || [];
-    if (hp <= 0 || ailments.includes("Đứt Lìa") || ailments.includes("Tàn Phế")) return "#171717"; // bg-neutral-900
-    if (ailments.includes("Hoại Tử")) return "#581c87"; // bg-purple-800
-    if (ailments.includes("Nhiễm Độc")) return "#15803d"; // bg-green-700
-    if (hp <= 20) return "var(--danger)";
-    if (hp <= 50) return "#ea580c"; // bg-orange-600
-    if (hp <= 80) return "var(--warn)";
-    return "#64748b"; // bg-slate-500
+    if (hp <= 0 || ailments.includes("Đứt Lìa") || ailments.includes("Tàn Phế") || ailments.includes("Mất Huyết Áp")) return "#0f172a"; // bg-slate-900 (Black/dead)
+    if (ailments.includes("Hoại Tử")) return "#4c1d95"; // deep purple
+    if (ailments.includes("Nhiễm Trùng")) return "#166534"; // toxic green
+    if (ailments.includes("Xuất Huyết")) return "#991b1b"; // deep red
+    if (hp <= 20) return "#b91c1c"; // red-700
+    if (hp <= 50) return "#c2410c"; // orange-700
+    if (hp <= 80) return "#b45309"; // amber-700
+    return "#1e293b"; // base anatomical blue (slate-800)
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
 
-  const handleDrop = (e: React.DragEvent, slot: keyof StatData["Trang Bị Đang Mặc"]) => {
-    e.preventDefault();
-    const itemName = e.dataTransfer.getData("text/plain");
-    if (itemName && onDropItem) {
-      onDropItem(slot, itemName);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    setTooltipPos({ x: e.clientX, y: e.clientY });
-  };
 
   const renderPart = (
     name: string,
-    slot: keyof StatData["Trang Bị Đang Mặc"],
     basePath: string,
-    equipRender?: (item: EquipItem) => React.ReactNode
   ) => {
     const data = getPart(name);
-    const rawItem = equipped?.[slot];
-    const item = rawItem && rawItem["Tên"] ? rawItem : null;
     const fill = getFill(data);
 
-    const isValyrian = item?.["Phẩm Chất"] === "Thép Valyria" || item?.["Phẩm Chất"] === "Huyền Thoại";
-    const filter = isValyrian ? "drop-shadow(0 0 4px rgba(245, 158, 11, 0.8))" : "none";
-
     return (
-      <g
-        onMouseEnter={() => item && setHoveredSlot(slot)}
-        onMouseLeave={() => setHoveredSlot(null)}
-        onMouseMove={handleMouseMove}
-        onDragOver={handleDragOver}
-        onDrop={(e) => handleDrop(e, slot)}
-        className="cursor-pointer transition-all duration-300 hover:brightness-110"
-        style={{ filter }}
-      >
-        {/* Base Body Part */}
-        <path d={basePath} fill={fill} stroke="#334155" strokeWidth="1" />
-        
-        {/* Equipment Overlay */}
-        {item && equipRender && equipRender(item)}
-      </g>
+      <path 
+        d={basePath} 
+        fill={fill} 
+        stroke="#94a3b8" 
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        onClick={(e) => {
+          e.stopPropagation();
+          setTooltipPos({ x: e.clientX, y: e.clientY });
+          setSelectedPart(name);
+        }}
+        className="cursor-pointer transition-colors duration-300 hover:brightness-150 drop-shadow-md"
+      />
     );
   };
 
-  const hoveredItem = hoveredSlot && equipped?.[hoveredSlot]?.["Tên"] ? equipped[hoveredSlot] : null;
+  const selectedData = selectedPart ? getPart(selectedPart) : null;
+  
+  // Format seconds to mm:ss or hh:mm:ss
+  const formatTime = (secs: number) => {
+    if (secs <= 0) return "0s";
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = Math.floor(secs % 60);
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
 
   return (
     <div 
       className={`relative ${className}`} 
-      onClick={onClick}
-      style={{ width: "160px", height: "240px" }} // Default size, can be scaled
+      onClick={() => {
+        setSelectedPart(null);
+        if (onClick) onClick();
+      }}
+      style={{ width: "200px", height: "400px", margin: "0 auto" }}
     >
-      <svg viewBox="0 0 100 150" className="w-full h-full drop-shadow-lg overflow-visible">
+      <svg viewBox="0 0 200 400" className="w-full h-full overflow-visible">
         <defs>
           <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(245, 158, 11, 0.4)" />
-            <stop offset="100%" stopColor="rgba(245, 158, 11, 0)" />
+            <stop offset="0%" stopColor="rgba(148, 163, 184, 0.1)" />
+            <stop offset="100%" stopColor="rgba(148, 163, 184, 0)" />
           </radialGradient>
         </defs>
 
-        {/* Head (Mũ/Nón) */}
-        {renderPart("Đầu", "Mũ/Nón", "M 50 10 A 12 12 0 1 1 49.9 10", (item) => {
-          const c = item.VisualColor || "#94a3b8";
-          if (item.VisualClass === "crown") {
-            return <path d="M 38 20 L 42 10 L 50 15 L 58 10 L 62 20 Z" fill="#d97706" stroke="#fcd34d" strokeWidth="1" />;
-          }
-          return <path d="M 37 15 A 13 13 0 0 1 63 15 L 63 22 L 37 22 Z" fill={c} stroke="#475569" strokeWidth="1" />;
-        })}
+        <rect x="-50" y="-50" width="300" height="500" fill="url(#glow)" pointerEvents="none" />
 
-        {/* Torso (Giáp Thân - Ngực & Bụng) */}
-        {renderPart("Ngực", "Giáp Thân", "M 35 30 L 65 30 L 60 70 L 40 70 Z", (item) => {
-          const c = item.VisualColor || "#cbd5e1";
-          return (
-            <path 
-              d="M 34 29 L 66 29 L 62 72 L 38 72 Z" 
-              fill={c} 
-              opacity="0.9" 
-              stroke="#64748b" 
-              strokeWidth="1.5"
-            />
-          );
-        })}
+        {/* Head */}
+        {renderPart("Đầu", "M 85 20 C 85 5, 115 5, 115 20 C 115 40, 105 50, 100 50 C 95 50, 85 40, 85 20 Z")}
+        
+        {/* Cổ (Neck) */}
+        {renderPart("Cổ", "M 92 48 L 108 48 L 110 65 C 105 68, 95 68, 90 65 Z")}
+        
+        {/* Ngực (Chest) */}
+        {renderPart("Ngực", "M 75 75 C 90 70, 110 70, 125 75 L 120 120 C 105 125, 95 125, 80 120 Z")}
+        
+        {/* Sườn (Ribs/Flanks) */}
+        {renderPart("Sườn Trái", "M 65 75 C 70 73, 72 74, 75 75 L 80 120 L 75 140 C 65 115, 62 90, 65 75 Z")}
+        {renderPart("Sườn Phải", "M 135 75 C 130 73, 128 74, 125 75 L 120 120 L 125 140 C 135 115, 138 90, 135 75 Z")}
+        
+        {/* Bụng (Abdomen) */}
+        {renderPart("Bụng", "M 80 120 C 95 125, 105 125, 120 120 L 115 170 C 105 175, 95 175, 85 170 Z")}
+        
+        {/* Vai (Shoulders) */}
+        {renderPart("Vai Trái", "M 90 65 L 65 75 C 50 80, 45 95, 50 110 L 65 105 Z")}
+        {renderPart("Vai Phải", "M 110 65 L 135 75 C 150 80, 155 95, 150 110 L 135 105 Z")}
 
-        {/* Left Arm (Vũ Khí Phụ) */}
-        {renderPart("Tay Trái", "Vũ Khí Phụ", "M 33 32 L 20 65 L 25 68 L 36 38 Z", (item) => {
-          if (item.VisualClass === "dagger") {
-            return <path d="M 22 75 L 18 55 L 24 55 Z" fill="#e2e8f0" stroke="#64748b" strokeWidth="1" />;
-          }
-          return null;
-        })}
+        {/* Bắp Tay (Upper Arm) */}
+        {renderPart("Bắp Tay Trái", "M 50 110 L 65 105 L 55 160 C 50 162, 45 160, 40 155 Z")}
+        {renderPart("Bắp Tay Phải", "M 150 110 L 135 105 L 145 160 C 150 162, 155 160, 160 155 Z")}
 
-        {/* Shield (Khiên) */}
-        {renderPart("Tay Trái", "Khiên", "M 0 0", (item) => {
-          const c = item.VisualColor || "#475569";
-          if (item.VisualClass === "shield") {
-            return <path d="M 12 55 Q 22 45 32 55 L 28 75 Q 22 85 16 75 Z" fill={c} stroke="#94a3b8" strokeWidth="1" />;
-          }
-          return null;
-        })}
+        {/* Cẳng Tay (Forearm) */}
+        {renderPart("Cẳng Tay Trái", "M 40 155 L 55 160 C 50 190, 48 210, 45 220 L 32 215 C 34 200, 36 170, 40 155 Z")}
+        {renderPart("Cẳng Tay Phải", "M 160 155 L 145 160 C 150 190, 152 210, 155 220 L 168 215 C 166 200, 164 170, 160 155 Z")}
 
-        {/* Right Arm (Vũ Khí Chính) */}
-        {renderPart("Tay Phải", "Vũ Khí Chính", "M 67 32 L 80 65 L 75 68 L 64 38 Z", (item) => {
-          const c = item.VisualColor || "#e2e8f0";
-          if (item.VisualClass === "sword" || item.VisualClass === "greatsword") {
-            const w = item.VisualClass === "greatsword" ? 6 : 4;
-            const l = item.VisualClass === "greatsword" ? 110 : 90;
-            return (
-              <g transform={`translate(77, 66) rotate(-30)`}>
-                <rect x={-w/2} y={-l} width={w} height={l} fill={c} rx="1" />
-                <rect x={-w-2} y={-20} width={w*2+4} height={4} fill="#d97706" />
-                <rect x={-w/2+1} y={-4} width={w-2} height={12} fill="#78350f" />
-              </g>
-            );
-          }
-          if (item.VisualClass === "warhammer") {
-            return (
-              <g transform={`translate(77, 66) rotate(-30)`}>
-                <rect x="-2" y="-60" width="4" height="70" fill="#475569" />
-                <rect x="-8" y="-60" width="16" height="12" fill={item.VisualColor || "#334155"} rx="2" />
-              </g>
-            );
-          }
-          if (item.VisualClass === "bow") {
-             return (
-               <path d="M 70 40 Q 90 65 70 90" fill="none" stroke="#78350f" strokeWidth="3" />
-             );
-          }
-          return null;
-        })}
+        {/* Bàn Tay (Hand) */}
+        {renderPart("Bàn Tay Trái", "M 32 215 L 45 220 L 40 250 L 25 245 Z")}
+        {renderPart("Bàn Tay Phải", "M 168 215 L 155 220 L 160 250 L 175 245 Z")}
 
-        {/* Legs (Vật Phẩm Đặc Biệt / Giày) */}
-        {renderPart("Chân Trái", "Vật Phẩm Đặc Biệt", "M 41 72 L 41 120 L 48 120 L 48 72 Z", (item) => {
-          return <path d="M 40 100 L 40 122 L 49 122 L 49 100 Z" fill={item.VisualColor || "#1e293b"} opacity="0.9" />;
-        })}
-        {renderPart("Chân Phải", "Vật Phẩm Đặc Biệt", "M 52 72 L 52 120 L 59 120 L 59 72 Z", (item) => {
-          return <path d="M 51 100 L 51 122 L 60 122 L 60 100 Z" fill={item.VisualColor || "#1e293b"} opacity="0.9" />;
-        })}
+        {/* Đùi (Thigh) */}
+        {renderPart("Đùi Trái", "M 85 170 C 90 172, 95 172, 100 175 C 95 210, 92 240, 90 260 L 70 255 C 75 220, 80 190, 85 170 Z")}
+        {renderPart("Đùi Phải", "M 115 170 C 110 172, 105 172, 100 175 C 105 210, 108 240, 110 260 L 130 255 C 125 220, 120 190, 115 170 Z")}
+
+        {/* Đầu Gối (Knee) */}
+        {renderPart("Đầu Gối Trái", "M 70 255 L 90 260 C 90 270, 88 275, 88 280 L 68 275 C 68 270, 70 265, 70 255 Z")}
+        {renderPart("Đầu Gối Phải", "M 130 255 L 110 260 C 110 270, 112 275, 112 280 L 132 275 C 132 270, 130 265, 130 255 Z")}
+
+        {/* Bắp Chân (Calf) */}
+        {renderPart("Bắp Chân Trái", "M 68 275 L 88 280 C 85 310, 82 330, 80 350 L 65 350 C 65 320, 66 300, 68 275 Z")}
+        {renderPart("Bắp Chân Phải", "M 132 275 L 112 280 C 115 310, 118 330, 120 350 L 135 350 C 135 320, 134 300, 132 275 Z")}
+
+        {/* Bàn Chân (Foot) */}
+        {renderPart("Bàn Chân Trái", "M 65 350 L 80 350 L 75 380 L 55 380 Z")}
+        {renderPart("Bàn Chân Phải", "M 135 350 L 120 350 L 125 380 L 145 380 Z")}
       </svg>
 
-      {/* Portal-like Tooltip rendering */}
-      {hoveredItem && (
-        <EquipmentTooltip 
-          item={hoveredItem} 
-          style={{
-            position: "fixed",
-            left: tooltipPos.x + 15,
-            top: tooltipPos.y + 15,
-            pointerEvents: "none"
-          }}
-        />
+      {/* Tooltip */}
+      {selectedPart && selectedData && (
+        <div 
+          className="fixed z-50 bg-[#0f172a]/95 border border-[var(--glass-border)] rounded-md p-3 shadow-2xl backdrop-blur-md min-w-[180px]"
+          style={{ left: tooltipPos.x + 15, top: tooltipPos.y + 15 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center border-b border-white/10 pb-1 mb-2">
+            <h4 className="font-display font-bold text-sm text-[var(--accent-text)] uppercase tracking-widest">{selectedPart}</h4>
+            <button 
+              className="text-slate-400 hover:text-white"
+              onClick={() => {
+                setSelectedPart(null);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex flex-col gap-1 text-xs">
+            <div className="flex justify-between gap-4">
+              <span className="text-[var(--text-muted)]">Tình Trạng:</span>
+              <span className={`font-bold ${selectedData["Tình Trạng"] > 50 ? "text-emerald-400" : "text-red-400"}`}>
+                {selectedData["Tình Trạng"].toFixed(1)}%
+              </span>
+            </div>
+            
+            <div className="flex justify-between gap-4">
+              <span className="text-[var(--text-muted)]">Triệu Chứng:</span>
+              <span className="text-[var(--text-soft)]">{selectedData["Triệu Chứng"].join(", ")}</span>
+            </div>
+
+            {(selectedData["Thời Gian Lành Còn (giây)"] || 0) > 0 && (
+              <div className="flex justify-between gap-4 mt-2 pt-2 border-t border-white/10">
+                <span className="text-amber-400">Đang Hồi Phục:</span>
+                <span className="text-amber-200 font-mono">{formatTime(selectedData["Thời Gian Lành Còn (giây)"]!)}</span>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
 }
-

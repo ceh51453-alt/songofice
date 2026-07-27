@@ -8,6 +8,7 @@ import { aggregateUnits, TRAIN_SCORE, MORALE_SCORE, EQUIP_SCORE, LOGI_SCORE } fr
 import type { BattleSideInput } from "./battleResolver";
 import { type Duelist, BASIC_SKILLS, BASIC_PASSIVES, EXCLUSIVE_SKILLS, EXCLUSIVE_PASSIVES } from "./duel";
 import type { TroopType } from "./terrain";
+import { INJURY_SEVERITY } from "../character/injuryEngine";
 
 function mod(stat: number): number {
   return Math.floor((stat - 10) / 2); // quy đổi 1-20 → bonus kiểu D&D (7.1)
@@ -104,6 +105,8 @@ export function playerDuelist(state: StatData): Duelist {
     inventory: Object.entries(state["Túi Đồ"] || {})
       .filter(([, item]: [string, any]) => item["Số Lượng"] > 0)
       .map(([name]) => name),
+    body: JSON.parse(JSON.stringify(state["Cơ Thể"] || {})),
+    equipped: JSON.parse(JSON.stringify(equipped || {})),
   };
 }
 
@@ -157,26 +160,33 @@ export function enemyDuelistFromAttrs(attrs: Record<string, string>): Duelist {
     skills.push(EXCLUSIVE_SKILLS["khe_lua"]);
   }
 
+  const enemyBody: Record<string, any> = {};
+  for (const part of Object.keys(INJURY_SEVERITY)) {
+    enemyBody[part] = { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 };
+  }
+
   return {
-    name: attrs.enemy || "Đối thủ",
-    hp: num("enemy_hp", 60),
-    maxHp: num("enemy_hp", 60),
-    armorClass: num("enemy_ac", 13),
-    attackMod: num("enemy_atk", 4),
-    damageBonus: num("enemy_dmgbonus", 2),
-    weaponDice: attrs.enemy_dmg && /^\d*d\d+([+-]\d+)?$/i.test(attrs.enemy_dmg) ? attrs.enemy_dmg : "1d8",
-    damageReduction: num("enemy_dr", 2),
-    agilityMod: num("enemy_agi", 1),
-    strength: num("enemy_str", 10),
-    intellect: num("enemy_int", 10),
-    perception: num("enemy_per", 10),
-    stamina: 80,
-    maxStamina: 80,
+    name: attrs.enemy_name || "Kẻ Địch Bí Ẩn",
+    hp: num("enemy_hp", 150),
+    maxHp: num("enemy_max_hp", 150),
+    armorClass: num("enemy_ac", 12),
+    attackMod: num("enemy_attack_mod", 3),
+    damageBonus: num("enemy_damage_bonus", 2),
+    weaponDice: attrs.enemy_weapon_dice || "1d8",
+    damageReduction: num("enemy_dr", 1),
+    agilityMod: num("enemy_agility_mod", 2),
+    strength,
+    intellect: num("enemy_intellect", 10),
+    perception,
+    stamina: num("enemy_stamina", 80),
+    maxStamina: num("enemy_max_stamina", 80),
     valyrianOrObsidian: attrs.enemy_valyrian === "true",
     traits,
     skills,
     passives,
-    inventory: attrs.enemy_potion ? ["Bình Máu"] : []
+    inventory: attrs.enemy_inventory ? attrs.enemy_inventory.split(",") : [],
+    body: enemyBody,
+    equipped: {} // AI equipment durability not fully simulated yet
   };
 }
 

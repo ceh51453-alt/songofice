@@ -18,6 +18,10 @@ function makeNpc(goal?: string, affinity = 0): Npc {
     "Giải Thích": "",
     "Ký Ức": [],
     "Lời Hứa Chưa Giữ": [],
+    "Sự Kiện Đã Tham Gia": [],
+    "Căng Thẳng": 0,
+    "Tiền Tài": 0,
+    "Vị Trí Hiện Tại": "king_s_landing",
     "Tính Cách": {
       "Trục Thiện-Ác": -30,
       "Trục Can Đảm-Hèn Nhát": 40,
@@ -33,7 +37,7 @@ function makeNpc(goal?: string, affinity = 0): Npc {
     "Tình Trạng": "Bình Thường",
     "Mục Tiêu Cá Nhân": goal,
     "Giới Tính": "Nam",
-  } as Npc;
+  } as unknown as Npc;
 }
 
 describe("offscreenSim (16.3)", () => {

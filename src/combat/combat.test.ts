@@ -147,7 +147,7 @@ describe("Duel 1v1 (7.1/7.2/7.14)", () => {
       name: "A", hp: 100, maxHp: 100, armorClass: 14, attackMod: 5, damageBonus: 3,
       weaponDice: "1d8", damageReduction: 3, agilityMod: 2, stamina: 100, maxStamina: 100,
       strength: 10, intellect: 10, perception: 10,
-      skills: Object.values(BASIC_SKILLS), inventory: [],
+      skills: Object.values(BASIC_SKILLS), inventory: [], body: {}, equipped: {},
       ...partial,
     };
   }
@@ -252,8 +252,8 @@ describe("Giao Tranh (7.13)", () => {
 
 describe("Exclusive Skills & Passives", () => {
   it("Máu Tiền Nhân hồi Thể Lực mỗi round", () => {
-    const a = { name: "Tiền Nhân", hp: 100, maxHp: 100, armorClass: 10, attackMod: 0, damageBonus: 0, weaponDice: "1d8", damageReduction: 0, agilityMod: 0, strength: 10, intellect: 10, perception: 10, stamina: 10, maxStamina: 20, valyrianOrObsidian: false, traits: [], skills: [BASIC_SKILLS["tan_cong_thuong"]], passives: [{ id: "mau_tien_nhan", name: "Máu Tiền Nhân", description: "" }], inventory: [] };
-    const b = { name: "Thường", hp: 100, maxHp: 100, armorClass: 10, attackMod: 0, damageBonus: 0, weaponDice: "1d8", damageReduction: 0, agilityMod: 0, strength: 10, intellect: 10, perception: 10, stamina: 10, maxStamina: 20, valyrianOrObsidian: false, traits: [], skills: [BASIC_SKILLS["tan_cong_thuong"]], passives: [], inventory: [] };
+    const a: Duelist = { name: "Tiền Nhân", hp: 100, maxHp: 100, armorClass: 10, attackMod: 0, damageBonus: 0, weaponDice: "1d8", damageReduction: 0, agilityMod: 0, strength: 10, intellect: 10, perception: 10, stamina: 10, maxStamina: 20, valyrianOrObsidian: false, traits: [], skills: [BASIC_SKILLS["tan_cong_thuong"]], passives: [{ id: "mau_tien_nhan", name: "Máu Tiền Nhân", description: "" }], inventory: [], body: {}, equipped: {} };
+    const b: Duelist = { name: "Thường", hp: 100, maxHp: 100, armorClass: 10, attackMod: 0, damageBonus: 0, weaponDice: "1d8", damageReduction: 0, agilityMod: 0, strength: 10, intellect: 10, perception: 10, stamina: 10, maxStamina: 20, valyrianOrObsidian: false, traits: [], skills: [BASIC_SKILLS["tan_cong_thuong"]], passives: [], inventory: [], body: {}, equipped: {} };
     
     let st = startDuel(a, b, 1);
     expect(st.a.stamina).toBe(10);

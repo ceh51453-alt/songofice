@@ -49,6 +49,12 @@ export interface CanonCharacter {
   birthYear?: number;
   age: number;
   coreStats: Record<CoreStat, number>;
+  năngLực?: {
+    "Võ Lực": number;
+    "Thống Soái": number;
+    "Trí Mưu": number;
+    "Ngoại Giao": number;
+  };
   /** id thiên phú từ ngân hàng talents.ts. */
   talentIds: string[];
   /** {skillId: cấp}. */
@@ -93,6 +99,14 @@ export interface CanonCharacter {
   siblings?: string[];
   allies?: string[];
   rivals?: string[];
+  
+  /** Thông tin chi tiết mô tả mạng lưới quan hệ (bổ sung cho các mảng ở trên) */
+  relationshipDetails?: Record<string, { type?: string; detail: string; trust?: number; affinity?: number }>;
+  
+  /** Bí mật huyết thống thật sự (dùng cho các trường hợp như con cái của Cersei/Jaime hoặc Jon Snow) */
+  secretBiologicalFather?: string;
+  secretBiologicalMother?: string;
+
   /** Cấp độ thành trì ban đầu (VD: { "winterfell": 5 }) */
   holdingsLevel?: Record<string, number>;
   /** Thu nhập Vàng cơ bản mỗi turn */

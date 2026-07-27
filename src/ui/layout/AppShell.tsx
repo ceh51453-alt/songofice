@@ -35,6 +35,8 @@ import { registerDiseaseLoop } from "../../character/diseaseEngine";
 import { registerOffscreenLoop } from "../../npc/offscreenSim";
 import { warmupTokenizer } from "../../prompt/tokenizer";
 import { initAudioEngine } from "../../audio/audioEngine";
+import { startRealtimeHealingLoop } from "../../character/injuryEngine";
+import { useMvuStore } from "../../state/mvuStore";
 import { WorldNewsFab } from "../components/WorldNewsFab";
 import { WorkflowSettings } from "../menu/WorkflowSettings";
 import { IconBroom, IconCrossedSwords, IconInspect, IconSettings, IconBook } from "../icons";
@@ -79,6 +81,13 @@ export function AppShell() {
     void warmupTokenizer();
     void refreshPresets();
     void refreshLore();
+
+    const healTimer = startRealtimeHealingLoop(
+      () => useMvuStore.getState().stat,
+      (stat) => useMvuStore.setState({ stat })
+    );
+
+    return () => clearInterval(healTimer);
   }, [refreshPresets, refreshLore]);
 
   const tabClass = (tab: SettingsTab) =>

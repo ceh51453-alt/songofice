@@ -13,6 +13,7 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     deathYear: 15,
     age: 25,
     coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 12, "Thể Chất": 13, "Trí Tuệ": 14, "Tinh Tường": 14, "Uy Tín": 15 },
+    năngLực: { "Võ Lực": 65, "Thống Soái": 75, "Trí Mưu": 70, "Ngoại Giao": 70 },
     talentIds: ["born-leader", "wealthy"],
     skills: { "Chỉ Huy": 10, "Ngoại Giao": 10, "Cận Chiến (Kiếm)": 8 },
     equipment: [],
@@ -58,6 +59,7 @@ father: "lannister-father-loren",
     deathYear: -2,
     age: 45,
     coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 10, "Thể Chất": 15, "Trí Tuệ": 12, "Tinh Tường": 13, "Uy Tín": 14 },
+    năngLực: { "Võ Lực": 70, "Thống Soái": 70, "Trí Mưu": 60, "Ngoại Giao": 65 },
     talentIds: ["born-leader", "arrogant"],
     skills: { "Chỉ Huy": 12, "Cận Chiến (Kiếm)": 10 },
     equipment: [],
@@ -102,6 +104,7 @@ father: "lannister-father-loren",
     birthYear: -30,
     age: 30,
     coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 16 },
+    năngLực: { "Võ Lực": 40, "Thống Soái": 80, "Trí Mưu": 80, "Ngoại Giao": 75 },
     talentIds: ["cunning", "diplomat"],
     skills: { "Ngoại Giao": 15, "Thuyết Phục": 12, "Quản Lý": 14 },
     equipment: [],
@@ -146,6 +149,7 @@ father: "lannister-father-loren",
     birthYear: -6,
     age: 6,
     coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 10, "Tinh Tường": 9, "Uy Tín": 12 },
+    năngLực: { "Võ Lực": 30, "Thống Soái": 60, "Trí Mưu": 50, "Ngoại Giao": 45 },
     talentIds: ["innocent"],
     skills: { "Cưỡi Ngựa": 5 },
     equipment: [],
@@ -190,6 +194,7 @@ father: "arryn-king-sharra",
     birthYear: -40,
     age: 40,
     coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 14, "Tinh Tường": 14, "Uy Tín": 15 },
+    năngLực: { "Võ Lực": 60, "Thống Soái": 75, "Trí Mưu": 70, "Ngoại Giao": 70 },
     talentIds: ["pragmatic", "born-leader"],
     skills: { "Chỉ Huy": 12, "Ngoại Giao": 10, "Cận Chiến (Kiếm)": 10 },
     equipment: [],
@@ -234,6 +239,7 @@ children: ["tully-son-edmyn"],
     birthYear: -35,
     age: 35,
     coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 12, "Thể Chất": 15, "Trí Tuệ": 13, "Tinh Tường": 15, "Uy Tín": 12 },
+    năngLực: { "Võ Lực": 70, "Thống Soái": 60, "Trí Mưu": 65, "Ngoại Giao": 75 },
     talentIds: ["ironborn", "resilient"],
     skills: { "Hàng Hải": 15, "Cận Chiến (Rìu)": 12, "Chỉ Huy": 10 },
     equipment: [],
@@ -281,6 +287,7 @@ children: ["tully-son-edmyn"],
     deathYear: 13,
     age: 80,
     coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 5, "Thể Chất": 10, "Trí Tuệ": 18, "Tinh Tường": 20, "Uy Tín": 16 },
+    năngLực: { "Võ Lực": 25, "Thống Soái": 80, "Trí Mưu": 90, "Ngoại Giao": 100 },
     talentIds: ["stubborn", "strategic-mind"],
     skills: { "Ngoại Giao": 15, "Chiến Lược": 18, "Lịch Sử": 15 },
     equipment: [],
@@ -326,6 +333,7 @@ children: ["tully-son-edmyn"],
     deathYear: 35,
     age: 40,
     coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 15 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 75, "Trí Mưu": 75, "Ngoại Giao": 70 },
     talentIds: ["diplomat", "peace-maker"],
     skills: { "Ngoại Giao": 16, "Chính Trị": 14 },
     equipment: [],
@@ -370,6 +378,7 @@ children: ["tully-son-edmyn"],
     birthYear: -15,
     age: 15,
     coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 12, "Thể Chất": 10, "Trí Tuệ": 14, "Tinh Tường": 16, "Uy Tín": 16 },
+    năngLực: { "Võ Lực": 40, "Thống Soái": 80, "Trí Mưu": 70, "Ngoại Giao": 80 },
     talentIds: ["brave", "persuasive"],
     skills: { "Ngoại Giao": 14, "Can Đảm": 12 },
     equipment: [],
@@ -415,6 +424,7 @@ personalHooks: [
     deathYear: 0,
     age: 30,
     coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 14, "Thể Chất": 16, "Trí Tuệ": 10, "Tinh Tường": 15, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 75, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 75 },
     talentIds: ["brave", "loyal"],
     skills: { "Cận Chiến (Kiếm)": 14, "Chỉ Huy": 12 },
     equipment: [],
@@ -451,6 +461,7 @@ personalHooks: [
   {
     id: "lannister-father-loren", name: "Cựu Vương Lannister", tuocVi: "Thường Dân", house: "Lannister", role: "Cựu Vương", religion: "Thất Diện Thần", blurb: "Cha của Loren Lannister.",
     birthYear: -50, deathYear: -1, age: 50, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 10,
@@ -479,6 +490,7 @@ personalHooks: [
   {
     id: "lannister-wife-loren", name: "Vương Hậu Lannister", tuocVi: "Vương Hậu", house: "Lannister", role: "Vương Hậu", religion: "Thất Diện Thần", blurb: "Vợ của Loren Lannister.",
     birthYear: -25, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 10,
@@ -507,6 +519,7 @@ personalHooks: [
   {
     id: "lyman-lannister", name: "Lyman Lannister", tuocVi: "Vương Thân", house: "Lannister", role: "Con trai Loren", religion: "Thất Diện Thần", blurb: "Người thừa kế của Loren Lannister.",
     birthYear: -5, age: 5, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 10,
@@ -534,6 +547,7 @@ personalHooks: [
   {
     id: "edmund-gardener", name: "Edmund Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Thái tử", religion: "Thất Diện Thần", blurb: "Con trai trưởng của Mern IX.",
     birthYear: -25, deathYear: -2, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,
@@ -562,6 +576,7 @@ personalHooks: [
   {
     id: "gawen-gardener", name: "Gawen Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai thứ của Mern IX.",
     birthYear: -23, deathYear: -2, age: 23, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,
@@ -590,6 +605,7 @@ personalHooks: [
   {
     id: "garth-gardener", name: "Garth Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai của Mern IX.",
     birthYear: -20, deathYear: -2, age: 20, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,
@@ -618,6 +634,7 @@ personalHooks: [
   {
     id: "moryn-gardener", name: "Moryn Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai út của Mern IX.",
     birthYear: -18, deathYear: -2, age: 18, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,
@@ -646,6 +663,7 @@ personalHooks: [
   {
     id: "arryn-king-sharra", name: "Cựu Vương Arryn", tuocVi: "Thường Dân", house: "Arryn", role: "Vua đã mất", religion: "Thất Diện Thần", blurb: "Người chồng đã mất của Sharra Arryn.",
     birthYear: -40, deathYear: -6, age: 34, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,
@@ -673,6 +691,7 @@ personalHooks: [
   {
     id: "jonos-arryn", name: "Jonos Arryn", tuocVi: "Vương Thân", house: "Arryn", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Em trai của Ronnel Arryn.",
     birthYear: -4, age: 4, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,
@@ -700,6 +719,7 @@ personalHooks: [
   {
     id: "tully-son-edmyn", name: "Con trai Edmyn", tuocVi: "Người Thừa Kế", house: "Tully", role: "Người Thừa Kế", religion: "Thất Diện Thần", blurb: "Người kế vị Riverrun.",
     birthYear: -10, age: 10, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 30,
@@ -728,6 +748,7 @@ personalHooks: [
   {
     id: "goren-greyjoy", name: "Goren Greyjoy", tuocVi: "Người Thừa Kế", house: "Greyjoy", role: "Người Thừa Kế", religion: "Đần Thần (Drowned God)", blurb: "Con trai cả của Vickon Greyjoy.",
     birthYear: -15, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 60, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 30,
@@ -759,6 +780,7 @@ personalHooks: [
   {
     id: "aerion-targaryen", name: "Aerion Targaryen", tuocVi: "Lãnh Chúa", house: "Targaryen", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Aegon, Visenya, và Rhaenys.",
     birthYear: -50, deathYear: -2, age: 48, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 200,
@@ -790,6 +812,7 @@ personalHooks: [
   {
     id: "valaena-velaryon", name: "Valaena Velaryon", tuocVi: "Tiểu Thư", house: "Velaryon", role: "Phu Nhân", religion: "Thất Diện Thần", blurb: "Mẹ của Aegon, Visenya, và Rhaenys.",
     birthYear: -48, deathYear: -2, age: 46, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,
@@ -820,6 +843,7 @@ personalHooks: [
   {
     id: "hoare-son-harren", name: "Thái Tử Hoare", tuocVi: "Người Thừa Kế", house: "Hoare", role: "Con trai Harren", religion: "Thần Chết Chìm", blurb: "Người con sẽ chết trong lửa rồng cùng cha.",
     birthYear: -30, deathYear: 2, age: 30, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,
@@ -847,6 +871,7 @@ personalHooks: [
   {
     id: "brandon-snow", name: "Brandon Snow", tuocVi: "Thường Dân", house: "Stark", role: "Anh em của Torrhen", religion: "Cựu Thần", blurb: "Con hoang của phương Bắc, đã từng đề xuất ám sát rồng Targaryen.",
     birthYear: -28, age: 28, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 65, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 60,
@@ -874,6 +899,7 @@ personalHooks: [
   {
     id: "stark-son-torrhen", name: "Con trai Torrhen", tuocVi: "Người Thừa Kế", house: "Stark", role: "Người Thừa Kế", religion: "Cựu Thần", blurb: "Con trai của Torrhen Stark, phẫn nộ vì cha phải quỳ gối.",
     birthYear: -10, age: 10, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 60,
@@ -902,6 +928,7 @@ personalHooks: [
   {
     id: "argella-durrandon", name: "Argella Durrandon", tuocVi: "Công Chúa", house: "Durrandon", role: "Nữ Vương Bão", religion: "Thất Diện Thần", blurb: "Con gái của Argilac, người sẽ lấy Orys Baratheon.",
     birthYear: -18, age: 18, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 14 },
+    năngLực: { "Võ Lực": 50, "Thống Soái": 70, "Trí Mưu": 60, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
     startResources: {
       "Gỗ": 20,

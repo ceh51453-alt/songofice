@@ -156,7 +156,6 @@ export function StatusPanel() {
         <div className="hover:bg-white/5 rounded-lg transition-colors" title="Nhấn để xem trang bị">
           <BodyVisualizer 
             body={stat["Cơ Thể"] || {}} 
-            equipped={stat["Trang Bị Đang Mặc"] || {}} 
             onClick={() => setEquipModalOpen(true)}
           />
         </div>

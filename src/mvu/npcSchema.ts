@@ -60,6 +60,21 @@ export const NpcIntimacySchema = z
   })
   .prefault({});
 
+/** Chi tiết quan hệ giữa NPC này với một NPC khác */
+export const NpcRelationshipSchema = z
+  .object({
+    "Loại Quan Hệ": z.enum([
+      "Cha/Mẹ", "Con Cái", "Anh Chị Em", "Vợ/Chồng", "Hôn Ước", "Tình Nhân",
+      "Đồng Minh", "Kẻ Thù", "Cấp Trên", "Thuộc Hạ", "Bằng Hữu", "Đối Thủ",
+      "Ân Nhân", "Con Nợ", "Thầy", "Trò", "Khác"
+    ]).catch("Khác").prefault("Khác"),
+    "Độ Hảo Cảm": clampedStat(-100, 100, 0),
+    "Độ Tin Cậy": clampedStat(-100, 100, 0),
+    "Công Khai": z.boolean().catch(true).prefault(true), // Nếu false => Bí mật (chỉ người chơi/người trong cuộc biết)
+    "Chi Tiết": safeString().optional(), // Lý do, tiểu sử tóm tắt (vd: "Đã cùng nhau chiến đấu tại Whispering Wood")
+  })
+  .prefault({});
+
 export const NpcSchema = z
   .object({
     // ── ĐỊNH DANH & CHÂN DUNG ──
@@ -123,6 +138,11 @@ export const NpcSchema = z
       })
       .prefault({}),
 
+    // ── CHỈ SỐ RPG VÀ KỸ NĂNG (Bổ sung để hiển thị chi tiết) ──
+    "Chỉ Số Cốt Lõi": z.record(safeString(), safeInt(10)).optional(),
+    "Kỹ Năng": z.record(safeString(), safeInt(0)).optional(),
+    "Thiên Phú": z.array(safeString()).optional(),
+
     // ── GIA TỘC / KẾ VỊ (nối 13.4) ──
     "Người Thừa Kế": z.boolean().catch(false).prefault(false),
     "Thứ Bậc Kế Vị": z.coerce.number().int().optional(),
@@ -156,6 +176,15 @@ export const NpcSchema = z
       )
       .catch({})
       .prefault({}),
+
+    // ── MẠNG LƯỚI QUAN HỆ (Liên NPC) ──
+    "Mạng Lưới Quan Hệ": z.record(safeString(), NpcRelationshipSchema).catch({}).prefault({}),
+    
+    // ── QUAN HỆ BÍ MẬT (Dành cho AI hiểu góc khuất lore, khác biệt với public) ──
+    "Huyết Thống Thật Sự": z.object({
+      "Cha/Mẹ": z.array(safeString()).catch([]).prefault([]), // ID của cha mẹ đẻ nếu khác cha mẹ công khai
+      "Con Cái": z.array(safeString()).catch([]).prefault([])  // ID của con đẻ nếu chúng được gán cho người khác
+    }).optional(),
 
     // ── QUAN HỆ THÂN MẬT (NPC nữ có quan hệ tình cảm với người chơi) ──
     "Quan Hệ Thân Mật": NpcIntimacySchema.optional(),

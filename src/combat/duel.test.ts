@@ -15,7 +15,9 @@ describe("Epic Duel System", () => {
     traits: ["brute_force", "second_wind"],
     strength: 18, intellect: 8, perception: 10,
     skills: Object.values(BASIC_SKILLS),
-    inventory: []
+    inventory: [],
+    body: {},
+    equipped: {}
   };
 
   const oberyn: Duelist = {
@@ -31,7 +33,9 @@ describe("Epic Duel System", () => {
     traits: ["poisoned_blade", "agile_dancer", "riposte"],
     strength: 12, intellect: 14, perception: 16,
     skills: Object.values(BASIC_SKILLS),
-    inventory: []
+    inventory: [],
+    body: {},
+    equipped: {}
   };
 
   it("should initialize duel with traits correctly", () => {

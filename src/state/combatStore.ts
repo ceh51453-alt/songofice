@@ -588,6 +588,22 @@ function finishDuel(duel: DuelState, set: (p: Partial<CombatState>) => void): vo
     { op: "replace", path: "stat_data.Trận Đang Diễn._Đang Chiến Đấu", value: false },
     { op: "replace", path: "stat_data.Trận Đang Diễn._Log", value: duel.log },
   ];
+
+  // Sync back anatomical injuries
+  if (playerSide.body) {
+    for (const [partName, partData] of Object.entries(playerSide.body)) {
+      ops.push({ op: "replace", path: `stat_data.Cơ Thể.${partName}`, value: partData });
+    }
+  }
+
+  // Sync back equipment durability
+  if (playerSide.equipped) {
+    for (const [slot, itemData] of Object.entries(playerSide.equipped)) {
+      if (itemData) {
+        ops.push({ op: "replace", path: `stat_data.Trang Bị Đang Mặc.${slot}`, value: itemData });
+      }
+    }
+  }
   if (playerWon) {
     ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Kinh Nghiệm", value: 50 });
   }

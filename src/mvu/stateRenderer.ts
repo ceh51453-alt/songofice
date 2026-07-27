@@ -42,6 +42,21 @@ function fmtNpc(name: string, npc: Npc): string {
   const personalityText = formatPersonalityForPrompt(npc);
   if (personalityText) lines.push(`    ${personalityText}`);
 
+  // Huyết thống thật sự & Mạng lưới quan hệ (Lore context)
+  if (npc["Huyết Thống Thật Sự"]) {
+    const ht = npc["Huyết Thống Thật Sự"];
+    if (ht["Cha/Mẹ"]?.length > 0) lines.push(`    (Huyết thống thật: Cha/mẹ ruột là ${ht["Cha/Mẹ"].join(", ")})`);
+    if (ht["Con Cái"]?.length > 0) lines.push(`    (Huyết thống thật: Có con ruột bí mật là ${ht["Con Cái"].join(", ")})`);
+  }
+  if (npc["Mạng Lưới Quan Hệ"]) {
+    const net = npc["Mạng Lưới Quan Hệ"];
+    const entries = Object.entries(net);
+    if (entries.length > 0) {
+      const netDesc = entries.map(([tgt, info]) => `${tgt} (${info["Công Khai"] ? "Công khai" : "Bí mật"}: ${info["Loại Quan Hệ"]}${info["Chi Tiết"] ? ` - ${info["Chi Tiết"]}` : ""})`).join(" | ");
+      lines.push(`    Quan hệ lore: ${netDesc}`);
+    }
+  }
+
   // quan hệ thân mật (NPC nữ)
   const intimacy = npc["Quan Hệ Thân Mật"];
   if (intimacy) {

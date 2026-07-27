@@ -161,13 +161,6 @@ export function EquipmentModal({ open, onClose }: Props) {
           <div className="scale-125 my-6">
             <BodyVisualizer 
               body={stat["Cơ Thể"] || {}} 
-              equipped={equipped} 
-              onDropItem={(slot, itemIdentifier) => {
-                const index = parseInt(itemIdentifier, 10);
-                if (!isNaN(index)) {
-                  handleEquipFromInventory(index, slot as SlotType);
-                }
-              }}
             />
           </div>
 

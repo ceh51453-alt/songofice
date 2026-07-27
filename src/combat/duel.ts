@@ -3,6 +3,7 @@
  */
 import { makeRng, rollDiceNotation, type RNG } from "../probability/rng";
 import { clamp } from "../mvu/helpers";
+import { applyDamage } from "../character/injuryEngine";
 
 export interface ActiveSkill {
   id: string;
@@ -50,7 +51,9 @@ export interface Duelist {
   buffs?: Record<string, number>;
   skills: ActiveSkill[];
   passives?: PassiveSkill[];
-  inventory: string[]; 
+  inventory: string[];
+  body: Record<string, any>;
+  equipped: Record<string, any>;
 }
 
 export interface AttackEvent {
@@ -68,6 +71,7 @@ export interface AttackEvent {
   woundsInflicted?: string[];
   fatality?: string;
   riposte?: boolean;
+  hitBodyPart?: string;
 }
 
 export interface DuelState {
@@ -118,8 +122,8 @@ export const EXCLUSIVE_SKILLS: Record<string, ActiveSkill> = {
 
 export function startDuel(a: Duelist, b: Duelist, seed: number): DuelState {
   const rng = makeRng(seed);
-  const duelistA: Duelist = { ...a, traits: a.traits || [], wounds: [], buffs: {} };
-  const duelistB: Duelist = { ...b, traits: b.traits || [], wounds: [], buffs: {} };
+  const duelistA: Duelist = { ...a, traits: a.traits || [], wounds: [], buffs: {}, body: JSON.parse(JSON.stringify(a.body || {})), equipped: JSON.parse(JSON.stringify(a.equipped || {})) };
+  const duelistB: Duelist = { ...b, traits: b.traits || [], wounds: [], buffs: {}, body: JSON.parse(JSON.stringify(b.body || {})), equipped: JSON.parse(JSON.stringify(b.equipped || {})) };
 
   const initA = 1 + Math.floor(rng() * 20) + duelistA.agilityMod;
   const initB = 1 + Math.floor(rng() * 20) + duelistB.agilityMod;
@@ -161,7 +165,7 @@ function processSkill(rng: RNG, attacker: Duelist, defender: Duelist, skill: Act
   const natRoll = 1 + Math.floor(rng() * 20);
   
   let attackMod = attacker.attackMod + effSkill.hitMod - (exhausted ? 2 : 0);
-  if (attacker.wounds?.includes("Chấn Thương Tay")) attackMod -= 2;
+  if (attacker.wounds?.some(w => ["Tàn Phế", "Gãy Xương", "Đứt Lìa"].includes(w))) attackMod -= 2;
   if (attacker.buffs?.["second_wind"] && attacker.buffs["second_wind"] > 0) attackMod += 2;
   if (attacker.buffs?.["Mù Lòa"]) attackMod -= 4; // Debuff from Ném Cát
   
@@ -187,11 +191,12 @@ function processSkill(rng: RNG, attacker: Duelist, defender: Duelist, skill: Act
   let damage = 0;
   const woundsInflicted: string[] = [];
   let fatality: string | undefined;
+  let hitBodyPart: string | undefined;
 
   if (hit) {
     if (effSkill.type === "attack" || effSkill.type === "debuff") {
       damage = rollDiceNotation(attacker.weaponDice, rng) + attacker.damageBonus + effSkill.damageMod - (exhausted ? 2 : 0);
-      if (attacker.wounds?.includes("Chấn Thương Tay")) damage = Math.max(1, damage - 2);
+      if (attacker.wounds?.some(w => ["Tàn Phế", "Gãy Xương", "Đứt Lìa"].includes(w))) damage = Math.max(1, damage - 2);
       if (isRiposte) damage = Math.max(1, Math.floor(damage / 2));
       
       if (crit) damage *= 2;
@@ -210,6 +215,34 @@ function processSkill(rng: RNG, attacker: Duelist, defender: Duelist, skill: Act
       damage = Math.max(1, damage - dr);
       
       defender.hp = Math.max(0, defender.hp - damage);
+
+      // Weapon and Armor durability
+      if (attacker.equipped && attacker.equipped["Vũ Khí Chính"]) {
+        attacker.equipped["Vũ Khí Chính"]["Độ Bền"] = Math.max(0, (attacker.equipped["Vũ Khí Chính"]["Độ Bền"] || 100) - 1);
+      }
+      if (defender.equipped && defender.equipped["Giáp Thân"]) {
+        defender.equipped["Giáp Thân"]["Độ Bền"] = Math.max(0, (defender.equipped["Giáp Thân"]["Độ Bền"] || 100) - 2);
+      }
+      
+      // Target Body Part and Apply Anatomical Damage
+      const targetableParts = ["Đầu", "Ngực", "Ngực", "Ngực", "Bụng", "Bụng", "Vai Trái", "Vai Phải", "Bắp Tay Trái", "Bắp Tay Phải", "Đùi Trái", "Đùi Phải"];
+      hitBodyPart = targetableParts[Math.floor(rng() * targetableParts.length)];
+      
+      const { died, newSymptoms } = applyDamage(defender.body, hitBodyPart, damage);
+      
+      if (died) {
+        fatality = hitBodyPart === "Đầu" ? "Bị chém đứt đầu ngay tại chỗ" : 
+                   hitBodyPart === "Ngực" ? "Bị đâm xuyên tim" :
+                   hitBodyPart === "Cổ" ? "Bị cắt đứt cuống họng" : 
+                   "Gục ngã do vết thương chí mạng";
+        defender.hp = 0; // Force death
+      } else if (newSymptoms.length > 0) {
+        woundsInflicted.push(...newSymptoms);
+        // Sync these to old generic wounds array so legacy systems don't crash
+        newSymptoms.forEach(sym => {
+          if (!defender.wounds?.includes(sym)) defender.wounds?.push(sym);
+        });
+      }
     }
 
     // Apply Effects
@@ -232,14 +265,6 @@ function processSkill(rng: RNG, attacker: Duelist, defender: Duelist, skill: Act
 
     // Wounds
     if (defender.hp > 0 && !isRiposte && damage > 0) {
-      if (crit || damage >= defender.maxHp * 0.3) {
-        const woundRoll = rng();
-        const wound = woundRoll < 0.33 ? "Chấn Thương Tay" : woundRoll < 0.66 ? "Chấn Thương Chân" : "Chảy Máu";
-        if (!defender.wounds?.includes(wound)) {
-          defender.wounds?.push(wound);
-          woundsInflicted.push(wound);
-        }
-      }
       if (attacker.traits?.includes("poisoned_blade") && rng() < 0.3 && !defender.wounds?.includes("Trúng Độc")) {
         defender.wounds?.push("Trúng Độc");
         woundsInflicted.push("Trúng Độc");
@@ -255,8 +280,8 @@ function processSkill(rng: RNG, attacker: Duelist, defender: Duelist, skill: Act
       woundsInflicted.push("Second Wind Triggered");
     }
 
-    // Epic Finisher
-    if (defender.hp <= 0 && crit) {
+    // Epic Finisher (Legacy fallback if anatomical didn't kill but HP dropped to 0)
+    if (defender.hp <= 0 && crit && !fatality) {
       fatality = rng() > 0.5 ? "Bổ đôi khiên và vỡ sọ đối thủ" : "Lưỡi kiếm đâm xuyên qua tim tàn nhẫn";
     }
   }
@@ -264,7 +289,7 @@ function processSkill(rng: RNG, attacker: Duelist, defender: Duelist, skill: Act
   return {
     attacker: attacker.name, defender: defender.name, actionUsed: effSkill.name,
     natRoll, toHit, targetAc, hit, crit, damage, defenderHpAfter: defender.hp, exhausted,
-    woundsInflicted, fatality, riposte: isRiposte
+    woundsInflicted, fatality, riposte: isRiposte, hitBodyPart
   };
 }
 
@@ -381,7 +406,7 @@ export function runDuelRound(state: DuelState, actionA: DuelAction, actionB: Due
       }
 
       // Riposte check (Missed by > 5)
-      if (!ev.hit && (ev.targetAc - ev.toHit) > 5 && target.traits?.includes("riposte") && !target.wounds?.includes("Chấn Thương Tay")) {
+      if (!ev.hit && (ev.targetAc - ev.toHit) > 5 && target.traits?.includes("riposte") && !target.wounds?.some(w => ["Tàn Phế", "Gãy Xương", "Đứt Lìa"].includes(w))) {
         const repEv = processSkill(rng, target, actor, BASIC_SKILLS["tan_cong_thuong"], next.distance, true);
         events.push(repEv);
         next.log.push(`[PHẢN ĐÒN] ${repEv.attacker} chớp thời cơ: d20=${repEv.natRoll} ` + 
@@ -396,8 +421,8 @@ export function runDuelRound(state: DuelState, actionA: DuelAction, actionB: Due
     }
   }
   
-  const recA = next.a.wounds?.includes("Chấn Thương Chân") ? 1 : 3;
-  const recB = next.b.wounds?.includes("Chấn Thương Chân") ? 1 : 3;
+  const recA = next.a.wounds?.some(w => ["Tàn Phế", "Gãy Xương", "Đứt Lìa"].includes(w)) ? 1 : 3;
+  const recB = next.b.wounds?.some(w => ["Tàn Phế", "Gãy Xương", "Đứt Lìa"].includes(w)) ? 1 : 3;
   next.a.stamina = clamp(next.a.stamina + recA, 0, next.a.maxStamina);
   next.b.stamina = clamp(next.b.stamina + recB, 0, next.b.maxStamina);
   

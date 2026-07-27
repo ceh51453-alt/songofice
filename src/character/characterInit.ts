@@ -1030,12 +1030,15 @@ export function buildStateFromCanon(
           "Tin Cậy": true,
           "Loại Quan Hệ": "Gia Thần",
           "Đánh Giá": npc.blurb,
-          "Năng Lực": {
-             "Võ Lực": npc.coreStats["Sức Mạnh"] ?? 10,
-             "Thống Soái": npc.coreStats["Uy Tín"] ?? 10,
-             "Trí Mưu": npc.coreStats["Trí Tuệ"] ?? 10,
-             "Ngoại Giao": npc.coreStats["Tinh Tường"] ?? 10
+          "Năng Lực": npc.năngLực || {
+             "Võ Lực": npc.coreStats["Sức Mạnh"] ?? 30,
+             "Thống Soái": npc.coreStats["Uy Tín"] ?? 30,
+             "Trí Mưu": npc.coreStats["Trí Tuệ"] ?? 30,
+             "Ngoại Giao": npc.coreStats["Tinh Tường"] ?? 30
           },
+          "Chỉ Số Cốt Lõi": npc.coreStats,
+          "Kỹ Năng": npc.skills || {},
+          "Thiên Phú": npc.talentIds || [],
           "Nét Tính Cách": ["Trung Thành"],
         };
         // Gán vào Tiểu Hội Đồng nếu có chức vụ
@@ -1351,6 +1354,29 @@ export function buildStateFromCanon(
       "Đánh Giá": relChar?.blurb || "Thành viên gia tộc.",
       "Ngân Khố": relChar?.gold ?? 5000,
       "Túi Đồ": {},
+      "Huyết Thống Thật Sự": {
+        "Cha/Mẹ": [relChar?.secretBiologicalFather, relChar?.secretBiologicalMother].filter(Boolean) as string[],
+        "Con Cái": []
+      },
+      "Năng Lực": relChar?.năngLực || {
+        "Võ Lực": relChar?.coreStats?.["Sức Mạnh"] ?? 30,
+        "Thống Soái": relChar?.coreStats?.["Uy Tín"] ?? 30,
+        "Trí Mưu": relChar?.coreStats?.["Trí Tuệ"] ?? 30,
+        "Ngoại Giao": relChar?.coreStats?.["Tinh Tường"] ?? 30
+      },
+      "Chỉ Số Cốt Lõi": relChar?.coreStats || { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+      "Kỹ Năng": relChar?.skills || {},
+      "Thiên Phú": relChar?.talentIds || [],
+      "Mạng Lưới Quan Hệ": relChar?.relationshipDetails ? 
+        Object.fromEntries(
+          Object.entries(relChar.relationshipDetails).map(([k, v]) => [k, {
+            "Loại Quan Hệ": v.type || "Khác",
+            "Độ Hảo Cảm": v.affinity ?? 0,
+            "Độ Tin Cậy": v.trust ?? 0,
+            "Công Khai": !v.type?.includes("(Bí mật)"),
+            "Chi Tiết": v.detail
+          }])
+        ) : {}
     };
   }
   
@@ -1368,6 +1394,29 @@ export function buildStateFromCanon(
         "Đánh Giá": relChar?.blurb || "Đồng minh thân cận.",
         "Ngân Khố": relChar?.gold ?? 5000,
         "Túi Đồ": {},
+        "Huyết Thống Thật Sự": {
+          "Cha/Mẹ": [relChar?.secretBiologicalFather, relChar?.secretBiologicalMother].filter(Boolean) as string[],
+          "Con Cái": []
+        },
+        "Năng Lực": relChar?.năngLực || {
+          "Võ Lực": relChar?.coreStats?.["Sức Mạnh"] ?? 30,
+          "Thống Soái": relChar?.coreStats?.["Uy Tín"] ?? 30,
+          "Trí Mưu": relChar?.coreStats?.["Trí Tuệ"] ?? 30,
+          "Ngoại Giao": relChar?.coreStats?.["Tinh Tường"] ?? 30
+        },
+        "Chỉ Số Cốt Lõi": relChar?.coreStats || { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
+        "Kỹ Năng": relChar?.skills || {},
+        "Thiên Phú": relChar?.talentIds || [],
+        "Mạng Lưới Quan Hệ": relChar?.relationshipDetails ? 
+          Object.fromEntries(
+            Object.entries(relChar.relationshipDetails).map(([k, v]) => [k, {
+              "Loại Quan Hệ": v.type || "Khác",
+              "Độ Hảo Cảm": v.affinity ?? 0,
+              "Độ Tin Cậy": v.trust ?? 0,
+              "Công Khai": !v.type?.includes("(Bí mật)"),
+              "Chi Tiết": v.detail
+            }])
+          ) : {}
       };
     }
   }
@@ -1386,6 +1435,20 @@ export function buildStateFromCanon(
         "Đánh Giá": relChar?.blurb || "Kẻ thù không đội trời chung.",
         "Ngân Khố": relChar?.gold ?? 5000,
         "Túi Đồ": {},
+        "Huyết Thống Thật Sự": {
+          "Cha/Mẹ": [relChar?.secretBiologicalFather, relChar?.secretBiologicalMother].filter(Boolean) as string[],
+          "Con Cái": []
+        },
+        "Mạng Lưới Quan Hệ": relChar?.relationshipDetails ? 
+          Object.fromEntries(
+            Object.entries(relChar.relationshipDetails).map(([k, v]) => [k, {
+              "Loại Quan Hệ": v.type || "Khác",
+              "Độ Hảo Cảm": v.affinity ?? 0,
+              "Độ Tin Cậy": v.trust ?? 0,
+              "Công Khai": !v.type?.includes("(Bí mật)"),
+              "Chi Tiết": v.detail
+            }])
+          ) : {}
       };
     }
   }

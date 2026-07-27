@@ -22,6 +22,10 @@ function makeNpc(personality: Partial<Npc["Tính Cách"]> = {}): Npc {
     "Giải Thích": "",
     "Ký Ức": [],
     "Lời Hứa Chưa Giữ": [],
+    "Sự Kiện Đã Tham Gia": [],
+    "Căng Thẳng": 0,
+    "Tiền Tài": 0,
+    "Vị Trí Hiện Tại": "king_s_landing",
     "Tính Cách": {
       "Trục Thiện-Ác": 0,
       "Trục Can Đảm-Hèn Nhát": 0,
@@ -38,7 +42,7 @@ function makeNpc(personality: Partial<Npc["Tính Cách"]> = {}): Npc {
     "Tình Trạng": "Bình Thường",
     "Giới Tính": "Nam",
     "Cung Bậc Phát Triển": "Từ kiêu ngạo đến khiêm nhường",
-  } as Npc;
+  } as unknown as Npc;
 }
 
 describe("personalityEngine (16.2)", () => {

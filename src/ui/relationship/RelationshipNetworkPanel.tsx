@@ -13,6 +13,7 @@ import type { Npc } from "../../mvu/npcSchema";
 import { GlassButton } from "../components/GlassButton";
 import { GlassSelect } from "../components/GlassSelect";
 import { TradeDialog } from "../economy/TradeDialog";
+import { TALENTS_BY_ID } from "../../content/westeros/talents";
 import {
   IconX, IconUsers, IconCrown, IconAlert,
   IconCrossedSwords, IconRefresh, IconSearch,
@@ -187,6 +188,44 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
         strength: Math.min(1, Math.abs(affinity) / 100 + 0.3),
         label: stage,
       });
+    });
+
+    // Thêm các liên kết giữa NPC-NPC (từ Mạng Lưới Quan Hệ)
+    allNpcEntries.forEach(([name, npc]) => {
+      if (npc["Mạng Lưới Quan Hệ"]) {
+        Object.entries(npc["Mạng Lưới Quan Hệ"]).forEach(([targetName, info]) => {
+          // Check if target node exists
+          if (nodeList.some((n) => n.name === targetName)) {
+            const targetNodeId = `npc_${targetName}`;
+            const sourceNodeId = `npc_${name}`;
+            
+            // Avoid duplicate bidirectional links if already added (only draw A->B once or handle gracefully)
+            const existingLink = linkList.find((l) => 
+              (l.source === sourceNodeId && l.target === targetNodeId) || 
+              (l.source === targetNodeId && l.target === sourceNodeId)
+            );
+
+            if (!existingLink) {
+              let linkType: LinkData["type"] = "neutral";
+              const affinity = info["Độ Hảo Cảm"] || 0;
+              const typeStr = info["Loại Quan Hệ"] || "";
+
+              if (typeStr.includes("Vợ") || typeStr.includes("Chồng") || typeStr.includes("Người Tình")) linkType = "intimate";
+              else if (typeStr.includes("Cha") || typeStr.includes("Mẹ") || typeStr.includes("Con") || typeStr.includes("Anh") || typeStr.includes("Chị") || typeStr.includes("Em")) linkType = "family";
+              else if (affinity >= 15 || typeStr.includes("Đồng Minh") || typeStr.includes("Bằng Hữu")) linkType = "alliance";
+              else if (affinity <= -15 || typeStr.includes("Kẻ Thù") || typeStr.includes("Đối Thủ")) linkType = "enemy";
+
+              linkList.push({
+                source: sourceNodeId,
+                target: targetNodeId,
+                type: linkType,
+                strength: Math.min(1, Math.abs(affinity) / 100 + 0.2), // Weaker visually than player links
+                label: `${typeStr} ${!info["Công Khai"] ? "(Bí mật)" : ""}`.trim(),
+              });
+            }
+          }
+        });
+      }
     });
 
     return {
@@ -395,7 +434,7 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
             <div className="w-36">
               <GlassSelect
                 value={filterHouse}
-                onChange={(e) => setFilterHouse(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterHouse(e.target.value)}
               >
                 <option value="all">Mọi Gia Tộc</option>
                 {houseList.map((h) => (
@@ -694,24 +733,32 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                   )}
 
                   {/* Intimacy Details if present */}
-                  {selectedNode.npcData["Quan Hệ Thân Mật"] && (
-                    <div className="rounded-lg border border-[rgba(236,72,153,0.3)] bg-[rgba(236,72,153,0.08)] p-2.5 text-xs space-y-1">
-                      <div className="flex items-center gap-1.5 text-[#ec4899] font-medium">
-                        Thông Tin Ân Ái
-                      </div>
-                      <p className="text-[var(--text-muted)]">
-                        Vai Trò: <span className="text-[var(--text-bright)]">{selectedNode.npcData["Quan Hệ Thân Mật"]["Vai Trò"]}</span>
-                      </p>
-                      <p className="text-[var(--text-muted)]">
-                        Số Lần Ân Ái: <span className="text-[var(--text-bright)]">{selectedNode.npcData["Quan Hệ Thân Mật"]["Số Lần Ân Ái"] ?? 0}</span>
-                      </p>
-                      {selectedNode.npcData["Quan Hệ Thân Mật"]["Đang Mang Thai"] && (
-                        <p className="text-[#f43f5e] font-semibold">
-                          [Mang Thai] (Tháng {selectedNode.npcData["Quan Hệ Thân Mật"]["Tháng Thai Kỳ"] ?? 1})
+                  {selectedNode.npcData["Quan Hệ Thân Mật"] && (() => {
+                    const intimacy = selectedNode.npcData["Quan Hệ Thân Mật"];
+                    const isSpouse = ["Vợ", "Hôn Thê"].includes(intimacy["Vai Trò"]);
+                    if (!isSpouse && (intimacy["Số Lần Ân Ái"] ?? 0) === 0) return null;
+                    
+                    return (
+                      <div className="rounded-lg border border-[rgba(236,72,153,0.3)] bg-[rgba(236,72,153,0.08)] p-2.5 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#ec4899] font-medium">
+                          Thông Tin Ân Ái
+                        </div>
+                        <p className="text-[var(--text-muted)]">
+                          Vai Trò: <span className="text-[var(--text-bright)]">{intimacy["Vai Trò"]}</span>
                         </p>
-                      )}
-                    </div>
-                  )}
+                        {intimacy["Số Lần Ân Ái"] > 0 && (
+                          <p className="text-[var(--text-muted)]">
+                            Số Lần Ân Ái: <span className="text-[var(--text-bright)]">{intimacy["Số Lần Ân Ái"]}</span>
+                          </p>
+                        )}
+                        {intimacy["Đang Mang Thai"] && (
+                          <p className="text-[#f43f5e] font-semibold">
+                            [Mang Thai] (Tháng {intimacy["Tháng Thai Kỳ"] ?? 1})
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Memory Logs */}
                   {selectedNode.npcData["Ký Ức"]?.length > 0 && (
@@ -734,15 +781,69 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                       </div>
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* Action Buttons */}
-              {selectedNode.type !== "player" && selectedNode.npcData && (
-                <div className="mt-4 flex gap-2">
-                  <GlassButton onClick={() => setTradeTargetId(selectedNode.id)} variant="accent" className="flex-1 py-1.5 text-xs">
-                    Giao Dịch
-                  </GlassButton>
+
+
+                  {/* Chỉ Số Cốt Lõi (RPG Stats) */}
+                  {selectedNode.npcData["Chỉ Số Cốt Lõi"] && (
+                    <div>
+                      <h4 className="text-[11px] font-semibold text-[var(--text-faint)] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                        ✨ Chỉ Số Cá Nhân
+                      </h4>
+                      <div className="grid grid-cols-3 gap-y-2 gap-x-2 text-[11px] mb-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[var(--text-muted)]">Sức Mạnh</span>
+                          <span className="font-semibold text-[var(--text-bright)]">{selectedNode.npcData["Chỉ Số Cốt Lõi"]["Sức Mạnh"] ?? 10}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[var(--text-muted)]">Nhanh Nhẹn</span>
+                          <span className="font-semibold text-[var(--text-bright)]">{selectedNode.npcData["Chỉ Số Cốt Lõi"]["Nhanh Nhẹn"] ?? 10}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[var(--text-muted)]">Thể Chất</span>
+                          <span className="font-semibold text-[var(--text-bright)]">{selectedNode.npcData["Chỉ Số Cốt Lõi"]["Thể Chất"] ?? 10}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[var(--text-muted)]">Trí Tuệ</span>
+                          <span className="font-semibold text-[var(--text-bright)]">{selectedNode.npcData["Chỉ Số Cốt Lõi"]["Trí Tuệ"] ?? 10}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[var(--text-muted)]">Tinh Tường</span>
+                          <span className="font-semibold text-[var(--text-bright)]">{selectedNode.npcData["Chỉ Số Cốt Lõi"]["Tinh Tường"] ?? 10}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[var(--text-muted)]">Uy Tín</span>
+                          <span className="font-semibold text-[var(--text-bright)]">{selectedNode.npcData["Chỉ Số Cốt Lõi"]["Uy Tín"] ?? 10}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Thiên Phú */}
+                      {selectedNode.npcData["Thiên Phú"] && selectedNode.npcData["Thiên Phú"].length > 0 && (
+                        <div className="text-[11px] text-[var(--text-muted)] mb-2">
+                          {selectedNode.npcData["Thiên Phú"].map((tId: string) => {
+                            const t = TALENTS_BY_ID[tId];
+                            return t ? t.name : tId;
+                          }).join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Kỹ Năng */}
+                  {selectedNode.npcData["Kỹ Năng"] && Object.keys(selectedNode.npcData["Kỹ Năng"]).length > 0 && (
+                    <div className="border-t border-[var(--glass-border)] pt-2">
+                      <h4 className="text-[11px] font-semibold text-[var(--text-faint)] uppercase tracking-wider mb-1.5">
+                        Kỹ Năng
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5 text-[10px]">
+                        {Object.entries(selectedNode.npcData["Kỹ Năng"]).map(([k, v]) => (
+                          <span key={k} className="rounded bg-[var(--glass-border)]/20 px-1.5 py-0.5 text-[var(--text-muted)] border border-[var(--glass-border)]">
+                            {k}: <span className="font-medium text-[var(--text-bright)]">{v as number}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

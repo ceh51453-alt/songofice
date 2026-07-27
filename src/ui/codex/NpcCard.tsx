@@ -8,6 +8,8 @@
  */
 import type { Npc } from "../../mvu/npcSchema";
 import { personalityLabel, type PersonalityAxis } from "../../npc/personalityEngine";
+import { TALENTS_BY_ID } from "../../content/westeros/talents";
+import { IconSpark } from "../icons";
 
 function AvatarFallback({ name, house }: { name: string; house?: string }) {
   const initial = name.charAt(0).toUpperCase();
@@ -114,6 +116,103 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
       {/* Expanded content */}
       {expanded && (
         <div className="mt-3 space-y-3 border-t border-[var(--glass-border)] pt-3">
+          
+          {/* Huyết Thống Thật Sự (Bí Mật Lore) */}
+          {npc["Huyết Thống Thật Sự"] && (npc["Huyết Thống Thật Sự"]["Cha/Mẹ"]?.length > 0 || npc["Huyết Thống Thật Sự"]["Con Cái"]?.length > 0) && (
+            <div>
+              <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--accent-text)]">Bí Mật: Huyết Thống Thật Sự</p>
+              <div className="space-y-0.5 text-[11px] text-[var(--text-soft)]">
+                {npc["Huyết Thống Thật Sự"]["Cha/Mẹ"]?.length > 0 && (
+                  <p>Cha/Mẹ ruột: <span className="font-medium text-[var(--danger)]">{npc["Huyết Thống Thật Sự"]["Cha/Mẹ"].join(", ")}</span></p>
+                )}
+                {npc["Huyết Thống Thật Sự"]["Con Cái"]?.length > 0 && (
+                  <p>Con đẻ bí mật: <span className="font-medium text-[var(--danger)]">{npc["Huyết Thống Thật Sự"]["Con Cái"].join(", ")}</span></p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Mạng Lưới Quan Hệ (Lore) */}
+          {npc["Mạng Lưới Quan Hệ"] && Object.keys(npc["Mạng Lưới Quan Hệ"]).length > 0 && (
+            <div>
+              <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Mạng Lưới Quan Hệ</p>
+              <div className="space-y-1">
+                {Object.entries(npc["Mạng Lưới Quan Hệ"]).map(([tgt, info], i) => (
+                  <div key={i} className="flex flex-col text-[11px]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-[var(--text-soft)]">{tgt}</span>
+                      <span className={`rounded px-1.5 py-0.5 text-[9px] ${info["Công Khai"] ? "bg-[var(--glass-border)] text-[var(--text-muted)]" : "bg-[var(--danger)]/20 text-[var(--danger)]"}`}>
+                        {info["Loại Quan Hệ"]} {info["Công Khai"] ? "" : "(Bí Mật)"}
+                      </span>
+                      <span className="text-[var(--text-faint)] text-[10px]">Hảo cảm: {info["Độ Hảo Cảm"]}</span>
+                    </div>
+                    {info["Chi Tiết"] && <span className="mt-0.5 text-[10px] text-[var(--text-muted)] pl-1 border-l border-[var(--glass-border)]">"{info["Chi Tiết"]}"</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+
+
+          {/* Chỉ Số Cốt Lõi (RPG Stats) */}
+          {npc["Chỉ Số Cốt Lõi"] && (
+            <div>
+              <p className="mb-1 text-[11px] font-semibold tracking-wider text-[var(--text-faint)] flex items-center gap-1">
+                <IconSpark size={12} className="text-[#eab308]" /> CHỈ SỐ
+              </p>
+              <div className="grid grid-cols-3 gap-y-2 gap-x-2 text-[11px] mb-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[var(--text-muted)]">Sức Mạnh</span>
+                  <span className="font-semibold text-[var(--text-bright)]">{npc["Chỉ Số Cốt Lõi"]["Sức Mạnh"] ?? 10}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[var(--text-muted)]">Nhanh Nhẹn</span>
+                  <span className="font-semibold text-[var(--text-bright)]">{npc["Chỉ Số Cốt Lõi"]["Nhanh Nhẹn"] ?? 10}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[var(--text-muted)]">Thể Chất</span>
+                  <span className="font-semibold text-[var(--text-bright)]">{npc["Chỉ Số Cốt Lõi"]["Thể Chất"] ?? 10}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[var(--text-muted)]">Trí Tuệ</span>
+                  <span className="font-semibold text-[var(--text-bright)]">{npc["Chỉ Số Cốt Lõi"]["Trí Tuệ"] ?? 10}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[var(--text-muted)]">Tinh Tường</span>
+                  <span className="font-semibold text-[var(--text-bright)]">{npc["Chỉ Số Cốt Lõi"]["Tinh Tường"] ?? 10}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[var(--text-muted)]">Uy Tín</span>
+                  <span className="font-semibold text-[var(--text-bright)]">{npc["Chỉ Số Cốt Lõi"]["Uy Tín"] ?? 10}</span>
+                </div>
+              </div>
+              
+              {/* Thiên Phú */}
+              {npc["Thiên Phú"] && npc["Thiên Phú"].length > 0 && (
+                <div className="text-[11px] text-[var(--text-muted)] mb-2">
+                  {npc["Thiên Phú"].map((tId: string) => {
+                    const t = TALENTS_BY_ID[tId];
+                    return t ? t.name : tId;
+                  }).join(" · ")}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Kỹ Năng */}
+          {npc["Kỹ Năng"] && Object.keys(npc["Kỹ Năng"]).length > 0 && (
+            <div className="border-t border-[var(--glass-border)] pt-2">
+              <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Kỹ Năng</p>
+              <div className="flex flex-wrap gap-1.5 text-[10px]">
+                {Object.entries(npc["Kỹ Năng"]).map(([k, v]) => (
+                  <span key={k} className="rounded bg-[var(--glass-border)]/20 px-1.5 py-0.5 text-[var(--text-muted)]">
+                    {k}: <span className="font-medium text-[var(--text-bright)]">{v}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Personality bars */}
           <div className="space-y-1.5">
             <p className="text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Tính Cách</p>

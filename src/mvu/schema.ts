@@ -523,12 +523,13 @@ export const BetrothalSchema = z
   .prefault({});
 export type Betrothal = z.infer<typeof BetrothalSchema>;
 
-export const BODY_PARTS = ["Đầu", "Ngực", "Bụng", "Tay Trái", "Tay Phải", "Chân Trái", "Chân Phải"] as const;
-export const WOUND_TYPES = ["Bình Thường", "Trầy Xước", "Xuất Huyết", "Gãy Xương", "Nhiễm Độc", "Hoại Tử", "Bỏng", "Đứt Lìa", "Tàn Phế"] as const;
+
+export const WOUND_TYPES = ["Bình Thường", "Trầy Xước", "Xuất Huyết", "Gãy Xương", "Nhiễm Độc", "Hoại Tử", "Bỏng", "Đứt Lìa", "Tàn Phế", "Hôn Mê", "Mù Loà", "Nhiễm Trùng", "Khó Thở", "Mất Huyết Áp"] as const;
 
 export const BodyPartSchema = z.object({
   "Tình Trạng": clampedStat(0, 100, 100),
-  "Triệu Chứng": z.array(z.enum(WOUND_TYPES)).catch(["Bình Thường"]).prefault(["Bình Thường"])
+  "Triệu Chứng": z.array(z.enum(WOUND_TYPES)).catch(["Bình Thường"]).prefault(["Bình Thường"]),
+  "Thời Gian Lành Còn (giây)": z.number().catch(0).prefault(0)
 }).prefault({});
 
 
@@ -634,13 +635,28 @@ export const StatDataSchema = z
       .record(safeString(), BodyPartSchema)
       .catch({})
       .prefault({
-        "Đầu": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
-        "Ngực": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
-        "Bụng": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
-        "Tay Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
-        "Tay Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
-        "Chân Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
-        "Chân Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
+        "Đầu": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Cổ": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Vai Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Vai Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Ngực": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bụng": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Sườn Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Sườn Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bắp Tay Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bắp Tay Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Cẳng Tay Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Cẳng Tay Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bàn Tay Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bàn Tay Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Đùi Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Đùi Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Đầu Gối Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Đầu Gối Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bắp Chân Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bắp Chân Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bàn Chân Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 },
+        "Bàn Chân Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"], "Thời Gian Lành Còn (giây)": 0 }
       }),
     
     "Bệnh Tật": z.array(CharacterDiseaseSchema).catch([]).prefault([]),
