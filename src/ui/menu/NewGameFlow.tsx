@@ -777,6 +777,9 @@ export function NewGameFlow() {
                         <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Ngoại:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.ngoaiGiao ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), ngoaiGiao: parseInt(e.target.value)||0 } })} /></div>
                         <input type="text" placeholder="Tính cách" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-0.5 flex-1 min-w-[120px]" value={m.persona.tinhCach} onChange={e => updateFamily(m.id, { persona: { ...m.persona, tinhCach: e.target.value } })} />
                       </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <input type="text" placeholder="Link ảnh chân dung (URL)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={m.avatarUrl || ""} onChange={e => updateFamily(m.id, { avatarUrl: e.target.value })} />
+                      </div>
                       <textarea placeholder="Thông tin NSFW / Sở thích ẩn (Dành cho AI)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-full text-[var(--text-soft)] h-12 resize-none" value={m.nsfw || ""} onChange={e => updateFamily(m.id, { nsfw: e.target.value })} />
                     </div>
                   ))}
@@ -850,6 +853,9 @@ export function NewGameFlow() {
                         <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Trí:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={n.nangLuc?.triMuu ?? 10} onChange={e => updateNpc(n.id, { nangLuc: { ...(n.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), triMuu: parseInt(e.target.value)||0 } })} /></div>
                         <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Ngoại:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={n.nangLuc?.ngoaiGiao ?? 10} onChange={e => updateNpc(n.id, { nangLuc: { ...(n.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), ngoaiGiao: parseInt(e.target.value)||0 } })} /></div>
                         <input type="text" placeholder="Tính cách" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-0.5 flex-1 min-w-[120px]" value={n.netTinhCach || ""} onChange={e => updateNpc(n.id, { netTinhCach: e.target.value })} />
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <input type="text" placeholder="Link ảnh chân dung (URL)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={n.avatarUrl || ""} onChange={e => updateNpc(n.id, { avatarUrl: e.target.value })} />
                       </div>
                       <textarea placeholder="Thông tin NSFW / Sở thích ẩn (Dành cho AI)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-full text-[var(--text-soft)] h-12 resize-none" value={n.nsfw || ""} onChange={e => updateNpc(n.id, { nsfw: e.target.value })} />
                     </div>
@@ -1258,6 +1264,9 @@ export function NewGameFlow() {
                       <div className="flex items-center gap-1"><span className="text-[12px] text-[var(--text-muted)]">Trí:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-1 w-10" value={stats.triMuu} onChange={e => setStat("triMuu", parseInt(e.target.value)||0)} /></div>
                       <div className="flex items-center gap-1"><span className="text-[12px] text-[var(--text-muted)]">Ngoại:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-1 w-10" value={stats.ngoaiGiao} onChange={e => setStat("ngoaiGiao", parseInt(e.target.value)||0)} /></div>
                       <input type="text" placeholder="Tính cách" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1 min-w-[120px]" value={overrides.netTinhCach ?? arch.netTinhCach.join(", ")} onChange={e => patch({ companionOverrides: { ...overrides, netTinhCach: e.target.value } })} />
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-center mt-1">
+                      <input type="text" placeholder="Link ảnh chân dung (URL)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={overrides.avatarUrl || ""} onChange={e => patch({ companionOverrides: { ...overrides, avatarUrl: e.target.value } })} />
                     </div>
                     <textarea placeholder="Thông tin NSFW / Sở thích ẩn (Dành cho AI)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-full text-[var(--text-soft)] h-12 resize-none mt-1" value={overrides.nsfw || ""} onChange={e => patch({ companionOverrides: { ...overrides, nsfw: e.target.value } })} />
                   </div>

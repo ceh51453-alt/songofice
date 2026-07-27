@@ -238,6 +238,7 @@ export interface WizardData {
       loai?: string;
       thanHinh?: string;
       nsfw?: string;
+      avatarUrl?: string;
     }[];
     units: { id: string; type: string; count: number; commander: string }[];
   };
@@ -250,6 +251,7 @@ export interface WizardData {
     gioiTinh?: string;
     loai?: string;
     nsfw?: string;
+    avatarUrl?: string;
     nangLuc?: { voLuc: number; thongSoai: number; triMuu: number; ngoaiGiao: number };
     persona: {
       ngoaiHinh: string;
@@ -285,6 +287,7 @@ export interface WizardData {
     loai?: string;
     thanHinh?: string;
     nsfw?: string;
+    avatarUrl?: string;
   };
   hookId: string;
   /** null = không có rồng (era không hỗ trợ hoặc người chơi không chọn). */
@@ -641,7 +644,12 @@ export function buildStateFromWizard(d: WizardData): StatData {
   // ---- tâm phúc (Bước 8) ----
   if (d.companionId) {
     const comp = buildCompanion(d.companionId, d.companionName, npcAffinityOffset(allTalentIds), d.companionOverrides);
-    if (comp) (state["Mối Quan Hệ"]["NPC Chính"] as Record<string, Npc>)[comp[0]] = comp[1];
+    if (comp) {
+      if (d.companionOverrides?.avatarUrl) {
+        comp[1]["Ảnh Chân Dung"] = d.companionOverrides.avatarUrl;
+      }
+      (state["Mối Quan Hệ"]["NPC Chính"] as Record<string, Npc>)[comp[0]] = comp[1];
+    }
   }
 
   // ---- rồng (nếu có — gate theo Era hasMagic) ----
@@ -697,6 +705,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
         "Chủng Tộc": n.loai,
         "Ngoại Hình": n.thanHinh,
         "$NSFW": n.nsfw,
+        "Ảnh Chân Dung": n.avatarUrl,
         "Độ Hảo Cảm": 50,
         "Tin Cậy": true,
         "Loại Quan Hệ": "Gia Thần",
@@ -732,6 +741,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
         "Ngoại Hình": member.persona.ngoaiHinh,
         "Tính Cách": member.persona.tinhCach,
         "$NSFW": member.nsfw,
+        "Ảnh Chân Dung": member.avatarUrl,
         "Năng Lực": member.nangLuc ? {
           "Võ Lực": member.nangLuc.voLuc,
           "Thống Soái": member.nangLuc.thongSoai,
