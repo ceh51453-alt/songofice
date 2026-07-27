@@ -66,7 +66,7 @@ export const useTerritoryStore = create<TerritoryState>()(
     (set, get) => ({
       mode: "political",
       setMode: (mode) => set({ mode }),
-      toggleMode: () => set({ mode: get().mode === "political" ? "relationship" : "political" }),
+      toggleMode: () => set({ mode: get().mode === "political" ? "relationship" : get().mode === "relationship" ? "faction" : "political" }),
 
       showMarkers: true,
       showTerritory: true,

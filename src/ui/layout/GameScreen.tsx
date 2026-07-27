@@ -11,6 +11,7 @@ import { ChatScreen } from "../chat/ChatScreen";
 import { MapScreen } from "../map/MapScreen";
 import { InteractiveMap } from "../map/InteractiveMap";
 import { DashboardLanhChua } from "../territory/DashboardLanhChua";
+import { TerritoryPanel } from "../territory/TerritoryPanel";
 import { MilitaryPanel } from "../military/MilitaryPanel";
 import { CourtPanel } from "../court/CourtPanel";
 import { IntriguePanel } from "../intrigue/IntriguePanel";
@@ -31,7 +32,7 @@ import { courtInvolved } from "../../strategy/court";
 import { intrigueAvailable } from "../../strategy/intrigue";
 import { useT } from "../../i18n";
 import {
-  IconBook, IconCastle, IconChevronRight, IconCrown, IconMap, IconMask, IconSend, IconShield, IconUsers, IconX,
+  IconBook, IconCastle, IconChevronRight, IconCrown, IconMap, IconMask, IconSend, IconShield, IconUsers, IconX, IconSkull
 } from "../icons";
 import { IconCoin } from "../economy/EconomyIcons";
 import { AudioPlayer } from "../audio/AudioPlayer";
@@ -64,6 +65,8 @@ export function GameScreen() {
   const [kingdomsOpen, setKingdomsOpen] = useState(false);
   const sheetOpen = useUiStore((s) => s.statusSheetOpen);
   const setSheetOpen = useUiStore((s) => s.setStatusSheetOpen);
+  const territoryDashboardOpen = useUiStore((s) => s.territoryDashboardOpen);
+  const setTerritoryDashboardOpen = useUiStore((s) => s.setTerritoryDashboardOpen);
   const gameView = useUiStore((s) => s.gameView);
   const setGameView = useUiStore((s) => s.setGameView);
   const selectRegion = useTerritoryStore((s) => s.selectRegion);
@@ -71,6 +74,8 @@ export function GameScreen() {
   const holdings = useMvuStore((s) => s.stat["Lãnh Địa"]);
   const stat = useMvuStore((s) => s.stat);
   const userInteracted = useAudioStore((s) => s.userInteracted);
+  const isDead = stat["Thông Tin Nhân Vật"]["Đã Chết"];
+  const deathCause = stat["Thông Tin Nhân Vật"]["Nguyên Nhân Cái Chết"];
 
   // M16: đồng bộ mood nhạc với state mỗi khi stat đổi
   useEffect(() => {
@@ -79,8 +84,6 @@ export function GameScreen() {
 
   /** Mở Lãnh Địa: vào bản đồ + chọn vùng người chơi quản lý (ưu tiên có holding). */
   const openTerritory = () => {
-    setGameView("map");
-    
     // Tìm vùng do người chơi sở hữu
     const owned = Object.entries(sovereignty).find(([, s]) => s["Là Của Người Chơi"])?.[0];
     
@@ -90,7 +93,7 @@ export function GameScreen() {
     
     const target = owned ?? withHolding ?? null;
     if (target) {
-        selectRegion(target);
+        setTerritoryDashboardOpen(true);
     } else {
         if (playerHolding && !playerHolding["Thuộc Vùng"]) {
             console.warn(`Lỗi: Nhân vật có sở hữu lãnh địa [${playerHolding["Mô Tả"]}] nhưng lãnh địa này không được khai báo Thuộc Vùng! Cần cập nhật dữ liệu cốt truyện.`);
@@ -103,7 +106,7 @@ export function GameScreen() {
     { key: "chat", label: t("game.navChat"), icon: <IconSend size={18} />, enabled: true, active: gameView === "chat", onClick: () => setGameView("chat") },
     { key: "map", label: "Địa Phương", icon: <IconMap size={18} />, enabled: true, active: gameView === "map", onClick: () => { setGameView("map"); selectRegion(null); } },
     { key: "worldmap", label: "Thế Giới", icon: <IconMap size={18} />, enabled: true, active: gameView === "worldmap", onClick: () => setGameView("worldmap") },
-    { key: "territory", label: t("game.navTerritory"), icon: <IconCastle size={18} />, enabled: true, onClick: openTerritory },
+    { key: "territory", label: t("game.navTerritory"), icon: <IconCastle size={18} />, enabled: true, active: territoryDashboardOpen, onClick: openTerritory },
     { key: "military", label: t("game.navMilitary"), icon: <IconShield size={18} />, enabled: true, active: militaryOpen, onClick: () => setMilitaryOpen(true) },
     { key: "economy", label: "Kinh Tế", icon: <IconCoin size={18} />, enabled: hasHoldings, active: economyOpen, onClick: toggleEconomy },
     { key: "court", label: t("game.navCourt"), icon: <IconCrown size={18} />, enabled: courtActive, active: courtOpen, onClick: () => setCourtOpen(true) },
@@ -118,6 +121,7 @@ export function GameScreen() {
     <div className="flex h-full min-h-0">
       <Toasts />
       <CombatPanel />
+      <TerritoryPanel />
       <DashboardLanhChua />
       <MilitaryPanel open={militaryOpen} onClose={() => setMilitaryOpen(false)} />
       <CourtPanel open={courtOpen} onClose={() => setCourtOpen(false)} />
@@ -192,7 +196,7 @@ export function GameScreen() {
         <MobileNavBtn label={t("game.navChat")} icon={<IconSend size={17} />} active={gameView === "chat"} onClick={() => setGameView("chat")} />
         <MobileNavBtn label="Địa Phương" icon={<IconMap size={17} />} active={gameView === "map"} onClick={() => { setGameView("map"); selectRegion(null); }} />
         <MobileNavBtn label="Thế Giới" icon={<IconMap size={17} />} active={gameView === "worldmap"} onClick={() => setGameView("worldmap")} />
-        <MobileNavBtn label={t("game.navTerritory")} icon={<IconCastle size={17} />} active={false} onClick={openTerritory} />
+        <MobileNavBtn label={t("game.navTerritory")} icon={<IconCastle size={17} />} active={territoryDashboardOpen} onClick={openTerritory} />
         <MobileNavBtn label={t("game.navMilitary")} icon={<IconShield size={17} />} active={militaryOpen} onClick={() => setMilitaryOpen(true)} />
         {hasHoldings && <MobileNavBtn label="Kinh Tế" icon={<IconCoin size={17} />} active={economyOpen} onClick={toggleEconomy} />}
         {courtActive && <MobileNavBtn label={t("game.navCourt")} icon={<IconCrown size={17} />} active={courtOpen} onClick={() => setCourtOpen(true)} />}
@@ -214,6 +218,22 @@ export function GameScreen() {
             </div>
             <StatusPanel />
           </div>
+        </div>
+      )}
+
+      {/* ---- Game Over Overlay ---- */}
+      {isDead && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 text-red-600">
+          <IconSkull size={80} className="mb-4 animate-pulse opacity-80" />
+          <h1 className="font-display text-5xl tracking-widest sm:text-7xl">YOU DIED</h1>
+          <p className="font-display mt-2 text-xl tracking-widest text-red-500/70">VALAR MORGHULIS</p>
+          {deathCause && <p className="mt-6 text-sm text-[var(--text-muted)] max-w-md text-center">Nguyên nhân: {deathCause}</p>}
+          <button
+            onClick={() => setGameView("chat")} // Tạm thời để nút, hệ thống thực tế có thể load lại save.
+            className="mt-12 rounded border border-red-900/50 bg-red-950/30 px-6 py-2 text-red-500 hover:bg-red-900/50 hover:text-red-400 transition-colors"
+          >
+            Chấp Nhận Số Phận
+          </button>
         </div>
       )}
 

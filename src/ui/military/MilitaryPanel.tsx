@@ -8,18 +8,19 @@
 import { useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { useMilitaryStore } from "../../state/militaryStore";
-import { useUiStore } from "../../state/uiStore";
-import { REGIONS, REGIONS_BY_ID } from "../../content/westeros/regions";
+
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
-import { playerHouseId, regionController } from "../../territory/territoryEngine";
+import { REGIONS_BY_ID } from "../../content/westeros/regions";
+import { playerHouseId } from "../../territory/territoryEngine";
+import { canControlHolding } from "../../character/roleplay";
 import { recruitableTroopsForEra, troopMeta, type TroopTypeAll } from "../../content/westeros/troopTypes";
 import { hasBarracks, maxRecruitPerTurn } from "../../strategy/army";
 import { GlassButton } from "../components/GlassButton";
 import { GlassSelect } from "../components/GlassSelect";
 import { useT } from "../../i18n";
-import { IconX, IconShield, IconCrossedSwords, IconCoins, IconWheat, IconMap, IconCastle } from "../icons";
+import { IconX, IconShield, IconCrossedSwords, IconCoins, IconWheat, IconMap, IconUsers } from "../icons";
 
-type Tab = "forces" | "recruit" | "fleet" | "diplomacy";
+type Tab = "forces" | "dragons" | "recruit" | "fleet" | "diplomacy";
 
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("vi-VN");
@@ -49,6 +50,7 @@ export function MilitaryPanel({ open, onClose }: { open: boolean; onClose: () =>
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "forces", label: t("mil.tabForces") },
+    { key: "dragons", label: "Rồng" },
     { key: "recruit", label: t("mil.tabRecruit") },
     { key: "fleet", label: t("mil.tabFleet") },
     { key: "diplomacy", label: t("mil.tabDiplomacy") },
@@ -83,7 +85,8 @@ export function MilitaryPanel({ open, onClose }: { open: boolean; onClose: () =>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          {tab === "forces" && <ForcesTab stat={stat} onClose={onClose} />}
+          {tab === "forces" && <ForcesTab stat={stat} />}
+          {tab === "dragons" && <DragonsTab stat={stat} />}
           {tab === "recruit" && <RecruitTab stat={stat} />}
           {tab === "fleet" && <FleetTab stat={stat} />}
           {tab === "diplomacy" && <DiplomacyTab stat={stat} />}
@@ -96,18 +99,10 @@ export function MilitaryPanel({ open, onClose }: { open: boolean; onClose: () =>
 type Stat = ReturnType<typeof useMvuStore.getState>["stat"];
 
 // ── Lực Lượng ────────────────────────────────────────────────────────────────
-function ForcesTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
+function ForcesTab({ stat }: { stat: Stat }) {
   const t = useT();
-  const moveUnit = useMilitaryStore((s) => s.moveUnit);
-  const siege = useMilitaryStore((s) => s.siege);
-  const selectUnit = useMilitaryStore((s) => s.selectUnit);
-  const setMoveMode = useMilitaryStore((s) => s.setMoveMode);
-  const setGameView = useUiStore((s) => s.setGameView);
-  const [dest, setDest] = useState<Record<string, string>>({});
-  const [msg, setMsg] = useState<string | null>(null);
-
   const pHouse = playerHouseId(stat);
-  const units = Object.entries(stat["Biên Chế Quân Sự"]).filter(([, u]) => u["Số Lượng"] > 0 && String(u["Nhà"]).toLowerCase() === String(pHouse).toLowerCase());
+  const units = Object.entries(stat["Biên Chế Quân Sự"]).filter(([, u]) => u["Số Lượng"] > 0 && String(u["Nhà"]).toLowerCase() === String(pHouse).toLowerCase() && u["Loại Quân"] !== "Rồng");
 
   if (units.length === 0) {
     return <p className="text-[13px] italic text-[var(--text-muted)]">{t("mil.noUnits")}</p>;
@@ -115,12 +110,10 @@ function ForcesTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
 
   return (
     <div className="space-y-3">
-      {msg && <p className="text-[12px] text-[var(--danger)]">{msg}</p>}
       {units.map(([name, u]) => {
         const loc = REGIONS_BY_ID[u["Lãnh Địa Đồn Trú"]]?.name ?? u["Lãnh Địa Đồn Trú"] ?? "—";
         const movingTo = u["Đang Di Chuyển Đến"] ? REGIONS_BY_ID[u["Đang Di Chuyển Đến"]]?.name : null;
         const training = u["Turn Huấn Luyện"] > 0;
-        const atEnemy = u["Lãnh Địa Đồn Trú"] && !!pHouse && regionController(stat, u["Lãnh Địa Đồn Trú"]) !== pHouse && !movingTo;
         return (
           <div key={name} className="glass rounded-[var(--radius-md)] p-3">
             <div className="flex items-start justify-between gap-2">
@@ -149,57 +142,13 @@ function ForcesTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
             </p>
 
             {!training && (
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <OptSelect
-                  value={dest[name] ?? ""}
-                  onChange={(v) => setDest((d) => ({ ...d, [name]: v }))}
-                  options={[{ value: "", label: t("mil.pickDest") }, ...REGIONS.map((r) => ({ value: r.id, label: r.name }))]}
-                  className="min-w-0 flex-1"
-                />
-                <GlassButton
-                  size="sm"
-                  onClick={() => {
-                    const target = dest[name];
-                    if (!target) return;
-                    const r = moveUnit(name, target);
-                    setMsg(r.ok ? null : r.error ?? null);
-                  }}
-                >
-                  <IconMap size={13} /> {t("mil.move")}
-                </GlassButton>
-                {atEnemy && (
-                  <GlassButton
-                    size="sm"
-                    variant="danger"
-                    onClick={() => {
-                      const r = siege(name, u["Lãnh Địa Đồn Trú"]);
-                      setMsg(r.ok ? null : r.error ?? null);
-                    }}
-                  >
-                    <IconCastle size={13} /> {t("mil.siege")}
-                  </GlassButton>
-                )}
-              </div>
+              <p className="mt-2 text-[11.5px] italic text-[var(--text-faint)]">
+                Hoạt động điều quân và vây thành diễn ra tự động dựa theo diễn biến sự kiện.
+              </p>
             )}
           </div>
         );
       })}
-      <p className="text-[11.5px] italic text-[var(--text-faint)]">{t("mil.moveHint")}</p>
-      <GlassButton
-        size="sm"
-        variant="ghost"
-        onClick={() => {
-          const first = units[0]?.[0];
-          if (first) {
-            selectUnit(first);
-            setMoveMode(true);
-            setGameView("map");
-            onClose();
-          }
-        }}
-      >
-        <IconMap size={13} /> {t("mil.moveOnMap")}
-      </GlassButton>
     </div>
   );
 }
@@ -213,7 +162,7 @@ function RecruitTab({ stat }: { stat: Stat }) {
   const t = useT();
   const recruit = useMilitaryStore((s) => s.recruit);
   const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
-  const holdings = Object.keys(stat["Lãnh Địa"]).filter((id) => hasBarracks(stat, id));
+  const holdings = Object.keys(stat["Lãnh Địa"]).filter((id) => hasBarracks(stat, id) && canControlHolding(stat, id));
   const troops = recruitableTroopsForEra(eraId);
   const [terr, setTerr] = useState(holdings[0] ?? "");
   const [type, setType] = useState<TroopTypeAll>(troops[0] ?? "Bộ Binh");
@@ -253,7 +202,8 @@ function RecruitTab({ stat }: { stat: Stat }) {
         <span className="flex items-center gap-2.5">
           <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconCoins size={13} /> {fmt(goldCost)}</span>
           <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconWheat size={13} /> {fmt(foodCost)}</span>
-          <span className="text-[var(--text-faint)]">· {meta.trainTurns} turn</span>
+          <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconUsers size={13} /> {fmt(count)}</span>
+          <span className="text-[var(--text-faint)]">· {meta.trainTurns} tháng</span>
         </span>
       </div>
       {msg && <p className="text-[12px] text-[var(--danger)]">{msg}</p>}
@@ -284,19 +234,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 // ── Hạm Đội (7.8) ────────────────────────────────────────────────────────────
 function FleetTab({ stat }: { stat: Stat }) {
   const t = useT();
-  const amphibious = useMilitaryStore((s) => s.amphibiousLanding);
-  const blockade = useMilitaryStore((s) => s.blockade);
   const pHouse = playerHouseId(stat);
   const fleets = Object.entries(stat["Hạm Đội"]).filter(([, f]) => f["Số Chiến Thuyền"] > 0 && String(f["Nhà"]).toLowerCase() === String(pHouse).toLowerCase());
-  const coastalEnemy = REGIONS.filter((r) => r.coastal && regionController(stat, r.id) !== pHouse);
-  const [dest, setDest] = useState<Record<string, string>>({});
-  const [msg, setMsg] = useState<string | null>(null);
 
   if (fleets.length === 0) return <p className="text-[13px] italic text-[var(--text-muted)]">{t("mil.noFleet")}</p>;
 
   return (
     <div className="space-y-3">
-      {msg && <p className="text-[12px] text-[var(--text-muted)]">{msg}</p>}
       {fleets.map(([name, f]) => (
         <div key={name} className="glass rounded-[var(--radius-md)] p-3">
           <div className="flex items-center justify-between">
@@ -308,28 +252,9 @@ function FleetTab({ stat }: { stat: Stat }) {
             {f["Bộ Binh Trên Thuyền"] > 0 ? ` · chở ${fmt(f["Bộ Binh Trên Thuyền"])} quân` : ""}
             {f["Đang Phong Toả"] ? ` · phong toả ${REGIONS_BY_ID[f["Đang Phong Toả"]]?.name ?? f["Đang Phong Toả"]}` : ""}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <OptSelect
-              value={dest[name] ?? ""}
-              onChange={(v) => setDest((d) => ({ ...d, [name]: v }))}
-              options={[{ value: "", label: t("mil.pickCoast") }, ...coastalEnemy.map((r) => ({ value: r.id, label: r.name }))]}
-              className="min-w-0 flex-1"
-            />
-            <GlassButton
-              size="sm"
-              disabled={f["Bộ Binh Trên Thuyền"] <= 0}
-              title={f["Bộ Binh Trên Thuyền"] <= 0 ? t("mil.noTroopsAboard") : undefined}
-              onClick={() => { const target = dest[name]; if (!target) return; const r = amphibious(name, target); setMsg(r.ok ? t("mil.landed") : r.error ?? null); }}
-            >
-              {t("mil.land")}
-            </GlassButton>
-            <GlassButton
-              size="sm" variant="ghost"
-              onClick={() => { const target = dest[name]; if (!target) return; const r = blockade(name, target); setMsg(r.ok ? t("mil.blockaded") : r.error ?? null); }}
-            >
-              {t("mil.blockade")}
-            </GlassButton>
-          </div>
+          <p className="mt-2 text-[11.5px] italic text-[var(--text-faint)]">
+            Hoạt động đổ bộ và phong toả diễn ra tự động dựa theo diễn biến sự kiện.
+          </p>
         </div>
       ))}
       <p className="text-[11.5px] italic text-[var(--text-faint)]">{t("mil.fleetNote")}</p>
@@ -408,6 +333,56 @@ function DiplomacyTab({ stat }: { stat: Stat }) {
       )}
 
       <p className="text-[11.5px] italic text-[var(--text-faint)]">{t("mil.diploNote")}</p>
+    </div>
+  );
+}
+
+// ── Rồng ─────────────────────────────────────────────────────────────────────
+function DragonsTab({ stat }: { stat: Stat }) {
+  const t = useT();
+  const pHouse = playerHouseId(stat);
+  const dragons = Object.entries(stat["Biên Chế Quân Sự"]).filter(
+    ([, u]) => u["Số Lượng"] > 0 && String(u["Nhà"]).toLowerCase() === String(pHouse).toLowerCase() && u["Loại Quân"] === "Rồng"
+  );
+
+  if (dragons.length === 0) {
+    return <p className="text-[13px] italic text-[var(--text-muted)]">Nhà bạn hiện không có rồng nào.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {dragons.map(([name, u]) => {
+        const loc = REGIONS_BY_ID[u["Lãnh Địa Đồn Trú"]]?.name ?? u["Lãnh Địa Đồn Trú"] ?? "—";
+        const movingTo = u["Đang Di Chuyển Đến"] ? REGIONS_BY_ID[u["Đang Di Chuyển Đến"]]?.name : null;
+        
+        return (
+          <div key={name} className="glass rounded-[var(--radius-md)] p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[14px] font-bold text-[var(--accent-text)]">🐉 {name}</span>
+                </div>
+                <p className="mt-0.5 text-[11.5px] text-[var(--text-faint)]">
+                  {u["Loại Quân"]} · {fmt(u["Số Lượng"])}
+                </p>
+              </div>
+            </div>
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              <Badge text={u["Sĩ Khí"]} />
+              <Badge text={u["Huấn Luyện"]} />
+              <Badge text={u["Hậu Cần"]} />
+            </div>
+            <p className="mt-1.5 text-[12px] text-[var(--text-muted)]">
+              {movingTo
+                ? t("mil.movingTo", { region: movingTo, n: u["Turn Di Chuyển Còn Lại"] })
+                : t("mil.stationed", { region: loc })}
+            </p>
+            <p className="mt-2 text-[11.5px] italic text-[var(--text-faint)]">
+              Rồng được điều khiển bởi kỵ sĩ của chúng và hành động thông qua các sự kiện cốt truyện.
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }

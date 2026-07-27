@@ -18,7 +18,7 @@ function lordWithBarracks(gold = 5000): StatData {
   s["Thông Tin Nhân Vật"]["Vàng"] = gold;
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north-seat
-  s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0 };
+  s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };
   return StatDataSchema.parse(s);
 }
 

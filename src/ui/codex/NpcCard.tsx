@@ -79,24 +79,24 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
     >
       {/* Header */}
       <div className="flex items-center gap-3">
-        <AvatarFallback name={name} house={npc["Nhà"]} />
+        <AvatarFallback name={npc["Họ Tên"] || name} house={npc["Nhà"]} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate font-display text-sm text-[var(--text-soft)]">{name}</span>
+            <span className="truncate font-display text-sm text-[var(--text-soft)]">{npc["Họ Tên"] || name}</span>
             {npc["Biệt Danh"] && (
               <span className="shrink-0 text-[10px] italic text-[var(--text-faint)]">"{npc["Biệt Danh"]}"</span>
             )}
           </div>
           <div className="flex items-center gap-2 text-[11px]">
-            {npc["Nhà"] && <span className="text-[var(--text-faint)]">Nha {npc["Nhà"]}</span>}
+            {npc["Nhà"] && <span className="text-[var(--text-faint)]">Nhà {npc["Nhà"]}</span>}
             {npc["Chức Vụ"] && <span className="text-[var(--text-muted)]">{npc["Chức Vụ"]}</span>}
-            <span className="text-[var(--text-faint)]">{npc["Tuổi"]} tuoi</span>
+            <span className="text-[var(--text-faint)]">{npc["Tuổi"]} tuổi</span>
           </div>
           <div className="mt-0.5 flex items-center gap-2 text-[11px]">
             <span style={{ color: stageColor }} className="font-medium">
               {npc["Giai Đoạn Quan Hệ"]} ({npc["Độ Hảo Cảm"]})
             </span>
-            <span className="text-[var(--text-faint)]">Tin Cay: {npc["Tin Cậy"]}</span>
+            <span className="text-[var(--text-faint)]">Tin Cậy: {npc["Tin Cậy"]}</span>
             {npc["Tình Trạng"] !== "Bình Thường" && (
               <span className="rounded bg-[var(--danger)]/20 px-1.5 py-0.5 text-[10px] text-[var(--danger)]">
                 {npc["Tình Trạng"]}
@@ -104,7 +104,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
             )}
             {!npc["Còn Sống"] && (
               <span className="rounded bg-[var(--text-faint)]/20 px-1.5 py-0.5 text-[10px] text-[var(--text-faint)]">
-                DA MAT
+                ĐÃ MẤT
               </span>
             )}
           </div>
@@ -116,7 +116,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
         <div className="mt-3 space-y-3 border-t border-[var(--glass-border)] pt-3">
           {/* Personality bars */}
           <div className="space-y-1.5">
-            <p className="text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Tinh Cach</p>
+            <p className="text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Tính Cách</p>
             {(Object.entries(npc["Tính Cách"]) as [PersonalityAxis, number][]).map(([axis, val]) => (
               <PersonalityBar key={axis} axis={axis} value={val} />
             ))}
@@ -137,7 +137,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
           {/* Memories */}
           {memories.length > 0 && (
             <div>
-              <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Ky Uc</p>
+              <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Ký Ức</p>
               <div className="space-y-1">
                 {memories.slice(0, 5).map((m, i) => (
                   <div key={i} className="flex items-start gap-2 text-[11px]">
@@ -153,7 +153,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
           {/* Promises */}
           {promises.length > 0 && (
             <div>
-              <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Loi Hua Chua Giu</p>
+              <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Lời Hứa Chưa Giữ</p>
               <ul className="space-y-0.5 text-[11px] text-[var(--warning)]">
                 {promises.map((p, i) => (
                   <li key={i}>"{p}"</li>
@@ -165,6 +165,13 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
           {/* Intimate Relationship */}
           {npc["Quan Hệ Thân Mật"] && (() => {
             const intimacy = npc["Quan Hệ Thân Mật"]!;
+            
+            // Lọc bỏ lỗi hallucination của AI: Nếu chưa từng ân ái và không phải vợ/hôn thê thì không hiển thị
+            const isSpouse = ["Vợ", "Hôn Thê"].includes(intimacy["Vai Trò"]);
+            if (!isSpouse && (intimacy["Số Lần Ân Ái"] ?? 0) === 0) {
+              return null;
+            }
+
             const roleColor: Record<string, string> = {
               "Người Tình": "hsl(340, 45%, 55%)",
               "Người Yêu": "hsl(330, 50%, 50%)",
@@ -181,7 +188,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
             return (
               <div>
                 <p className="mb-1.5 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">
-                  Quan He Than Mat
+                  Quan Hệ Thân Mật
                 </p>
                 {/* Role badge */}
                 <div className="mb-2 flex items-center gap-2">
@@ -201,10 +208,10 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
                 <div className="space-y-1 text-[11px]">
                   {intimacy["Số Lần Ân Ái"] > 0 && (
                     <div className="flex items-center gap-2 text-[var(--text-muted)]">
-                      <span>An ai: {intimacy["Số Lần Ân Ái"]} lan</span>
+                      <span>Ân ái: {intimacy["Số Lần Ân Ái"]} lần</span>
                       {intimacy["Số Lần Xuất Trong"] > 0 && (
                         <span className="text-[var(--text-faint)]">
-                          ({intimacy["Số Lần Xuất Trong"]} lan xuat trong)
+                          ({intimacy["Số Lần Xuất Trong"]} lần xuất trong)
                         </span>
                       )}
                     </div>
@@ -212,7 +219,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
 
                   {intimacy["Lần Cuối Ân Ái"] && (
                     <div className="text-[var(--text-faint)]">
-                      Lan cuoi: {intimacy["Lần Cuối Ân Ái"]}
+                      Lần cuối: {intimacy["Lần Cuối Ân Ái"]}
                     </div>
                   )}
 
@@ -230,7 +237,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
                           MANG THAI
                         </span>
                         <span className="text-[10px] text-[var(--text-faint)]">
-                          Thang {intimacy["Tháng Thai Kỳ"]}/9
+                          Tháng {intimacy["Tháng Thai Kỳ"]}/9
                         </span>
                       </div>
                       <div className="relative h-1.5 rounded-full bg-[var(--glass-bg)]">
@@ -248,7 +255,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
                   {/* Children */}
                   {intimacy["Số Con Đã Sinh"] > 0 && (
                     <div className="mt-1 text-[var(--text-muted)]">
-                      Da sinh: {intimacy["Số Con Đã Sinh"]} con
+                      Đã sinh: {intimacy["Số Con Đã Sinh"]} con
                     </div>
                   )}
                 </div>

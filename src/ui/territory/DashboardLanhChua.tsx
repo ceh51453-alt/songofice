@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
-import { useTerritoryStore } from "../../state/territoryStore";
+import { useUiStore } from "../../state/uiStore";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { houseColor } from "../../content/westeros/houseColors";
@@ -13,25 +13,33 @@ type Tab = "status" | "map" | "decree";
 
 export function DashboardLanhChua() {
   const stat = useMvuStore((s) => s.stat);
-  const selectedRegionId = useTerritoryStore((s) => s.selectedRegionId);
-  const selectRegion = useTerritoryStore((s) => s.selectRegion);
+  const open = useUiStore((s) => s.territoryDashboardOpen);
+  const setOpen = useUiStore((s) => s.setTerritoryDashboardOpen);
   const [tab, setTab] = useState<Tab>("status");
 
-  if (!selectedRegionId) return null;
-  const region = REGIONS_BY_ID[selectedRegionId];
+  if (!open) return null;
+
+  const sovereignty = stat["Chủ Quyền Lãnh Thổ"];
+  const playerHolding = Object.values(stat["Lãnh Địa"]).find((h: any) => h["Người Kiểm Soát"] === stat["Thông Tin Nhân Vật"]["Họ Tên"]);
+  const withHolding = playerHolding ? playerHolding["Thuộc Vùng"] : undefined;
+  const owned = Object.entries(sovereignty).find(([, s]) => s["Là Của Người Chơi"])?.[0];
+  const targetRegionId = owned ?? withHolding ?? null;
+
+  if (!targetRegionId) return null;
+  const region = REGIONS_BY_ID[targetRegionId];
   if (!region) return null;
 
-  const sov = stat["Chủ Quyền Lãnh Thổ"][selectedRegionId];
+  const sov = sovereignty[targetRegionId];
   const controllerId = sov?.["Nhà Kiểm Soát"] ?? "";
   const controller = HOUSES_BY_ID[controllerId];
   const col = houseColor(controllerId);
 
   // We find the holding that belongs to this region.
-  const allHoldings = Object.entries(stat["Lãnh Địa"]).filter(([, h]) => h["Thuộc Vùng"] === selectedRegionId);
+  const allHoldings = Object.entries(stat["Lãnh Địa"]).filter(([, h]) => h["Thuộc Vùng"] === targetRegionId);
   const activeHoldingId = allHoldings.length > 0 ? allHoldings[0][0] : null;
   const holding = activeHoldingId ? stat["Lãnh Địa"][activeHoldingId] : undefined;
 
-  const close = () => selectRegion(null);
+  const close = () => setOpen(false);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" role="dialog">
@@ -82,9 +90,9 @@ export function DashboardLanhChua() {
                  </div>
               ) : (
                  <>
-                    {tab === "status" && <TabStatus territoryId={activeHoldingId!} holding={holding} />}
-                    {tab === "map" && <TabMapGrid territoryId={activeHoldingId!} holding={holding} />}
-                    {tab === "decree" && <TabDecree territoryId={activeHoldingId!} holding={holding} />}
+                    {tab === "status" && <TabStatus territoryId={activeHoldingId!} holding={holding} isOwner={sov?.["Người Kiểm Soát"] === stat["Thông Tin Nhân Vật"]["Họ Tên"]} />}
+                    {tab === "map" && <TabMapGrid territoryId={activeHoldingId!} holding={holding} isOwner={sov?.["Người Kiểm Soát"] === stat["Thông Tin Nhân Vật"]["Họ Tên"]} />}
+                    {tab === "decree" && <TabDecree territoryId={activeHoldingId!} holding={holding} isOwner={sov?.["Người Kiểm Soát"] === stat["Thông Tin Nhân Vật"]["Họ Tên"]} />}
                  </>
               )}
            </main>

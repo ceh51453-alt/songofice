@@ -27,6 +27,7 @@ export function getPrivilegesByTitle(tuocVi: string): RoleplayPrivilege[] {
         "Xây Dựng Cơ Sở",
         "Lập Quân Đồn Trú",
       ];
+    case "Quốc Vương":
     case "Vua":
     case "Đại Lãnh Chúa":
       return [
@@ -37,6 +38,7 @@ export function getPrivilegesByTitle(tuocVi: string): RoleplayPrivilege[] {
         "Xây Dựng Cơ Sở",
         "Lập Quân Đồn Trú",
       ];
+    case "Lãnh Chúa Thành Trì":
     case "Lãnh Chúa":
       return [
         "Quản Lý Lãnh Địa",
@@ -47,6 +49,23 @@ export function getPrivilegesByTitle(tuocVi: string): RoleplayPrivilege[] {
     case "Thường Dân":
     default:
       return [];
+  }
+}
+
+export function getTitleLevel(tuocVi: string): number {
+  switch (tuocVi) {
+    case "Vua Bảy Vương Quốc":
+    case "Hoàng Đế":
+      return 3;
+    case "Quốc Vương":
+    case "Vua":
+    case "Đại Lãnh Chúa":
+      return 2;
+    case "Lãnh Chúa Thành Trì":
+    case "Lãnh Chúa":
+      return 1;
+    default:
+      return 0;
   }
 }
 
@@ -61,6 +80,35 @@ export function canManageDomain(state: StatData): boolean {
 
 export function canManageRegion(state: StatData): boolean {
   return hasPrivilege(state, "Quản Lý Vùng");
+}
+
+export function canControlHolding(state: StatData, territoryId: string): boolean {
+  const terr = state["Lãnh Địa"][territoryId];
+  if (!terr) return false;
+  
+  // Trực tiếp kiểm soát
+  if (terr["Người Kiểm Soát"] === state["Thông Tin Nhân Vật"]["Họ Tên"]) {
+    return true;
+  }
+  
+  // Vua Bảy Vương Quốc hoặc quyền quản lý vùng (vĩ mô)
+  const isKing = hasPrivilege(state, "Thu Thuế Toàn Cõi");
+  const isRegionalLord = hasPrivilege(state, "Quản Lý Vùng");
+  
+  if (isKing) {
+    // Nếu là Vua 7 Vương Quốc, có thể kiểm soát các thành không thuộc phe địch
+    // Nhưng để đơn giản, có thể dùng Là Của Người Chơi hoặc Nhà Kiểm Soát
+    // Vua 7 vương quốc được coi là cai trị mọi nơi trừ khi vùng đó là độc lập/địch
+    return true; 
+  }
+  
+  if (isRegionalLord) {
+    const regionId = terr["Thuộc Vùng"];
+    const sov = state["Chủ Quyền Lãnh Thổ"][regionId];
+    return sov && sov["Là Của Người Chơi"];
+  }
+  
+  return false;
 }
 
 /** Check if player can ascend to the Iron Throne */

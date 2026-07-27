@@ -8,7 +8,7 @@
  */
 import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
-import { REGIONS, REGIONS_BY_ID, regionControlForEra, type MapRegion } from "../content/westeros/regions";
+import { REGIONS, REGIONS_BY_ID, regionControlForYear, factionsForYear, FACTION_COLORS_MAP, type MapRegion } from "../content/westeros/regions";
 import { HOUSES_DATA, HOUSES_BY_ID } from "../content/westeros/houses";
 import { houseColor, ATTITUDE_HEAT, PLAYER_HEAT_COLOR, NEUTRAL_COLOR } from "../content/westeros/houseColors";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
@@ -59,8 +59,9 @@ export function makeHolding(opts?: { regionId?: string; terrain?: string; coasta
  * chưa có holding (tuyến canon — lãnh chúa). Tuyến wizard chỉ MIGRATE holding
  * gói xuất thân sẵn có (giữ nguyên số lượng holding — 8.5).
  */
-export function seedRegionControl(state: StatData, eraId: string, opts?: { createIfMissing?: boolean }): void {
-  const control = regionControlForEra(eraId);
+export function seedRegionControl(state: StatData, _eraId: string, opts?: { createIfMissing?: boolean }): void {
+  const currentYear = state["Thế Giới"]["Năm"] ?? 298;
+  const control = regionControlForYear(currentYear);
   const pHouse = playerHouseId(state);
   const sovereignty = state["Chủ Quyền Lãnh Thổ"] as Record<string, unknown>;
 
@@ -150,7 +151,7 @@ export function captureRegionOps(
 
 // ── Tô màu runtime (9.5.2) ──────────────────────────────────────────────────
 
-export type MapMode = "political" | "relationship";
+export type MapMode = "political" | "relationship" | "faction";
 
 export interface RegionFill {
   color: string;
@@ -186,6 +187,43 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
     const attitude = state["Thái Độ Các Nhà"][schemaName]?.["Thái Độ"] ?? "Cảnh Giác";
     const heat = ATTITUDE_HEAT[attitude] ?? ATTITUDE_HEAT["Cảnh Giác"];
     return { color: heat.color, striped: false, isPlayer, status, house, changedTurn };
+  }
+
+  if (mode === "faction") {
+    const currentYear = state["Thế Giới"]["Năm"] ?? 298;
+    const eraFactions = factionsForYear(currentYear);
+    if (eraFactions) {
+      // Find which faction the house belongs to
+      let foundFaction = null;
+      for (const [factionName, houses] of Object.entries(eraFactions)) {
+        if (houses.includes(house)) {
+          foundFaction = factionName;
+          break;
+        }
+      }
+      
+      if (foundFaction) {
+        // Use a generic logic to color by faction based on its name or specific house color
+        const factionColorId = FACTION_COLORS_MAP[foundFaction] ?? house;
+        return {
+          color: factionColorId ? houseColor(factionColorId).base : NEUTRAL_COLOR.base,
+          striped: false,
+          isPlayer,
+          status,
+          house, // still keep the house for UI tooltips
+          changedTurn,
+        };
+      }
+      // Vùng không thuộc phe nào trong thời kỳ nội chiến sẽ có màu trung lập
+      return {
+        color: NEUTRAL_COLOR.base,
+        striped: true, // Sọc hiển thị sự trung lập/không rõ ràng
+        isPlayer,
+        status,
+        house,
+        changedTurn,
+      };
+    }
   }
 
   // chính trị: màu bản sắc Nhà kiểm soát

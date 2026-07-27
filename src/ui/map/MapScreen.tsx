@@ -10,7 +10,7 @@ import { useMvuStore } from "../../state/mvuStore";
 import { useTerritoryStore } from "../../state/territoryStore";
 import { useMilitaryStore } from "../../state/militaryStore";
 import { armyMarkerPosition } from "../../strategy/army";
-import { REGIONS, REGIONS_BY_ID, MAP_W, MAP_H, seatVisible } from "../../content/westeros/regions";
+import { REGIONS, REGIONS_BY_ID, MAP_W, MAP_H, seatVisible, factionsForYear, FACTION_COLORS_MAP } from "../../content/westeros/regions";
 import { markersForEra } from "../../content/westeros/mapMarkers";
 import { MAP_CONFIG } from "../../content/westeros/mapConfig";
 import { regionFill } from "../../territory/territoryEngine";
@@ -36,7 +36,7 @@ export function MapScreen() {
   const t = useT();
   const stat = useMvuStore((s) => s.stat);
   const mode = useTerritoryStore((s) => s.mode);
-  const toggleMode = useTerritoryStore((s) => s.toggleMode);
+  const setMode = useTerritoryStore((s) => s.setMode);
   const showMarkers = useTerritoryStore((s) => s.showMarkers);
   const showTerritory = useTerritoryStore((s) => s.showTerritory);
   const toggleLayer = useTerritoryStore((s) => s.toggleLayer);
@@ -321,16 +321,20 @@ export function MapScreen() {
       {/* ---- control góc (9.4) ---- */}
       <div className="glass-strong absolute right-3 top-3 z-10 flex flex-col gap-1.5 p-2">
         <button
-          onClick={toggleMode}
-          title={mode === "political" ? t("map.modePolitical") : t("map.modeRelationship")}
+          onClick={() => {
+            if (mode === "political") setMode("relationship");
+            else if (mode === "relationship") setMode("faction");
+            else setMode("political");
+          }}
+          title={mode === "political" ? t("map.modePolitical") : mode === "relationship" ? t("map.modeRelationship") : t("map.faction")}
           className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] text-[var(--text-soft)] transition-colors hover:bg-[var(--glass-bg-hover)]"
         >
           <IconLayers size={15} color="var(--accent-text)" />
-          {mode === "political" ? t("map.modePolitical") : t("map.modeRelationship")}
+          {mode === "political" ? t("map.modePolitical") : mode === "relationship" ? t("map.modeRelationship") : t("map.faction")}
         </button>
         <div className="my-0.5 h-px bg-[var(--glass-border)]" />
         <LayerToggle label={t("map.layerTerritory")} on={showTerritory} onClick={() => toggleLayer("territory")} />
-        <LayerToggle label={t("map.layerMarkers")} on={showMarkers} onClick={() => toggleLayer("markers")} />
+        <LayerToggle label={t("map.faction")} on={mode === "faction"} onClick={() => setMode("faction")} />
       </div>
 
       <div className="glass-strong absolute bottom-3 right-3 z-10 flex flex-col gap-1 p-1.5">
@@ -445,12 +449,24 @@ function PlayerMarker({ loc, name }: { loc: string; name: string }) {
   );
 }
 
-function MapLegend({ mode, stat }: { mode: "political" | "relationship"; stat: ReturnType<typeof useMvuStore.getState>["stat"] }) {
+function MapLegend({ mode, stat }: { mode: "political" | "relationship" | "faction"; stat: ReturnType<typeof useMvuStore.getState>["stat"] }) {
   if (mode === "relationship") {
     const items = [{ color: PLAYER_HEAT_COLOR, label: "Lãnh thổ ta" }, ...Object.entries(ATTITUDE_HEAT).map(([k, v]) => ({ color: v.color, label: k }))];
     return <LegendBox items={items} />;
   }
-  // chính trị: chỉ các Nhà đang hiện diện trên bản đồ
+  if (mode === "faction") {
+    const currentYear = stat["Thế Giới"]?.["Năm"] ?? 298;
+    const eraFactions = factionsForYear(currentYear);
+    if (eraFactions) {
+      const items = Object.entries(eraFactions).map(([factionName]) => {
+        const colorId = FACTION_COLORS_MAP[factionName];
+        return { color: colorId && HOUSE_COLORS[colorId] ? HOUSE_COLORS[colorId].base : "#4a4a4a", label: factionName };
+      });
+      return <LegendBox items={items} />;
+    }
+  }
+
+  // chính trị hoặc phe phái nhưng không có dữ liệu phe: chỉ các Nhà đang hiện diện trên bản đồ
   const present = new Set(Object.values(stat["Chủ Quyền Lãnh Thổ"]).map((s) => s["Nhà Kiểm Soát"]).filter(Boolean));
   const items = [...present].map((h) => ({ color: HOUSE_COLORS[h]?.base ?? "#4a4a4a", label: HOUSE_COLORS[h]?.label ?? h }));
   return <LegendBox items={items} />;

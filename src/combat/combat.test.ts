@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { resolveBattle, gradeBattle, fogRoll, battlePower, type BattleInput, type BattleSideInput } from "./battleResolver";
-import { startDuel, runDuelRound, autoDuel, type Duelist } from "./duel";
+import { startDuel, runDuelRound, autoDuel, type Duelist, BASIC_SKILLS } from "./duel";
 import { resolveSkirmish, type SkirmishSide } from "./skirmish";
 import { terrainMultiplier } from "./terrain";
 import { aggregateUnits, moraleEnumFromScore, qualityBand } from "./scales";
@@ -146,6 +146,8 @@ describe("Duel 1v1 (7.1/7.2/7.14)", () => {
     return {
       name: "A", hp: 100, maxHp: 100, armorClass: 14, attackMod: 5, damageBonus: 3,
       weaponDice: "1d8", damageReduction: 3, agilityMod: 2, stamina: 100, maxStamina: 100,
+      strength: 10, intellect: 10, perception: 10,
+      skills: Object.values(BASIC_SKILLS), inventory: [],
       ...partial,
     };
   }
@@ -162,7 +164,7 @@ describe("Duel 1v1 (7.1/7.2/7.14)", () => {
     const a = duelist({ name: "Ta" });
     const b = duelist({ name: "Địch" });
     let st = startDuel(a, b, 5);
-    const { events } = runDuelRound(st, "Tấn Công Liều", "Phòng Thủ", 5);
+    const { events } = runDuelRound(st, { type: "skill", skillId: "danh_lieu" }, { type: "skill", skillId: "phong_thu" }, 5);
     const atkEvent = events.find((e) => e.attacker === "Ta");
     if (atkEvent) {
       expect(atkEvent.targetAc).toBe(14 + 3); // địch Phòng Thủ +3
@@ -180,7 +182,7 @@ describe("Duel 1v1 (7.1/7.2/7.14)", () => {
     const dmgOf = (valyrianOrObsidian: boolean) => {
       const attacker = duelist({ name: "Ta", damageBonus: 5, valyrianOrObsidian });
       const st = startDuel(attacker, tank(), 11);
-      const { events } = runDuelRound(st, "Cân Bằng", "Cân Bằng", 11);
+      const { events } = runDuelRound(st, { type: "skill", skillId: "tan_cong_thuong" }, { type: "skill", skillId: "tan_cong_thuong" }, 11);
       return events.find((e) => e.attacker === "Ta" && e.hit)?.damage ?? 0;
     };
     const dmgNormal = dmgOf(false);
@@ -201,10 +203,10 @@ describe("Duel 1v1 (7.1/7.2/7.14)", () => {
   it("hết Thể Lực → ép về Cân Bằng + đòn yếu", () => {
     const tired = duelist({ name: "Mệt", stamina: 0 });
     let st = startDuel(tired, duelist({ name: "Khoẻ" }), 9);
-    const { events } = runDuelRound(st, "Tấn Công Liều", "Cân Bằng", 9);
+    const { events } = runDuelRound(st, { type: "skill", skillId: "danh_lieu" }, { type: "skill", skillId: "tan_cong_thuong" }, 9);
     const ev = events.find((e) => e.attacker === "Mệt");
     if (ev) {
-      expect(ev.stance).toBe("Cân Bằng"); // bị ép
+      expect(ev.actionUsed).toBe("Tấn Công Thường"); // bị ép
       expect(ev.exhausted).toBe(true);
     }
   });
@@ -245,5 +247,18 @@ describe("Giao Tranh (7.13)", () => {
     const e = sideS({ name: "địch", troops: 25, quality: "Tinh Nhuệ" });
     const r = resolveSkirmish(p, e, "Bảo Vệ Nhân Vật Then Chốt", 55);
     expect(r.keyFighterInjured).toBeNull();
+  });
+});
+
+describe("Exclusive Skills & Passives", () => {
+  it("Máu Tiền Nhân hồi Thể Lực mỗi round", () => {
+    const a = { name: "Tiền Nhân", hp: 100, maxHp: 100, armorClass: 10, attackMod: 0, damageBonus: 0, weaponDice: "1d8", damageReduction: 0, agilityMod: 0, strength: 10, intellect: 10, perception: 10, stamina: 10, maxStamina: 20, valyrianOrObsidian: false, traits: [], skills: [BASIC_SKILLS["tan_cong_thuong"]], passives: [{ id: "mau_tien_nhan", name: "Máu Tiền Nhân", description: "" }], inventory: [] };
+    const b = { name: "Thường", hp: 100, maxHp: 100, armorClass: 10, attackMod: 0, damageBonus: 0, weaponDice: "1d8", damageReduction: 0, agilityMod: 0, strength: 10, intellect: 10, perception: 10, stamina: 10, maxStamina: 20, valyrianOrObsidian: false, traits: [], skills: [BASIC_SKILLS["tan_cong_thuong"]], passives: [], inventory: [] };
+    
+    let st = startDuel(a, b, 1);
+    expect(st.a.stamina).toBe(10);
+    // After round, stamina regenerates 2, but attack cost is 4, so net loss 2 -> 8
+    const { state } = runDuelRound(st, { type: "skill", skillId: "tan_cong_thuong" }, { type: "skill", skillId: "tan_cong_thuong" }, 1);
+    expect(state.a.stamina).toBe(11); // Started 10, Tiền Nhân (+2) = 12, cost (-4) = 8, End of Round Recovery (+3) = 11
   });
 });

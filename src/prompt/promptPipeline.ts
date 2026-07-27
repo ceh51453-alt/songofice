@@ -21,7 +21,7 @@ import { useMvuStore, currentSeedInfo } from "../state/mvuStore";
 import { useCombatStore } from "../state/combatStore";
 import { renderStateForAI } from "../mvu/stateRenderer";
 import { renderTablesForAI } from "../mvu/tableBridge";
-import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT, ANTI_OMNISCIENCE_PROMPT, DRAGON_MECHANICS_PROMPT, WORLD_ENGINE_PROMPT, COT_INSTRUCTION_PROMPT } from "../mvu/mvuPrompt";
+import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT, ANTI_OMNISCIENCE_PROMPT, DRAGON_MECHANICS_PROMPT, WORLD_ENGINE_PROMPT, COT_INSTRUCTION_PROMPT, DEATH_AND_DOOM_PROMPT } from "../mvu/mvuPrompt";
 import { useExtraModelStore } from "../state/extraModelStore";
 import { streamRng } from "../probability/rng";
 import { countTokens } from "./tokenizer";
@@ -97,6 +97,7 @@ function appLayerMessages(): ApiChatMessage[] {
     { role: "system", content: DRAGON_MECHANICS_PROMPT },
     { role: "system", content: worldPrompt },           // GĐ2: World Background Engine
     { role: "system", content: COT_INSTRUCTION_PROMPT }, // GĐ2: CoT 4-bước
+    { role: "system", content: DEATH_AND_DOOM_PROMPT }, // Hệ thống Tử vong
     { role: "system", content: stateBlock },
   ];
   // trận vừa phân giải xong → bút pháp 7.11 + khối báo cáo engine điền (7.10)
@@ -184,6 +185,7 @@ export async function buildPipeline(history: ApiChatMessage[]): Promise<Pipeline
     ["(app) dragon_mechanics", "Cơ chế rồng"],
     ["(app) world_engine", "Thế Giới Sống (GĐ2)"],
     ["(app) cot_instruction", "Suy Luận CoT (GĐ2)"],
+    ["(app) death_doom", "Hệ Thống Tử Vong"],
     ["(app) state_render", "Bảng Trạng Thái render (5.7.3)"],
     ["(app) battle_report", "Báo cáo trận + bút pháp (7.10/7.11)"],
   ];

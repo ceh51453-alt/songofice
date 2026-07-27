@@ -66,7 +66,9 @@ export const NpcSchema = z
     "Họ Tên": safeString().prefault("Vô Danh"),
     "Biệt Danh": safeString().optional(),
     "Nhà": safeString().optional(), // string, KHÔNG enum — NPC có thể thuộc Nhà nhỏ/Essos/không rõ
-    "Giới Tính": z.enum(["Nam", "Nữ"]).catch("Nam").prefault("Nam"), // dùng cho luật kế vị 13.4
+    "Giới Tính": z.enum(["Nam", "Nữ", "Khác"]).catch("Nam").prefault("Nam"), // dùng cho luật kế vị 13.4
+    "Chủng Tộc": safeString().optional(), // Loài (Người, Elf, v.v.)
+    "Ngoại Hình": safeString().optional(), // Thân hình, vẻ ngoài
     "Chức Vụ": safeString().prefault(""),
     "Ảnh Chân Dung": safeString().optional(), // khoá tham chiếu Dexie (5.1c), KHÔNG base64
     "Huy Hiệu": safeString().optional(),
@@ -138,6 +140,7 @@ export const NpcSchema = z
       .prefault("Bình Thường"),
     "Mục Tiêu Cá Nhân": safeString().optional(),
     "$Ghi Chú Ẩn": safeString().optional(), // $ = AI đọc/ghi được nhưng ẨN khỏi UI (bí mật NPC)
+    "$NSFW": safeString().optional(), // Lưu thông tin nhạy cảm, sở thích NSFW dành cho AI
 
     // ── QUAN HỆ THÂN MẬT (NPC nữ có quan hệ tình cảm với người chơi) ──
     "Quan Hệ Thân Mật": NpcIntimacySchema.optional(),

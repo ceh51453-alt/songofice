@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { startDuel, runDuelRound, autoDuel, type Duelist } from "./duel";
+import { startDuel, autoDuel, type Duelist, BASIC_SKILLS } from "./duel";
 
 describe("Epic Duel System", () => {
   const theMountain: Duelist = {
@@ -12,7 +12,10 @@ describe("Epic Duel System", () => {
     damageReduction: 4,
     agilityMod: -2,
     stamina: 30, maxStamina: 30,
-    traits: ["brute_force", "second_wind"]
+    traits: ["brute_force", "second_wind"],
+    strength: 18, intellect: 8, perception: 10,
+    skills: Object.values(BASIC_SKILLS),
+    inventory: []
   };
 
   const oberyn: Duelist = {
@@ -25,7 +28,10 @@ describe("Epic Duel System", () => {
     damageReduction: 1,
     agilityMod: 6,
     stamina: 40, maxStamina: 40,
-    traits: ["poisoned_blade", "agile_dancer", "riposte"]
+    traits: ["poisoned_blade", "agile_dancer", "riposte"],
+    strength: 12, intellect: 14, perception: 16,
+    skills: Object.values(BASIC_SKILLS),
+    inventory: []
   };
 
   it("should initialize duel with traits correctly", () => {

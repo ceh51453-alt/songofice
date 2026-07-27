@@ -5,22 +5,23 @@
 import { useEffect, useRef, useState } from "react";
 
 export function AnimatedNumber({ value, durationMs = 500 }: { value: number; durationMs?: number }) {
-  const [shown, setShown] = useState(value);
+  const safeValue = value ?? 0;
+  const [shown, setShown] = useState(safeValue);
   const [flash, setFlash] = useState<"up" | "down" | null>(null);
-  const prevRef = useRef(value);
+  const prevRef = useRef(safeValue);
   const rafRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const from = prevRef.current;
-    if (from === value) return;
-    prevRef.current = value;
-    setFlash(value > from ? "up" : "down");
+    if (from === safeValue) return;
+    prevRef.current = safeValue;
+    setFlash(safeValue > from ? "up" : "down");
 
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / durationMs);
       const eased = 1 - (1 - t) ** 3;
-      setShown(Math.round(from + (value - from) * eased));
+      setShown(Math.round(from + (safeValue - from) * eased));
       if (t < 1) rafRef.current = requestAnimationFrame(tick);
       else setTimeout(() => setFlash(null), 400);
     };
@@ -28,14 +29,14 @@ export function AnimatedNumber({ value, durationMs = 500 }: { value: number; dur
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [value, durationMs]);
+  }, [safeValue, durationMs]);
 
   return (
     <span
       className="transition-colors duration-300"
       style={{ color: flash === "up" ? "var(--ok)" : flash === "down" ? "var(--danger)" : undefined }}
     >
-      {shown.toLocaleString("vi-VN")}
+      {(shown ?? 0).toLocaleString("vi-VN")}
     </span>
   );
 }

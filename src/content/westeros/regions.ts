@@ -126,68 +126,111 @@ const DEFAULT_298: Record<string, string> = Object.fromEntries(REGIONS.map((r) =
  * Chỉ khai KHÁC biệt so với bảng 298; phần còn lại kế thừa DEFAULT_298.
  * "" = vô chủ / đang tranh chấp. Sửa file này = đổi bản đồ, KHÔNG đụng engine.
  */
-export const REGION_CONTROL_OVERRIDES: Record<string, Record<string, string>> = {
-  // Đêm Trường (~8000 BC): chưa có nhà nào — chỉ có bộ tộc Người Đầu Tiên.
-  "long-night": {
-    "the-north": "stark", // Stark thời cổ đại
-    "the-iron-islands": "",
-    "the-vale": "",
-    "the-riverlands": "",
-    "the-westerlands": "",
-    "the-crownlands": "",
-    "the-reach": "",
-    "the-stormlands": "",
-    "dorne": "",
-  },
-  // Chinh Phạt Aegon (1 AC): 7 vương quốc độc lập, Targaryen chưa nắm đất liền.
-  "aegon-conquest": {
-    "the-crownlands": "", // Aegon đang đổ bộ dựng King's Landing — vô chủ
-    "the-riverlands": "hoare", // Harren Đen nắm cả Sông + Đảo Sắt
-    "the-iron-islands": "hoare",
-    "the-reach": "gardener", // Vua Mern Gardener (trước Tyrell)
-    "the-stormlands": "durrandon", // Vua Bão Argilac (trước Baratheon)
-  },
-  // Vũ Điệu Rồng (129 AC): Targaryen nắm Crownlands, nội chiến hai phe. (Thực tế phe Đen/Xanh, nhưng về cơ bản nhà thống trị vẫn là các Đại Lãnh Chúa, Riverlands là Tully, v.v.)
-  "dance-of-dragons": {
-    "the-crownlands": "targaryen",
-  },
-  // Loạn Blackfyre (195 AC): Daeron II nắm Crownlands, Dorne đã gia nhập vương quốc.
-  "blackfyre-rebellion": {
-    "the-crownlands": "targaryen",
-  },
-  // Hiệp Sĩ Bảy Vương Quốc (209 AC): Aerys I nắm Crownlands, Bloodraven làm Bàn Tay.
-  "dunk-and-egg": {
-    "the-crownlands": "targaryen",
-  },
-  // Loạn Robert (282): Crownlands còn của Targaryen (Aerys II).
-  "roberts-rebellion": {
-    "the-crownlands": "targaryen",
-  },
-  // Loạn Greyjoy (289): giống hậu Loạn Robert — Robert nắm Crownlands.
-  "greyjoy-rebellion": {
-    "the-crownlands": "baratheon",
-  },
-  // Chiến Tranh Ngũ Vương + Sandbox: dùng bảng mặc định 298.
-  "war-of-five-kings": {
-    "the-crownlands": "baratheon",
-  },
-  // Những Ngọn Gió Mùa Đông (Winds of Winter - 300 AC): Bản đồ thay đổi nhiều sau WOTFK
-  "winds-of-winter": {
-    "the-north": "bolton", // Roose Bolton làm Bảo Hộ Phương Bắc
-    "the-riverlands": "frey", // Frey (và Lannister) kiểm soát
-    "the-crownlands": "lannister", // Tommen/Cersei (de facto Lannister)
-    "the-stormlands": "baratheon", // Bị tranh chấp bởi Stannis/Connington, nhưng về mặt danh nghĩa của Tommen/Stannis
-    "the-reach": "tyrell",
-    "the-westerlands": "lannister",
-    "the-iron-islands": "greyjoy",
-    "the-vale": "arryn",
-    "dorne": "martell"
-  }
+/** Màu đại diện cho từng Phe (khi render MapMode = "faction"). Ánh xạ tên phe -> mã nhà chứa màu. */
+export const FACTION_COLORS_MAP: Record<string, string> = {
+  "Phe Đen": "targaryen-black",
+  "Phe Xanh": "targaryen-green",
+  "Targaryen Vương Thất": "targaryen",
+  "Phe Blackfyre": "blackfyre",
+  "Phe Khởi Nghĩa": "baratheon",
+  "Phe Ngai Sắt": "lannister",
+  "Phe Phương Bắc": "stark",
+  "Phe Stannis": "baratheon",
+  "Phe Renly": "tyrell", // Hoặc nhà Tyrell hậu thuẫn
+  "Phe Đảo Sắt": "greyjoy"
 };
 
-/** Bản đồ chủ quyền đầy đủ cho 1 Era (kế thừa mặc định + override). */
+/** Phe phái theo từng năm (Nội Chiến / Xung Đột) */
+export function factionsForYear(year: number): Record<string, string[]> | null {
+  if (year >= 129 && year <= 131) {
+    return {
+      "Phe Đen": ["targaryen-black", "stark", "arryn", "tully", "velaryon"],
+      "Phe Xanh": ["targaryen-green", "lannister", "baratheon", "hightower"]
+    };
+  }
+  if (year >= 195 && year <= 196) { // Loạn Blackfyre lần 1
+    return {
+      "Targaryen Vương Thất": ["targaryen", "arryn", "martell", "tully", "lannister", "baratheon", "stark"],
+      "Phe Blackfyre": ["blackfyre", "bracken", "yronwood", "peake"]
+    };
+  }
+  if (year >= 282 && year <= 283) { // Loạn Robert
+    return {
+      "Phe Khởi Nghĩa": ["baratheon", "stark", "arryn", "tully"],
+      "Targaryen Vương Thất": ["targaryen", "tyrell", "martell"]
+    };
+  }
+  if (year >= 298 && year <= 300) { // Chiến tranh Ngũ Vương
+    return {
+      "Phe Ngai Sắt": ["lannister", "tyrell"],
+      "Phe Phương Bắc": ["stark", "tully"],
+      "Phe Stannis": ["baratheon"], 
+      "Phe Đảo Sắt": ["greyjoy"]
+    };
+  }
+  return null;
+}
+
+/** Bản đồ chủ quyền đầy đủ theo Từng Năm. Dựa trên các cột mốc lịch sử chính. */
+export function regionControlForYear(year: number): Record<string, string> {
+  const control = { ...DEFAULT_298 };
+  
+  if (year < 1) { // Trước Chinh Phạt (bao gồm Đêm Trường)
+    control["the-north"] = "stark";
+    control["the-iron-islands"] = "greyiron"; // hoặc hoare sát mốc 1 AC
+    control["the-vale"] = "royce"; // sau là Arryn
+    control["the-riverlands"] = "mudd"; // sau là Durrandon/Hoare
+    control["the-westerlands"] = "casterly"; // sau là Lannister
+    control["the-crownlands"] = "darklyn";
+    control["the-reach"] = "gardener";
+    control["the-stormlands"] = "durrandon";
+    control["dorne"] = "yronwood"; // hoặc martell
+  } else if (year === 1) { // Chinh Phạt Aegon
+    control["the-crownlands"] = "targaryen";
+    control["the-riverlands"] = "hoare";
+    control["the-iron-islands"] = "hoare";
+    control["the-reach"] = "gardener";
+    control["the-stormlands"] = "durrandon";
+    control["the-westerlands"] = "lannister";
+    control["the-vale"] = "arryn";
+    control["the-north"] = "stark";
+    control["dorne"] = "martell";
+  } else if (year > 1 && year < 283) { // Triều đại Targaryen
+    control["the-crownlands"] = "targaryen";
+    
+    // Vũ Điệu Rồng 129 - 131
+    if (year >= 129 && year <= 131) {
+      control["the-crownlands"] = "targaryen-black"; // Rhaenyra nắm Dragonstone
+      control["the-reach"] = "tyrell"; // Hightower (Xanh) là chư hầu
+    }
+  } else if (year >= 283 && year < 299) { // Triều đại Baratheon (hậu Loạn Robert)
+    control["the-crownlands"] = "baratheon";
+  } else if (year >= 299) { // Chiến tranh Ngũ Vương & Gió Mùa Đông
+    control["the-crownlands"] = "lannister"; // Thực tế Tommen/Cersei
+    if (year >= 300) {
+      control["the-north"] = "bolton";
+      control["the-riverlands"] = "frey";
+    }
+  }
+
+  return control;
+}
+
+/** Tương thích với hệ thống Test và Era cũ. Chuyển đổi Era ID thành năm tương ứng để lấy bản đồ. */
 export function regionControlForEra(eraId: string): Record<string, string> {
-  return { ...DEFAULT_298, ...(REGION_CONTROL_OVERRIDES[eraId] ?? {}) };
+  const eraToYear: Record<string, number> = {
+    "long-night": -8000,
+    "aegon-conquest": 1,
+    "dance-of-dragons": 129,
+    "blackfyre-rebellion": 195,
+    "dunk-and-egg": 209,
+    "roberts-rebellion": 282,
+    "greyjoy-rebellion": 289,
+    "war-of-five-kings": 298,
+    "winds-of-winter": 300
+  };
+  const year = eraToYear[eraId] ?? 298;
+  return regionControlForYear(year);
 }
 
 /** Trọng trấn hiện đúng theo Era (ẩn seat chưa tồn tại — 9.6.1). */

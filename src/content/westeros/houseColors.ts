@@ -29,6 +29,20 @@ export const HOUSE_COLORS: Record<string, HouseColor> = {
   blackfyre: { base: "#3d1a1a", light: "#6b3030", label: "Đen Đỏ Blackfyre" }, // nhà Blackfyre (Loạn Blackfyre)
   velaryon: { base: "#3a6a7a", light: "#6a9ab0", label: "Xanh Bạc Biển" }, // nhà Velaryon (Vũ Điệu Rồng)
   others: { base: "#4a8aa0", light: "#7ac0d8", label: "Xanh Băng Giá" }, // Others (Đêm Trường)
+  hightower: { base: "#6b705c", light: "#a5a58d", label: "Xám Lục Tháp" },
+  royce: { base: "#594d46", light: "#8b7d6b", label: "Đồng Thiếc Cổ" },
+  mudd: { base: "#6e5246", light: "#9a7b6c", label: "Nâu Bùn" },
+  casterly: { base: "#b08d57", light: "#d4af37", label: "Vàng Cổ" },
+  yronwood: { base: "#8c564b", light: "#c49c94", label: "Cát Đỏ" },
+  greyiron: { base: "#454545", light: "#666666", label: "Sắt Gỉ" },
+  darklyn: { base: "#4b404d", light: "#705d73", label: "Đen Vàng" },
+  "first-men": { base: "#545454", light: "#8c8c8c", label: "Đá Cổ" },
+  children: { base: "#4a5d23", light: "#78866b", label: "Lá Úa" },
+  frey: { base: "#5d6d7e", light: "#85929e", label: "Xám Cầu" },
+  peake: { base: "#804000", light: "#b36b00", label: "Cam Nâu" },
+  bracken: { base: "#8b4513", light: "#cd853f", label: "Nâu Thẫm" },
+  "targaryen-black": { base: "#3d1010", light: "#5a1818", label: "Phe Đen" }, // Đỏ đen đặc trưng thay vì đen tuyền
+  "targaryen-green": { base: "#1e592f", light: "#2e7d32", label: "Phe Xanh" }, // Xanh lá nổi bật thay vì xanh tối
   "vô-chủ": { base: "#4a4a4a", light: "#707070", label: "Vô Chủ / Tranh Chấp" },
 };
 

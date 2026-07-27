@@ -18,11 +18,11 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [{ ten: "Vàng Casterly Rock", soLuong: 1000, moTa: "Số vàng lớn mang theo từ quê nhà." }],
     gold: 50000, startingHookIds: [],
-    startHoldings: ["the-westerlands-seat"],
-    holdingsLevel: { "the-westerlands-seat": 5 },
-    baseIncome: 500,
-    startRegions: ["the-westerlands"],
-    startArmy: { size: 45000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Lính Giáo Lannisport", type: "Bộ Binh", size: 27000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Phương Tây", type: "Kỵ Binh", size: 9000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 9000, quality: "Thành Thạo" }
+        ],
     father: "lannister-father-loren",
     spouse: "lannister-wife-loren",
     children: ["lyman-lannister"],
@@ -32,8 +32,12 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     ],
     mother: "lannister-wife-loren",
     siblings: [],
-    rivals: ["aegon-the-conqueror"]
-  },
+    rivals: ["aegon-the-conqueror"],
+      startRegions: ["the-westerlands"],
+      startHoldings: ["the-westerlands-seat"],
+      holdingsLevel: {"the-westerlands-seat":5},
+      baseIncome: 800
+},
   {
     id: "mern-ix-gardener",
     name: "Mern IX Gardener",
@@ -51,11 +55,11 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 60000, startingHookIds: [],
-    startHoldings: ["the-reach-seat"],
-    holdingsLevel: { "the-reach-seat": 5 },
-    baseIncome: 450,
-    startRegions: ["the-reach"],
-    startArmy: { size: 55000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 33000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 11000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Reach", type: "Cung Thủ", size: 11000, quality: "Thành Thạo" }
+        ],
     children: ["edmund-gardener", "gawen-gardener"],
     allies: ["loren-lannister"],
     rivals: ["aegon-the-conqueror"],
@@ -65,8 +69,12 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     father: "garth-gardener",
     mother: "",
     spouse: "",
-    siblings: ["moryn-gardener"]
-  },
+    siblings: ["moryn-gardener"],
+      startRegions: ["the-reach"],
+      startHoldings: ["the-reach-seat"],
+      holdingsLevel: {"the-reach-seat":5},
+      baseIncome: 700
+},
   {
     id: "sharra-arryn",
     name: "Sharra Arryn",
@@ -83,11 +91,11 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 1500, startingHookIds: [],
-    startHoldings: ["the-vale-seat"],
-    holdingsLevel: { "the-vale-seat": 5 },
-    baseIncome: 300,
-    startRegions: ["the-vale"],
-    startArmy: { size: 10000, quality: "Tinh Nhuệ" },
+    startArmies: [
+          { name: "Đội Vệ Binh Cổng Máu", type: "Bộ Binh", size: 6000, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Sĩ Thung Lũng", type: "Kỵ Binh", size: 2000, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Eyrie", type: "Cung Thủ", size: 2000, quality: "Tinh Nhuệ" }
+        ],
     spouse: "arryn-king-sharra",
     children: ["ronnel-arryn", "jonos-arryn"],
     personalHooks: [
@@ -97,8 +105,12 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     mother: "",
     siblings: [],
     allies: [],
-    rivals: ["visenya-targaryen"]
-  },
+    rivals: ["visenya-targaryen"],
+      startRegions: ["the-vale"],
+      startHoldings: ["the-vale-seat"],
+      holdingsLevel: {"the-vale-seat":5},
+      baseIncome: 400
+},
   {
     id: "ronnel-arryn",
     name: "Ronnel Arryn",
@@ -115,8 +127,6 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 100, startingHookIds: [],
-    startHoldings: ["the-vale-seat"],
-    startRegions: ["the-vale"],
     mother: "sharra-arryn",
     father: "arryn-king-sharra",
     siblings: ["jonos-arryn"],
@@ -127,10 +137,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     children: [],
     allies: ["aegon-the-conqueror"],
     rivals: ["jonos-arryn"],
-    startArmy: { size: 18000, quality: "Thành Thạo" },
-    baseIncome: 160,
-    holdingsLevel: { "the-vale-seat": 4 }
-  },
+    startArmies: [
+          { name: "Chiến Binh Vùng Núi", type: "Bộ Binh", size: 10800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Thung Lũng", type: "Kỵ Binh", size: 3600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Eyrie", type: "Cung Thủ", size: 3600, quality: "Thành Thạo" }
+        ],
+      startRegions: ["the-vale"],
+      startHoldings: ["the-vale-seat"],
+      holdingsLevel: {"the-vale-seat":5},
+      baseIncome: 400
+},
   {
     id: "edmyn-tully",
     name: "Edmyn Tully",
@@ -147,11 +163,11 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 1200, startingHookIds: [],
-    startHoldings: ["the-riverlands-seat"],
-    holdingsLevel: { "the-riverlands-seat": 5 },
-    baseIncome: 350,
-    startRegions: ["the-riverlands"],
-    startArmy: { size: 10000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Vệ Binh Sông Xanh", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Sông Nhánh", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Nước", type: "Cung Thủ", size: 2000, quality: "Thành Thạo" }
+        ],
     children: ["tully-son-edmyn"],
     allies: ["aegon-the-conqueror"],
     rivals: ["harren-the-black"],
@@ -161,8 +177,12 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     father: "",
     mother: "",
     spouse: "",
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-riverlands"],
+      startHoldings: ["the-riverlands-seat"],
+      holdingsLevel: {"the-riverlands-seat":5},
+      baseIncome: 450
+},
   {
     id: "vickon-greyjoy",
     name: "Vickon Greyjoy",
@@ -179,11 +199,13 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 800, startingHookIds: [],
-    startHoldings: ["the-iron-islands-seat"],
-    holdingsLevel: { "the-iron-islands-seat": 5 },
-    baseIncome: 200,
-    startRegions: ["the-iron-islands"],
-    startArmy: { size: 5000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 3000, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 750, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 25, quality: "Thành Thạo" }
+        ],
     children: ["goren-greyjoy"],
     personalHooks: [
       { id: "vickon-election", title: "Cuộc Bầu Cử Quần Đảo", year: "2 AC", numericYear: 2, desc: "Vua Harren đã chết. Lãnh chúa Quần Đảo Sắt cần một người đứng đầu, và Aegon cho phép họ tự chọn." }
@@ -193,8 +215,12 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     spouse: "",
     siblings: [],
     allies: ["aegon-the-conqueror"],
-    rivals: []
-  },
+    rivals: [],
+      startRegions: ["the-iron-islands"],
+      startHoldings: ["the-iron-islands-seat"],
+      holdingsLevel: {"the-iron-islands-seat":5},
+      baseIncome: 250
+},
   {
     id: "meria-martell",
     name: "Meria Martell",
@@ -212,11 +238,11 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 2500, startingHookIds: [],
-    startHoldings: ["dorne-seat"],
-    holdingsLevel: { "dorne-seat": 5 },
-    baseIncome: 250,
-    startRegions: ["dorne"],
-    startArmy: { size: 10000, quality: "Tinh Nhuệ" },
+    startArmies: [
+          { name: "Đội Tiên Phong Xứ Dorne", type: "Bộ Binh", size: 6000, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 2000, quality: "Tinh Nhuệ" },
+          { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 2000, quality: "Tinh Nhuệ" }
+        ],
     children: ["nymor-martell"],
     rivals: ["aegon-the-conqueror", "rhaenys-targaryen"],
     personalHooks: [
@@ -226,8 +252,12 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     mother: "",
     spouse: "",
     siblings: [],
-    allies: []
-  },
+    allies: [],
+      startRegions: ["dorne"],
+      startHoldings: ["dorne-seat"],
+      holdingsLevel: {"dorne-seat":5},
+      baseIncome: 400
+},
   {
     id: "nymor-martell",
     name: "Nymor Martell",
@@ -245,8 +275,6 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 1500, startingHookIds: [],
-    startHoldings: ["dorne-seat"],
-    startRegions: ["dorne"],
     personalHooks: [
       { id: "nymor-peace", title: "Lá Thư Hòa Bình", year: "13 AC", numericYear: 13, desc: "Mẹ ngươi đã mất. Đã đến lúc chấm dứt cuộc chiến đẫm máu này bằng một lá thư bí mật gửi cho Aegon." }
     ],
@@ -257,10 +285,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: ["aegon-the-conqueror"],
-    startArmy: { size: 15000, quality: "Thành Thạo" },
-    baseIncome: 150,
-    holdingsLevel: { "dorne-seat": 3 }
-  },
+    startArmies: [
+          { name: "Chiến Binh Mật Thủy", type: "Bộ Binh", size: 9000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Sa Mạc", type: "Kỵ Binh", size: 3000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Tẩm Độc", type: "Cung Thủ", size: 3000, quality: "Thành Thạo" }
+        ],
+      startRegions: ["dorne"],
+      startHoldings: ["dorne-seat"],
+      holdingsLevel: {"dorne-seat":5},
+      baseIncome: 400
+},
   {
     id: "deria-martell",
     name: "Deria Martell",
@@ -277,8 +311,6 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 500, startingHookIds: [],
-    startHoldings: [],
-    startRegions: [],
     personalHooks: [
       { id: "deria-envoy", title: "Hành Trình Đến King's Landing", year: "13 AC", numericYear: 13, desc: "Ngươi mang theo hộp sọ của rồng Meraxes và một lá thư mật, bước vào ngai vàng để thương lượng với kẻ thù." }
     ],
@@ -289,10 +321,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Tiên Phong Xứ Dorne", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "dickon-morrigen",
     name: "Dickon Morrigen",
@@ -310,8 +348,6 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 100, startingHookIds: [],
-    startHoldings: [],
-    startRegions: [],
     personalHooks: [
       { id: "the-last-storm", title: "Cơn Bão Cuối Cùng", year: "1 BC", numericYear: -1, desc: "Orys Baratheon đang kéo quân tới. Ngươi sẽ tử chiến vì Vua Bão Argilac." }
     ],
@@ -322,10 +358,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   // ── GIA QUYẾN ĐƯỢC TẠO THEO LORE ──
   {
     id: "lannister-father-loren", name: "Cựu Vương Lannister", tuocVi: "Thường Dân", house: "Lannister", role: "Cựu Vương", religion: "Thất Diện Thần", blurb: "Cha của Loren Lannister.",
@@ -338,10 +379,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 500, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Trọng Bộ Binh Lannister", type: "Bộ Binh", size: 350, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "lannister-wife-loren", name: "Vương Hậu Lannister", tuocVi: "Vương Hậu", house: "Lannister", role: "Vương Hậu", religion: "Thất Diện Thần", blurb: "Vợ của Loren Lannister.",
     birthYear: -25, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -352,10 +398,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 5000, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Giáo Lannisport", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
+          { name: "Đội Kỵ Binh Hạng Nặng Lannister", type: "Kỵ Binh", size: 1000, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 1000, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "lyman-lannister", name: "Lyman Lannister", tuocVi: "Vương Thân", house: "Lannister", role: "Con trai Loren", religion: "Thất Diện Thần", blurb: "Người thừa kế của Loren Lannister.",
     birthYear: -5, age: 5, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -365,10 +417,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 5000, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Sư Tử Đỏ", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
+          { name: "Đội Kỵ Binh Hạng Nặng Lannister", type: "Kỵ Binh", size: 1000, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 1000, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "edmund-gardener", name: "Edmund Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Thái tử", religion: "Thất Diện Thần", blurb: "Con trai trưởng của Mern IX.",
     birthYear: -25, deathYear: -2, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -379,10 +437,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Reach", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "gawen-gardener", name: "Gawen Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai thứ của Mern IX.",
     birthYear: -23, deathYear: -2, age: 23, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -393,10 +457,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Reach", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "garth-gardener", name: "Garth Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai của Mern IX.",
     birthYear: -20, deathYear: -2, age: 20, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -407,10 +477,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Reach", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "moryn-gardener", name: "Moryn Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai út của Mern IX.",
     birthYear: -18, deathYear: -2, age: 18, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -421,10 +497,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Reach", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "arryn-king-sharra", name: "Cựu Vương Arryn", tuocVi: "Thường Dân", house: "Arryn", role: "Vua đã mất", religion: "Thất Diện Thần", blurb: "Người chồng đã mất của Sharra Arryn.",
     birthYear: -40, deathYear: -6, age: 34, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -435,10 +517,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 360, quality: "Thành Thạo" },
-    baseIncome: 80,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Giáo Thung Lũng", type: "Bộ Binh", size: 251, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Thung Lũng", type: "Cung Thủ", size: 109, quality: "Thành Thạo" }
+        ],
+      startRegions: ["the-vale"],
+      startHoldings: ["the-vale-seat"],
+      holdingsLevel: {"the-vale-seat":5},
+      baseIncome: 400
+},
   {
     id: "jonos-arryn", name: "Jonos Arryn", tuocVi: "Vương Thân", house: "Arryn", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Em trai của Ronnel Arryn.",
     birthYear: -4, age: 4, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -448,10 +535,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3600, quality: "Thành Thạo" },
-    baseIncome: 80,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Vệ Binh Cổng Máu", type: "Bộ Binh", size: 2160, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Thung Lũng", type: "Kỵ Binh", size: 720, quality: "Thành Thạo" },
+          { name: "Cung Thủ Eyrie", type: "Cung Thủ", size: 720, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "tully-son-edmyn", name: "Con trai Edmyn", tuocVi: "Người Thừa Kế", house: "Tully", role: "Người Thừa Kế", religion: "Thất Diện Thần", blurb: "Người kế vị Riverrun.",
     birthYear: -10, age: 10, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -462,10 +555,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 2400, quality: "Thành Thạo" },
-    baseIncome: 70,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Riverrun", type: "Bộ Binh", size: 1440, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Sông Nhánh", type: "Kỵ Binh", size: 480, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Nước", type: "Cung Thủ", size: 480, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "goren-greyjoy", name: "Goren Greyjoy", tuocVi: "Người Thừa Kế", house: "Greyjoy", role: "Người Thừa Kế", religion: "Đần Thần (Drowned God)", blurb: "Con trai cả của Vickon Greyjoy.",
     birthYear: -15, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -476,24 +575,19 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
-  {
-    id: "nymor-martell", name: "Nymor Martell", tuocVi: "Người Thừa Kế", house: "Martell", role: "Vương tử Dorne", religion: "Thất Diện Thần", blurb: "Con trai của Meria Martell.",
-    birthYear: -30, age: 30, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], mother: "meria-martell",
-    father: "",
-    spouse: "",
-    children: ["deria-martell"],
-    siblings: [],
-    allies: [],
-    rivals: ["aegon-the-conqueror"],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Rìu Pyke", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
+
   {
     id: "aerion-targaryen", name: "Aerion Targaryen", tuocVi: "Lãnh Chúa", house: "Targaryen", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Aegon, Visenya, và Rhaenys.",
     birthYear: -50, deathYear: -2, age: 48, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -505,10 +599,18 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Kích Đỉnh Aegon", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "valaena-velaryon", name: "Valaena Velaryon", tuocVi: "Tiểu Thư", house: "Velaryon", role: "Phu Nhân", religion: "Thất Diện Thần", blurb: "Mẹ của Aegon, Visenya, và Rhaenys.",
     birthYear: -48, deathYear: -2, age: 46, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -519,10 +621,18 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 800, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Giáo Biển", type: "Bộ Binh", size: 480, quality: "Tinh Nhuệ" },
+          { name: "Thủy Thủ Bắn Nỏ", type: "Cung Thủ", size: 120, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Driftmark", type: "Chiến Thuyền Nặng", size: 4, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "hoare-son-harren", name: "Thái Tử Hoare", tuocVi: "Người Thừa Kế", house: "Hoare", role: "Con trai Harren", religion: "Thần Chết Chìm", blurb: "Người con sẽ chết trong lửa rồng cùng cha.",
     birthYear: -30, deathYear: 2, age: 30, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -533,10 +643,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 600, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Chiến Binh Đảo Muối", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Đảo", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "brandon-snow", name: "Brandon Snow", tuocVi: "Thường Dân", house: "Stark", role: "Anh em của Torrhen", religion: "Cựu Thần", blurb: "Con hoang của phương Bắc, đã từng đề xuất ám sát rồng Targaryen.",
     birthYear: -28, age: 28, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -547,10 +662,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     children: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 300, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Quân Đoàn Rừng Sói", type: "Bộ Binh", size: 210, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Winterfell", type: "Cung Thủ", size: 90, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "stark-son-torrhen", name: "Con trai Torrhen", tuocVi: "Người Thừa Kế", house: "Stark", role: "Người Thừa Kế", religion: "Cựu Thần", blurb: "Con trai của Torrhen Stark, phẫn nộ vì cha phải quỳ gối.",
     birthYear: -10, age: 10, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -561,10 +681,16 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Winterfell", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Sói", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "argella-durrandon", name: "Argella Durrandon", tuocVi: "Công Chúa", house: "Durrandon", role: "Nữ Vương Bão", religion: "Thất Diện Thần", blurb: "Con gái của Argilac, người sẽ lấy Orys Baratheon.",
     birthYear: -18, age: 18, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 14 },
@@ -575,8 +701,13 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 600, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  }
+    startArmies: [
+          { name: "Bộ Binh Bão Tố", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+}
 ];

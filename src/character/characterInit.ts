@@ -20,6 +20,7 @@ import { LORE_EQUIPMENT_BY_ID } from "../content/westeros/equipment";
 import { STARTING_CRISES } from "../content/westeros/startingCrises";
 import { COMPANIONS_BY_ID } from "../content/westeros/companions";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
+import { REGIONS } from "../content/westeros/regions";
 import { seedRegionControl } from "../territory/territoryEngine";
 import type { CoreStat } from "../content/westeros/skills";
 import type { LoreEntry } from "../lorebook/loreSchema";
@@ -159,6 +160,21 @@ export const autoBuildCity = (level: number) => {
   return b;
 };
 
+export const autoBuildWalls = (level: number) => {
+  if (level < 2) return [];
+  const center = 750;
+  // Bán kính tường thành phụ thuộc vào level, bao bọc Lâu Đài
+  const radius = 8 + level * 2;
+  const c = center;
+  const r = radius;
+  return [
+    { x1: c - r, y1: c - r, x2: c + r, y2: c - r, material: "Đá" }, // Top
+    { x1: c + r, y1: c - r, x2: c + r, y2: c + r, material: "Đá" }, // Right
+    { x1: c + r, y1: c + r, x2: c - r, y2: c + r, material: "Đá" }, // Bottom
+    { x1: c - r, y1: c + r, x2: c - r, y2: c - r, material: "Đá" }  // Left
+  ];
+};
+
 
 /** Số slot thiên phú tích cực: cơ bản theo Độ Khó + 1 slot mỗi khiếm khuyết nhận (8.5 Bước 3). */
 export function talentSlots(difficulty: Difficulty, talentIds: string[]): { used: number; max: number } {
@@ -210,7 +226,19 @@ export interface WizardData {
   customHouseWords?: string;
   customHouseSigilKey?: string;
   customForce?: {
-    npcs: { id: string; name: string; role: string; statPreset: string }[];
+    npcs: { 
+      id: string; 
+      name: string; 
+      role: string; 
+      statPreset: string;
+      nangLuc: { voLuc: number; thongSoai: number; triMuu: number; ngoaiGiao: number };
+      tuoi: number;
+      netTinhCach: string;
+      gioiTinh?: string;
+      loai?: string;
+      thanHinh?: string;
+      nsfw?: string;
+    }[];
     units: { id: string; type: string; count: number; commander: string }[];
   };
   /** Danh sách thành viên gia đình được tạo chi tiết */
@@ -219,6 +247,10 @@ export interface WizardData {
     name: string;
     relation: string;
     age: number;
+    gioiTinh?: string;
+    loai?: string;
+    nsfw?: string;
+    nangLuc?: { voLuc: number; thongSoai: number; triMuu: number; ngoaiGiao: number };
     persona: {
       ngoaiHinh: string;
       tinhCach: string;
@@ -245,6 +277,15 @@ export interface WizardData {
   crisisId: string | null;
   companionId: string | null;
   companionName?: string;
+  companionOverrides?: {
+    nangLuc?: { voLuc: number; thongSoai: number; triMuu: number; ngoaiGiao: number };
+    tuoi?: number;
+    netTinhCach?: string;
+    gioiTinh?: string;
+    loai?: string;
+    thanHinh?: string;
+    nsfw?: string;
+  };
   hookId: string;
   /** null = không có rồng (era không hỗ trợ hoặc người chơi không chọn). */
   dragon: DragonWizardData | null;
@@ -292,25 +333,29 @@ function applyEquipment(state: StatData, grants: { slot: EquipGrant["slot"]; ten
   }
 }
 
-function buildCompanion(archetypeId: string, name: string | undefined, affinityOffset: number): [string, Npc] | null {
+function buildCompanion(archetypeId: string, name: string | undefined, affinityOffset: number, overrides?: { nangLuc?: { voLuc: number; thongSoai: number; triMuu: number; ngoaiGiao: number }; tuoi?: number; netTinhCach?: string; gioiTinh?: string; loai?: string; thanHinh?: string; nsfw?: string }): [string, Npc] | null {
   const arch = COMPANIONS_BY_ID[archetypeId];
   if (!arch) return null;
   const npcName = name?.trim() || arch.name;
   const npc = NpcSchema.parse({
     "Họ Tên": npcName,
     "Chức Vụ": arch.chucVu,
-    "Tuổi": arch.tuoi,
+    "Tuổi": overrides?.tuoi ?? arch.tuoi,
     "Độ Hảo Cảm": clamp(arch.haoCam + affinityOffset, -100, 100),
     "Tin Cậy": arch.tinCay,
     "Loại Quan Hệ": arch.loaiQuanHe,
     "Đánh Giá": arch.desc,
+    "Giới Tính": overrides?.gioiTinh ?? "Nam",
+    "Chủng Tộc": overrides?.loai,
+    "Ngoại Hình": overrides?.thanHinh,
+    "$NSFW": overrides?.nsfw,
     "Năng Lực": {
-      "Võ Lực": arch.nangLuc.voLuc,
-      "Thống Soái": arch.nangLuc.thongSoai,
-      "Trí Mưu": arch.nangLuc.triMuu,
-      "Ngoại Giao": arch.nangLuc.ngoaiGiao,
+      "Võ Lực": overrides?.nangLuc?.voLuc ?? arch.nangLuc.voLuc,
+      "Thống Soái": overrides?.nangLuc?.thongSoai ?? arch.nangLuc.thongSoai,
+      "Trí Mưu": overrides?.nangLuc?.triMuu ?? arch.nangLuc.triMuu,
+      "Ngoại Giao": overrides?.nangLuc?.ngoaiGiao ?? arch.nangLuc.ngoaiGiao,
     },
-    "Nét Tính Cách": arch.netTinhCach,
+    "Nét Tính Cách": overrides?.netTinhCach ? overrides.netTinhCach.split(",").map(s => s.trim()) : arch.netTinhCach,
   });
   return [npcName, npc];
 }
@@ -595,7 +640,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
   // ---- tâm phúc (Bước 8) ----
   if (d.companionId) {
-    const comp = buildCompanion(d.companionId, d.companionName, npcAffinityOffset(allTalentIds));
+    const comp = buildCompanion(d.companionId, d.companionName, npcAffinityOffset(allTalentIds), d.companionOverrides);
     if (comp) (state["Mối Quan Hệ"]["NPC Chính"] as Record<string, Npc>)[comp[0]] = comp[1];
   }
 
@@ -647,13 +692,22 @@ export function buildStateFromWizard(d: WizardData): StatData {
       (state["Tướng Lĩnh"] as Record<string, unknown>)[n.id] = {
         "Họ Tên": n.name?.trim() || "Vô Danh",
         "Chức Vụ": n.role,
-        "Tuổi": 30,
+        "Tuổi": n.tuoi || 30,
+        "Giới Tính": n.gioiTinh || "Nam",
+        "Chủng Tộc": n.loai,
+        "Ngoại Hình": n.thanHinh,
+        "$NSFW": n.nsfw,
         "Độ Hảo Cảm": 50,
         "Tin Cậy": true,
         "Loại Quan Hệ": "Gia Thần",
         "Đánh Giá": "Được tuyển mộ từ lúc khởi nghiệp",
-        "Năng Lực": getStatsForRole(n.role),
-        "Nét Tính Cách": ["Trung Thành"],
+        "Năng Lực": {
+          "Võ Lực": n.nangLuc?.voLuc ?? 10,
+          "Thống Soái": n.nangLuc?.thongSoai ?? 10,
+          "Trí Mưu": n.nangLuc?.triMuu ?? 10,
+          "Ngoại Giao": n.nangLuc?.ngoaiGiao ?? 10,
+        },
+        "Nét Tính Cách": n.netTinhCach ? n.netTinhCach.split(",").map(s => s.trim()) : ["Trung Thành"],
       };
     }
   }
@@ -672,9 +726,18 @@ export function buildStateFromWizard(d: WizardData): StatData {
       (state["Mối Quan Hệ"]["Thành Viên Gia Tộc"] as Record<string, unknown>)[member.id] = {
         "Họ Tên": npcName,
         "Tuổi": member.age,
+        "Giới Tính": member.gioiTinh || "Nam",
+        "Chủng Tộc": member.loai,
         "Loại Quan Hệ": member.relation,
         "Ngoại Hình": member.persona.ngoaiHinh,
         "Tính Cách": member.persona.tinhCach,
+        "$NSFW": member.nsfw,
+        "Năng Lực": member.nangLuc ? {
+          "Võ Lực": member.nangLuc.voLuc,
+          "Thống Soái": member.nangLuc.thongSoai,
+          "Trí Mưu": member.nangLuc.triMuu,
+          "Ngoại Giao": member.nangLuc.ngoaiGiao,
+        } : undefined,
         "Độ Hảo Cảm": 80,
         "Tin Cậy": true,
       };
@@ -683,15 +746,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
     state["Cài Đặt Ván"]["$Bối Cảnh Ẩn"] += hiddenFamilyNotes;
   }
 
-  function getStatsForRole(role: string) {
-    switch (role) {
-      case "Tướng Quân": return { "Võ Lực": 14, "Thống Soái": 16, "Trí Mưu": 12, "Ngoại Giao": 10 };
-      case "Hiệp Sĩ": return { "Võ Lực": 18, "Thống Soái": 10, "Trí Mưu": 8, "Ngoại Giao": 8 };
-      case "Cố Vấn": return { "Võ Lực": 6, "Thống Soái": 8, "Trí Mưu": 18, "Ngoại Giao": 16 };
-      case "Thị Vệ": return { "Võ Lực": 16, "Thống Soái": 8, "Trí Mưu": 8, "Ngoại Giao": 6 };
-      default: return { "Võ Lực": 10, "Thống Soái": 10, "Trí Mưu": 10, "Ngoại Giao": 10 };
-    }
-  }
+
 
   // ---- phái sinh + đầy sinh tồn (8.6b bước 5) ----
   recomputeDerived(state);
@@ -894,10 +949,29 @@ export function buildStateFromCanon(
       "Kỹ Năng": { ...drg.skills },
       "Mô Tả": drg.description,
     };
+
+    let loc = "dragonstone";
+    if (adjustedC.startHoldings?.[0]) loc = adjustedC.startHoldings[0];
+    else if (adjustedC.startRegions?.[0]) loc = `${adjustedC.startRegions[0]}-seat`;
+    
+    (state["Biên Chế Quân Sự"] as Record<string, unknown>)[drg.name] = {
+      "Tướng Chỉ Huy": adjustedC.name,
+      "Nhà": adjustedC.house,
+      "Số Lượng": 1,
+      "Loại Quân": "Rồng",
+      "Thành Phần": {},
+      "Hậu Cần": "Dồi Dào",
+      "Sĩ Khí": "Hăng Hái",
+      "Trang Bị": "Không Có",
+      "Huấn Luyện": "Tinh Nhuệ",
+      "Lãnh Địa Đồn Trú": loc,
+      "Turn Di Chuyển Còn Lại": 0,
+      "Turn Huấn Luyện": 0
+    };
   }
 
   // ---- thiết lập Triều Đình nguyên tác ----
-  if (adjustedC.tuocVi === "Vua" || adjustedC.tuocVi === "Vua Bảy Vương Quốc") {
+  if (["Quốc Vương", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế"].includes(adjustedC.tuocVi)) {
     state["Triều Đình"]["Có Liên Quan"] = true;
     state["Triều Đình"]["Quyền Bổ Nhiệm"] = true;
     state["Triều Đình"]["Triều Đình Của"] = adjustedC.name;
@@ -946,70 +1020,140 @@ export function buildStateFromCanon(
   seedRegionControl(state, era.id, { createIfMissing: true });
 
   // ---- Cập nhật tài sản khởi điểm tuỳ chỉnh của nhân vật (nếu có) ----
-  if (adjustedC.startRegions) {
-    for (const rid of adjustedC.startRegions) {
-      if (state["Chủ Quyền Lãnh Thổ"][rid]) {
-        state["Chủ Quyền Lãnh Thổ"][rid]["Nhà Kiểm Soát"] = adjustedC.house;
-        state["Chủ Quyền Lãnh Thổ"][rid]["Là Của Người Chơi"] = true;
+  const allCharacters = [adjustedC, ...era.canonCharacters.filter(ch => ch.id !== c.id)];
+
+  for (const char of allCharacters) {
+    const isPlayer = char.id === adjustedC.id;
+
+    if (char.startRegions) {
+      for (const rid of char.startRegions) {
+        if (state["Chủ Quyền Lãnh Thổ"][rid]) {
+          state["Chủ Quyền Lãnh Thổ"][rid]["Nhà Kiểm Soát"] = char.house;
+          state["Chủ Quyền Lãnh Thổ"][rid]["Người Kiểm Soát"] = char.name;
+          if (isPlayer) {
+            state["Chủ Quyền Lãnh Thổ"][rid]["Là Của Người Chơi"] = true;
+          }
+        }
       }
     }
-  }
-  if (adjustedC.startHoldings) {
-    for (const sid of adjustedC.startHoldings) {
-      const marker = MAP_MARKERS.find(m => m.id === sid);
-      const lvl = adjustedC.holdingsLevel?.[sid] || 1;
-      const basePop = marker?.population || 5000;
-      const pop = basePop * lvl;
-      const factor = lvl;
-      
-      let regionId = "the-crownlands"; // default fallback
-      if (marker && marker.regionId) {
-        regionId = marker.regionId;
-      } else if (sid.endsWith("-seat")) {
-        regionId = sid.replace("-seat", "");
+
+    if (char.startHoldings) {
+      for (const sid of char.startHoldings) {
+        const marker = MAP_MARKERS.find(m => m.id === sid);
+        const regionSeat = REGIONS.find(r => r.id + "-seat" === sid || r.seat === marker?.name);
+        
+        let basePop = 5000;
+        if (regionSeat && regionSeat.seatPopulation) {
+             basePop = regionSeat.seatPopulation;
+        } else if (marker && marker.population) {
+             basePop = marker.population;
+        }
+        
+        const lvl = char.holdingsLevel?.[sid] || 1;
+        const pop = basePop * lvl;
+        const factor = lvl;
+        const popMulti = Math.max(1, Math.floor(pop / 5000));
+        
+        let regionId = "the-crownlands"; // default fallback
+        if (regionSeat) {
+          regionId = regionSeat.id;
+        } else if (marker && marker.regionId) {
+          regionId = marker.regionId;
+        } else if (sid.endsWith("-seat")) {
+          regionId = sid.replace("-seat", "");
+        }
+        
+        const REGION_RESOURCE_MODIFIERS: Record<string, { gold: number, food: number, wood: number, stone: number, iron: number }> = {
+          "the-north": { gold: 0.5, food: 0.8, wood: 1.5, stone: 1.2, iron: 1.0 },
+          "the-westerlands": { gold: 3.0, food: 1.0, wood: 0.8, stone: 1.2, iron: 1.5 },
+          "the-reach": { gold: 1.5, food: 2.0, wood: 1.0, stone: 1.0, iron: 0.8 },
+          "the-vale": { gold: 1.0, food: 1.0, wood: 0.8, stone: 2.0, iron: 1.0 },
+          "the-riverlands": { gold: 1.0, food: 1.5, wood: 1.2, stone: 0.8, iron: 0.8 },
+          "the-iron-islands": { gold: 0.5, food: 0.5, wood: 0.2, stone: 1.5, iron: 2.0 },
+          "the-stormlands": { gold: 0.8, food: 1.0, wood: 1.5, stone: 1.5, iron: 1.0 },
+          "the-crownlands": { gold: 1.2, food: 1.0, wood: 0.8, stone: 1.0, iron: 0.8 },
+          "dorne": { gold: 1.2, food: 0.8, wood: 0.5, stone: 1.2, iron: 0.8 },
+        };
+        const rMod = REGION_RESOURCE_MODIFIERS[regionId] || { gold: 1, food: 1, wood: 1, stone: 1, iron: 1 };
+        
+        state["Lãnh Địa"][sid] = {
+          "Thuộc Vùng": regionId,
+          "Nhà Kiểm Soát": char.house,
+          "Người Kiểm Soát": char.name,
+          "Tình Trạng": "Ổn Định",
+          "Mô Tả": marker?.name || (regionSeat?.seat) || sid,
+          "Dân Số": pop,
+          "Dân Số Chi Tiết": { 
+              "Nông Dân": Math.floor(pop * 0.5), 
+              "Thợ Thủ Công": Math.floor(pop * 0.1), 
+              "Thợ Mỏ": Math.floor(pop * 0.1), 
+              "Tiều Phu": Math.floor(pop * 0.1), 
+              "Thương Nhân": Math.floor(pop * 0.1), 
+              "Nghề Khác": Math.floor(pop * 0.05), 
+              "Thất Nghiệp": Math.floor(pop * 0.05) 
+          },
+          "Lòng Dân": 80,
+          "Trung Thành": 80,
+          "Dự Trữ Lương Thực": Math.floor(1000 * popMulti * rMod.food),
+          "Thu Nhập Bình Quân": 10 * factor,
+          "Sự Kiện Đặc Biệt": [],
+          "Tài Nguyên": { 
+              "Vàng": Math.floor(1000 * popMulti * rMod.gold), 
+              "Lương Thực": Math.floor(5000 * popMulti * rMod.food), 
+              "Gỗ": Math.floor(1000 * popMulti * rMod.wood), 
+              "Đá": Math.floor(1000 * popMulti * rMod.stone), 
+              "Quặng Sắt": Math.floor(500 * popMulti * rMod.iron) 
+          },
+          "Vật Phẩm": {},
+          "Điểm Khám Phá": [],
+          "Pháp Lệnh": {},
+          "Tường Thành": autoBuildWalls(lvl),
+          "Đường Đi": [],
+          "Khủng Hoảng": [],
+          "Ven Biển": false,
+          "Công Trình": autoBuildCity(lvl),
+        };
       }
-      
-      state["Lãnh Địa"][sid] = {
-        "Thuộc Vùng": regionId,
-        "Nhà Kiểm Soát": adjustedC.house,
-        "Người Kiểm Soát": adjustedC.name,
-        "Tình Trạng": "Ổn Định",
-        "Mô Tả": marker?.name || sid,
-        "Dân Số": pop,
-        "Dân Số Chi Tiết": { 
-            "Nông Dân": Math.floor(pop * 0.5), 
-            "Thợ Thủ Công": Math.floor(pop * 0.1), 
-            "Thợ Mỏ": Math.floor(pop * 0.1), 
-            "Tiều Phu": Math.floor(pop * 0.1), 
-            "Thương Nhân": Math.floor(pop * 0.1), 
-            "Nghề Khác": Math.floor(pop * 0.05), 
-            "Thất Nghiệp": Math.floor(pop * 0.05) 
-        },
-        "Lòng Dân": 80,
-        "Trung Thành": 80,
-        "Dự Trữ Lương Thực": 1000 * factor,
-        "Thu Nhập Bình Quân": 10 * factor,
-        "Sự Kiện Đặc Biệt": [],
-        "Tài Nguyên": { 
-            "Vàng": 1000 * factor, 
-            "Lương Thực": 5000 * factor, 
-            "Gỗ": 1000 * factor, 
-            "Đá": 1000 * factor, 
-            "Quặng Sắt": 500 * factor 
-        },
-        "Vật Phẩm": {},
-        "Điểm Khám Phá": [],
-        "Pháp Lệnh": {},
-        "Tường Thành": [],
-        "Đường Đi": [],
-        "Khủng Hoảng": [],
-        "Ven Biển": false,
-        "Công Trình": autoBuildCity(lvl),
-      };
     }
   }
 
-  const createRichArmies = (chId: string, name: string, house: string, totalSize: number, quality: string, loc: string) => {
+  const createRichArmies = (chId: string, name: string, house: string, totalSize: number, quality: string, loc: string, canonChar?: CanonCharacter) => {
+    if (canonChar?.startArmies || canonChar?.startFleets) {
+      if (canonChar.startArmies) {
+        for (const a of canonChar.startArmies) {
+          state["Biên Chế Quân Sự"][a.name] = {
+            "Tướng Chỉ Huy": name,
+            "Nhà": house,
+            "Số Lượng": a.size,
+            "Loại Quân": a.type as any,
+            "Thành Phần": {},
+            "Hậu Cần": "Dồi Dào",
+            "Sĩ Khí": "Hăng Hái",
+            "Trang Bị": "Đồng Bộ Chỉnh Tề",
+            "Huấn Luyện": a.quality as any,
+            "Lãnh Địa Đồn Trú": loc,
+            "Turn Di Chuyển Còn Lại": 0,
+            "Turn Huấn Luyện": 0
+          };
+        }
+      }
+      if (canonChar.startFleets) {
+        for (const f of canonChar.startFleets) {
+          state["Hạm Đội"][f.name] = {
+            "Đô Đốc": name,
+            "Nhà": house as any,
+            "Số Chiến Thuyền": f.size,
+            "Loại Hạm": (f.type || (house === "Greyjoy" ? "Thuyền Dài (Greyjoy)" : "Chiến Thuyền Nặng")) as any,
+            "Tình Trạng": "Sẵn Sàng",
+            "Lãnh Địa Neo Đậu": loc,
+            "Bộ Binh Trên Thuyền": 0,
+            "Đang Phong Toả": undefined
+          };
+        }
+      }
+      return;
+    }
+
     let armyCount = 0;
     const addArmy = (type: string, fraction: number) => {
       if (fraction <= 0) return;
@@ -1065,9 +1209,6 @@ export function buildStateFromCanon(
       addArmy("Trường Thương", 0.7);
       addArmy("Kỵ Binh Nhẹ", 0.3);
     } else if (house === "Targaryen") {
-      if (["aegon-conquest", "dance-of-dragons"].includes(era.id)) {
-        addArmy("Rồng", 0.005);
-      }
       addArmy("Bộ Binh", 0.7);
       addArmy("Kỵ Binh", 0.3);
       addFleet(50);
@@ -1097,8 +1238,10 @@ export function buildStateFromCanon(
     }
   };
 
-  if (adjustedC.startArmy && adjustedC.startHoldings && adjustedC.startHoldings.length > 0) {
-    createRichArmies(adjustedC.id, adjustedC.name, adjustedC.house as string, adjustedC.startArmy.size, adjustedC.startArmy.quality, adjustedC.startHoldings[0]);
+  if (adjustedC.startHoldings && adjustedC.startHoldings.length > 0) {
+    const totalSize = adjustedC.startArmy?.size || 0;
+    const quality = adjustedC.startArmy?.quality || "Thành Thạo";
+    createRichArmies(adjustedC.id, adjustedC.name, adjustedC.house as string, totalSize, quality, adjustedC.startHoldings[0], adjustedC);
   }
 
   // ---- TỰ ĐỘNG KHỞI TẠO QUÂN ĐỘI VÀ LÃNH ĐỊA LORE CHO TẤT CẢ PHE PHÁI ----
@@ -1121,8 +1264,8 @@ export function buildStateFromCanon(
   for (const ch of era.canonCharacters) {
     if (ch.id === c.id) continue; // Bỏ qua người chơi vì đã được xử lý
     
-    // Chỉ cấp quân cho Đại Lãnh Chúa, Vua, hoặc Lãnh Chúa (tuỳ thời kỳ)
-    if (["Đại Lãnh Chúa", "Vua", "Vua Bảy Vương Quốc"].includes(ch.tuocVi)) {
+    // Chỉ cấp quân cho Đại Lãnh Chúa, Quốc Vương, Vua, hoặc Lãnh Chúa (tuỳ thời kỳ)
+    if (["Đại Lãnh Chúa", "Quốc Vương", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế"].includes(ch.tuocVi)) {
       const def = factionLoreDefaults[ch.house];
       if (def) {
         // Cấp chủ quyền
@@ -1137,7 +1280,7 @@ export function buildStateFromCanon(
         const loc = ch.startHoldings?.[0] || def.seat;
         const totalSize = ch.startArmy?.size || def.size;
         const quality = ch.startArmy?.quality || def.quality;
-        createRichArmies(ch.id, ch.name, ch.house, totalSize, quality, loc);
+        createRichArmies(ch.id, ch.name, ch.house, totalSize, quality, loc, ch);
       }
     }
   }

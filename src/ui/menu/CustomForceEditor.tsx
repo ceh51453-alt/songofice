@@ -13,7 +13,15 @@ export function CustomForceEditor({ force, onChange }: Props) {
   const addNpc = () => {
     onChange({
       ...force,
-      npcs: [...force.npcs, { id: "npc_" + genId(), name: "", role: "Tướng Quân", statPreset: "balanced" }],
+      npcs: [...force.npcs, { 
+        id: "npc_" + genId(), 
+        name: "", 
+        role: "Tướng Quân", 
+        statPreset: "balanced",
+        nangLuc: { voLuc: 14, thongSoai: 16, triMuu: 12, ngoaiGiao: 10 },
+        tuoi: 30,
+        netTinhCach: "Trung Thành"
+      }],
     });
   };
 

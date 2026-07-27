@@ -9,18 +9,24 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "cunning": 10, "stealth": 9, "persuasion": 10, "commerce": 8, "command": 7 },
     equipment: [{ slot: "Vũ Khí Phụ", ten: "Dao găm mạ vàng", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 4 }, moTa: "Dao giấu trong tay áo." }], 
     items: [{ ten: "Vàng Casterly", soLuong: 100000, moTa: "Khởi đầu của huyền thoại" }], 
-    gold: 150000, startingHookIds: [], startHoldings: ["the-westerlands-seat"], startRegions: ["the-westerlands"],
+    gold: 150000, startingHookIds: [],
     rivals: ["garth-greenhand"],
-    startArmy: { size: 30000, quality: "Tinh Nhuệ" },
-    baseIncome: 800,
-    holdingsLevel: { "the-westerlands-seat": 5 },
+    startArmies: [
+          { name: "Lính Giáo Lannisport", type: "Bộ Binh", size: 18000, quality: "Tinh Nhuệ" },
+          { name: "Đội Kỵ Binh Hạng Nặng Lannister", type: "Kỵ Binh", size: 6000, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 6000, quality: "Tinh Nhuệ" }
+        ],
     father: "rowan-gold-tree", // Theo một số truyền thuyết
     mother: "",
     spouse: "",
     children: [], // Rất nhiều con nhưng không rõ tên trong game
     siblings: [],
-    allies: []
-  },
+    allies: [],
+      startRegions: ["the-westerlands"],
+      startHoldings: ["the-westerlands-seat"],
+      holdingsLevel: {"the-westerlands-seat":5},
+      baseIncome: 800
+},
   {
     id: "garth-greenhand", name: "Garth Bàn Tay Xanh", house: "Gardener", role: "Vị Thần Của Đất", tuocVi: "Quốc Vương", religion: "Cựu Thần",
     blurb: "Tổ tiên của mọi gia tộc lớn ở Reach. Đi tới đâu, cây cỏ tốt tươi tới đó, phụ nữ mang thai, vụ mùa bội thu.",
@@ -29,18 +35,24 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "animal-handling": 10, "weather-endurance": 8, "persuasion": 9, "command": 8 },
     equipment: [{ slot: "Vật Phẩm Đặc Biệt", ten: "Vương miện hoa lá", phamChat: "Vô Giá", thuocTinh: { "Tôn Trọng": 15 }, moTa: "Được đan từ dây leo, không bao giờ héo" }], 
     items: [{ ten: "Hạt giống thần kỳ", soLuong: 100, moTa: "Rải xuống là mọc thành rừng" }], 
-    gold: 50000, startingHookIds: [], startHoldings: ["the-reach-seat"], startRegions: ["the-reach"],
+    gold: 50000, startingHookIds: [],
     rivals: ["lann-the-clever", "durran-godsgrief"],
-    startArmy: { size: 60000, quality: "Thành Thạo" },
-    baseIncome: 1200,
-    holdingsLevel: { "the-reach-seat": 5 },
+    startArmies: [
+          { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 36000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 12000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Reach", type: "Cung Thủ", size: 12000, quality: "Thành Thạo" }
+        ],
     father: "",
     mother: "",
     spouse: "",
     children: ["garth-the-gardener", "rowan-gold-tree"], 
     siblings: [],
-    allies: []
-  },
+    allies: [],
+      startRegions: ["the-reach"],
+      startHoldings: ["the-reach-seat"],
+      holdingsLevel: {"the-reach-seat":5},
+      baseIncome: 700
+},
   {
     id: "durran-godsgrief", name: "Durran Than Thở Trời", house: "Durrandon", role: "Người Xây Storm's End", tuocVi: "Quốc Vương", religion: "Cựu Thần",
     blurb: "Kẻ dám yêu con gái thần Gió và Biển, và xây dựng Storm's End để thách thức cơn thịnh nộ của họ. Khởi thủy của Vua Bão.",
@@ -49,18 +61,24 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "command": 10, "weather-endurance": 10, "intimidation": 9, "sword-shield": 10 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Búa Vua Bão", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 10 }, moTa: "Đập tan cơn bão và kẻ thù" }], 
     items: [], 
-    gold: 15000, startingHookIds: [], startHoldings: ["the-stormlands-seat"], startRegions: ["the-stormlands"],
+    gold: 15000, startingHookIds: [],
     spouse: "elenei",
     allies: ["brandon-builder"],
-    startArmy: { size: 35000, quality: "Thành Thạo" },
-    baseIncome: 400,
-    holdingsLevel: { "the-stormlands-seat": 5 },
+    startArmies: [
+          { name: "Bộ Binh Bão Tố", type: "Bộ Binh", size: 21000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Vùng Bão", type: "Kỵ Binh", size: 7000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 7000, quality: "Thành Thạo" }
+        ],
     father: "",
     mother: "",
     children: ["durran-the-devout"],
     siblings: [],
-    rivals: ["sea-god", "wind-goddess"]
-  },
+    rivals: ["sea-god", "wind-goddess"],
+      startRegions: ["the-stormlands"],
+      startHoldings: ["the-stormlands-seat"],
+      holdingsLevel: {"the-stormlands-seat":5},
+      baseIncome: 400
+},
   {
     id: "grey-king", name: "Vua Xám", house: "Greyiron", role: "Vua Đảo Sắt Đầu Tiên", tuocVi: "Quốc Vương", religion: "Thần Chết Chìm",
     blurb: "Giết rồng biển Nagga, lấy xương làm ngai. Tóc, râu và mắt đều xám màu biển động. Cai trị Quần Đảo Sắt hơn một ngàn năm.",
@@ -69,18 +87,24 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "sailing": 10, "axe-mace": 10, "weather-endurance": 10, "command": 9 },
     equipment: [{ slot: "Vật Phẩm Đặc Biệt", ten: "Vương miện gỗ lũa", phamChat: "Vô Giá", thuocTinh: { "Tôn Trọng": 15 }, moTa: "Vương miện của Đảo Sắt" }], 
     items: [{ ten: "Răng rồng biển Nagga", soLuong: 1, moTa: "To như thanh gươm" }], 
-    gold: 8000, startingHookIds: [], startHoldings: ["the-iron-islands-seat"], startRegions: ["the-iron-islands"],
-    startArmy: { size: 10000, quality: "Thành Thạo" }, // Quân Đảo Sắt không quá đông trên bộ
-    baseIncome: 200,
-    holdingsLevel: { "the-iron-islands-seat": 4 },
+    gold: 8000, startingHookIds: [],
+    startArmies: [
+          { name: "Chiến Binh Đảo Sắt", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Bờ Biển", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Đảo", type: "Cung Thủ", size: 2000, quality: "Thành Thạo" }
+        ], // Quân Đảo Sắt không quá đông trên bộ
     father: "",
     mother: "",
     spouse: "mermaid",
     children: [], // Hàng trăm con trai
     siblings: [],
     allies: [],
-    rivals: ["nagga-sea-dragon"]
-  },
+    rivals: ["nagga-sea-dragon"],
+      startRegions: ["the-iron-islands"],
+      startHoldings: ["the-iron-islands-seat"],
+      holdingsLevel: {"the-iron-islands-seat":5},
+      baseIncome: 300
+},
   {
     id: "symeon-star-eyes", name: "Symeon Mắt Sao", house: "Không Nhà", role: "Hiệp Sĩ Mù", tuocVi: "Hiệp Sĩ", religion: "Cựu Thần",
     blurb: "Một hiệp sĩ huyền thoại mù lòa, đặt hai viên ngọc sapphire vào hốc mắt và sử dụng trường thương múa với hai đầu sắc bén.",
@@ -97,8 +121,13 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 0, quality: "Mới Lập Đội" },
-    baseIncome: 10,
-    holdingsLevel: {}
-  }
+    startArmies: [
+          { name: "Chiến Binh Mù", type: "Bộ Binh", size: 0, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Bóng Tối", type: "Cung Thủ", size: 0, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+}
 ];

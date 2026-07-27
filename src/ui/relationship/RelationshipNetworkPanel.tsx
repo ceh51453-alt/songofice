@@ -81,6 +81,7 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
   const [isPanning, setIsPanning] = useState(false);
   const [startPan, setStartPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
 
   // Canvas ref
   const containerRef = useRef<HTMLDivElement>(null);
@@ -260,26 +261,43 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
     }
   }, [pan]);
 
+  const rafRef = useRef<number | null>(null);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {
       setPan({ x: e.clientX - startPan.x, y: e.clientY - startPan.y });
-    } else if (draggingNodeId) {
+    } else if (draggingNodeId && dragOffset) {
       const container = containerRef.current;
       if (!container) return;
-      const rect = container.getBoundingClientRect();
-      const rawX = (e.clientX - rect.left - pan.x) / zoom;
-      const rawY = (e.clientY - rect.top - pan.y) / zoom;
+      
+      const clientX = e.clientX;
+      const clientY = e.clientY;
 
-      setNodePositions((prev) => ({
-        ...prev,
-        [draggingNodeId]: { x: rawX, y: rawY },
-      }));
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+
+      rafRef.current = requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect();
+        const rawX = (clientX - rect.left - pan.x) / zoom;
+        const rawY = (clientY - rect.top - pan.y) / zoom;
+
+        setNodePositions((prev) => ({
+          ...prev,
+          [draggingNodeId]: { x: rawX - dragOffset.x, y: rawY - dragOffset.y },
+        }));
+      });
     }
-  }, [isPanning, startPan, draggingNodeId, pan, zoom]);
+  }, [isPanning, startPan, draggingNodeId, dragOffset, pan, zoom]);
 
   const handleMouseUp = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
     setIsPanning(false);
     setDraggingNodeId(null);
+    setDragOffset(null);
   }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -479,72 +497,81 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         setDraggingNodeId(node.id);
+                        const container = containerRef.current;
+                        if (container) {
+                          const rect = container.getBoundingClientRect();
+                          const mouseX = (e.clientX - rect.left - pan.x) / zoom;
+                          const mouseY = (e.clientY - rect.top - pan.y) / zoom;
+                          setDragOffset({ x: mouseX - pos.x, y: mouseY - pos.y });
+                        }
                       }}
-                      className="cursor-pointer transition-transform duration-150 hover:scale-110"
+                      className="cursor-pointer"
                     >
-                      {/* Active/Selected Ring Glow */}
-                      {isSelected && (
+                      <g className="transition-transform duration-150 hover:scale-110">
+                        {/* Active/Selected Ring Glow */}
+                        {isSelected && (
+                          <circle
+                            r={radius + 6}
+                            fill="none"
+                            stroke={col.base}
+                            strokeWidth={2}
+                            className="animate-ping opacity-75"
+                          />
+                        )}
+
+                        {/* Betrayal Warning Pulse Ring */}
+                        {node.betrayalRisk && !isPlayer && (
+                          <circle
+                            r={radius + 4}
+                            fill="none"
+                            stroke="#ef4444"
+                            strokeWidth={1.5}
+                            strokeDasharray="3 3"
+                          />
+                        )}
+
+                        {/* Node Body Circle */}
                         <circle
-                          r={radius + 6}
-                          fill="none"
-                          stroke={col.base}
-                          strokeWidth={2}
-                          className="animate-ping opacity-75"
+                          r={radius}
+                          fill={isPlayer ? "rgba(16,185,129,0.3)" : `${col.base}33`}
+                          stroke={isPlayer ? "#10b981" : col.base}
+                          strokeWidth={isSelected ? 2.5 : 1.5}
+                          className="shadow-lg"
                         />
-                      )}
 
-                      {/* Betrayal Warning Pulse Ring */}
-                      {node.betrayalRisk && !isPlayer && (
-                        <circle
-                          r={radius + 4}
-                          fill="none"
-                          stroke="#ef4444"
-                          strokeWidth={1.5}
-                          strokeDasharray="3 3"
-                        />
-                      )}
-
-                      {/* Node Body Circle */}
-                      <circle
-                        r={radius}
-                        fill={isPlayer ? "rgba(16,185,129,0.3)" : `${col.base}33`}
-                        stroke={isPlayer ? "#10b981" : col.base}
-                        strokeWidth={isSelected ? 2.5 : 1.5}
-                        className="shadow-lg"
-                      />
-
-                      {/* Node Label Initial */}
-                      <text
-                        textAnchor="middle"
-                        dy="0.35em"
-                        fill={col.light || "#ffffff"}
-                        fontSize={isPlayer ? 14 : 12}
-                        fontWeight="bold"
-                        className="pointer-events-none font-display"
-                      >
-                        {isPlayer ? "P" : node.name.charAt(0).toUpperCase()}
-                      </text>
-
-                      {/* Name Badge Label underneath */}
-                      <g transform={`translate(0, ${radius + 14})`}>
-                        <rect
-                          x={-node.name.length * 3.5 - 6}
-                          y={-9}
-                          width={node.name.length * 7 + 12}
-                          height={16}
-                          rx={8}
-                          fill="rgba(10,14,20,0.85)"
-                          stroke="rgba(255,255,255,0.1)"
-                          strokeWidth={0.5}
-                        />
+                        {/* Node Label Initial */}
                         <text
                           textAnchor="middle"
-                          fill="rgba(240,230,210,0.9)"
-                          fontSize={10}
-                          className="pointer-events-none"
+                          dy="0.35em"
+                          fill={col.light || "#ffffff"}
+                          fontSize={isPlayer ? 14 : 12}
+                          fontWeight="bold"
+                          className="pointer-events-none font-display"
                         >
-                          {node.name}
+                          {isPlayer ? "P" : node.name.charAt(0).toUpperCase()}
                         </text>
+
+                        {/* Name Badge Label underneath */}
+                        <g transform={`translate(0, ${radius + 14})`}>
+                          <rect
+                            x={-node.name.length * 3.5 - 6}
+                            y={-9}
+                            width={node.name.length * 7 + 12}
+                            height={16}
+                            rx={8}
+                            fill="rgba(10,14,20,0.85)"
+                            stroke="rgba(255,255,255,0.1)"
+                            strokeWidth={0.5}
+                          />
+                          <text
+                            textAnchor="middle"
+                            fill="rgba(240,230,210,0.9)"
+                            fontSize={10}
+                            className="pointer-events-none"
+                          >
+                            {node.name}
+                          </text>
+                        </g>
                       </g>
                     </g>
                   );

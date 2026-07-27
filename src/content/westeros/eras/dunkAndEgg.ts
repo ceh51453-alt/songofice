@@ -27,13 +27,21 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     siblings: ["daeron-the-drunken", "aemon-targaryen", "aegon-v-targaryen"],
     allies: [],
     rivals: ["duncan-the-tall"],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 100,
-    holdingsLevel: {},
+    startArmies: [
+          { name: "Lính Kích Đỉnh Aegon", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 5, quality: "Thành Thạo" }
+        ],
     personalHooks: [
       { id: "aerion-ashford", title: "Thử Thách Bằng Chiến Đấu", year: "209 AC", numericYear: 209, desc: "Một tên hiệp sĩ lang thang dám đánh ngươi. Ngươi đòi quyền Xét Xử Bằng Bảy Người để trừng phạt hắn." }
-    ]
-  },
+    ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "daeron-the-drunken",
     name: "Daeron Mập Mạp",
@@ -57,13 +65,21 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     siblings: ["aerion-brightflame", "aemon-targaryen", "aegon-v-targaryen"],
     allies: [],
     rivals: [],
-    startArmy: { size: 50, quality: "Mới Lập Đội" },
-    baseIncome: 50,
-    holdingsLevel: {},
+    startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 29, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 8, quality: "Mới Lập Đội" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 1, quality: "Mới Lập Đội" }
+        ],
     personalHooks: [
       { id: "daeron-dream", title: "Giấc Mơ Rồng Chết", year: "209 AC", numericYear: 209, desc: "Ngươi mơ thấy một con rồng khổng lồ ngã xuống một hiệp sĩ cao lớn. Giấc mơ đó ám ảnh ngươi đến mức ngươi trốn khỏi giải đấu." }
-    ]
-  },
+    ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "rohanne-webber",
     name: "Rohanne Webber",
@@ -81,8 +97,6 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Phụ", ten: "Cung ngắn", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Xa": 5 }, moTa: "Cung dệt bằng tơ nhện" }],
     items: [{ ten: "Mạng che mặt Góa Phụ Đỏ", soLuong: 1, moTa: "Che đậy nhan sắc và âm mưu" }],
     gold: 15000, startingHookIds: [],
-    startHoldings: ["coldmoat"],
-    startRegions: ["the-reach"],
     father: "wymar-webber",
     mother: "",
     spouse: "eustace-osgrey", // Hoặc gerold-lannister
@@ -90,13 +104,19 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     siblings: [],
     allies: ["duncan-the-tall"],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 250,
-    holdingsLevel: { "coldmoat": 3 },
+    startArmies: [
+          { name: "Lính Nhện Độc", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Standfast", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vực", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
     personalHooks: [
       { id: "red-widow", title: "Tranh Chấp Đất Đai", year: "211 AC", numericYear: 211, desc: "Lão Eustace Osgrey đang phàn nàn về dòng suối bị chặn. Ngươi phải giải quyết lão già gàn dở này." }
-    ]
-  },
+    ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "eustace-osgrey",
     name: "Eustace Osgrey",
@@ -113,8 +133,6 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Thanh gươm cũ rỉ", phamChat: "Thường", thuocTinh: { "Sát Thương Cận": 3 }, moTa: "Di vật từ trận Cánh Đồng Cỏ Đỏ" }],
     items: [{ ten: "Huy hiệu Sư Tử Trắng", soLuong: 1, moTa: "Sự kiêu hãnh cuối cùng của Osgrey" }],
     gold: 50, startingHookIds: [],
-    startHoldings: ["standfast"],
-    startRegions: ["the-reach"],
     father: "",
     mother: "",
     spouse: "rohanne-webber",
@@ -122,13 +140,18 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     siblings: [],
     allies: ["duncan-the-tall"],
     rivals: ["rohanne-webber"],
-    startArmy: { size: 100, quality: "Mới Lập Đội" }, // Chỉ có vài lính tráng và dân thường
-    baseIncome: 20,
-    holdingsLevel: { "standfast": 1 },
+    startArmies: [
+          { name: "Dân Binh Osgrey", type: "Bộ Binh", size: 70, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Osgrey", type: "Cung Thủ", size: 30, quality: "Mới Lập Đội" }
+        ], // Chỉ có vài lính tráng và dân thường
     personalHooks: [
       { id: "eustace-pride", title: "Lòng Tự Hào Của Sư Tử Đốm", year: "211 AC", numericYear: 211, desc: "Nhà Webber đã chặn dòng suối. Dù chỉ có vài nông dân, ngươi vẫn muốn chiến đấu vì danh dự." }
-    ]
-  },
+    ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "daemon-ii-blackfyre",
     name: "Daemon II Blackfyre",
@@ -152,11 +175,16 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     siblings: ["aegon-blackfyre", "aemon-blackfyre", "haegon-blackfyre", "aenys-blackfyre"],
     allies: ["bittersteel"],
     rivals: ["bloodraven-hand"],
-    startArmy: { size: 0, quality: "Mới Lập Đội" }, // Phải dựa vào phản quân
-    baseIncome: 10,
-    holdingsLevel: {},
+    startArmies: [
+          { name: "Lính Kích Rồng Đen", type: "Bộ Binh", size: 0, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Rồng Đen", type: "Cung Thủ", size: 0, quality: "Mới Lập Đội" }
+        ], // Phải dựa vào phản quân
     personalHooks: [
       { id: "daemon-whitewalls", title: "Giấc Mơ Trứng Rồng", year: "212 AC", numericYear: 212, desc: "Ngươi mơ thấy một con rồng nở từ quả trứng tại Whitewalls. Cuộc nổi dậy thứ hai đang nhen nhóm." }
-    ]
-  }
+    ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+}
 ];

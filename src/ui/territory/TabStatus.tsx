@@ -1,15 +1,15 @@
 import React from "react";
-import { IconUsers, IconCoins, IconWheat, IconTree, IconMountain, IconShield } from "../icons";
+import { IconUsers, IconCoins, IconWheat, IconTree, IconMountain } from "../icons";
 
-export function TabStatus({ holding }: { territoryId: string, holding: any }) {
+
+export function TabStatus({ holding }: { territoryId: string, holding: any, isOwner?: boolean }) {
   const danSo = holding["Dân Số Chi Tiết"] || {};
   const res = holding["Tài Nguyên"] || {};
   const maxDanSo = holding["Dân Số"] || 10000;
   const longDan = holding["Lòng Dân"] || 60;
-
   return (
     <div className="flex flex-col gap-6 h-full">
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         
         {/* BLOCK DÂN CƯ */}
         <div className="glass rounded-xl p-5 border border-white/5 bg-black/20 flex flex-col gap-4">
@@ -52,22 +52,10 @@ export function TabStatus({ holding }: { territoryId: string, holding: any }) {
             <ResourceCard icon={<IconMountain size={20} className="text-orange-400" />} label="Quặng Sắt" value={res["Quặng Sắt"] || 0} />
           </div>
         </div>
-
-        {/* BLOCK QUÂN SỰ */}
-        <div className="glass rounded-xl p-5 border border-white/5 bg-black/20 flex flex-col gap-4">
-          <h2 className="text-[var(--text-faint)] text-xs tracking-widest uppercase font-bold border-b border-white/5 pb-2 mb-2 flex items-center gap-2">
-            <IconShield size={16} /> QUÂN ĐỘI
-          </h2>
-          <div className="flex-1 flex items-center justify-center text-sm text-[var(--text-muted)] italic text-center">
-            Tính năng điều động và hiển thị quân đội đang được nâng cấp...
-          </div>
-        </div>
-
       </div>
     </div>
   );
 }
-
 function Row({ label, value, warning = false }: { label: string, value: number, warning?: boolean }) {
   return (
     <div className="flex justify-between items-center text-sm border-b border-white/5 pb-1 last:border-0">
@@ -88,3 +76,4 @@ function ResourceCard({ icon, label, value }: { icon: React.ReactNode, label: st
     </div>
   );
 }
+

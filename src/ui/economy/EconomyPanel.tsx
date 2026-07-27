@@ -126,11 +126,11 @@ export function EconomyPanel() {
           <div className="mt-3 flex items-center gap-2 border-t border-[var(--glass-border)] pt-3">
             <IconTrend size={14} color={summary.net >= 0 ? "var(--ok)" : "var(--danger)"} />
             <span className={`text-[13px] font-medium ${summary.net >= 0 ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>
-              Ròng: {summary.net >= 0 ? "+" : ""}{fmt(summary.net)}/turn
+              Ròng: {summary.net >= 0 ? "+" : ""}{fmt(summary.net)}/30 ngày
             </span>
             {summary.turnsLeft >= 0 && summary.turnsLeft < 30 && (
               <span className="ml-auto text-[11px] text-[var(--danger)]">
-                Cạn kho sau ~{summary.turnsLeft} turn
+                Cạn kho sau ~{summary.turnsLeft} tháng
               </span>
             )}
           </div>
@@ -247,7 +247,7 @@ export function EconomyPanel() {
                     }`}>
                       {route["Đường"]}
                     </span>
-                    <span className="font-mono text-[var(--ok)]">+{route["Lợi Nhuận/Turn"]}</span>
+                    <span className="font-mono text-[var(--ok)]">+{route["Lợi Nhuận/Turn"]}/30 ngày</span>
                     {/* Safety bar */}
                     <div className="h-1 w-12 overflow-hidden rounded-full bg-[var(--glass-bg-hover)]">
                       <div
@@ -286,11 +286,11 @@ export function EconomyPanel() {
                   <span className="font-mono">{fmt(bank["Nợ Gốc"])}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Lãi/turn</span>
+                  <span>Lãi/30 ngày</span>
                   <span className="font-mono text-[var(--danger)]">-{fmt(bank["Lãi/Turn"])}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Turn còn lại</span>
+                  <span>Thời hạn (tháng)</span>
                   <span className="font-mono">{bank["Turn Còn Lại"]}</span>
                 </div>
               </div>

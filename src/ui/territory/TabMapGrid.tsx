@@ -1,13 +1,33 @@
 
 
 import React, { useEffect, useRef, useState } from "react";
+import { useMvuStore } from "../../state/mvuStore";
 
-export function TabMapGrid({ holding }: { territoryId: string, holding: any }) {
+export const BUILDING_TEMPLATES = [
+  { id: "farm", type: "Nông Trại", size: 1, cost: { "Vàng": 100, "Gỗ": 200, "Đá": 0 }, turns: 2, desc: "+ Sản lượng Lương Thực" },
+  { id: "market", type: "Chợ", size: 2, cost: { "Vàng": 500, "Gỗ": 300, "Đá": 100 }, turns: 3, desc: "+ Vàng từ Thương Nhân" },
+  { id: "barracks", type: "Trại Lính", size: 2, cost: { "Vàng": 300, "Gỗ": 400, "Đá": 200 }, turns: 4, desc: "Tuyển quân nhanh hơn" },
+  { id: "forge", type: "Lò Rèn", size: 1, cost: { "Vàng": 200, "Gỗ": 100, "Đá": 300 }, turns: 2, desc: "+ Vũ khí / Áo giáp" },
+  { id: "lumber", type: "Xưởng Gỗ", size: 1, cost: { "Vàng": 100, "Gỗ": 50, "Đá": 0 }, turns: 1, desc: "+ Sản lượng Gỗ" },
+  { id: "mine", type: "Mỏ Đá/Sắt", size: 2, cost: { "Vàng": 400, "Gỗ": 400, "Đá": 0 }, turns: 3, desc: "+ Sản lượng Đá & Sắt" }
+];
+
+export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: string, holding: any, isOwner?: boolean }) {
+  const setByPath = useMvuStore(s => s.setByPath);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zoom, setZoom] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [offset, setOffset] = useState({ x: -14600, y: -14700 }); // (400 - 750*20), (300 - 750*20)
+  const [selectedBuilding, setSelectedBuilding] = useState<any | null>(null);
+  const [dragStart, setDragStart] = useState<{x: number, y: number} | null>(null);
+  
+  // Xây Dựng
+  const [showBuildMenu, setShowBuildMenu] = useState(false);
+  const [placementMode, setPlacementMode] = useState<any | null>(null); // template if placing
+  const [hoverGrid, setHoverGrid] = useState<{x: number, y: number} | null>(null);
 
   const buildings = holding["Công Trình"] || {};
+  const walls = holding["Tường Thành"] || [];
+  const resources = holding["Tài Nguyên"] || {};
   
   let castleLevel = 1;
   for (const b of Object.values(buildings)) {
@@ -73,6 +93,20 @@ export function TabMapGrid({ holding }: { territoryId: string, holding: any }) {
     }
     ctx.stroke();
 
+    // Draw Walls
+    if (walls && Array.isArray(walls) && walls.length > 0) {
+      ctx.strokeStyle = "#8a8a8a"; // Stone color
+      ctx.lineWidth = Math.max(2, gridSize * 0.2);
+      ctx.beginPath();
+      for (const w of walls) {
+        if (typeof w.x1 === 'number' && typeof w.y1 === 'number') {
+           ctx.moveTo(w.x1 * gridSize, w.y1 * gridSize);
+           ctx.lineTo(w.x2 * gridSize, w.y2 * gridSize);
+        }
+      }
+      ctx.stroke();
+    }
+
     // Draw Buildings
     for (const [, b] of Object.entries(buildings)) {
       const bx = (b as any)["Tọa Độ X"] || 0;
@@ -81,7 +115,13 @@ export function TabMapGrid({ holding }: { territoryId: string, holding: any }) {
 
       // Only draw if in viewport
       if (bx + size >= startCol && bx <= endCol && by + size >= startRow && by <= endRow) {
-        ctx.fillStyle = "rgba(212, 175, 55, 0.5)"; // Gold for building
+        // Highlight if selected
+        if (selectedBuilding && selectedBuilding === b) {
+            ctx.fillStyle = "rgba(255, 215, 0, 0.7)"; // Brighter gold for selected
+        } else {
+            ctx.fillStyle = "rgba(212, 175, 55, 0.5)"; // Gold for building
+        }
+        
         ctx.fillRect(bx * gridSize, by * gridSize, size * gridSize, size * gridSize);
         
         ctx.strokeStyle = "#D4AF37";
@@ -96,9 +136,19 @@ export function TabMapGrid({ holding }: { territoryId: string, holding: any }) {
       }
     }
 
+    // Draw Placement Hover
+    if (placementMode && hoverGrid) {
+        const size = placementMode.size;
+        ctx.fillStyle = "rgba(0, 255, 0, 0.4)";
+        ctx.fillRect(hoverGrid.x * gridSize, hoverGrid.y * gridSize, size * gridSize, size * gridSize);
+        ctx.strokeStyle = "rgba(0, 255, 0, 0.8)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(hoverGrid.x * gridSize, hoverGrid.y * gridSize, size * gridSize, size * gridSize);
+    }
+
     ctx.restore();
 
-  }, [buildings, zoom, offset]);
+  }, [buildings, walls, zoom, offset, selectedBuilding, placementMode, hoverGrid]);
 
   // Pan handling
   const handleWheel = (e: React.WheelEvent) => {
@@ -111,8 +161,92 @@ export function TabMapGrid({ holding }: { territoryId: string, holding: any }) {
     }
   };
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+  
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (placementMode) {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const mapX = mouseX - offset.x;
+        const mapY = mouseY - offset.y;
+        const gridSize = 20 * zoom;
+        setHoverGrid({ x: Math.floor(mapX / gridSize), y: Math.floor(mapY / gridSize) });
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!dragStart) return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+      // It's a click!
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      const mapX = mouseX - offset.x;
+      const mapY = mouseY - offset.y;
+      
+      const gridSize = 20 * zoom;
+      const gridX = Math.floor(mapX / gridSize);
+      const gridY = Math.floor(mapY / gridSize);
+      
+      if (placementMode) {
+          // Confirm Placement
+          // TODO: Check bounds and overlap
+          const newBuildingId = "B_" + Date.now();
+          const newBuilding = {
+              "Loại": placementMode.type,
+              "Cấp Độ": 1,
+              "Tọa Độ X": gridX,
+              "Tọa Độ Y": gridY,
+              "Kích Thước": placementMode.size,
+              "Đang Xây": true,
+              "Turn Còn Lại": placementMode.turns
+          };
+          
+          // Deduct resources
+          const cost = placementMode.cost;
+          const currentGold = resources["Vàng"] || 0;
+          const currentWood = resources["Gỗ"] || 0;
+          const currentStone = resources["Đá"] || 0;
+          
+          setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Vàng`, currentGold - (cost["Vàng"] || 0));
+          setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Gỗ`, currentWood - (cost["Gỗ"] || 0));
+          setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Đá`, currentStone - (cost["Đá"] || 0));
+          
+          // Add building
+          setByPath(`Lãnh Địa.${territoryId}.Công Trình.${newBuildingId}`, newBuilding);
+          
+          setPlacementMode(null);
+          setHoverGrid(null);
+          return;
+      }
+      
+      let found = null;
+      for (const [, b] of Object.entries(buildings)) {
+        const bx = (b as any)["Tọa Độ X"] || 0;
+        const by = (b as any)["Tọa Độ Y"] || 0;
+        const size = (b as any)["Kích Thước"] || 1;
+        if (gridX >= bx && gridX < bx + size && gridY >= by && gridY < by + size) {
+           found = b;
+           break;
+        }
+      }
+      setSelectedBuilding(found);
+    }
+    setDragStart(null);
+  };
+
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="flex flex-col h-full gap-4 relative">
       <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">
         <div>
           <h2 className="text-white font-bold tracking-widest text-sm uppercase">Quy Hoạch Lãnh Địa</h2>
@@ -120,20 +254,122 @@ export function TabMapGrid({ holding }: { territoryId: string, holding: any }) {
         </div>
         <div className="flex gap-2">
           {/* Construction toolbar could go here */}
-          <button className="px-3 py-1.5 bg-[var(--accent)] text-white text-xs font-bold rounded hover:bg-opacity-80">
-            + XÂY CÔNG TRÌNH
-          </button>
+          {isOwner && (
+              <button 
+                onClick={() => {
+                    if (placementMode) {
+                        setPlacementMode(null);
+                        setHoverGrid(null);
+                    } else {
+                        setShowBuildMenu(!showBuildMenu);
+                    }
+                }}
+                className={`px-3 py-1.5 text-white text-xs font-bold rounded hover:bg-opacity-80 ${placementMode ? 'bg-red-600' : 'bg-[var(--accent)]'}`}
+              >
+                {placementMode ? "HỦY ĐẶT" : "+ XÂY CÔNG TRÌNH"}
+              </button>
+          )}
         </div>
       </div>
 
-      <div className="flex-1 bg-black/50 border border-white/10 rounded-lg overflow-hidden relative cursor-grab">
+      {showBuildMenu && (
+        <div className="absolute top-16 right-4 w-72 bg-[#11141a] border border-[#D4AF37]/50 rounded-lg shadow-2xl z-20 overflow-hidden animate-fade-in flex flex-col max-h-[70vh]">
+            <div className="bg-[#D4AF37]/20 p-3 border-b border-[#D4AF37]/30 flex justify-between items-center">
+                <h3 className="text-[#D4AF37] font-bold">CHỌN CÔNG TRÌNH</h3>
+                <button onClick={() => setShowBuildMenu(false)} className="text-white/50 hover:text-white">✕</button>
+            </div>
+            <div className="p-2 overflow-y-auto flex-1 space-y-2">
+                {BUILDING_TEMPLATES.map(tpl => {
+                    const canAfford = (resources["Vàng"] || 0) >= (tpl.cost["Vàng"] || 0) &&
+                                      (resources["Gỗ"] || 0) >= (tpl.cost["Gỗ"] || 0) &&
+                                      (resources["Đá"] || 0) >= (tpl.cost["Đá"] || 0);
+                    return (
+                        <div key={tpl.id} className={`p-3 rounded border ${canAfford ? 'border-white/10 hover:border-[#D4AF37]/50 bg-black/40 cursor-pointer' : 'border-red-900/30 bg-red-900/10 opacity-50 cursor-not-allowed'}`}
+                            onClick={() => {
+                                if (canAfford) {
+                                    setPlacementMode(tpl);
+                                    setShowBuildMenu(false);
+                                }
+                            }}
+                        >
+                            <div className="flex justify-between items-start mb-1">
+                                <span className="font-bold text-white">{tpl.type}</span>
+                                <span className="text-xs text-[#D4AF37]">{tpl.turns} lượt</span>
+                            </div>
+                            <div className="text-xs text-[var(--text-muted)] mb-2 italic">{tpl.desc}</div>
+                            <div className="flex gap-3 text-xs">
+                                {tpl.cost["Vàng"] > 0 && <span className={((resources["Vàng"] || 0) < tpl.cost["Vàng"]) ? "text-red-400" : "text-yellow-400"}>🪙 {tpl.cost["Vàng"]}</span>}
+                                {tpl.cost["Gỗ"] > 0 && <span className={((resources["Gỗ"] || 0) < tpl.cost["Gỗ"]) ? "text-red-400" : "text-green-400"}>🪵 {tpl.cost["Gỗ"]}</span>}
+                                {tpl.cost["Đá"] > 0 && <span className={((resources["Đá"] || 0) < tpl.cost["Đá"]) ? "text-red-400" : "text-gray-400"}>🪨 {tpl.cost["Đá"]}</span>}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+      )}
+
+      {placementMode && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#D4AF37] text-black px-4 py-2 rounded-full font-bold shadow-[0_0_20px_rgba(212,175,55,0.5)] z-20 animate-pulse">
+              Click vào ô trống trên lưới để đặt {placementMode.type}
+          </div>
+      )}
+
+      <div className={`flex-1 bg-black/50 border border-white/10 rounded-lg overflow-hidden relative ${placementMode ? 'cursor-crosshair' : 'cursor-grab'}`}>
         <canvas 
           ref={canvasRef} 
           width={800} 
           height={600} 
           className="w-full h-full"
           onWheel={handleWheel}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={() => { setDragStart(null); setHoverGrid(null); }}
         />
+        
+        {/* Detail Modal overlay */}
+        {selectedBuilding && !placementMode && (
+            <div className="absolute top-4 left-4 bg-[#11141a] border border-[#D4AF37]/30 p-4 rounded-lg shadow-2xl w-64 text-sm z-10 animate-fade-in">
+                <div className="flex justify-between items-start border-b border-white/10 pb-2 mb-3">
+                    <h3 className="font-bold text-[#D4AF37] text-base">{selectedBuilding["Loại"]}</h3>
+                    <button 
+                        onClick={() => setSelectedBuilding(null)}
+                        className="text-white/50 hover:text-white"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div className="space-y-2 text-white/80">
+                    <div className="flex justify-between">
+                        <span>Cấp Độ:</span>
+                        <span className="font-bold">{selectedBuilding["Cấp Độ"]}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>Tọa Độ:</span>
+                        <span>({selectedBuilding["Tọa Độ X"]}, {selectedBuilding["Tọa Độ Y"]})</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>Kích Thước:</span>
+                        <span>{selectedBuilding["Kích Thước"]}x{selectedBuilding["Kích Thước"]}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>Tình Trạng:</span>
+                        <span className={selectedBuilding["Đang Xây"] ? "text-yellow-500" : "text-green-500"}>
+                            {selectedBuilding["Đang Xây"] ? `Đang Xây (${selectedBuilding["Turn Còn Lại"]} turn)` : "Hoạt Động"}
+                        </span>
+                    </div>
+                </div>
+                {!selectedBuilding["Đang Xây"] && (
+                    <button 
+                        onClick={() => window.alert("Tính năng Nâng Cấp đang được phát triển!")}
+                        className="w-full mt-4 py-2 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/40 text-[#D4AF37] rounded font-bold transition-colors border border-[#D4AF37]/50"
+                    >
+                        Nâng Cấp
+                    </button>
+                )}
+            </div>
+        )}
       </div>
     </div>
   );

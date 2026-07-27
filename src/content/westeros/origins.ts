@@ -44,7 +44,7 @@ export interface OriginDef {
   reputation: { vinhDu?: number; nhanTu?: number; uyDung?: number; xaoQuyet?: number };
   ghiChu: string;
   /** Tước vị mặc định khi khởi đầu bằng xuất thân này. */
-  tuocVi: "Thường Dân" | "Hiệp Sĩ" | "Lãnh Chúa" | "Đại Lãnh Chúa" | "Vua" | "Vua Bảy Vương Quốc" | "Hoàng Đế";
+  tuocVi: "Thường Dân" | "Hiệp Sĩ" | "Lãnh Chúa Thành Trì" | "Lãnh Chúa" | "Đại Lãnh Chúa" | "Quốc Vương" | "Vua" | "Vua Bảy Vương Quốc" | "Hoàng Đế";
 }
 
 export const ORIGINS: OriginDef[] = [

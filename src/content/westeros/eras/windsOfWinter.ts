@@ -16,10 +16,16 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     children: ["toregg", "torwynd", "dryn", "munda"],
     siblings: [],
     rivals: ["others"],
-    startArmy: { size: 4000, quality: "Mới Lập Đội" },
-    baseIncome: 50,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Tộc Thenn", type: "Bộ Binh", size: 2400, quality: "Mới Lập Đội" },
+          { name: "Người Khổng Lồ", type: "Kỵ Binh", size: 800, quality: "Mới Lập Đội" },
+          { name: "Dã Nhân Ném Lao", type: "Cung Thủ", size: 800, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 15
+},
   {
     id: "mance-rayder", name: "Mance Rayder", house: "Không Nhà", role: "Vua Bên Ngoài Bức Tường", tuocVi: "Vua", religion: "Cựu Thần",
     blurb: "Cựu lính Tuần Đêm trở thành vua của dân Tự Do, người đã đoàn kết hàng chục bộ tộc đằng sau Tường.",
@@ -36,10 +42,16 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     mother: "",
     children: ["aemon-steelsong"],
     siblings: [],
-    startArmy: { size: 100000, quality: "Rời Rạc" }, // Bao gồm cả phụ nữ và trẻ em
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dã Nhân Khóc Lóc", type: "Bộ Binh", size: 60000, quality: "Rời Rạc" },
+          { name: "Người Khổng Lồ", type: "Kỵ Binh", size: 20000, quality: "Rời Rạc" },
+          { name: "Cung Thủ Dã Nhân", type: "Cung Thủ", size: 20000, quality: "Rời Rạc" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 10
+},
   {
     id: "melisandre", name: "Melisandre", house: "Khác", role: "Nữ Tư Tế Đỏ", tuocVi: "Thường Dân", religion: "R'hllor",
     blurb: "Nữ tư tế của R'hllor. Xinh đẹp, thần bí, và tin rằng lửa sẽ thiêu rụi bóng tối.",
@@ -54,10 +66,15 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     children: [],
     siblings: [],
     rivals: ["davos-seaworth"],
-    startArmy: { size: 0, quality: "Mới Lập Đội" },
-    baseIncome: 50,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Ánh Sáng", type: "Bộ Binh", size: 0, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Lửa", type: "Cung Thủ", size: 0, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 50
+},
   {
     id: "shireen-baratheon", name: "Shireen Baratheon", house: "Baratheon", role: "Công Chúa Đá", tuocVi: "Vương Hậu", religion: "Thất Diện Thần",
     blurb: "Con gái duy nhất của Stannis. Tốt bụng, thông minh, nhưng khuôn mặt bị biến dạng bởi Vảy Xám.",
@@ -71,10 +88,18 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     children: [],
     siblings: [],
     rivals: [],
-    startArmy: { size: 0, quality: "Mới Lập Đội" },
-    baseIncome: 20,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Tiên Phong Búa Sét", type: "Bộ Binh", size: 8, quality: "Mới Lập Đội" },
+          { name: "Đội Nỏ Vùng Bão", type: "Cung Thủ", size: 5, quality: "Mới Lập Đội" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 1, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "victarion-greyjoy", name: "Victarion Greyjoy", house: "Greyjoy", role: "Tướng Chỉ Huy Hạm Đội Sắt", tuocVi: "Lãnh Chúa", religion: "Thần Chết Chìm",
     blurb: "Không thông minh, nhưng là chiến binh hung bạo nhất Đảo Sắt, luôn mặc áo giáp nặng trên biển.",
@@ -83,7 +108,13 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     skills: { "axe-mace": 10, "sailing": 9, "command": 7, "intimidation": 8 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu khổng lồ", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Rìu của Kraken" }, { slot: "Giáp Thân", ten: "Giáp tấm Đảo Sắt", phamChat: "Tinh Xảo", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Chìm nghỉm nếu rơi xuống nước" }], 
     items: [], gold: 1000, startingHookIds: [], 
-    startArmy: { size: 3000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 450, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 15, quality: "Thành Thạo" }
+        ],
     father: "quellon-greyjoy",
     siblings: ["balon-greyjoy", "euron-greyjoy", "aeron-greyjoy"],
     rivals: ["euron-greyjoy"],
@@ -91,27 +122,35 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     spouse: "", // Nhiều vợ nhưng đã chết hoặc không có mặt trong game
     children: [],
     allies: [],
-    baseIncome: 200,
-    holdingsLevel: {}
-  },
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 100
+},
   {
     id: "doran-martell", name: "Doran Martell", house: "Martell", role: "Hoàng Tử Xứ Dorne", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
     blurb: "Mắc bệnh gút, không thể đi lại, nhưng là một người chơi cờ vĩ đại trong trò chơi vương quyền.",
     birthYear: 248, age: 52, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 3, "Thể Chất": 5, "Trí Tuệ": 18, "Tinh Tường": 17, "Uy Tín": 15 },
     talentIds: ["schemer", "learned"],
     skills: { "cunning": 9, "command": 8, "lore": 8, "commerce": 7 },
-    equipment: [], items: [], gold: 20000, startingHookIds: [], startHoldings: ["dorne-seat"], startRegions: ["dorne"],
+    equipment: [], items: [], gold: 20000, startingHookIds: [],
     spouse: "mellario-norvos",
     children: ["arianne-martell", "quentyn-martell", "trystane-martell"],
     siblings: ["oberyn-martell", "elia-martell"],
     allies: [],
     rivals: ["tywin-lannister"],
-    startArmy: { size: 25000, quality: "Thành Thạo" },
-    baseIncome: 450,
-    holdingsLevel: { "dorne-seat": 5 },
+    startArmies: [
+          { name: "Lính Giáo Cát", type: "Bộ Binh", size: 15000, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 5000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Tẩm Độc", type: "Cung Thủ", size: 5000, quality: "Thành Thạo" }
+        ],
     father: "", // Không được nêu tên trong sách
-    mother: ""  // Công chúa xứ Dorne vô danh
-  },
+    mother: "",  // Công chúa xứ Dorne vô danh
+      startRegions: ["dorne"],
+      startHoldings: ["dorne-seat"],
+      holdingsLevel: {"dorne-seat":5},
+      baseIncome: 400
+},
   {
     id: "arianne-martell", name: "Arianne Martell", house: "Martell", role: "Công Chúa Xứ Dorne", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
     blurb: "Xinh đẹp, bốc đồng, muốn giành lại quyền lực thực sự cho người Dorne.",
@@ -125,10 +164,16 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     rivals: [],
-    startArmy: { size: 1000, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Sunspear", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Sĩ Sa Mạc", type: "Kỵ Binh", size: 200, quality: "Tinh Nhuệ" },
+          { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 200, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "petyr-baelish", name: "Petyr Baelish", house: "Baelish", role: "Ngón Út", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
     blurb: "Từ một lãnh chúa nhỏ nhoi, hắn đã leo lên nấc thang quyền lực bằng sự dối trá và tiền bạc.",
@@ -143,10 +188,16 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     mother: "",
     children: [],
     siblings: [],
-    startArmy: { size: 10000, quality: "Mới Lập Đội" }, // Kiểm soát The Vale thông qua Robin
-    baseIncome: 500,
-    holdingsLevel: { "the-vale-seat": 5, "harrenhal": 1 }
-  },
+    startArmies: [
+          { name: "Lính Thuê Của Ngón Út", type: "Bộ Binh", size: 6000, quality: "Mới Lập Đội" },
+          { name: "Kỵ Sĩ Vale", type: "Kỵ Binh", size: 2000, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Vale", type: "Cung Thủ", size: 2000, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: ["harrenhal"],
+      holdingsLevel: {"harrenhal":1},
+      baseIncome: 500
+},
   {
     id: "varys", name: "Varys", house: "Không Nhà", role: "Nhện Nhện", tuocVi: "Thường Dân", religion: "Khác",
     blurb: "Thái giám cai quản lũ chim nhỏ. Bí ẩn và luôn nói rằng ông phục vụ cho vương quốc.",
@@ -161,10 +212,15 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 0, quality: "Mới Lập Đội" },
-    baseIncome: 200,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Đánh Thuê Essos", type: "Bộ Binh", size: 0, quality: "Mới Lập Đội" },
+          { name: "Chim Nhỏ (Điệp Viên)", type: "Cung Thủ", size: 0, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 200
+},
   {
     id: "sandor-clegane", name: "Sandor Clegane", house: "Clegane", role: "Chó Săn", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
     blurb: "Khuôn mặt cháy sém do anh trai gây ra. Tàn nhẫn nhưng bên trong vẫn còn le lói một nhân tính bị vùi dập.",
@@ -179,8 +235,13 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     mother: "",
     spouse: "",
     children: [],
-    startArmy: { size: 0, quality: "Mới Lập Đội" },
-    baseIncome: 20,
-    holdingsLevel: {}
-  }
+    startArmies: [
+          { name: "Vệ Binh Chó Săn", type: "Bộ Binh", size: 0, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Núi", type: "Cung Thủ", size: 0, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 10
+}
 ];

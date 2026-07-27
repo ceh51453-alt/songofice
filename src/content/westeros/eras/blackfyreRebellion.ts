@@ -27,10 +27,18 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     personalHooks: [
       { id: "baelor-redgrass", title: "Cánh Đồng Cỏ Đỏ", year: "196 AC", numericYear: 196, desc: "Ngươi dẫn đầu đội quân Dorne và Stormlands đánh bọc sườn phiến quân Blackfyre. Chiến thắng hay thảm bại phụ thuộc vào nhát chùy của ngươi." }
     ],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "maekar-i-targaryen",
     name: "Maekar Targaryen",
@@ -57,10 +65,18 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     personalHooks: [
       { id: "maekar-anvil", title: "Cái Đe Của Maekar", year: "196 AC", numericYear: 196, desc: "Bức tường khiên của ngươi phải đứng vững trước cuộc tấn công mãnh liệt của Bittersteel, tạo thành cái đe cho chiếc búa của Baelor đập xuống." }
     ],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "shiera-seastar",
     name: "Shiera Seastar",
@@ -86,10 +102,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     ],
     spouse: "",
     children: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "gwayne-corbray",
     name: "Gwayne Corbray",
@@ -117,10 +138,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "quentyn-ball",
     name: "Quentyn Ball",
@@ -148,10 +174,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "robb-reyne",
     name: "Robb Reyne",
@@ -168,8 +199,6 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 800, startingHookIds: [],
-    startHoldings: [],
-    startRegions: [],
     allies: ["daemon-blackfyre", "bittersteel"],
     rivals: ["daeron-ii", "damon-lannister"],
     personalHooks: [
@@ -180,10 +209,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "leo-tyrell",
     name: "Leo Tyrell",
@@ -200,22 +234,26 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 4000, startingHookIds: [],
-    startHoldings: ["the-reach-seat"],
-    startRegions: ["the-reach"],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre"],
     personalHooks: [
       { id: "longthorn-reach", title: "Bảo Vệ Vùng Reach", year: "196 AC", numericYear: 196, desc: "Trong khi các trận chiến lớn diễn ra ở phía Bắc, ngươi phải dọn dẹp các lãnh chúa phản nghịch ngay trong sân nhà mình." }
     ],
-    startArmy: { size: 80000, quality: "Thành Thạo" },
-    baseIncome: 450,
-    holdingsLevel: { "the-reach-seat": 5 },
+    startArmies: [
+          { name: "Vạn Quân Highgarden", type: "Bộ Binh", size: 48000, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Mùa Hè", type: "Kỵ Binh", size: 16000, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Vùng Reach", type: "Cung Thủ", size: 16000, quality: "Thành Thạo" }
+        ],
     father: "",
     mother: "",
     spouse: "",
     children: [],
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-reach"],
+      startHoldings: ["the-reach-seat"],
+      holdingsLevel: {"the-reach-seat":5},
+      baseIncome: 700
+},
   {
     id: "donnel-arryn",
     name: "Donnel Arryn",
@@ -233,22 +271,26 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 1500, startingHookIds: [],
-    startHoldings: ["the-vale-seat"],
-    startRegions: ["the-vale"],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre", "bittersteel"],
     personalHooks: [
       { id: "donnel-vanguard", title: "Tiên Phong Thất Bại", year: "196 AC", numericYear: 196, desc: "Ngươi dẫn quân tiên phong đối mặt với Daemon Blackfyre và thanh gươm của vương triều. Ngươi biết mình không có cơ hội." }
     ],
-    startArmy: { size: 35000, quality: "Thành Thạo" },
-    baseIncome: 300,
-    holdingsLevel: { "the-vale-seat": 5 },
+    startArmies: [
+          { name: "Lính Giáo Thung Lũng", type: "Bộ Binh", size: 21000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Thung Lũng", type: "Kỵ Binh", size: 7000, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Thung Lũng", type: "Cung Thủ", size: 7000, quality: "Thành Thạo" }
+        ],
     father: "",
     mother: "",
     spouse: "",
     children: [],
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-vale"],
+      startHoldings: ["the-vale-seat"],
+      holdingsLevel: {"the-vale-seat":5},
+      baseIncome: 400
+},
   {
     id: "damon-lannister",
     name: "Damon Lannister",
@@ -266,22 +308,26 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 5000, startingHookIds: [],
-    startHoldings: ["the-westerlands-seat"],
-    startRegions: ["the-westerlands"],
     allies: ["daeron-ii"],
     rivals: ["quentyn-ball", "daemon-blackfyre"],
     personalHooks: [
       { id: "damon-defense", title: "Phòng Thủ Casterly Rock", year: "196 AC", numericYear: 196, desc: "Lực lượng của Fireball đang tàn phá Westerlands. Ngươi phải bảo vệ kho vàng và vinh quang của nhà Lannister." }
     ],
-    startArmy: { size: 40000, quality: "Tinh Nhuệ" },
-    baseIncome: 500,
-    holdingsLevel: { "the-westerlands-seat": 5 },
+    startArmies: [
+          { name: "Vệ Binh Sư Tử Đỏ", type: "Bộ Binh", size: 24000, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Sĩ Vùng Đồi", type: "Kỵ Binh", size: 8000, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 8000, quality: "Tinh Nhuệ" }
+        ],
     father: "",
     mother: "",
     spouse: "",
     children: [],
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-westerlands"],
+      startHoldings: ["the-westerlands-seat"],
+      holdingsLevel: {"the-westerlands-seat":5},
+      baseIncome: 800
+},
   {
     id: "otho-bracken",
     name: "Otho Bracken",
@@ -298,8 +344,6 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 300, startingHookIds: [],
-    startHoldings: [],
-    startRegions: [],
     allies: ["bittersteel", "daemon-blackfyre"],
     rivals: ["bloodraven"],
     personalHooks: [
@@ -310,8 +354,13 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  }
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+}
 ];

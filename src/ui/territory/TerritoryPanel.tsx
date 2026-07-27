@@ -8,27 +8,21 @@
 import { useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { useTerritoryStore } from "../../state/territoryStore";
-import { useMilitaryStore } from "../../state/militaryStore";
+
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { houseColor, ATTITUDE_HEAT } from "../../content/westeros/houseColors";
-import { BUILDING_LIST, buildingCost, buildingTurns, type BuildingType, type ResourceKey } from "../../content/westeros/buildings";
-import { recruitableTroopsForEra } from "../../content/westeros/troopTypes";
+import { type ResourceKey } from "../../content/westeros/buildings";
 import { estimateTerritoryYield } from "../../territory/construction";
 import { canManageDomain } from "../../character/roleplay";
 import { GlassButton } from "../components/GlassButton";
 import { useT } from "../../i18n";
 import {
-  IconX, IconCastle, IconCoins, IconWheat, IconTree, IconMountain, IconHammer, IconShield, IconUsers,
-  IconPopulation, IconBook, IconAlert, IconTrash, IconMap,
+  IconX, IconCoins, IconWheat, IconTree, IconMountain, IconUsers,
+  IconPopulation, IconAlert,
 } from "../icons";
 
-type Tab = "overview" | "build" | "garrison" | "people";
-
-const BUILDING_ICON: Record<BuildingType, React.FC<{ size?: number; color?: string }>> = {
-  "Lâu Đài": IconCastle, "Nông Trại": IconWheat, "Chợ": IconCoins, "Doanh Trại": IconShield,
-  "Tường Thành": IconCastle, "Bến Cảng": IconMap, "Sept/Rừng Thần": IconBook, "Học Viện Nhỏ": IconBook,
-};
+type Tab = "overview" | "garrison" | "people";
 
 const RES_ICON: Record<ResourceKey, React.FC<{ size?: number; color?: string }>> = {
   "Vàng": IconCoins, "Lương Thực": IconWheat, "Gỗ": IconTree, "Đá": IconMountain, "Quặng Sắt": IconMountain,
@@ -70,7 +64,6 @@ export function TerritoryPanel() {
 
   const tabs: { key: Tab; label: string; disabled?: boolean }[] = [
     { key: "overview", label: t("terr.tabOverview") },
-    { key: "build", label: t("terr.tabBuild"), disabled: !hasDomainPrivilege },
     { key: "garrison", label: t("terr.tabGarrison"), disabled: !hasDomainPrivilege },
     { key: "people", label: t("terr.tabPeople"), disabled: !hasDomainPrivilege },
   ];
@@ -170,8 +163,7 @@ export function TerritoryPanel() {
 
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {tab === "overview" && <OverviewTab holding={holding} regionName={region.name} besieged={sov?.["Tình Trạng"] === "Bị Vây"} />}
-              {tab === "build" && activeHoldingId && <BuildTab territoryId={activeHoldingId} holding={holding} />}
-              {tab === "garrison" && activeHoldingId && <GarrisonTab territoryId={activeHoldingId} holding={holding} />}
+              {tab === "garrison" && activeHoldingId && <GarrisonTab territoryId={activeHoldingId} />}
               {tab === "people" && activeHoldingId && <PeopleTab territoryId={activeHoldingId} holding={holding} />}
             </div>
           </>
@@ -285,120 +277,14 @@ function Banner({ text }: { text: string }) {
   );
 }
 
-// ── Tab Xây Dựng ────────────────────────────────────────────────────────────
-function BuildTab({ territoryId, holding }: { territoryId: string; holding: Holding }) {
-  const t = useT();
-  const startBuild = useTerritoryStore((s) => s.startBuild);
-  const cancelBuild = useTerritoryStore((s) => s.cancelBuild);
-  const playerGold = useMvuStore((s) => s.stat["Thông Tin Nhân Vật"]["Vàng"]);
-  const [error, setError] = useState<string | null>(null);
 
-  const queue = Object.entries(holding["Công Trình"]).filter(([, b]) => b["Đang Xây"]);
-  const stock = holding["Tài Nguyên"];
-
-  return (
-    <div className="space-y-4">
-      {/* hàng đợi */}
-      {queue.length > 0 && (
-        <div>
-          <h3 className="font-display mb-1.5 text-[12px] uppercase tracking-widest text-[var(--text-faint)]">{t("terr.queue")}</h3>
-          <div className="space-y-2">
-            {queue.map(([name, b]) => {
-              const total = buildingTurns(b["Loại"], b["Cấp Độ"]);
-              const pct = Math.max(0, Math.min(100, Math.round((1 - b["Turn Còn Lại"] / Math.max(1, total)) * 100)));
-              return (
-                <div key={name} className="glass rounded-[var(--radius-sm)] px-3 py-2">
-                  <div className="flex items-center justify-between text-[12.5px]">
-                    <span className="text-[var(--text-soft)]">{name} · c{b["Cấp Độ"]}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[var(--text-faint)]">{t("terr.turnsLeft", { n: b["Turn Còn Lại"] })}</span>
-                      <button onClick={() => cancelBuild(territoryId, name)} title={t("terr.cancel")} className="text-[var(--text-faint)] hover:text-[var(--danger)]">
-                        <IconTrash size={13} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.3)]">
-                    <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {error && <p className="text-[12px] text-[var(--danger)]">{error}</p>}
-
-      {/* danh mục công trình */}
-      <div className="grid grid-cols-1 gap-2">
-        {BUILDING_LIST.map((def) => {
-          const existing = holding["Công Trình"][def.type];
-          const nextLevel = existing ? existing["Cấp Độ"] + 1 : 1;
-          const cost = buildingCost(def.type, nextLevel);
-          const locked = def.requiresCoastal && !holding["Ven Biển"];
-          const building = existing?.["Đang Xây"];
-          const Icon = BUILDING_ICON[def.type];
-          const affordable =
-            (cost["Vàng"] ?? 0) <= playerGold &&
-            (["Lương Thực", "Gỗ", "Đá", "Quặng Sắt"] as ResourceKey[]).every((k) => (cost[k] ?? 0) <= (stock[k] ?? 0));
-
-          return (
-            <div key={def.type} className={`glass rounded-[var(--radius-sm)] px-3 py-2.5 ${locked ? "opacity-45" : ""}`}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <Icon size={15} color="var(--accent-text)" />
-                    <span className="text-[13.5px] text-[var(--text-soft)]">{def.type}{existing ? ` · c${existing["Cấp Độ"]}` : ""}</span>
-                  </div>
-                  <p className="mt-0.5 text-[11.5px] text-[var(--text-faint)]">{def.effectSummary}</p>
-                  <div className="mt-1 flex flex-wrap gap-x-2.5 gap-y-0.5 text-[11px]">
-                    {(Object.entries(cost) as [ResourceKey, number][]).map(([k, v]) => {
-                      const have = k === "Vàng" ? playerGold : stock[k] ?? 0;
-                      const short = v > have;
-                      const Ico = RES_ICON[k];
-                      return (
-                        <span key={k} className={`flex items-center gap-0.5 ${short ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}`}>
-                          <Ico size={11} /> {fmt(v)}
-                        </span>
-                      );
-                    })}
-                    <span className="text-[var(--text-faint)]">· {buildingTurns(def.type, nextLevel)} turn</span>
-                  </div>
-                </div>
-                <GlassButton
-                  size="sm"
-                  variant={existing ? "ghost" : "accent"}
-                  disabled={!!locked || !!building || !affordable}
-                  onClick={() => {
-                    const r = startBuild(territoryId, def.type);
-                    setError(r.ok ? null : r.error ?? null);
-                  }}
-                >
-                  <IconHammer size={13} /> {existing ? t("terr.upgrade") : t("terr.build")}
-                </GlassButton>
-              </div>
-              {locked && <p className="mt-1 text-[11px] italic text-[var(--text-faint)]">{t("terr.needCoastal")}</p>}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // ── Tab Đồn Trú ─────────────────────────────────────────────────────────────
-function GarrisonTab({ territoryId, holding }: { territoryId: string; holding: Holding }) {
+function GarrisonTab({ territoryId }: { territoryId: string }) {
   const t = useT();
   const units = useMvuStore((s) => s.stat["Biên Chế Quân Sự"]);
-  const eraId = useMvuStore((s) => s.stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "");
-  const recruit = useMilitaryStore((s) => s.recruit);
-  const barracks = Object.values(holding["Công Trình"]).some((b) => b["Loại"] === "Doanh Trại" && !b["Đang Xây"]);
   // chỉ quân đóng tại lãnh địa này
   const list = Object.entries(units).filter(([, u]) => u["Số Lượng"] > 0 && u["Lãnh Địa Đồn Trú"] === territoryId);
-  const troops = recruitableTroopsForEra(eraId);
-  const [type, setType] = useState<string>(troops[0] ?? "Bộ Binh");
-  const [count, setCount] = useState(300);
-  const [msg, setMsg] = useState<string | null>(null);
 
   return (
     <div className="space-y-3">
@@ -417,38 +303,6 @@ function GarrisonTab({ territoryId, holding }: { territoryId: string; holding: H
             </p>
           </div>
         ))
-      )}
-
-      {barracks ? (
-        <div className="glass rounded-[var(--radius-md)] p-3">
-          <span className="mb-2 block text-[12px] uppercase tracking-widest text-[var(--text-faint)]">{t("terr.recruit")}</span>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[rgba(0,0,0,0.22)] px-2 py-1.5 text-[12.5px] text-[var(--text-soft)] [&>option]:bg-[#141821]"
-            >
-              {troops.map((tt) => <option key={tt} value={tt}>{tt}</option>)}
-            </select>
-            <input
-              type="number" min={1} value={count}
-              onChange={(e) => setCount(Math.max(1, Number(e.target.value) || 1))}
-              className="w-20 rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--glass-bg)] px-2 py-1.5 text-[12.5px] text-[var(--text-soft)]"
-            />
-            <GlassButton
-              size="sm" variant="accent"
-              onClick={() => {
-                const r = recruit(territoryId, type as never, count);
-                setMsg(r.ok ? t("mil.recruited") : r.error ?? null);
-              }}
-            >
-              <IconShield size={13} /> {t("terr.recruit")}
-            </GlassButton>
-          </div>
-          {msg && <p className="mt-1.5 text-[12px] text-[var(--text-muted)]">{msg}</p>}
-        </div>
-      ) : (
-        <p className="text-[12px] italic text-[var(--text-faint)]">{t("terr.needBarracks")}</p>
       )}
       <p className="text-[11.5px] italic text-[var(--text-faint)]">{t("terr.garrisonNote")}</p>
     </div>

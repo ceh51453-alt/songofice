@@ -67,6 +67,10 @@ export interface CanonCharacter {
   startRegions?: string[];
   /** Quân đội thường trực (nếu có) đóng tại thành trì đầu tiên */
   startArmy?: { size: number; quality: "Tinh Nhuệ" | "Thành Thạo" | "Mới Lập Đội" | "Rời Rạc" };
+  /** Quân đội tuỳ chỉnh chuẩn lore (nếu có) */
+  startArmies?: { name: string; type: string; size: number; quality: "Tinh Nhuệ" | "Thành Thạo" | "Mới Lập Đội" | "Rời Rạc" }[];
+  /** Hạm đội tuỳ chỉnh chuẩn lore (nếu có) */
+  startFleets?: { name: string; type: string; size: number; quality: "Tinh Nhuệ" | "Thành Thạo" | "Mới Lập Đội" | "Rời Rạc" }[];
   /** Rồng canon — chỉ cho nhân vật sở hữu rồng thật (không phải trứng). */
   dragon?: {
     name: string;
@@ -154,7 +158,10 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Bản thiết kế Bức Tường", soLuong: 1, moTa: "Phác thảo công trình chặn Others" }],
         gold: 200, startHoldings: ["the-north-seat"],
         startRegions: ["the-north"],
-        startArmy: { size: 500, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Cấm Vệ Sói Băng", type: "Bộ Binh", size: 350, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["build-the-wall"],
         allies: ["last-hero", "leaf-cotf"],
       },
@@ -218,7 +225,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 8000, startHoldings: ["dragonstone"],
         startRegions: [],
-        startArmy: { size: 1600, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 960, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 240, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 8, quality: "Tinh Nhuệ" }
+        ],
         holdingsLevel: { "dragonstone": 5 },
         baseIncome: 500,
         father: "aerion-targaryen",
@@ -247,7 +260,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 5000, startHoldings: ["dragonstone"],
         startRegions: [],
-        startArmy: { size: 1000, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 5, quality: "Tinh Nhuệ" }
+        ],
         holdingsLevel: { "dragonstone": 5 },
         baseIncome: 400,
         father: "aerion-targaryen",
@@ -273,7 +292,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 5000, startHoldings: ["dragonstone"],
         startRegions: [],
-        startArmy: { size: 1000, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 5, quality: "Tinh Nhuệ" }
+        ],
         holdingsLevel: { "dragonstone": 5 },
         baseIncome: 400,
         father: "aerion-targaryen",
@@ -302,7 +327,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 1500, startHoldings: [],
         startRegions: [],
-        startArmy: { size: 500, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Đội Tiên Phong Búa Sét", type: "Bộ Binh", size: 300, quality: "Thành Thạo" },
+          { name: "Đội Nỏ Vùng Bão", type: "Cung Thủ", size: 75, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 2, quality: "Thành Thạo" }
+        ],
         father: "aerion-targaryen",
         siblings: ["aegon-targaryen", "visenya-targaryen", "rhaenys-targaryen"],
         allies: ["aegon-targaryen"],
@@ -320,7 +351,11 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Vàng bóc lột", soLuong: 100, moTa: "Của cải lấy từ Riverlands" }],
         gold: 15000, startHoldings: ["harrenhal"],
         startRegions: ["the-riverlands","the-iron-islands"],
-        startArmy: { size: 15000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Bộ Binh Lãnh Địa", type: "Bộ Binh", size: 9000, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Địa Phương", type: "Kỵ Binh", size: 3000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Địa Phương", type: "Cung Thủ", size: 3000, quality: "Thành Thạo" }
+        ],
         holdingsLevel: { "harrenhal": 5 },
         baseIncome: 600,
         children: ["hoare-son-harren"],
@@ -337,7 +372,11 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Vương miện mùa đông", soLuong: 1, moTa: "Sắp phải giao nộp" }],
         gold: 4000, startHoldings: ["the-north-seat"],
         startRegions: ["the-north"],
-        startArmy: { size: 30000, quality: "Mới Lập Đội" },
+        startArmies: [
+          { name: "Quân Đoàn Rừng Sói", type: "Bộ Binh", size: 18000, quality: "Mới Lập Đội" },
+          { name: "Kỵ Binh Tiên Phong Phương Bắc", type: "Kỵ Binh", size: 6000, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 6000, quality: "Mới Lập Đội" }
+        ],
         holdingsLevel: { "the-north-seat": 5 },
         baseIncome: 300,
         siblings: ["brandon-snow"],
@@ -357,7 +396,11 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 6000, startHoldings: ["the-stormlands-seat"],
         startRegions: ["the-stormlands"],
-        startArmy: { size: 12000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Vệ Binh Nhà Gia Chuẩn", type: "Bộ Binh", size: 7200, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Địa Phương", type: "Kỵ Binh", size: 2400, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Nông Dân", type: "Cung Thủ", size: 2400, quality: "Thành Thạo" }
+        ],
         holdingsLevel: { "the-stormlands-seat": 5 },
         baseIncome: 350,
         children: ["argella-durrandon"],
@@ -396,7 +439,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 6000, startHoldings: ["dragonstone"],
         startRegions: [],
-        startArmy: { size: 2000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 1200, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["throne-stolen", "black-council"],
         father: "viserys-i-targaryen", mother: "aemma-arryn",
         spouse: "daemon-targaryen",
@@ -424,7 +473,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 5000, startHoldings: ["dragonstone"],
         startRegions: [],
-        startArmy: { size: 1000, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Lính Kích Đỉnh Aegon", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 5, quality: "Tinh Nhuệ" }
+        ],
         startingHookIds: ["black-council"],
         father: "baelon-targaryen", mother: "alyssa-targaryen",
         spouse: "rhaenyra-targaryen",
@@ -451,7 +506,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 7000, startHoldings: ["the-crownlands-seat"],
         startRegions: ["the-crownlands"],
-        startArmy: { size: 4000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 2400, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 20, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["green-coronation"],
         father: "viserys-i-targaryen", mother: "alicent-hightower",
         spouse: "helaena-targaryen",
@@ -478,7 +539,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 3000, startHoldings: ["the-crownlands-seat"],
         startRegions: [],
-        startArmy: { size: 2000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 1200, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["green-coronation"],
         father: "viserys-i-targaryen", mother: "alicent-hightower",
         spouse: "alys-rivers",
@@ -504,7 +571,13 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Vàng Velaryon", soLuong: 50000, moTa: "Tài sản kết xù từ những chuyến hải hành viễn đông" }],
         gold: 50000, startHoldings: ["driftmark"],
         startRegions: [],
-        startArmy: { size: 5000, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Dân Binh Địa Phương", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Nông Dân", type: "Cung Thủ", size: 750, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Driftmark", type: "Chiến Thuyền Nặng", size: 25, quality: "Tinh Nhuệ" }
+        ],
         startingHookIds: ["black-council"],
         spouse: "rhaenys-targaryen",
         children: ["laenor-velaryon", "laena-velaryon"],
@@ -521,7 +594,11 @@ export const ERAS: EraData[] = [
           { slot: "Giáp Thân", ten: "Giáp Trắng Vệ Vương", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Áo giáp thép nạm vàng trắng" },
         ],
         items: [],
-        gold: 200, startArmy: { size: 3000, quality: "Thành Thạo" },
+        gold: 200, startArmies: [
+          { name: "Dân Binh Địa Phương", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Nhánh Trưởng", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Nông Dân", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
         startRegions: [],
         startingHookIds: ["green-coronation"],
         allies: ["alicent-hightower", "aegon-ii", "aemond-targaryen"],
@@ -579,7 +656,11 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 4000, startHoldings: ["the-crownlands-seat"],
         startRegions: [],
-        startArmy: { size: 10000, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Dân Binh Địa Phương", type: "Bộ Binh", size: 6000, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Binh Địa Phương", type: "Kỵ Binh", size: 2000, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Địa Phương", type: "Cung Thủ", size: 2000, quality: "Tinh Nhuệ" }
+        ],
         startingHookIds: ["black-banner-rises"],
         father: "aegon-iv-targaryen", mother: "daena-targaryen",
         spouse: "rohanne-tyrosh",
@@ -598,7 +679,13 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Vương miện Targaryen", soLuong: 1, moTa: "Vương miện vàng Valyria" }],
         gold: 8000, startHoldings: ["the-crownlands-seat"],
         startRegions: ["the-crownlands","the-north","the-vale","the-westerlands","the-reach","the-stormlands","dorne","the-riverlands","the-iron-islands"],
-        startArmy: { size: 20000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 12000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 3000, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 100, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["bastard-rebellion"],
         father: "aegon-iv-targaryen", mother: "naerys-targaryen",
         spouse: "myriah-martell",
@@ -619,7 +706,13 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Quạ đưa tin", soLuong: 3, moTa: "Mắt và tai khắp bảy vương quốc" }],
         gold: 2000, startHoldings: ["the-crownlands-seat"],
         startRegions: [],
-        startArmy: { size: 1000, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 5, quality: "Tinh Nhuệ" }
+        ],
         startingHookIds: ["bastard-rebellion"],
         father: "aegon-iv-targaryen", mother: "mylessa-blackwood",
         siblings: ["daeron-ii", "daemon-blackfyre", "bittersteel", "shiera-seastar"],
@@ -638,7 +731,11 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 1500, startHoldings: [],
         startRegions: [],
-        startArmy: { size: 2000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Bộ Binh Lãnh Địa", type: "Bộ Binh", size: 1200, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Địa Phương", type: "Kỵ Binh", size: 400, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Nông Dân", type: "Cung Thủ", size: 400, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["bastard-rebellion"],
         father: "aegon-iv-targaryen", mother: "barba-bracken",
         spouse: "calla-blackfyre",
@@ -694,7 +791,13 @@ export const ERAS: EraData[] = [
           { ten: "Sách lịch sử", soLuong: 2, moTa: "Sách về các vua Targaryen — đọc đi đọc lại" },
         ],
         gold: 15, startHoldings: ["targaryen-seat"],
-        startArmy: { size: 1000, quality: "Mới Lập Đội" },
+        startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 600, quality: "Mới Lập Đội" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 150, quality: "Mới Lập Đội" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 5, quality: "Mới Lập Đội" }
+        ],
         startingHookIds: ["ashford-tourney", "wander-the-reach"],
         father: "maekar-i-targaryen", mother: "dyanna-dayne",
         spouse: "betha-blackwood",
@@ -718,7 +821,13 @@ export const ERAS: EraData[] = [
         ],
         gold: 5000, startHoldings: ["the-crownlands-seat"],
         startRegions: ["the-crownlands"],
-        startArmy: { size: 3000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 450, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 15, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["whitewalls-conspiracy"],
         father: "aegon-iv-targaryen", mother: "mylessa-blackwood",
         allies: ["aerys-i-targaryen"],
@@ -757,7 +866,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 3000, startHoldings: ["the-stormlands-seat"],
         startRegions: ["the-stormlands"],
-        startArmy: { size: 15000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Bộ Binh Bão Tố", type: "Bộ Binh", size: 9000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 2250, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 75, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["call-to-banners", "battle-of-bells"],
       },
       {
@@ -773,7 +888,11 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 2000, startHoldings: ["the-north-seat"],
         startRegions: ["the-north"],
-        startArmy: { size: 18000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Lính Cầm Giáo Lạnh", type: "Bộ Binh", size: 10800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Sói", type: "Kỵ Binh", size: 3600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 3600, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["call-to-banners", "tower-of-joy"],
       },
       {
@@ -788,7 +907,13 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Đàn hạc bạc", soLuong: 1, moTa: "Tiếng đàn khiến thiếu nữ rơi lệ" }],
         gold: 4000, startHoldings: ["dragonstone"],
         startRegions: [],
-        startArmy: { size: 40000, quality: "Mới Lập Đội" },
+        startArmies: [
+          { name: "Lính Kích Đỉnh Aegon", type: "Bộ Binh", size: 24000, quality: "Mới Lập Đội" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 6000, quality: "Mới Lập Đội" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 200, quality: "Mới Lập Đội" }
+        ],
         startingHookIds: ["trident-gathering"],
       },
       {
@@ -803,7 +928,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 20000, startHoldings: ["the-crownlands-seat"],
         startRegions: ["the-crownlands","the-reach","dorne"],
-        startArmy: { size: 10000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 1500, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 50, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["call-to-banners"],
       },
       {
@@ -818,7 +949,11 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Sổ nợ của ngai sắt", soLuong: 1, moTa: "Ghi chép các khoản tiền vương triều nợ" }],
         gold: 30000, startHoldings: ["the-westerlands-seat"],
         startRegions: ["the-westerlands"],
-        startArmy: { size: 12000, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Lính Giáo Lannisport", type: "Bộ Binh", size: 7200, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Sĩ Phương Tây", type: "Kỵ Binh", size: 2400, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 2400, quality: "Tinh Nhuệ" }
+        ],
         startingHookIds: ["call-to-banners"],
       },
     ],
@@ -855,7 +990,12 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 3000, startHoldings: ["the-iron-islands-seat"],
         startRegions: ["the-iron-islands"],
-        startArmy: { size: 20000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Đội Đột Kích Pyke", type: "Người Sắt (Ironborn)", size: 20000, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Thiết Quần Đảo", type: "Thuyền Dài (Greyjoy)", size: 300, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["iron-price", "burn-lannisport"],
       },
       {
@@ -870,7 +1010,10 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 8000, startHoldings: ["the-crownlands-seat"],
         startRegions: ["the-crownlands","the-north","the-vale","the-westerlands","the-reach","the-stormlands","dorne","the-riverlands"],
-        startArmy: { size: 30000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 25000, quality: "Thành Thạo" },
+          { name: "Cấm Vệ Hoàng Gia", type: "Kỵ Binh", size: 5000, quality: "Tinh Nhuệ" }
+        ],
         startingHookIds: ["crush-the-squid"],
       },
       {
@@ -883,7 +1026,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 0, startHoldings: ["the-iron-islands-seat"],
         startRegions: [],
-        startArmy: { size: 1000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Chiến Binh Đảo Muối", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
         startingHookIds: ["iron-price"],
       },
       {
@@ -898,7 +1047,12 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Kèn ma thuật", soLuong: 1, moTa: "Chiếc kèn có thể trói buộc rồng" }],
         gold: 10000, startHoldings: ["the-iron-islands-seat"],
         startRegions: [],
-        startArmy: { size: 1000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Băng Cướp Biển Silence", type: "Người Sắt (Ironborn)", size: 1000, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Sự Im Lặng", type: "Thuyền Dài (Greyjoy)", size: 1, quality: "Tinh Nhuệ" }
+        ],
         startingHookIds: ["iron-price"],
       },
     ],
@@ -934,7 +1088,11 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Ấn tín Lãnh chúa Winterfell", soLuong: 1, moTa: "Quyền cai trị phương Bắc" }],
         gold: 5000, startHoldings: ["the-north-seat"],
         startRegions: ["the-north"],
-        startArmy: { size: 20000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Cấm Vệ Mùa Đông", type: "Bộ Binh", size: 5000, quality: "Tinh Nhuệ" },
+          { name: "Đội Tiên Phong Phương Bắc", type: "Kỵ Binh Nhẹ", size: 3000, quality: "Thành Thạo" },
+          { name: "Trung Quân Winterfell", type: "Bộ Binh", size: 12000, quality: "Thành Thạo" }
+        ],
         holdingsLevel: { "the-north-seat": 5 },
         baseIncome: 300,
         father: "rickard-stark",
@@ -958,7 +1116,9 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Túi vàng Lannister", soLuong: 1, moTa: "Một Lannister luôn trả nợ" }, { ten: "Sách hiếm", soLuong: 2, moTa: "Tri thức là vũ khí của kẻ yếu" }],
         gold: 6000, startHoldings: ["the-crownlands-seat"],
         startRegions: [],
-        startArmy: { size: 2000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Đội Sơn Cước (Mountain Clans)", type: "Bộ Binh", size: 2000, quality: "Mới Lập Đội" }
+        ],
         father: "tywin-lannister",
         mother: "joanna-lannister",
         spouse: "sansa-stark",
@@ -976,7 +1136,9 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Ba quả trứng rồng hoá thạch", soLuong: 1, moTa: "Quà cưới — đá quý, hay còn hơn thế?" }],
         gold: 100, startHoldings: [],
         startRegions: [],
-        startArmy: { size: 100, quality: "Mới Lập Đội" },
+        startArmies: [
+          { name: "Huyết Kỵ Dothraki", type: "Kỵ Binh Nhẹ", size: 100, quality: "Mới Lập Đội" }
+        ],
         father: "aerys-ii",
         mother: "rhaella-targaryen",
         spouse: "khal-drogo",
@@ -996,7 +1158,9 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Sói tuyết Ghost", soLuong: 1, moTa: "Con sói trắng câm lặng — luôn ở gần" }],
         gold: 50, startHoldings: ["castle-black"],
         startRegions: [],
-        startArmy: { size: 300, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Người Giữ Tường Thành", type: "Bộ Binh", size: 300, quality: "Thành Thạo" }
+        ],
         father: "eddard-stark",
         siblings: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "rickon-stark"],
         startingHookIds: ["journey-to-wall", "kings-arrival"],
@@ -1011,6 +1175,9 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Trang sức hoàng gia", soLuong: 1, moTa: "Biểu tượng địa vị Vương Hậu" }],
         gold: 8000, startHoldings: ["the-crownlands-seat"],
         startRegions: [],
+        startArmies: [
+          { name: "Lính Gác Vương Đô (Gold Cloaks)", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" }
+        ],
         father: "tywin-lannister",
         mother: "joanna-lannister",
         spouse: "robert-baratheon",
@@ -1031,7 +1198,11 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Sói Grey Wind", soLuong: 1, moTa: "Sói tuyết dữ tợn luôn bên cạnh Sói Trẻ" }],
         gold: 4000, startHoldings: ["the-north-seat"],
         startRegions: ["the-north","the-riverlands"],
-        startArmy: { size: 20000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Kỵ Binh Sói", type: "Kỵ Binh Nhẹ", size: 4000, quality: "Tinh Nhuệ" },
+          { name: "Đội Tiên Phong Karstark", type: "Trường Thương", size: 6000, quality: "Thành Thạo" },
+          { name: "Trung Quân Umber", type: "Bộ Binh", size: 10000, quality: "Thành Thạo" }
+        ],
         father: "eddard-stark",
         mother: "catelyn-tully",
         spouse: "talisa-maegyr",
@@ -1052,7 +1223,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 2000, startHoldings: ["dragonstone"],
         startRegions: [],
-        startArmy: { size: 5000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Lính Giáo Đảo Rồng", type: "Trường Thương", size: 3000, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Florent", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Dragonstone", type: "Chiến Thuyền Nặng", size: 160, quality: "Tinh Nhuệ" }
+        ],
         father: "steffon-baratheon",
         mother: "cassana-estermont",
         spouse: "selyse-florent",
@@ -1074,7 +1251,11 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 15000, startHoldings: ["the-stormlands-seat"],
         startRegions: ["the-stormlands","the-reach"],
-        startArmy: { size: 100000, quality: "Mới Lập Đội" },
+        startArmies: [
+          { name: "Vạn Quân Highgarden", type: "Bộ Binh", size: 70000, quality: "Mới Lập Đội" },
+          { name: "Kỵ Sĩ Mùa Hè", type: "Kỵ Binh", size: 20000, quality: "Thành Thạo" },
+          { name: "Đội Cung Xứ Reach", type: "Bộ Binh", size: 10000, quality: "Thành Thạo" }
+        ],
         father: "steffon-baratheon",
         mother: "cassana-estermont",
         spouse: "margaery-tyrell",
@@ -1095,7 +1276,10 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Vương miện Ngai Sắt", soLuong: 1, moTa: "Vương miện hoàng kim" }],
         gold: 50000, startHoldings: ["the-crownlands-seat"],
         startRegions: ["the-crownlands","the-westerlands"],
-        startArmy: { size: 15000, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 10000, quality: "Thành Thạo" },
+          { name: "Cấm Vệ Hoàng Gia", type: "Kỵ Binh", size: 5000, quality: "Tinh Nhuệ" }
+        ],
         father: "robert-baratheon",
         mother: "cersei-lannister",
         spouse: "margaery-tyrell",
@@ -1139,7 +1323,10 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Sói trắng Ghost", soLuong: 1, moTa: "Con sói luôn theo chân chủ" }],
         gold: 100, startHoldings: ["the-north-seat"],
         startRegions: [],
-        startArmy: { size: 2500, quality: "Thành Thạo" },
+        startArmies: [
+          { name: "Dân Du Mục (Wildlings)", type: "Bộ Binh", size: 2000, quality: "Thành Thạo" },
+          { name: "Người Phương Bắc Còn Sót", type: "Kỵ Binh Nhẹ", size: 500, quality: "Thành Thạo" }
+        ],
         father: "rhaegar-targaryen", mother: "lyanna-stark",
         siblings: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "rickon-stark"],
         allies: ["tormund-giantsbane", "melisandre", "sansa-stark", "davos-seaworth"],
@@ -1156,7 +1343,13 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 100000, startHoldings: ["dragonstone"],
         startRegions: [],
-        startArmy: { size: 8000, quality: "Tinh Nhuệ" },
+        startArmies: [
+          { name: "Unsullied", type: "Trường Thương", size: 8000, quality: "Tinh Nhuệ" },
+          { name: "Huyết Kỵ Dothraki", type: "Kỵ Binh Nhẹ", size: 50000, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Sắt Của Mẹ Rồng", type: "Thuyền Dài (Greyjoy)", size: 100, quality: "Thành Thạo" }
+        ],
         father: "aerys-ii-targaryen", mother: "rhaella-targaryen",
         siblings: ["rhaegar-targaryen", "viserys-targaryen"],
         allies: ["tyrion-lannister", "varys", "olenna-tyrell", "ellaria-sand"],

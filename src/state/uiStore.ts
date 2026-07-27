@@ -18,6 +18,9 @@ interface UiState {
   /** status panel bottom-sheet trên mobile. */
   statusSheetOpen: boolean;
   setStatusSheetOpen: (v: boolean) => void;
+  /** Lãnh chúa dashboard modal (toàn màn hình). */
+  territoryDashboardOpen: boolean;
+  setTerritoryDashboardOpen: (v: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()((set) => ({
@@ -29,4 +32,6 @@ export const useUiStore = create<UiState>()((set) => ({
   setComposerText: (composerText) => set({ composerText }),
   statusSheetOpen: false,
   setStatusSheetOpen: (statusSheetOpen) => set({ statusSheetOpen }),
+  territoryDashboardOpen: false,
+  setTerritoryDashboardOpen: (territoryDashboardOpen) => set({ territoryDashboardOpen }),
 }));

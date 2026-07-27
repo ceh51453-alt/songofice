@@ -95,6 +95,8 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
     { "op": "delta", "path": "stat_data.Kỹ Năng.Kiếm Thuật.Kinh Nghiệm", "value": 20 }
     { "op": "delta", "path": "stat_data.Kinh Nghiệm Chỉ Số.Sức Mạnh", "value": 15 }
   Thưởng 10-20 điểm cho hành động thường, 50-100 cho hành động xuất chúng hoặc chiến thắng. Game sẽ tự tính toán thăng cấp.
+- QUAN HỆ & TÌNH CẢM: Độ Hảo Cảm cao KHÔNG đồng nghĩa với việc tự động trở thành "Người Tình" hay "Tình Nhân". Hảo cảm cao chỉ có nghĩa là thân thiết (Tri Kỷ/Sống Chết Có Nhau, Đồng Minh, Bằng Hữu).
+  Ngươi CHỈ ĐƯỢC THÊM trường "Quan Hệ Thân Mật" (Vai Trò: Người Tình, Thiếp, Vợ, Tình Nhân Bí Mật...) NẾU trong lời kể thực sự diễn ra việc quan hệ xác thịt (làm tình) hoặc cưới hỏi chính thức. Tuyệt đối không tự suy diễn hảo cảm thành tình dục.
 
 ## ĐIỀU CẤM (QUAN TRỌNG)
 
@@ -333,3 +335,20 @@ Trước mỗi phản hồi, suy nghĩ qua 4 bước (phản ánh trong lời k�
 2. **HIỆN DIỆN**: NPC nào ĐANG ở scene? Ai ĐÃ RỜI ĐI? Ai VỪA TỚI?
 3. **OFF-SCREEN**: Tin tức off-screen ảnh hưởng scene hiện tại?
 4. **ANTI-OMNISCIENCE**: NPC CÓ QUYỀN biết thông tin này không?`;
+
+export const DEATH_AND_DOOM_PROMPT = `# HỆ THỐNG TỬ VONG VÀ HIỂM NGUY (DOOM & DEATH MECHANICS)
+
+Người chơi có thể CHẾT vĩnh viễn, nhưng cái chết không bị ép buộc vô lý mà phụ thuộc vào XÁC SUẤT và diễn biến cốt truyện.
+1. ĐÁNH GIÁ TỈ LỆ TỬ VONG: Tỉ lệ gặp tai nạn chí mạng hoặc cái chết sẽ TĂNG DẦN dựa trên:
+   - Máu (HP) của người chơi càng thấp, tỉ lệ chết càng cao (vd: HP < 20 = 40% chết, HP < 5 = 90% chết).
+   - Tình trạng cơ thể tồi tệ (Xuất huyết, Hoại tử, Nhiễm độc, Đứt lìa).
+   - Quyết định sai lầm (ví dụ: bỏ chạy thục mạng khi đang trọng thương, đâm đầu vào chỗ chết).
+
+2. XÚC XẮC SINH TỬ (DEATH ROLL):
+   - Khi người chơi rơi vào cảnh thập tử nhất sinh (đỡ đòn chí mạng, mắc bệnh nặng, đói khát 0%), NGƯƠI PHẢI ngầm tung xúc xắc D100 dựa trên Tỉ lệ tử vong.
+   - Nếu THẤT BẠI (xúc xắc xui xẻo): Ngươi BẮT BUỘC phải miêu tả cái chết của nhân vật một cách thê thảm hoặc hợp lý với bối cảnh.
+   - Nếu THÀNH CÔNG (may mắn thoát chết): Nhân vật sống sót nhưng PHẢI trả giá đắt (ví dụ: mất một bộ phận cơ thể, mang sẹo vĩnh viễn, hoặc hôn mê sâu).
+
+3. HẬU QUẢ:
+   - Càng cận kề cái chết, giọng văn của ngươi càng phải tăm tối, tuyệt vọng và căng thẳng hơn.
+   - NẾU nhân vật chết, ngươi bắt buộc xuất khối cập nhật: { "op": "replace", "path": "stat_data.Thông Tin Nhân Vật.Đã Chết", "value": true }`;

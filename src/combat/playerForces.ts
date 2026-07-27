@@ -6,7 +6,7 @@
 import type { StatData, MilitaryUnit } from "../mvu/schema";
 import { aggregateUnits, TRAIN_SCORE, MORALE_SCORE, EQUIP_SCORE, LOGI_SCORE } from "./scales";
 import type { BattleSideInput } from "./battleResolver";
-import type { Duelist } from "./duel";
+import { type Duelist, BASIC_SKILLS, BASIC_PASSIVES, EXCLUSIVE_SKILLS, EXCLUSIVE_PASSIVES } from "./duel";
 import type { TroopType } from "./terrain";
 
 function mod(stat: number): number {
@@ -49,6 +49,38 @@ export function playerDuelist(state: StatData): Duelist {
   // Our system expects "poisoned_blade", "riposte", "brute_force", "agile_dancer", "second_wind"
   const traits = Array.from(equipmentTraits);
 
+  const passives = [];
+  if (traits.includes("giáp_nặng") || (armor?.["Đặc Tính"]?.includes("Giáp Nặng"))) {
+    passives.push(BASIC_PASSIVES["giap_tru"]);
+  }
+  if (traits.includes("riposte")) passives.push(BASIC_PASSIVES["phan_don"]);
+  if (traits.includes("bloodlust") || state["Kỹ Năng"]["Chiến Đấu"]?.["Cấp"] > 3) passives.push(BASIC_PASSIVES["mau_lanh"]);
+
+  // RPG: Exclusive Passives
+  const bloodline = state["Thông Tin Nhân Vật"]["Huyết Mạch"];
+  if (bloodline?.includes("Tiền Nhân")) passives.push(EXCLUSIVE_PASSIVES["mau_tien_nhan"]);
+  if (bloodline?.includes("Ironborn")) passives.push(EXCLUSIVE_PASSIVES["chat_sat"]);
+
+  // RPG: Exclusive Skills
+  const skills = Object.values(BASIC_SKILLS);
+  const mainWeapon = equipped["Vũ Khí Chính"];
+  const weaponTraits = mainWeapon?.["Đặc Tính"] || [];
+  const weaponName = mainWeapon?.["Tên"]?.toLowerCase() || "";
+  const origin = state["Thông Tin Nhân Vật"]["Xuất Thân"];
+  
+  if ((weaponTraits.includes("Kiếm Nhẹ") || weaponName.includes("kiếm")) && (origin?.includes("Braavos") || state["Thiên Phú"]?.["Vũ Điệu Nước"])) {
+    skills.push(EXCLUSIVE_SKILLS["vu_dieu_nuoc"]);
+  }
+  if ((weaponTraits.includes("Cung") || weaponName.includes("cung")) && (core["Tinh Tường"] >= 14 || state["Thiên Phú"]?.["Thiện Xạ"])) {
+    skills.push(EXCLUSIVE_SKILLS["mua_mui_ten"]);
+  }
+  if ((weaponTraits.includes("Rìu") || weaponTraits.includes("Trọng Kiếm") || weaponName.includes("rìu") || weaponName.includes("búa")) && core["Sức Mạnh"] >= 15) {
+    skills.push(EXCLUSIVE_SKILLS["nhat_chem_cuong_no"]);
+  }
+  if (bloodline?.includes("Valyria")) {
+    skills.push(EXCLUSIVE_SKILLS["khe_lua"]);
+  }
+
   return {
     name: state["Thông Tin Nhân Vật"]["Họ Tên"],
     hp: vitals["HP"],
@@ -59,11 +91,19 @@ export function playerDuelist(state: StatData): Duelist {
     weaponDice: "1d8", // In the future, this can be parsed from weapon properties
     damageReduction: 2, // In the future, this can be derived from armor properties
     agilityMod,
+    strength: core["Sức Mạnh"],
+    intellect: core["Trí Tuệ"],
+    perception: core["Tinh Tường"],
     stamina: vitals["Thể Lực"],
     maxStamina: derived["_Thể Lực Tối Đa"],
     valyrianOrObsidian:
       equipmentTraits.has("valyrian") || equipmentTraits.has("obsidian"),
-    traits
+    traits,
+    skills,
+    passives,
+    inventory: Object.entries(state["Túi Đồ"] || {})
+      .filter(([, item]: [string, any]) => item["Số Lượng"] > 0)
+      .map(([name]) => name),
   };
 }
 
@@ -73,6 +113,50 @@ export function enemyDuelistFromAttrs(attrs: Record<string, string>): Duelist {
     const v = Number(attrs[k]);
     return Number.isFinite(v) && v > 0 ? v : def;
   };
+  const eClass = attrs.enemy_class || "chien_binh";
+  let skills = [BASIC_SKILLS["tan_cong_thuong"], BASIC_SKILLS["phong_thu"]];
+  let passives = [];
+  let traits = [];
+
+  if (eClass === "cung_thu" || attrs.enemy_weapon?.includes("Cung")) {
+    skills.push(BASIC_SKILLS["ban_ten"], BASIC_SKILLS["ban_tia"], BASIC_SKILLS["rut_lui"], BASIC_SKILLS["nem_cat"]);
+  } else if (eClass === "ky_si" || eClass === "giap_nang") {
+    skills.push(BASIC_SKILLS["lao_toi"], BASIC_SKILLS["pha_giap"], BASIC_SKILLS["danh_lieu"]);
+    passives.push(BASIC_PASSIVES["giap_tru"]);
+  } else if (eClass === "sat_thu") {
+    skills.push(BASIC_SKILLS["nham_chi_mang"], BASIC_SKILLS["rut_lui"], BASIC_SKILLS["nem_cat"]);
+    passives.push(BASIC_PASSIVES["mau_lanh"]);
+  } else {
+    // chien_binh
+    skills.push(BASIC_SKILLS["danh_lieu"], BASIC_SKILLS["pha_giap"], BASIC_SKILLS["lao_toi"]);
+    passives.push(BASIC_PASSIVES["phan_don"]);
+    traits.push("riposte");
+  }
+
+  // Khai thác thêm thông tin từ attrs để cấp Exclusive Skills/Passives
+  const enemyWeapon = (attrs.enemy_weapon || "").toLowerCase();
+  const enemyOrigin = attrs.enemy_origin || "";
+  const enemyBloodline = attrs.enemy_bloodline || "";
+  const enemyTraits = attrs.enemy_traits || "";
+  const perception = num("enemy_perception", 10);
+  const strength = num("enemy_strength", 10);
+
+  if (enemyBloodline.includes("Tiền Nhân")) passives.push(EXCLUSIVE_PASSIVES["mau_tien_nhan"]);
+  if (enemyBloodline.includes("Ironborn")) passives.push(EXCLUSIVE_PASSIVES["chat_sat"]);
+
+  if (enemyWeapon.includes("kiếm") && (enemyOrigin.includes("Braavos") || enemyTraits.includes("Vũ Điệu Nước"))) {
+    skills.push(EXCLUSIVE_SKILLS["vu_dieu_nuoc"]);
+  }
+  if (enemyWeapon.includes("cung") && (perception >= 14 || enemyTraits.includes("Thiện Xạ"))) {
+    skills.push(EXCLUSIVE_SKILLS["mua_mui_ten"]);
+  }
+  if ((enemyWeapon.includes("rìu") || enemyWeapon.includes("búa") || enemyWeapon.includes("trọng kiếm")) && strength >= 15) {
+    skills.push(EXCLUSIVE_SKILLS["nhat_chem_cuong_no"]);
+  }
+  if (enemyBloodline.includes("Valyria")) {
+    skills.push(EXCLUSIVE_SKILLS["khe_lua"]);
+  }
+
   return {
     name: attrs.enemy || "Đối thủ",
     hp: num("enemy_hp", 60),
@@ -83,9 +167,16 @@ export function enemyDuelistFromAttrs(attrs: Record<string, string>): Duelist {
     weaponDice: attrs.enemy_dmg && /^\d*d\d+([+-]\d+)?$/i.test(attrs.enemy_dmg) ? attrs.enemy_dmg : "1d8",
     damageReduction: num("enemy_dr", 2),
     agilityMod: num("enemy_agi", 1),
+    strength: num("enemy_str", 10),
+    intellect: num("enemy_int", 10),
+    perception: num("enemy_per", 10),
     stamina: 80,
     maxStamina: 80,
     valyrianOrObsidian: attrs.enemy_valyrian === "true",
+    traits,
+    skills,
+    passives,
+    inventory: attrs.enemy_potion ? ["Bình Máu"] : []
   };
 }
 

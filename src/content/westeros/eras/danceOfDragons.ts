@@ -33,10 +33,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
       { id: "jace-north", title: "Hành Trình Lên Bắc", year: "129 AC", numericYear: 129, desc: "Mẹ giao cho ngươi nhiệm vụ đến Eyrie, White Harbor và Winterfell để giành sự ủng hộ của lãnh chúa Stark và Arryn." }
     ],
     children: [],
-    startArmy: { size: 800, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 480, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 120, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Driftmark", type: "Chiến Thuyền Nặng", size: 4, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "lucerys-velaryon",
     name: "Lucerys Velaryon",
@@ -69,10 +77,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
       { id: "luke-storms-end", title: "Bay Tới Storm's End", year: "129 AC", numericYear: 129, desc: "Bầu trời u ám báo hiệu một cơn bão lớn. Ngươi cưỡi Arrax đến lâu đài của Vua Bão với một lá thư mỏng manh." }
     ],
     children: [],
-    startArmy: { size: 800, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 480, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 120, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Driftmark", type: "Chiến Thuyền Nặng", size: 4, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "aegon-iii",
     name: "Aegon III Targaryen",
@@ -105,10 +121,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
       { id: "aegon-gay-abandon", title: "Tháo Chạy Trên Biển", year: "129 AC", numericYear: 129, desc: "Ngươi đang trên tàu Gay Abandon chạy trốn đến Pentos thì bị hạm đội Triarchy tập kích." }
     ],
     children: [],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "helaena-targaryen",
     name: "Helaena Targaryen",
@@ -141,10 +165,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     personalHooks: [
       { id: "blood-and-cheese", title: "Máu và Phô Mai", year: "129 AC", numericYear: 129, desc: "Hai kẻ sát thủ đang đứng trong phòng ngươi. Chúng bắt ngươi phải chọn một đứa con để chết." }
     ],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "daeron-targaryen",
     name: "Daeron Targaryen",
@@ -177,10 +209,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     ],
     spouse: "",
     children: [],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "otto-hightower",
     name: "Otto Hightower",
@@ -198,8 +238,6 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 3000, startingHookIds: [],
-    startHoldings: [],
-    startRegions: [],
     children: ["alicent-hightower", "gwayne-hightower"],
     allies: ["aegon-ii-targaryen", "larys-strong"],
     rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
@@ -210,10 +248,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     mother: "",
     spouse: "",
     siblings: [],
-    startArmy: { size: 240, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 168, quality: "Thành Thạo" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 72, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "larys-strong",
     name: "Larys Strong",
@@ -231,8 +274,6 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 2000, startingHookIds: [],
-    startHoldings: ["harrenhal"],
-    startRegions: [],
     father: "lyonel-strong",
     siblings: ["harwin-strong"],
     allies: ["otto-hightower", "alicent-hightower"],
@@ -240,13 +281,19 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     personalHooks: [
       { id: "larys-schemes", title: "Những Lời Thì Thầm", year: "129 AC", numericYear: 129, desc: "Ngươi ở trong bóng tối, thao túng cuộc chiến bằng những lời nói dối và những cái chết bất ngờ." }
     ],
-    startArmy: { size: 2000, quality: "Thành Thạo" },
-    baseIncome: 100,
-    holdingsLevel: { "harrenhal": 3 },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 1200, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ ", type: "Kỵ Binh", size: 400, quality: "Thành Thạo" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 400, quality: "Thành Thạo" }
+        ],
     mother: "",
     spouse: "",
-    children: []
-  },
+    children: [],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "cregan-stark",
     name: "Cregan Stark",
@@ -264,8 +311,6 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Ice", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 30 }, moTa: "Thanh trọng kiếm khổng lồ bằng thép Valyria của Nhà Stark." }],
     items: [],
     gold: 1500, startingHookIds: [],
-    startHoldings: ["the-north-seat"],
-    startRegions: ["the-north"],
     father: "rickon-stark",
     spouse: "arra-norrey",
     children: ["rickon-stark-son"],
@@ -274,12 +319,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     personalHooks: [
       { id: "hour-of-the-wolf", title: "Giờ Của Sói", year: "131 AC", numericYear: 131, desc: "Cuộc chiến đã vãn, các vị vua đã chết. Ngươi kéo quân phương Bắc xuống King's Landing để phán xét những kẻ phản bội." }
     ],
-    startArmy: { size: 30000, quality: "Thành Thạo" },
-    baseIncome: 300,
-    holdingsLevel: { "the-north-seat": 5 },
+    startArmies: [
+          { name: "Quân Đoàn Rừng Sói", type: "Bộ Binh", size: 18000, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Sói", type: "Kỵ Binh", size: 6000, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Winterfell", type: "Cung Thủ", size: 6000, quality: "Thành Thạo" }
+        ],
     mother: "",
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-north"],
+      startHoldings: ["the-north-seat"],
+      holdingsLevel: {"the-north-seat":5},
+      baseIncome: 400
+},
   {
     id: "jeyne-arryn",
     name: "Jeyne Arryn",
@@ -297,22 +348,26 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 2500, startingHookIds: [],
-    startHoldings: ["the-vale-seat"],
-    startRegions: ["the-vale"],
     father: "arnold-arryn",
     allies: ["rhaenyra-targaryen"],
     rivals: ["arnold-arryn", "aegon-ii"],
     personalHooks: [
       { id: "jeyne-choice", title: "Lựa Chọn Của Nữ Trinh", year: "129 AC", numericYear: 129, desc: "Hoàng tử Jacaerys đến xin viện binh. Ngươi sẽ đòi hỏi gì để đổi lấy những thanh kiếm của Vale?" }
     ],
-    startArmy: { size: 35000, quality: "Thành Thạo" },
-    baseIncome: 300,
-    holdingsLevel: { "the-vale-seat": 5 },
+    startArmies: [
+          { name: "Lính Giáo Thung Lũng", type: "Bộ Binh", size: 21000, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Không Gian", type: "Kỵ Binh", size: 7000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Eyrie", type: "Cung Thủ", size: 7000, quality: "Thành Thạo" }
+        ],
     mother: "",
     spouse: "",
     children: [],
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-vale"],
+      startHoldings: ["the-vale-seat"],
+      holdingsLevel: {"the-vale-seat":5},
+      baseIncome: 400
+},
   {
     id: "borros-baratheon",
     name: "Borros Baratheon",
@@ -330,8 +385,6 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 2000, startingHookIds: [],
-    startHoldings: ["the-stormlands-seat"],
-    startRegions: ["the-stormlands"],
     father: "boremund-baratheon",
     spouse: "elenda-caron",
     children: ["cassandra-baratheon", "maris-baratheon", "elinor-baratheon", "floris-baratheon"],
@@ -340,12 +393,20 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     personalHooks: [
       { id: "borros-choice", title: "Sứ Giả Hai Mang", year: "129 AC", numericYear: 129, desc: "Hoàng tử Aemond và Lucerys đang gầm gừ nhau trong sảnh đường của ngươi. Ngươi sẽ chọn ai?" }
     ],
-    startArmy: { size: 25000, quality: "Thành Thạo" },
-    baseIncome: 250,
-    holdingsLevel: { "the-stormlands-seat": 5 },
+    startArmies: [
+          { name: "Bộ Binh Bão Tố", type: "Bộ Binh", size: 15000, quality: "Thành Thạo" },
+          { name: "Đội Nỏ Vùng Bão", type: "Cung Thủ", size: 3750, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 125, quality: "Thành Thạo" }
+        ],
     mother: "",
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-stormlands"],
+      startHoldings: ["the-stormlands-seat"],
+      holdingsLevel: {"the-stormlands-seat":5},
+      baseIncome: 400
+},
   {
     id: "dalton-greyjoy",
     name: "Dalton Greyjoy",
@@ -363,22 +424,28 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Nightfall", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 20 }, moTa: "Thanh kiếm Thép Valyria cướp được từ một hải tặc." }],
     items: [],
     gold: 3000, startingHookIds: [],
-    startHoldings: ["the-iron-islands-seat"],
-    startRegions: ["the-iron-islands"],
     father: "greyjoy-father",
     allies: ["rhaenyra-targaryen"],
     rivals: ["jason-lannister", "aegon-ii"],
     personalHooks: [
       { id: "red-kraken-rises", title: "Thủy Quái Trỗi Dậy", year: "129 AC", numericYear: 129, desc: "Vương quốc chìm trong chiến tranh. Đây là cơ hội để bầy thiết dân đi cướp bóc khắp các vùng duyên hải." }
     ],
-    startArmy: { size: 15000, quality: "Thành Thạo" },
-    baseIncome: 200,
-    holdingsLevel: { "the-iron-islands-seat": 5 },
+    startArmies: [
+          { name: "Chiến Binh Đảo Muối", type: "Bộ Binh", size: 9000, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 2250, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 75, quality: "Thành Thạo" }
+        ],
     mother: "",
     spouse: "",
     children: [],
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-iron-islands"],
+      startHoldings: ["the-iron-islands-seat"],
+      holdingsLevel: {"the-iron-islands-seat":5},
+      baseIncome: 300
+},
   {
     id: "alys-rivers",
     name: "Alys Rivers",
@@ -395,8 +462,6 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 50, startingHookIds: [],
-    startHoldings: [],
-    startRegions: [],
     father: "lyonel-strong",
     spouse: "aemond-targaryen",
     allies: ["aemond-targaryen"],
@@ -407,10 +472,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     mother: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "hugh-hammer",
     name: "Hugh Búa Tạ",
@@ -444,10 +514,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "addam-velaryon",
     name: "Addam Velaryon",
@@ -481,10 +556,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     mother: "",
     spouse: "",
     children: [],
-    startArmy: { size: 80, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 48, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 12, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Driftmark", type: "Chiến Thuyền Nặng", size: 1, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "nettles",
     name: "Nettles",
@@ -517,10 +600,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  }
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+}
   ,
   {
     id: "baela-targaryen", name: "Baela Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Cô Gái Cưỡi Rồng", religion: "Thất Diện Thần",
@@ -535,10 +623,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     rivals: ["aegon-ii"],
     dragon: { name: "Moondancer", color: "Xanh lá nhạt", size: "Non", age: 10, description: "Con rồng nhỏ nhưng bay cực kỳ nhanh", stats: { "Sức Lửa": 15, "Sức Bay": 18, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 }, skills: { "Bay Lượn": 18, "Lửa Rồng": 8 } },
     children: [],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "rhaena-targaryen", name: "Rhaena Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Cô Gái Dịu Dàng", religion: "Thất Diện Thần",
     blurb: "Em gái sinh đôi của Baela. Dịu dàng, thích múa và quần áo đẹp hơn là kiếm thuật.",
@@ -551,10 +647,18 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     allies: ["rhaenyra-targaryen", "corlys-velaryon"],
     rivals: ["aegon-ii"],
     children: [],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "harwin-strong", name: "Harwin Strong", tuocVi: "Hiệp Sĩ", house: "Strong", role: "Người Mẻ Cốt", religion: "Cựu Thần",
     blurb: "Người đàn ông mạnh nhất Bảy Vương Quốc, Đội trưởng Đội Gác Thành, và được cho là cha ruột của các con trai Rhaenyra.",
@@ -568,10 +672,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     rivals: ["criston-cole", "aegon-ii"],
     mother: "",
     spouse: "",
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Harrenhal", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Vùng Sông", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "mysaria", name: "Mysaria", tuocVi: "Thường Dân", house: "Khác", role: "Sâu Trắng", religion: "Khác",
     blurb: "Cựu kỹ nữ đến từ Lys, trở thành người tình của Daemon và là bậc thầy gián điệp của Rhaenyra.",
@@ -585,10 +694,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Thuê Xứ Essos", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Bóng Tối", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "tyland-lannister", name: "Tyland Lannister", tuocVi: "Hiệp Sĩ", house: "Lannister", role: "Quản Lý Ngân Khố", religion: "Thất Diện Thần",
     blurb: "Phục vụ phe Xanh, đã nhanh tay phân tán ngân khố hoàng gia trước khi Rhaenyra chiếm được vương đô.",
@@ -602,16 +716,25 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     mother: "",
     spouse: "",
     children: [],
-    startArmy: { size: 500, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Casterly Rock", type: "Bộ Binh", size: 350, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "jason-lannister", name: "Jason Lannister", tuocVi: "Lãnh Chúa", house: "Lannister", role: "Lãnh Chúa Casterly Rock", religion: "Thất Diện Thần",
     blurb: "Anh trai sinh đôi của Tyland, lãnh chúa giàu có, kiêu ngạo. Dẫn dắt quân đội Tây chiến đấu cho vua Aegon II.",
     birthYear: 90, age: 39, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 12, "Trí Tuệ": 13, "Tinh Tường": 12, "Uy Tín": 15 },
     talentIds: ["proud", "wealthy"], skills: { "Chỉ Huy": 14, "Tài Chính": 15 },
-    equipment: [], items: [], gold: 30000, startingHookIds: [], startArmy: { size: 10000, quality: "Thành Thạo" },
+    equipment: [], items: [], gold: 30000, startingHookIds: [], startArmies: [
+          { name: "Đội Trọng Bộ Binh Lannister", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Vùng Đồi", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 2000, quality: "Thành Thạo" }
+        ],
     spouse: "johanna-westerling",
     children: ["cerelle-lannister", "tyshara-lannister"],
     siblings: ["tyland-lannister"],
@@ -619,9 +742,11 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     rivals: ["dalton-greyjoy", "rhaenyra-targaryen"],
     father: "",
     mother: "",
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "ulf-white", name: "Ulf Trắng", tuocVi: "Thường Dân", house: "Khác", role: "Kẻ Nát Rượu", religion: "Thất Diện Thần",
     blurb: "Một kỵ sĩ hạt giống, nát rượu và tham lam, cưỡi con rồng Silverwing.",
@@ -636,10 +761,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Thuê Hạt Giống Rồng", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Thuê", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "orwyle", name: "Orwyle", tuocVi: "Thường Dân", house: "Khác", role: "Đại Maester", religion: "Thất Diện Thần",
     blurb: "Đại Maester của Tiểu Hội Đồng, theo phe Xanh.",
@@ -653,10 +783,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Citadel", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Oldtown", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "jasper-wylde", name: "Jasper Wylde", tuocVi: "Lãnh Chúa", house: "Wylde", role: "Gậy Sắt", religion: "Thất Diện Thần",
     blurb: "Quan quản pháp của Vua Viserys, vô cùng cứng nhắc về luật lệ. Ông theo phe Xanh vì luật truyền ngôi cho con trai trưởng.",
@@ -670,10 +805,15 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     siblings: [],
-    startArmy: { size: 600, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Rain House", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Vùng Bão", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "sabitha-frey", name: "Sabitha Frey", tuocVi: "Tiểu Thư", house: "Frey", role: "Nữ Tướng", religion: "Thất Diện Thần",
     blurb: "Vợ của lãnh chúa Frey, thích chiến tranh hơn thêu thùa, dẫn dắt quân Frey chiến đấu cho phe Đen.",
@@ -687,9 +827,14 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     mother: "",
     children: [],
     siblings: [],
-    startArmy: { size: 800, quality: "Mới Lập Đội" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  }
+    startArmies: [
+          { name: "Bộ Binh Song Thành", type: "Bộ Binh", size: 560, quality: "Mới Lập Đội" },
+          { name: "Người Bắn Nỏ Vùng Đầm", type: "Cung Thủ", size: 240, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+}
 ];
 

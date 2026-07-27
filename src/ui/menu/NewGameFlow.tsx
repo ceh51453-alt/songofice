@@ -707,7 +707,12 @@ export function NewGameFlow() {
         
         const addNpc = () => {
           if (spent + NPC_COST > BUDGET_GOLD) return;
-          patch({ customForce: { ...forces, npcs: [...forces.npcs, { id: genId(), name: "NPC Mới", role: "Tướng Lĩnh", statPreset: "Cân Bằng" }] } });
+          patch({ customForce: { ...forces, npcs: [...forces.npcs, { 
+            id: genId(), name: "NPC Mới", role: "Tướng Lĩnh", statPreset: "Cân Bằng",
+            nangLuc: { voLuc: 14, thongSoai: 16, triMuu: 12, ngoaiGiao: 10 },
+            tuoi: 30, netTinhCach: "Trung Thành",
+            gioiTinh: "Nam", loai: "Người", thanHinh: "", nsfw: ""
+          }] } });
         };
         const removeNpc = (id: string) => patch({ customForce: { ...forces, npcs: forces.npcs.filter(n => n.id !== id) } });
         const updateNpc = (id: string, data: any) => patch({ customForce: { ...forces, npcs: forces.npcs.map(n => n.id === id ? { ...n, ...data } : n) } });
@@ -719,7 +724,12 @@ export function NewGameFlow() {
         const updateUnit = (id: string, data: any) => patch({ customForce: { ...forces, units: forces.units.map(u => u.id === id ? { ...u, ...data } : u) } });
 
         const addFamilyMember = () => {
-          patch({ familyMembers: [...(wiz.familyMembers || []), { id: genId(), name: "", relation: "Anh em", age: 20, persona: { ngoaiHinh: "", tinhCach: "" } }] });
+          patch({ familyMembers: [...(wiz.familyMembers || []), { 
+            id: genId(), name: "", relation: "Anh em", age: 20, 
+            gioiTinh: "Nam", loai: "Người", nsfw: "",
+            nangLuc: { voLuc: 10, thongSoai: 10, triMuu: 10, ngoaiGiao: 10 },
+            persona: { ngoaiHinh: "", tinhCach: "" } 
+          }] });
         };
         const updateFamily = (id: string, data: any) => {
           patch({ familyMembers: (wiz.familyMembers || []).map(m => m.id === id ? { ...m, ...data } : m) });
@@ -741,17 +751,33 @@ export function NewGameFlow() {
                 </div>
                 <div className="space-y-2">
                   {(wiz.familyMembers || []).map(m => (
-                    <div key={m.id} className="glass p-3 space-y-2">
+                    <div key={m.id} className="glass p-3 flex flex-col gap-2">
                       <div className="flex flex-wrap gap-2 items-center">
                         <input type="text" placeholder="Họ Tên" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={m.name} onChange={e => updateFamily(m.id, { name: e.target.value })} />
-                        <input type="text" placeholder="Vai vế (Vợ, Con, ...)" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/3" value={m.relation} onChange={e => updateFamily(m.id, { relation: e.target.value })} />
-                        <input type="number" min="0" max="100" placeholder="Tuổi" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-16" value={m.age} onChange={e => updateFamily(m.id, { age: parseInt(e.target.value) || 0 })} />
+                        <input type="text" placeholder="Vai vế (Vợ, Con, ...)" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/4" value={m.relation} onChange={e => updateFamily(m.id, { relation: e.target.value })} />
+                        <select className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-20" value={m.gioiTinh || "Nam"} onChange={e => updateFamily(m.id, { gioiTinh: e.target.value })}>
+                          <option value="Nam">Nam</option>
+                          <option value="Nữ">Nữ</option>
+                          <option value="Khác">Khác</option>
+                        </select>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[12px] text-[var(--text-muted)]">Tuổi:</span>
+                          <input type="number" min="0" max="100" placeholder="Tuổi" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-12" value={m.age} onChange={e => updateFamily(m.id, { age: parseInt(e.target.value) || 0 })} />
+                        </div>
                         <button onClick={() => removeFamily(m.id)} className="text-red-400 hover:text-red-300 ml-auto">×</button>
                       </div>
-                      <div className="flex gap-2">
-                        <input type="text" placeholder="Ngoại hình (Tuỳ chọn)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/2" value={m.persona.ngoaiHinh} onChange={e => updateFamily(m.id, { persona: { ...m.persona, ngoaiHinh: e.target.value } })} />
-                        <input type="text" placeholder="Tính cách (Tuỳ chọn)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/2" value={m.persona.tinhCach} onChange={e => updateFamily(m.id, { persona: { ...m.persona, tinhCach: e.target.value } })} />
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <input type="text" placeholder="Loài (VD: Người, Tiên...)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/4" value={m.loai || ""} onChange={e => updateFamily(m.id, { loai: e.target.value })} />
+                        <input type="text" placeholder="Thân Hình / Ngoại Hình" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={m.persona.ngoaiHinh} onChange={e => updateFamily(m.id, { persona: { ...m.persona, ngoaiHinh: e.target.value } })} />
                       </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Võ:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.voLuc ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), voLuc: parseInt(e.target.value)||0 } })} /></div>
+                        <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Thống:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.thongSoai ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), thongSoai: parseInt(e.target.value)||0 } })} /></div>
+                        <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Trí:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.triMuu ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), triMuu: parseInt(e.target.value)||0 } })} /></div>
+                        <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Ngoại:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.ngoaiGiao ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), ngoaiGiao: parseInt(e.target.value)||0 } })} /></div>
+                        <input type="text" placeholder="Tính cách" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-0.5 flex-1 min-w-[120px]" value={m.persona.tinhCach} onChange={e => updateFamily(m.id, { persona: { ...m.persona, tinhCach: e.target.value } })} />
+                      </div>
+                      <textarea placeholder="Thông tin NSFW / Sở thích ẩn (Dành cho AI)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-full text-[var(--text-soft)] h-12 resize-none" value={m.nsfw || ""} onChange={e => updateFamily(m.id, { nsfw: e.target.value })} />
                     </div>
                   ))}
                   {(wiz.familyMembers || []).length === 0 && <span className="text-[12px] text-[var(--text-faint)] block italic">Chưa có người thân nào</span>}
@@ -794,15 +820,38 @@ export function NewGameFlow() {
                 </div>
                 <div className="space-y-2">
                   {forces.npcs.map(n => (
-                    <div key={n.id} className="glass p-3 flex flex-wrap gap-2 items-center">
-                      <input type="text" placeholder="Tên NPC" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/3" value={n.name} onChange={e => updateNpc(n.id, { name: e.target.value })} />
-                      <select className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1" value={n.role} onChange={e => updateNpc(n.id, { role: e.target.value })}>
-                        <option value="Tướng Lĩnh" className="bg-[var(--bg-panel)]">Tướng Lĩnh</option>
-                        <option value="Học Sĩ" className="bg-[var(--bg-panel)]">Học Sĩ</option>
-                        <option value="Hiệp Sĩ" className="bg-[var(--bg-panel)]">Hiệp Sĩ</option>
-                        <option value="Cố Vấn" className="bg-[var(--bg-panel)]">Cố Vấn</option>
-                      </select>
-                      <button onClick={() => removeNpc(n.id)} className="text-red-400 hover:text-red-300 ml-auto">×</button>
+                    <div key={n.id} className="glass p-3 flex flex-col gap-2">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <input type="text" placeholder="Tên NPC" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/3" value={n.name} onChange={e => updateNpc(n.id, { name: e.target.value })} />
+                        <select className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1" value={n.role} onChange={e => updateNpc(n.id, { role: e.target.value })}>
+                          <option value="Tướng Lĩnh" className="bg-[var(--bg-panel)]">Tướng Lĩnh</option>
+                          <option value="Học Sĩ" className="bg-[var(--bg-panel)]">Học Sĩ</option>
+                          <option value="Hiệp Sĩ" className="bg-[var(--bg-panel)]">Hiệp Sĩ</option>
+                          <option value="Cố Vấn" className="bg-[var(--bg-panel)]">Cố Vấn</option>
+                        </select>
+                        <select className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-20" value={n.gioiTinh || "Nam"} onChange={e => updateNpc(n.id, { gioiTinh: e.target.value })}>
+                          <option value="Nam">Nam</option>
+                          <option value="Nữ">Nữ</option>
+                          <option value="Khác">Khác</option>
+                        </select>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[12px] text-[var(--text-muted)]">Tuổi:</span>
+                          <input type="number" min="0" max="100" placeholder="Tuổi" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-12" value={n.tuoi || 30} onChange={e => updateNpc(n.id, { tuoi: parseInt(e.target.value) || 0 })} />
+                        </div>
+                        <button onClick={() => removeNpc(n.id)} className="text-red-400 hover:text-red-300 ml-auto">×</button>
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <input type="text" placeholder="Loài (VD: Người, Tiên...)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/4" value={n.loai || ""} onChange={e => updateNpc(n.id, { loai: e.target.value })} />
+                        <input type="text" placeholder="Thân Hình / Ngoại Hình" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={n.thanHinh || ""} onChange={e => updateNpc(n.id, { thanHinh: e.target.value })} />
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Võ:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={n.nangLuc?.voLuc ?? 10} onChange={e => updateNpc(n.id, { nangLuc: { ...(n.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), voLuc: parseInt(e.target.value)||0 } })} /></div>
+                        <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Thống:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={n.nangLuc?.thongSoai ?? 10} onChange={e => updateNpc(n.id, { nangLuc: { ...(n.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), thongSoai: parseInt(e.target.value)||0 } })} /></div>
+                        <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Trí:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={n.nangLuc?.triMuu ?? 10} onChange={e => updateNpc(n.id, { nangLuc: { ...(n.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), triMuu: parseInt(e.target.value)||0 } })} /></div>
+                        <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Ngoại:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={n.nangLuc?.ngoaiGiao ?? 10} onChange={e => updateNpc(n.id, { nangLuc: { ...(n.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), ngoaiGiao: parseInt(e.target.value)||0 } })} /></div>
+                        <input type="text" placeholder="Tính cách" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-0.5 flex-1 min-w-[120px]" value={n.netTinhCach || ""} onChange={e => updateNpc(n.id, { netTinhCach: e.target.value })} />
+                      </div>
+                      <textarea placeholder="Thông tin NSFW / Sở thích ẩn (Dành cho AI)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-full text-[var(--text-soft)] h-12 resize-none" value={n.nsfw || ""} onChange={e => updateNpc(n.id, { nsfw: e.target.value })} />
                     </div>
                   ))}
                   {forces.npcs.length === 0 && <span className="text-[12px] text-[var(--text-faint)] block italic">Chưa có thủ hạ nào</span>}
@@ -1172,10 +1221,48 @@ export function NewGameFlow() {
                   <span className="block mt-0.5 text-[12.5px] text-[var(--text-muted)]">{c.desc}</span>
                 </Card>
               ))}
-              {wiz.companionId && (
-                <GlassInput placeholder="Đặt tên cho tâm phúc (tuỳ chọn)" value={wiz.companionName ?? ""}
-                  onChange={(e) => patch({ companionName: e.target.value })} />
-              )}
+              {wiz.companionId && (() => {
+                const arch = COMPANIONS.find(c => c.id === wiz.companionId);
+                if (!arch) return null;
+                const overrides = wiz.companionOverrides || {};
+                const stats = overrides.nangLuc || arch.nangLuc;
+                const setStat = (key: keyof typeof arch.nangLuc, val: number) => {
+                  patch({ companionOverrides: { ...overrides, nangLuc: { ...stats, [key]: val } } });
+                };
+                return (
+                  <div className="glass p-3 mt-2 flex flex-col gap-2">
+                    <span className="text-[13px] text-[var(--text-muted)] font-medium mb-1">Tuỳ chỉnh tâm phúc (Tuỳ chọn)</span>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <GlassInput placeholder="Đặt tên mới (bỏ trống để dùng tên gốc)" value={wiz.companionName ?? ""}
+                        onChange={(e) => patch({ companionName: e.target.value })} className="flex-1" />
+                      <div className="flex items-center gap-1">
+                        <span className="text-[12px] text-[var(--text-muted)]">Giới tính:</span>
+                        <select className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-1 py-1" value={overrides.gioiTinh || "Nam"} onChange={e => patch({ companionOverrides: { ...overrides, gioiTinh: e.target.value } })}>
+                          <option value="Nam">Nam</option>
+                          <option value="Nữ">Nữ</option>
+                          <option value="Khác">Khác</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[12px] text-[var(--text-muted)]">Tuổi:</span>
+                        <input type="number" min="0" max="100" className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1 w-12" value={overrides.tuoi ?? arch.tuoi} onChange={e => patch({ companionOverrides: { ...overrides, tuoi: parseInt(e.target.value) || 0 } })} />
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <input type="text" placeholder="Loài (VD: Người, Tiên...)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/4" value={overrides.loai || ""} onChange={e => patch({ companionOverrides: { ...overrides, loai: e.target.value } })} />
+                      <input type="text" placeholder="Thân Hình / Ngoại Hình" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={overrides.thanHinh || ""} onChange={e => patch({ companionOverrides: { ...overrides, thanHinh: e.target.value } })} />
+                    </div>
+                    <div className="flex flex-wrap gap-3 mt-1">
+                      <div className="flex items-center gap-1"><span className="text-[12px] text-[var(--text-muted)]">Võ:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-1 w-10" value={stats.voLuc} onChange={e => setStat("voLuc", parseInt(e.target.value)||0)} /></div>
+                      <div className="flex items-center gap-1"><span className="text-[12px] text-[var(--text-muted)]">Thống:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-1 w-10" value={stats.thongSoai} onChange={e => setStat("thongSoai", parseInt(e.target.value)||0)} /></div>
+                      <div className="flex items-center gap-1"><span className="text-[12px] text-[var(--text-muted)]">Trí:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-1 w-10" value={stats.triMuu} onChange={e => setStat("triMuu", parseInt(e.target.value)||0)} /></div>
+                      <div className="flex items-center gap-1"><span className="text-[12px] text-[var(--text-muted)]">Ngoại:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-1 w-10" value={stats.ngoaiGiao} onChange={e => setStat("ngoaiGiao", parseInt(e.target.value)||0)} /></div>
+                      <input type="text" placeholder="Tính cách" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1 min-w-[120px]" value={overrides.netTinhCach ?? arch.netTinhCach.join(", ")} onChange={e => patch({ companionOverrides: { ...overrides, netTinhCach: e.target.value } })} />
+                    </div>
+                    <textarea placeholder="Thông tin NSFW / Sở thích ẩn (Dành cho AI)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-full text-[var(--text-soft)] h-12 resize-none mt-1" value={overrides.nsfw || ""} onChange={e => patch({ companionOverrides: { ...overrides, nsfw: e.target.value } })} />
+                  </div>
+                );
+              })()}
             </div>
             <NavButtons onBack={back} onNext={next} />
           </div>

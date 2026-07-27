@@ -10,9 +10,8 @@ import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import { registerTurnListener } from "../mvu/effects";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
-import {
-  troopMeta, recruitableTroopsForEra, type TroopTypeAll,
-} from "../content/westeros/troopTypes";
+import { recruitableTroopsForEra, type TroopTypeAll, troopMeta } from "../content/westeros/troopTypes";
+import { canControlHolding } from "../character/roleplay";
 import { MORALE_SCORE } from "../combat/scales";
 import { eventSeed, makeRng } from "../probability/rng";
 
@@ -51,6 +50,7 @@ export function recruitUnit(
 ): RecruitResult {
   const terr = state["Lãnh Địa"][territoryId];
   if (!terr) return { ok: false, error: "Lãnh địa không tồn tại", ops: [] };
+  if (!canControlHolding(state, territoryId)) return { ok: false, error: "Bạn không có quyền kiểm soát lãnh địa này", ops: [] };
   if (!hasBarracks(state, territoryId)) return { ok: false, error: "Cần Doanh Trại để tuyển quân", ops: [] };
 
   const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
@@ -66,11 +66,14 @@ export function recruitUnit(
   const foodCost = Math.round((meta.costPer100["Lương Thực"] * count) / 100);
   if (goldCost > state["Thông Tin Nhân Vật"]["Vàng"]) return { ok: false, error: "Thiếu Vàng", ops: [] };
   if (foodCost > terr["Tài Nguyên"]["Lương Thực"]) return { ok: false, error: "Thiếu Lương Thực", ops: [] };
+  if (count > (terr["Dân Số Chi Tiết"]["Nông Dân"] || 0)) return { ok: false, error: "Thiếu Nông Dân", ops: [] };
 
   const name = unitName?.trim() || `${troopType} ${REGIONS_BY_ID[territoryId]?.name ?? territoryId}`;
   const ops: PatchOp[] = [
     { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -goldCost },
     { op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Tài Nguyên.Lương Thực`, value: -foodCost },
+    { op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Dân Số`, value: -count },
+    { op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Dân Số Chi Tiết.Nông Dân`, value: -count },
     {
       op: "replace", path: `stat_data.Biên Chế Quân Sự.${name}`,
       value: {

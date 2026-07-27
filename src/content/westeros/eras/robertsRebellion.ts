@@ -17,11 +17,11 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [{ slot: "Vũ Khí Chính", ten: "Ice", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 30 }, moTa: "Thanh trọng kiếm thép Valyria của Nhà Stark." }],
     items: [],
     gold: 8000, startingHookIds: [],
-    startHoldings: ["the-north-seat"],
-    holdingsLevel: { "the-north-seat": 5 },
-    baseIncome: 300,
-    startRegions: ["the-north"],
-    startArmy: { size: 25000, quality: "Thành Thạo" },
+    startArmies: [
+      { name: "Đội Tiên Phong Phương Bắc", type: "Kỵ Binh Nhẹ", size: 3000, quality: "Thành Thạo" },
+      { name: "Trung Quân Winterfell", type: "Bộ Binh", size: 17000, quality: "Thành Thạo" },
+      { name: "Cấm Vệ Mùa Đông", type: "Bộ Binh", size: 5000, quality: "Tinh Nhuệ" }
+    ],
     father: "rickard-stark",
     mother: "lyarra-stark",
     spouse: "catelyn-tully",
@@ -32,8 +32,12 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
       { id: "ned-south", title: "Hành Trình Xuống Nam", year: "282 AC", numericYear: 282, desc: "Ngươi vượt núi trở về Winterfell để kêu gọi chư hầu, chuẩn bị cho một cuộc chiến không thể tránh khỏi." },
       { id: "tower-of-joy", title: "Tháp Niềm Vui", year: "283 AC", numericYear: 283, desc: "Chiến tranh đã kết thúc, nhưng em gái Lyanna của ngươi vẫn mất tích. Ngươi cùng 6 người bạn tìm đến dải núi Đỏ xứ Dorne." }
     ],
-    children: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "rickon-stark", "jon-snow"]
-  },
+    children: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "rickon-stark", "jon-snow"],
+      startRegions: ["the-north"],
+      startHoldings: ["the-north-seat"],
+      holdingsLevel: {"the-north-seat":5},
+      baseIncome: 400
+},
   {
     id: "jon-arryn",
     name: "Jon Arryn",
@@ -50,11 +54,11 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 3000, startingHookIds: [],
-    startHoldings: ["the-vale-seat"],
-    holdingsLevel: { "the-vale-seat": 5 },
-    baseIncome: 300,
-    startRegions: ["the-vale"],
-    startArmy: { size: 20000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Bộ Binh Eyrie", type: "Bộ Binh", size: 12000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Thung Lũng", type: "Kỵ Binh", size: 4000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Eyrie", type: "Cung Thủ", size: 4000, quality: "Thành Thạo" }
+        ],
     father: "jasper-arryn",
     spouse: "lysa-tully",
     allies: ["eddard-stark", "robert-baratheon"],
@@ -64,8 +68,12 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     ],
     mother: "",
     children: ["robert-arryn"],
-    siblings: []
-  },
+    siblings: [],
+      startRegions: ["the-vale"],
+      startHoldings: ["the-vale-seat"],
+      holdingsLevel: {"the-vale-seat":5},
+      baseIncome: 400
+},
   {
     id: "hoster-tully",
     name: "Hoster Tully",
@@ -82,11 +90,11 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 2500, startingHookIds: [],
-    startHoldings: ["the-riverlands-seat"],
-    holdingsLevel: { "the-riverlands-seat": 5 },
-    baseIncome: 350,
-    startRegions: ["the-riverlands"],
-    startArmy: { size: 15000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Dân Binh Riverlands", type: "Bộ Binh", size: 9000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Sông Nhánh", type: "Kỵ Binh", size: 3000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Sông", type: "Cung Thủ", size: 3000, quality: "Thành Thạo" }
+        ],
     spouse: "minisa-whent",
     children: ["catelyn-tully", "lysa-tully", "edmure-tully"],
     allies: ["eddard-stark", "jon-arryn"],
@@ -96,8 +104,12 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     ],
     father: "",
     mother: "",
-    siblings: ["brynden-tully"]
-  },
+    siblings: ["brynden-tully"],
+      startRegions: ["the-riverlands"],
+      startHoldings: ["the-riverlands-seat"],
+      holdingsLevel: {"the-riverlands-seat":5},
+      baseIncome: 450
+},
   {
     id: "tywin-lannister",
     name: "Tywin Lannister",
@@ -114,11 +126,10 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 100000, startingHookIds: [],
-    startHoldings: ["the-westerlands-seat"],
-    holdingsLevel: { "the-westerlands-seat": 5 },
-    baseIncome: 1000,
-    startRegions: ["the-westerlands"],
-    startArmy: { size: 35000, quality: "Tinh Nhuệ" },
+    startArmies: [
+      { name: "Sư Tử Casterly Rock", type: "Bộ Binh", size: 25000, quality: "Tinh Nhuệ" },
+      { name: "Kỵ Binh Tiên Phong", type: "Kỵ Binh", size: 10000, quality: "Tinh Nhuệ" }
+    ],
     father: "tytos-lannister",
     spouse: "joanna-lannister",
     children: ["jaime-lannister", "cersei-lannister", "tyrion-lannister"],
@@ -128,8 +139,12 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     ],
     mother: "",
     siblings: ["kevan-lannister", "tygett-lannister", "gerion-lannister", "genna-lannister"],
-    allies: ["aerys-ii", "robert-baratheon"]
-  },
+    allies: ["aerys-ii", "robert-baratheon"],
+      startRegions: ["the-westerlands"],
+      startHoldings: ["the-westerlands-seat"],
+      holdingsLevel: {"the-westerlands-seat":5},
+      baseIncome: 800
+},
   {
     id: "rhaegar-targaryen",
     name: "Rhaegar Targaryen",
@@ -147,9 +162,11 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [{ ten: "Đàn Hạc Bạc", soLuong: 1, moTa: "Cây đàn hạc có dây bằng bạc." }],
     gold: 15000, startingHookIds: [],
-    startHoldings: ["the-crownlands-seat"],
-    startRegions: [],
-    startArmy: { size: 20000, quality: "Tinh Nhuệ" },
+    startArmies: [
+      { name: "Kỵ Binh Hoàng Gia", type: "Kỵ Binh", size: 5000, quality: "Tinh Nhuệ" },
+      { name: "Trung Quân Đỉnh Aegon", type: "Trường Thương", size: 10000, quality: "Thành Thạo" },
+      { name: "Cung Thủ Vương Đô", type: "Bộ Binh", size: 5000, quality: "Thành Thạo" }
+    ],
     father: "aerys-ii",
     mother: "rhaella-targaryen",
     spouse: "elia-martell",
@@ -160,9 +177,11 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     personalHooks: [
       { id: "rhaegar-trident", title: "Trận Trident", year: "283 AC", numericYear: 283, desc: "Đội quân khởi nghĩa đang ở bờ bắc sông Trident. Ngươi dẫn 4 vạn quân vượt sông để đè bẹp Robert Baratheon." }
     ],
-    baseIncome: 100,
-    holdingsLevel: { "the-crownlands-seat": 4 }
-  },
+      startRegions: [],
+      startHoldings: ["dragonstone"],
+      holdingsLevel: {"dragonstone":4},
+      baseIncome: 200
+},
   {
     id: "aerys-ii",
     name: "Aerys II Targaryen",
@@ -180,11 +199,10 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [{ ten: "Lửa Hoang", soLuong: 100, moTa: "Những hũ chất lỏng cháy xanh rực." }],
     gold: 50000, startingHookIds: [],
-    startHoldings: ["the-crownlands-seat"],
-    holdingsLevel: { "the-crownlands-seat": 5 },
-    baseIncome: 500,
-    startRegions: ["the-crownlands"],
-    startArmy: { size: 40000, quality: "Thành Thạo" },
+    startArmies: [
+      { name: "Thành Cấp Vệ Vương Đô", type: "Bộ Binh", size: 35000, quality: "Thành Thạo" },
+      { name: "Đội Đỏ Lửa", type: "Bộ Binh", size: 5000, quality: "Tinh Nhuệ" }
+    ],
     spouse: "rhaella-targaryen",
     children: ["rhaegar-targaryen", "viserys-targaryen", "daenerys-targaryen"],
     rivals: ["robert-baratheon", "eddard-stark", "tywin-lannister"],
@@ -194,8 +212,12 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     father: "jaehaerys-ii-targaryen",
     mother: "",
     siblings: [],
-    allies: []
-  },
+    allies: [],
+      startRegions: ["the-crownlands"],
+      startHoldings: ["the-crownlands-seat"],
+      holdingsLevel: {"the-crownlands-seat":5},
+      baseIncome: 800
+},
   {
     id: "jaime-lannister",
     name: "Jaime Lannister",
@@ -222,10 +244,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: ["joffrey-baratheon", "myrcella-baratheon", "tommen-baratheon"],
     allies: ["cersei-lannister"],
     rivals: ["eddard-stark", "brienne-tarth"],
-    startArmy: { size: 500, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Casterly Rock", type: "Bộ Binh", size: 350, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "barristan-selmy",
     name: "Barristan Selmy",
@@ -252,10 +279,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: ["rhaegar-targaryen", "daenerys-targaryen"],
     rivals: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "arthur-dayne",
     name: "Arthur Dayne",
@@ -283,10 +315,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: ["ashara-dayne"],
     allies: ["rhaegar-targaryen"],
     rivals: ["eddard-stark"],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "mace-tyrell",
     name: "Mace Tyrell",
@@ -303,11 +340,11 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 80000, startingHookIds: [],
-    startHoldings: ["the-reach-seat"],
-    holdingsLevel: { "the-reach-seat": 5 },
-    baseIncome: 500,
-    startRegions: ["the-reach"],
-    startArmy: { size: 70000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Vệ Binh Mùa Hè", type: "Bộ Binh", size: 42000, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 14000, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Vùng Reach", type: "Cung Thủ", size: 14000, quality: "Thành Thạo" }
+        ],
     father: "luthor-tyrell",
     mother: "olenna-redwyne",
     spouse: "alerie-hightower",
@@ -317,8 +354,12 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
       { id: "mace-siege", title: "Vây Hãm Storm's End", year: "282 AC", numericYear: 282, desc: "Quân đội của Reach rất lớn. Việc vây hãm lâu đài chỉ là vấn đề thời gian." }
     ],
     siblings: [],
-    rivals: ["stannis-baratheon"]
-  },
+    rivals: ["stannis-baratheon"],
+      startRegions: ["the-reach"],
+      startHoldings: ["the-reach-seat"],
+      holdingsLevel: {"the-reach-seat":5},
+      baseIncome: 700
+},
   {
     id: "randyll-tarly",
     name: "Randyll Tarly",
@@ -345,11 +386,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: ["mace-tyrell"],
     rivals: [],
-    startArmy: { size: 600, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: { "horn-hill": 2 },
-    startHoldings: ["horn-hill"]
-  },
+    startArmies: [
+          { name: "Dân Binh ", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ ", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "doran-martell",
     name: "Doran Martell",
@@ -366,11 +411,11 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 3000, startingHookIds: [],
-    startHoldings: ["dorne-seat"],
-    holdingsLevel: { "dorne-seat": 5 },
-    baseIncome: 300,
-    startRegions: ["dorne"],
-    startArmy: { size: 10000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Bộ Binh Sunspear", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Binh Cát Đỏ", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Tẩm Độc", type: "Cung Thủ", size: 2000, quality: "Thành Thạo" }
+        ],
     siblings: ["oberyn-martell", "elia-martell"],
     spouse: "mellario-of-norvos",
     children: ["arianne-martell", "quentyn-martell", "trystane-martell"],
@@ -380,8 +425,12 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     father: "",
     mother: "martell-mother-doran",
     allies: [],
-    rivals: ["tywin-lannister"]
-  },
+    rivals: ["tywin-lannister"],
+      startRegions: ["dorne"],
+      startHoldings: ["dorne-seat"],
+      holdingsLevel: {"dorne-seat":5},
+      baseIncome: 400
+},
   {
     id: "oberyn-martell",
     name: "Oberyn Martell",
@@ -406,10 +455,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: ["doran-martell", "elia-martell"],
     allies: ["doran-martell"],
     rivals: ["gregor-clegane", "tywin-lannister"],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Tiên Phong Xứ Dorne", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "balon-greyjoy",
     name: "Balon Greyjoy",
@@ -426,11 +481,13 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     equipment: [],
     items: [],
     gold: 500, startingHookIds: [],
-    startHoldings: ["the-iron-islands-seat"],
-    holdingsLevel: { "the-iron-islands-seat": 5 },
-    baseIncome: 250,
-    startRegions: ["the-iron-islands"],
-    startArmy: { size: 10000, quality: "Thành Thạo" },
+    startArmies: [
+          { name: "Lính Rìu Pyke", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 1500, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 50, quality: "Thành Thạo" }
+        ],
     father: "quellon-greyjoy",
     spouse: "alannys-harlaw",
     children: ["rodrik-greyjoy", "maron-greyjoy", "asha-greyjoy", "theon-greyjoy"],
@@ -438,8 +495,12 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     personalHooks: [],
     mother: "",
     allies: [],
-    rivals: ["robert-baratheon", "eddard-stark", "robb-stark"]
-  },
+    rivals: ["robert-baratheon", "eddard-stark", "robb-stark"],
+      startRegions: ["the-iron-islands"],
+      startHoldings: ["the-iron-islands-seat"],
+      holdingsLevel: {"the-iron-islands-seat":5},
+      baseIncome: 300
+},
   {
     id: "stannis-baratheon",
     name: "Stannis Baratheon",
@@ -466,10 +527,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: ["shireen-baratheon"],
     allies: ["davos-seaworth", "melisandre"],
     rivals: ["renly-baratheon", "joffrey-baratheon", "roose-bolton"],
-    startArmy: { size: 5000, quality: "Tinh Nhuệ" },
-    baseIncome: 90,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Bão Tố", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 750, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 25, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: ["dragonstone"],
+      holdingsLevel: {"dragonstone":4},
+      baseIncome: 150
+},
   {
     id: "renly-baratheon",
     name: "Renly Baratheon",
@@ -494,10 +563,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: [],
     allies: ["mace-tyrell", "loras-tyrell"],
     rivals: ["stannis-baratheon", "joffrey-baratheon"],
-    startArmy: { size: 80000, quality: "Thành Thạo" },
-    baseIncome: 90,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Kích Storm's End", type: "Bộ Binh", size: 48000, quality: "Thành Thạo" },
+          { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 12000, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 400, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "elia-martell", name: "Elia Martell", tuocVi: "Vương phi", house: "Martell", role: "Vợ Của Rhaegar", religion: "Thất Diện Thần",
     blurb: "Sức khỏe yếu ớt nhưng mang dòng máu vương giả Dorne. Cô bị giam lỏng ở Red Keep cùng hai con nhỏ.",
@@ -511,10 +588,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     mother: "martell-mother-doran",
     allies: [],
     rivals: ["gregor-clegane"],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Chiến Binh Mật Thủy", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "rhaella-targaryen", name: "Rhaella Targaryen", tuocVi: "Vương Hậu", house: "Targaryen", role: "Hoàng Hậu Đau Khổ", religion: "Thất Diện Thần",
     blurb: "Vợ và em gái của Vua Điên. Bà phải chịu đựng sự lạm dụng của chồng trong nhiều năm.",
@@ -528,10 +611,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "catelyn-tully", name: "Catelyn Tully", tuocVi: "Tiểu Thư", house: "Tully", role: "Vợ Của Ned", religion: "Thất Diện Thần",
     blurb: "Được hứa hôn với Brandon Stark, nhưng sau khi anh chết, cô kết hôn với em trai anh là Ned để củng cố liên minh.",
@@ -545,10 +636,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "rickon-stark"],
     allies: ["brynden-tully"],
     rivals: ["cersei-lannister", "jaime-lannister", "walder-frey"],
-    startArmy: { size: 2400, quality: "Thành Thạo" },
-    baseIncome: 70,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Giáo Vùng Trident", type: "Bộ Binh", size: 1440, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Tiên Phong Riverlands", type: "Kỵ Binh", size: 480, quality: "Thành Thạo" },
+          { name: "Đội Bắn Nỏ Nước", type: "Cung Thủ", size: 480, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "lysa-tully", name: "Lysa Tully", tuocVi: "Tiểu Thư", house: "Tully", role: "Vợ Của Jon Arryn", religion: "Thất Diện Thần",
     blurb: "Bị ép kết hôn với một người đáng tuổi ông mình để đổi lấy quân đội của Vale.",
@@ -562,10 +659,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: ["robert-arryn"],
     allies: ["petyr-baelish"],
     rivals: ["catelyn-tully"],
-    startArmy: { size: 2400, quality: "Thành Thạo" },
-    baseIncome: 70,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh Riverlands", type: "Bộ Binh", size: 1440, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Sông Nhánh", type: "Kỵ Binh", size: 480, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Sông", type: "Cung Thủ", size: 480, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "roose-bolton-robert", name: "Roose Bolton", tuocVi: "Lãnh Chúa Thành Trì", house: "Bolton", role: "Lãnh Chúa Dreadfort", religion: "Cựu Thần",
     blurb: "Lạnh lùng và điềm tĩnh, Roose tham gia cuộc khởi nghĩa dưới ngọn cờ của nhà Stark.",
@@ -579,11 +682,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 700, quality: "Thành Thạo" },
-    baseIncome: 50,
-    holdingsLevel: { "dreadfort": 2 },
-    startHoldings: ["dreadfort"]
-  },
+    startArmies: [
+          { name: "Bộ Binh Dreadfort", type: "Bộ Binh", size: 489, quality: "Thành Thạo" },
+          { name: "Cung Thủ Độc Dreadfort", type: "Cung Thủ", size: 211, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: ["dreadfort"],
+      holdingsLevel: {"dreadfort":4},
+      baseIncome: 200
+},
   {
     id: "jon-connington", name: "Jon Connington", tuocVi: "Lãnh Chúa", house: "Connington", role: "Bàn Tay Của Aerys", religion: "Thất Diện Thần",
     blurb: "Một hiệp sĩ kiêu hãnh và là bạn thân của Rhaegar. Được phong làm Bàn Tay Nhà Vua để tiêu diệt quân khởi nghĩa.",
@@ -597,10 +704,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: ["rhaegar-targaryen", "aegon-targaryen-son"],
     rivals: ["robert-baratheon"],
-    startArmy: { size: 600, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Vàng (Golden Company)", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Vàng", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "viserys-targaryen", name: "Viserys Targaryen", tuocVi: "Hoàng Tử", house: "Targaryen", role: "Người Kế Vị Chờ Đợi", religion: "Thất Diện Thần",
     blurb: "Con trai thứ của Vua Điên. Khi chiến tranh nổ ra, cậu chỉ là một đứa trẻ sợ hãi, không biết tương lai lưu vong đang chờ đợi.",
@@ -614,10 +726,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: ["rhaegar-targaryen", "daenerys-targaryen"],
     allies: ["illyrio-mopatis"],
     rivals: ["robert-baratheon", "khal-drogo"],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "gerold-hightower", name: "Gerold Hightower", tuocVi: "Hiệp Sĩ", house: "Hightower", role: "Bò Trắng", religion: "Thất Diện Thần",
     blurb: "Tư lệnh đội Vệ Vương. To lớn, trung thành tuyệt đối, ông sát cánh cùng Arthur Dayne bảo vệ Tháp Niềm Vui.",
@@ -631,10 +751,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 240, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Oldtown", type: "Bộ Binh", size: 168, quality: "Thành Thạo" },
+          { name: "Cung Thủ Oldtown", type: "Cung Thủ", size: 72, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "oswell-whent", name: "Oswell Whent", tuocVi: "Hiệp Sĩ", house: "Whent", role: "Hiệp Sĩ Vệ Vương", religion: "Thất Diện Thần",
     blurb: "Nổi bật với chiếc mũ giáp hình con dơi đen. Ông là người thứ ba bảo vệ Tháp Niềm Vui.",
@@ -648,10 +773,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Harrenhal", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Bờ Sông", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "richard-lonmouth", name: "Richard Lonmouth", tuocVi: "Hiệp Sĩ", house: "Lonmouth", role: "Hiệp Sĩ Hộp Sọ", religion: "Thất Diện Thần",
     blurb: "Bạn thân và từng là giám mã của Rhaegar Targaryen, có mặt tại giải đấu Harrenhal định mệnh.",
@@ -665,20 +795,35 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 60, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh Lonmouth", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Lonmouth", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "robert-baratheon", name: "Robert Baratheon", tuocVi: "Đại Lãnh Chúa", house: "Baratheon", role: "Chúa Tể Bão Tố", religion: "Thất Diện Thần", blurb: "Người chỉ huy cuộc khởi nghĩa mang tên mình, cao lớn, hung bạo và khao khát trả thù cho Lyanna.",
     birthYear: 262, age: 20, coreStats: { "Sức Mạnh": 20, "Nhanh Nhẹn": 14, "Thể Chất": 18, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 18 },
     talentIds: ["fearsome-warrior", "beloved", "hot-tempered"], skills: { "Cận Chiến (Rìu)": 20, "Chỉ Huy": 16 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Búa chiến của Robert", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương": 25 }, moTa: "Cây búa chiến khổng lồ mà chỉ Robert mới vung nổi." }],
-    items: [], gold: 20000, startingHookIds: [], startHoldings: ["the-stormlands-seat"], holdingsLevel: { "the-stormlands-seat": 5 }, baseIncome: 400, startRegions: ["the-stormlands"], startArmy: { size: 30000, quality: "Tinh Nhuệ" },
+    items: [], gold: 20000, startingHookIds: [], startArmies: [
+          { name: "Lính Giáo Rừng Mưa", type: "Bộ Binh", size: 18000, quality: "Tinh Nhuệ" },
+          { name: "Đội Nỏ Vùng Bão", type: "Cung Thủ", size: 4500, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 150, quality: "Tinh Nhuệ" }
+        ],
     father: "steffon-baratheon", mother: "cassana-estermont", siblings: ["stannis-baratheon", "renly-baratheon"], allies: ["eddard-stark", "jon-arryn"], rivals: ["rhaegar-targaryen", "aerys-ii"],
     spouse: "cersei-lannister",
-    children: ["joffrey-baratheon", "myrcella-baratheon", "tommen-baratheon", "gendry"]
-  },
+    children: ["joffrey-baratheon", "myrcella-baratheon", "tommen-baratheon", "gendry"],
+      startRegions: ["the-stormlands"],
+      startHoldings: ["the-stormlands-seat"],
+      holdingsLevel: {"the-stormlands-seat":5},
+      baseIncome: 400
+},
   {
     id: "steffon-baratheon", name: "Steffon Baratheon", tuocVi: "Cố Lãnh Chúa", house: "Baratheon", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Robert, Stannis, và Renly. Chết trong bão biển tại Vịnh Đắm Tàu.",
     birthYear: 246, deathYear: 278, age: 32, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 14 },
@@ -689,10 +834,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 90,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Tiên Phong Búa Sét", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 450, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 15, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "cassana-estermont", name: "Cassana Estermont", tuocVi: "Tiểu Thư", house: "Estermont", role: "Phu Nhân", religion: "Thất Diện Thần", blurb: "Vợ của Steffon Baratheon. Cùng tử nạn với chồng trên tàu Windproud.",
     birthYear: 248, deathYear: 278, age: 30, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
@@ -703,10 +856,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 600, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Đảo Rùa", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Biển", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "selyse-florent", name: "Selyse Florent", tuocVi: "Tiểu Thư", house: "Florent", role: "Vợ Của Stannis", religion: "Thất Diện Thần", blurb: "Vợ của Stannis Baratheon, lạnh nhạt và có phần khắc khổ.",
     birthYear: 265, age: 17, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -717,10 +875,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 600, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Reach", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "rickard-stark", name: "Rickard Stark", tuocVi: "Cố Lãnh Chúa", house: "Stark", role: "Cố Lãnh Chúa", religion: "Cựu Thần", blurb: "Bị Vua Aerys thiêu sống bằng Lửa Hoang trong bộ giáp của mình.",
     birthYear: 235, deathYear: 282, age: 47, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 10, "Thể Chất": 15, "Trí Tuệ": 14, "Tinh Tường": 14, "Uy Tín": 15 },
@@ -731,10 +894,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Quân Đoàn Rừng Sói", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Sói", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Winterfell", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "lyarra-stark", name: "Lyarra Stark", tuocVi: "Phu Nhân", house: "Stark", role: "Cố Phu Nhân", religion: "Cựu Thần", blurb: "Mẹ của Brandon, Ned, Lyanna, và Benjen.",
     birthYear: 240, deathYear: 279, age: 39, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
@@ -745,10 +914,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Winterfell", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Tiên Phong Phương Bắc", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "brandon-stark-rebel", name: "Brandon Stark", tuocVi: "Người Thừa Kế", house: "Stark", role: "Người Thừa Kế Đã Chết", religion: "Cựu Thần", blurb: "Sói hoang. Bị thắt cổ đến chết khi cố cứu cha mình.",
     birthYear: 262, deathYear: 282, age: 20, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 15, "Thể Chất": 16, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 14 },
@@ -758,10 +933,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Dân Binh Phương Bắc", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Sói", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "lyanna-stark", name: "Lyanna Stark", tuocVi: "Tiểu Thư", house: "Stark", role: "Sói Nữ", religion: "Cựu Thần", blurb: "Em gái Ned, vị hôn thê của Robert. Nguyên nhân của cuộc khởi nghĩa.",
     birthYear: 266, deathYear: 283, age: 16, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 16, "Thể Chất": 12, "Trí Tuệ": 12, "Tinh Tường": 14, "Uy Tín": 16 },
@@ -771,10 +952,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Cấm Vệ Sói Băng", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Phương Bắc", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "benjen-stark", name: "Benjen Stark", tuocVi: "Thường Dân", house: "Stark", role: "Em Út", religion: "Cựu Thần", blurb: "Sói nhỏ nhất nhà Stark, ở lại Winterfell trong thời chiến.",
     birthYear: 267, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 14, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 14, "Uy Tín": 12 },
@@ -784,10 +971,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 300, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Winterfell", type: "Bộ Binh", size: 210, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 90, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "jasper-arryn", name: "Jasper Arryn", tuocVi: "Cố Lãnh Chúa", house: "Arryn", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Jon Arryn.",
     birthYear: 195, deathYear: 260, age: 65, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -799,10 +991,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3600, quality: "Thành Thạo" },
-    baseIncome: 80,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Giáo Thung Lũng", type: "Bộ Binh", size: 2160, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Không Gian", type: "Kỵ Binh", size: 720, quality: "Thành Thạo" },
+          { name: "Cung Thủ Eyrie", type: "Cung Thủ", size: 720, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "minisa-whent", name: "Minisa Whent", tuocVi: "Tiểu Thư", house: "Whent", role: "Cố Phu Nhân", religion: "Thất Diện Thần", blurb: "Vợ quá cố của Hoster Tully, mẹ của Catelyn, Lysa, Edmure.",
     birthYear: 242, deathYear: 275, age: 33, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
@@ -813,10 +1011,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 600, quality: "Mới Lập Đội" },
-    baseIncome: 25,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Harrenhal", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
+          { name: "Cung Thủ Bờ Sông", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "edmure-tully", name: "Edmure Tully", tuocVi: "Người Thừa Kế", house: "Tully", role: "Người Thừa Kế Riverrun", religion: "Thất Diện Thần", blurb: "Con trai duy nhất của Hoster Tully, em trai của Catelyn và Lysa.",
     birthYear: 267, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 12, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 14 },
@@ -826,10 +1029,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 2400, quality: "Thành Thạo" },
-    baseIncome: 70,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Sông Xanh", type: "Bộ Binh", size: 1440, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Binh Riverrun", type: "Kỵ Binh", size: 480, quality: "Thành Thạo" },
+          { name: "Cung Thủ Vùng Sông", type: "Cung Thủ", size: 480, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "tytos-lannister", name: "Tytos Lannister", tuocVi: "Cố Lãnh Chúa", house: "Lannister", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Tywin. Lãnh chúa yếu kém đã làm suy giảm uy tín của nhà Lannister.",
     birthYear: 220, deathYear: 267, age: 47, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -841,10 +1050,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 5000, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Giáo Lannisport", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Sĩ Vùng Đồi", type: "Kỵ Binh", size: 1000, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 1000, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "joanna-lannister", name: "Joanna Lannister", tuocVi: "Phu Nhân", house: "Lannister", role: "Cố Phu Nhân", religion: "Thất Diện Thần", blurb: "Vợ của Tywin. Qua đời khi sinh Tyrion.",
     birthYear: 246, deathYear: 273, age: 27, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 14, "Tinh Tường": 14, "Uy Tín": 15 },
@@ -855,10 +1070,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 5000, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vệ Binh Sư Tử Đỏ", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Sĩ Phương Tây", type: "Kỵ Binh", size: 1000, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 1000, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "cersei-lannister", name: "Cersei Lannister", tuocVi: "Tiểu Thư", house: "Lannister", role: "Tiểu Thư Casterly Rock", religion: "Thất Diện Thần", blurb: "Chị sinh đôi của Jaime. Xinh đẹp, đầy tham vọng và kiêu hãnh.",
     birthYear: 266, age: 16, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 12, "Thể Chất": 10, "Trí Tuệ": 14, "Tinh Tường": 12, "Uy Tín": 18 },
@@ -867,10 +1088,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: ["joffrey-baratheon", "myrcella-baratheon", "tommen-baratheon"],
     allies: ["jaime-lannister"],
     rivals: ["robert-baratheon", "tyrion-lannister", "margaery-tyrell"],
-    startArmy: { size: 5000, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Trọng Bộ Binh Lannister", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
+          { name: "Đội Kỵ Binh Hạng Nặng Lannister", type: "Kỵ Binh", size: 1000, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 1000, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "tyrion-lannister", name: "Tyrion Lannister", tuocVi: "Người Lùn", house: "Lannister", role: "Quỷ Lùn", religion: "Thất Diện Thần", blurb: "Con trai út của Tywin. Bị cha căm ghét vì hình hài và việc cái chết của mẹ.",
     birthYear: 273, age: 9, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 6, "Trí Tuệ": 18, "Tinh Tường": 16, "Uy Tín": 12 },
@@ -879,10 +1106,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: [],
     allies: ["bronn", "varys"],
     rivals: ["cersei-lannister", "tywin-lannister"],
-    startArmy: { size: 5000, quality: "Tinh Nhuệ" },
-    baseIncome: 150,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Trọng Bộ Binh Lannister", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
+          { name: "Kỵ Sĩ Vùng Đồi", type: "Kỵ Binh", size: 1000, quality: "Tinh Nhuệ" },
+          { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 1000, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "luthor-tyrell", name: "Luthor Tyrell", tuocVi: "Cố Lãnh Chúa", house: "Tyrell", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Mace Tyrell, vô tình lao xuống vách đá trong một cuộc đi săn.",
     birthYear: 230, deathYear: 280, age: 50, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 12 },
@@ -893,10 +1126,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Giáo Hoa Hồng", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Vùng Reach", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "olenna-redwyne", name: "Olenna Redwyne", tuocVi: "Phu Nhân", house: "Tyrell", role: "Nữ Hoàng Gai", religion: "Thất Diện Thần", blurb: "Mẹ của Mace Tyrell. Người thực sự điều hành nhà Tyrell với trí tuệ sắc sảo.",
     birthYear: 228, age: 54, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 6, "Thể Chất": 8, "Trí Tuệ": 18, "Tinh Tường": 18, "Uy Tín": 16 },
@@ -907,10 +1146,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Vùng Reach", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Hạng Nặng Xứ Reach", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Vùng Reach", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "alerie-hightower", name: "Alerie Hightower", tuocVi: "Phu Nhân", house: "Tyrell", role: "Vợ Của Mace", religion: "Thất Diện Thần", blurb: "Vợ của Mace Tyrell.",
     birthYear: 258, age: 24, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 14 },
@@ -921,10 +1166,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vạn Quân Highgarden", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Mùa Hè", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Vùng Reach", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "willas-tyrell", name: "Willas Tyrell", tuocVi: "Người Thừa Kế", house: "Tyrell", role: "Người Thừa Kế Highgarden", religion: "Thất Diện Thần", blurb: "Con trai trưởng của Mace. Cậu bé chăm học, hiền lành.",
     birthYear: 275, age: 7, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 14, "Tinh Tường": 12, "Uy Tín": 12 },
@@ -934,10 +1185,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vạn Quân Highgarden", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Mùa Hè", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Highgarden", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "garlan-tyrell", name: "Garlan Tyrell", tuocVi: "Hiệp Sĩ", house: "Tyrell", role: "Con Trai Thứ", religion: "Thất Diện Thần", blurb: "Con trai thứ hai của Mace.",
     birthYear: 277, age: 5, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 12 },
@@ -947,10 +1204,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 800, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vạn Quân Highgarden", type: "Bộ Binh", size: 560, quality: "Thành Thạo" },
+          { name: "Cung Thủ Highgarden", type: "Cung Thủ", size: 240, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "loras-tyrell", name: "Loras Tyrell", tuocVi: "Thường Dân", house: "Tyrell", role: "Hiệp Sĩ Hoa", religion: "Thất Diện Thần", blurb: "Con trai thứ ba, hiện chỉ là một em bé.",
     birthYear: 282, age: 0, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 4, "Thể Chất": 4, "Trí Tuệ": 4, "Tinh Tường": 4, "Uy Tín": 4 },
@@ -960,10 +1222,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: ["willas-tyrell", "garlan-tyrell", "margaery-tyrell"],
     allies: ["renly-baratheon", "margaery-tyrell"],
     rivals: [],
-    startArmy: { size: 800, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vạn Quân Highgarden", type: "Bộ Binh", size: 560, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Vùng Reach", type: "Cung Thủ", size: 240, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "margaery-tyrell", name: "Margaery Tyrell", tuocVi: "Tiểu Thư", house: "Tyrell", role: "Con Gái Mace", religion: "Thất Diện Thần", blurb: "Con gái út của nhà Tyrell, mới ra đời.",
     birthYear: 283, age: 0, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 4, "Thể Chất": 4, "Trí Tuệ": 4, "Tinh Tường": 4, "Uy Tín": 4 },
@@ -973,10 +1240,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: ["willas-tyrell", "garlan-tyrell", "loras-tyrell"],
     allies: ["olenna-tyrell"],
     rivals: ["cersei-lannister"],
-    startArmy: { size: 8000, quality: "Thành Thạo" },
-    baseIncome: 125,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vạn Quân Highgarden", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Sĩ Mùa Hè", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Highgarden", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "quellon-greyjoy", name: "Quellon Greyjoy", tuocVi: "Lãnh Chúa", house: "Greyjoy", role: "Lãnh Chúa Quần Đảo Sắt", religion: "Thần Chết Chìm", blurb: "Cha của Balon. Lãnh chúa sáng suốt đã cố gắng hòa nhập Quần Đảo Sắt với đất liền. Chết trong trận chiến Mander cuối cuộc nổi loạn.",
     birthYear: 225, deathYear: 283, age: 58, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 14 },
@@ -988,10 +1261,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "euron-greyjoy", name: "Euron Greyjoy", tuocVi: "Thuyền Trưởng", house: "Greyjoy", role: "Mắt Quạ", religion: "Thần Chết Chìm", blurb: "Em trai tàn nhẫn của Balon.",
     birthYear: 256, age: 26, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 15, "Thể Chất": 14, "Trí Tuệ": 16, "Tinh Tường": 16, "Uy Tín": 15 },
@@ -1001,10 +1282,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: [],
     allies: [],
     rivals: ["asha-greyjoy", "victarion-greyjoy"],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Thiết Quần Đảo", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: ["the-iron-islands"],
+      startHoldings: ["the-iron-islands-seat"],
+      holdingsLevel: {"the-iron-islands-seat":5},
+      baseIncome: 300
+},
   {
     id: "victarion-greyjoy", name: "Victarion Greyjoy", tuocVi: "Thuyền Trưởng", house: "Greyjoy", role: "Tướng Tiên Phong", religion: "Thần Chết Chìm", blurb: "Chiến binh mạnh mẽ và trung thành, em trai Balon.",
     birthYear: 258, age: 24, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 12, "Thể Chất": 18, "Trí Tuệ": 8, "Tinh Tường": 10, "Uy Tín": 12 },
@@ -1014,10 +1303,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: [],
     allies: [],
     rivals: ["euron-greyjoy"],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Rìu Pyke", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 100
+},
   {
     id: "aeron-greyjoy", name: "Aeron Greyjoy", tuocVi: "Thường Dân", house: "Greyjoy", role: "Em Út Quellon", religion: "Thần Chết Chìm", blurb: "Em út của Balon, trong thời gian này còn trẻ và nông nổi.",
     birthYear: 269, age: 13, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 12, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
@@ -1027,10 +1324,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     children: [],
     allies: ["victarion-greyjoy"],
     rivals: ["euron-greyjoy"],
-    startArmy: { size: 100, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Chiến Binh Đảo Muối", type: "Bộ Binh", size: 60, quality: "Thành Thạo" },
+          { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 15, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 1, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "alannys-harlaw", name: "Alannys Harlaw", tuocVi: "Phu Nhân", house: "Greyjoy", role: "Vợ Của Balon", religion: "Thần Chết Chìm", blurb: "Vợ của Balon Greyjoy.",
     birthYear: 258, age: 24, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
@@ -1041,10 +1346,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "rodrik-greyjoy", name: "Rodrik Greyjoy", tuocVi: "Người Thừa Kế", house: "Greyjoy", role: "Con Cả Balon", religion: "Thần Chết Chìm", blurb: "Con trai trưởng của Balon.",
     birthYear: 275, age: 7, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 8, "Tinh Tường": 8, "Uy Tín": 8 },
@@ -1054,10 +1367,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "maron-greyjoy", name: "Maron Greyjoy", tuocVi: "Con Trai Thứ", house: "Greyjoy", role: "Con Trai Thứ Balon", religion: "Thần Chết Chìm", blurb: "Con trai thứ hai của Balon.",
     birthYear: 277, age: 5, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 6, "Thể Chất": 6, "Trí Tuệ": 6, "Tinh Tường": 6, "Uy Tín": 6 },
@@ -1067,10 +1388,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Thiết Quần Đảo", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "asha-greyjoy", name: "Asha Greyjoy", tuocVi: "Tiểu Thư", house: "Greyjoy", role: "Con Gái Balon", religion: "Thần Chết Chìm", blurb: "Con gái của Balon, mới tập bò.",
     birthYear: 279, age: 3, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 4, "Thể Chất": 4, "Trí Tuệ": 4, "Tinh Tường": 4, "Uy Tín": 4 },
@@ -1080,10 +1409,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: ["theon-greyjoy"],
     allies: [],
     rivals: ["euron-greyjoy"],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "theon-greyjoy", name: "Theon Greyjoy", tuocVi: "Con Út", house: "Greyjoy", role: "Con Út Balon", religion: "Thần Chết Chìm", blurb: "Con trai út của Balon.",
     birthYear: 281, age: 1, coreStats: { "Sức Mạnh": 2, "Nhanh Nhẹn": 2, "Thể Chất": 2, "Trí Tuệ": 2, "Tinh Tường": 2, "Uy Tín": 2 },
@@ -1093,10 +1430,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: ["asha-greyjoy"],
     allies: ["robb-stark"],
     rivals: ["ramsay-snow"],
-    startArmy: { size: 1000, quality: "Thành Thạo" },
-    baseIncome: 40,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Chiến Binh Đảo Muối", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Người Sắt", type: "Thuyền Dài (Greyjoy)", size: 5, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "rhaenys-targaryen-daughter", name: "Rhaenys Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Con Gái Rhaegar", religion: "Thất Diện Thần", blurb: "Con gái của Rhaegar và Elia, thích ôm chú mèo đen Balerion.",
     birthYear: 280, deathYear: 283, age: 2, coreStats: { "Sức Mạnh": 2, "Nhanh Nhẹn": 4, "Thể Chất": 2, "Trí Tuệ": 4, "Tinh Tường": 4, "Uy Tín": 6 },
@@ -1106,10 +1451,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Kích Đỉnh Aegon", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "aegon-targaryen-son", name: "Aegon Targaryen (Trẻ sơ sinh)", tuocVi: "Hoàng Tử", house: "Targaryen", role: "Con Trai Rhaegar", religion: "Thất Diện Thần", blurb: "Con trai mới sinh của Rhaegar và Elia.",
     birthYear: 282, deathYear: 283, age: 0, coreStats: { "Sức Mạnh": 1, "Nhanh Nhẹn": 1, "Thể Chất": 1, "Trí Tuệ": 1, "Tinh Tường": 1, "Uy Tín": 4 },
@@ -1119,10 +1472,18 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 2000, quality: "Tinh Nhuệ" },
-    baseIncome: 100,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 1200, quality: "Tinh Nhuệ" },
+          { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 300, quality: "Tinh Nhuệ" }
+        ],
+        startFleets: [
+          { name: "Hạm Đội Đô Đốc", type: "Chiến Thuyền Nặng", size: 10, quality: "Tinh Nhuệ" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "mellario-of-norvos", name: "Mellario", tuocVi: "Phu Nhân", house: "Martell", role: "Vợ Của Doran", religion: "Thần Râu", blurb: "Vợ của Doran Martell, đến từ Norvos.",
     birthYear: 250, age: 32, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 14, "Uy Tín": 12 },
@@ -1133,10 +1494,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Chiến Binh Mật Thủy", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Binh Cát Đỏ", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "arianne-martell", name: "Arianne Martell", tuocVi: "Người Thừa Kế", house: "Martell", role: "Con Gái Doran", religion: "Thất Diện Thần", blurb: "Con gái lớn của Doran.",
     birthYear: 276, age: 6, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 6, "Thể Chất": 6, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 12 },
@@ -1146,10 +1513,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Lính Giáo Cát", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Cung Thủ Tẩm Độc", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "quentyn-martell", name: "Quentyn Martell", tuocVi: "Vương Tôn", house: "Martell", role: "Con Trai Doran", religion: "Thất Diện Thần", blurb: "Con trai trưởng của Doran.",
     birthYear: 281, age: 1, coreStats: { "Sức Mạnh": 2, "Nhanh Nhẹn": 2, "Thể Chất": 2, "Trí Tuệ": 2, "Tinh Tường": 2, "Uy Tín": 2 },
@@ -1159,10 +1532,16 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  },
+    startArmies: [
+          { name: "Bộ Binh Sunspear", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Đội Kỵ Binh Cát Đỏ", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+},
   {
     id: "trystane-martell", name: "Trystane Martell", tuocVi: "Vương Tôn", house: "Martell", role: "Con Út Doran", religion: "Thất Diện Thần", blurb: "Con trai út của Doran.",
     birthYear: 283, age: 0, coreStats: { "Sức Mạnh": 1, "Nhanh Nhẹn": 1, "Thể Chất": 1, "Trí Tuệ": 1, "Tinh Tường": 1, "Uy Tín": 1 },
@@ -1172,8 +1551,14 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     siblings: [],
     allies: [],
     rivals: [],
-    startArmy: { size: 3000, quality: "Thành Thạo" },
-    baseIncome: 75,
-    holdingsLevel: {}
-  }
+    startArmies: [
+          { name: "Chiến Binh Mật Thủy", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
+          { name: "Kỵ Sĩ Sa Mạc", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
+          { name: "Người Bắn Nỏ Dorne", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
+        ],
+      startRegions: [],
+      startHoldings: [],
+      holdingsLevel: {},
+      baseIncome: 25
+}
 ];

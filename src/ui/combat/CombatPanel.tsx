@@ -7,12 +7,12 @@
 import { useState } from "react";
 import { useCombatStore } from "../../state/combatStore";
 import { useChatStore } from "../../state/chatStore";
-import { STANCES, type Stance } from "../../combat/duel";
 import type { SkirmishDirective } from "../../combat/skirmish";
+import { ARMY_TACTICS, SIEGE_ATTACKER_TACTICS, SIEGE_DEFENDER_TACTICS } from "../../combat/battleEngine";
 import { GlassButton } from "../components/GlassButton";
 import { IconChevronDown, IconCrossedSwords, IconShield } from "../icons";
 
-function HpBar({ name, hp, maxHp, color, wounds = [] }: { name: string; hp: number; maxHp: number; color: string; wounds?: string[] }) {
+function HpBar({ name, hp, maxHp, color, wounds = [], buffs = {} }: { name: string; hp: number; maxHp: number; color: string; wounds?: string[]; buffs?: Record<string, number> }) {
   const pct = maxHp > 0 ? Math.max(0, Math.round((hp / maxHp) * 100)) : 0;
   return (
     <div className="flex-1">
@@ -32,6 +32,43 @@ function HpBar({ name, hp, maxHp, color, wounds = [] }: { name: string; hp: numb
           ))}
         </div>
       )}
+      {Object.entries(buffs).filter(([, v]) => v > 0).length > 0 && (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {Object.entries(buffs).filter(([, v]) => v > 0).map(([k, v]) => (
+            <span key={k} className="rounded bg-[rgba(50,200,100,0.2)] px-1 py-0.5 text-[9px] uppercase tracking-wider text-[var(--ok)]">
+              {k} ({v})
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ArmyBar({ name, currentTroops, totalTroops, currentMorale, maxMorale = 100, color }: { name: string; currentTroops: number; totalTroops: number; currentMorale: number; maxMorale?: number; color: string }) {
+  const troopPct = totalTroops > 0 ? Math.max(0, Math.round((currentTroops / totalTroops) * 100)) : 0;
+  const moralePct = Math.max(0, Math.round((currentMorale / maxMorale) * 100));
+  
+  return (
+    <div className="flex-1 space-y-2">
+      <div>
+        <div className="mb-0.5 flex justify-between text-[12px]">
+          <span className="truncate text-[var(--text-soft)]">{name} (Quân)</span>
+          <span className="font-mono text-[var(--text-muted)]">{Math.round(currentTroops)}/{totalTroops}</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.35)]">
+          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${troopPct}%`, background: color }} />
+        </div>
+      </div>
+      <div>
+        <div className="mb-0.5 flex justify-between text-[11px]">
+          <span className="truncate text-[var(--text-faint)]">Sĩ Khí</span>
+          <span className="font-mono text-[var(--text-muted)]">{Math.round(currentMorale)}/{maxMorale}</span>
+        </div>
+        <div className="h-1 overflow-hidden rounded-full bg-[rgba(0,0,0,0.35)]">
+          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${moralePct}%`, background: moralePct > 50 ? "var(--ok)" : moralePct > 20 ? "var(--warn)" : "var(--danger)" }} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -71,12 +108,7 @@ function ForceComparison() {
   );
 }
 
-const STANCE_HINTS: Record<Stance, string> = {
-  "Tấn Công Liều": "+đòn/+sát thương, −phòng thủ",
-  "Cân Bằng": "không thiên lệch",
-  "Phòng Thủ": "+phòng thủ, −đòn",
-  "Nhắm Chí Mạng": "crit 19-20, −5 đòn",
-};
+
 
 export function CombatPanel() {
   const combat = useCombatStore();
@@ -150,23 +182,137 @@ export function CombatPanel() {
           {/* ---- duel tương tác (7.14) ---- */}
           {combat.phase === "duel" && combat.duelState && (
             <div className="space-y-3">
+              <div className="text-center font-display tracking-widest text-[13px] text-[var(--accent-text)] bg-[rgba(200,150,50,0.1)] py-1.5 rounded">
+                KHOẢNG CÁCH: {combat.duelState.distance.toUpperCase()}
+              </div>
               <div className="flex gap-4">
-                <HpBar name={combat.duelState.a.name} hp={combat.duelState.a.hp} maxHp={combat.duelState.a.maxHp} color="var(--ok)" wounds={combat.duelState.a.wounds} />
-                <HpBar name={combat.duelState.b.name} hp={combat.duelState.b.hp} maxHp={combat.duelState.b.maxHp} color="var(--danger)" wounds={combat.duelState.b.wounds} />
+                <HpBar name={combat.duelState.a.name} hp={combat.duelState.a.hp} maxHp={combat.duelState.a.maxHp} color="var(--ok)" wounds={combat.duelState.a.wounds} buffs={combat.duelState.a.buffs} />
+                <HpBar name={combat.duelState.b.name} hp={combat.duelState.b.hp} maxHp={combat.duelState.b.maxHp} color="var(--danger)" wounds={combat.duelState.b.wounds} buffs={combat.duelState.b.buffs} />
               </div>
               <p className="text-[12px] text-[var(--text-faint)]">
                 Vòng {combat.duelState.round + 1} · Thể lực {combat.duelState.a.stamina}/{combat.duelState.a.maxStamina} · chọn Thế Đứng:
               </p>
               <div className="grid grid-cols-2 gap-2">
-                {(Object.keys(STANCES) as Stance[]).map((s) => (
-                  <GlassButton key={s} size="sm" onClick={() => combat.duelRound(s)} title={STANCE_HINTS[s]}>
-                    {s}
+                {combat.duelState.a.skills.map((s) => (
+                  <GlassButton 
+                    key={s.id} 
+                    size="sm" 
+                    onClick={() => combat.duelRound({ type: "skill", skillId: s.id })} 
+                    title={s.description}
+                    disabled={(combat.duelState?.a.stamina ?? 0) < s.staminaCost || (s.range === "melee" && combat.duelState?.distance === "Tầm Xa") || (s.range === "ranged" && combat.duelState?.distance === "Cận Chiến")}
+                  >
+                    <div className="flex justify-between w-full">
+                      <span>{s.name} <span className="text-[9px] text-[var(--text-faint)]">[{s.range === "melee" ? "Gần" : s.range === "ranged" ? "Xa" : "All"}]</span></span>
+                      <span className="text-[9px] text-[var(--text-faint)]">{s.staminaCost} STM</span>
+                    </div>
                   </GlassButton>
                 ))}
               </div>
+              {combat.duelState.a.inventory.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-[11px] text-[var(--text-faint)] mb-1">Túi đồ:</p>
+                  <div className="flex gap-2 overflow-x-auto">
+                    {combat.duelState.a.inventory.map((item, idx) => (
+                      <GlassButton 
+                        key={idx} 
+                        size="sm" 
+                        variant="accent"
+                        onClick={() => combat.duelRound({ type: "item", itemId: item })}
+                      >
+                        {item}
+                      </GlassButton>
+                    ))}
+                  </div>
+                </div>
+              )}
               <GlassButton variant="ghost" size="sm" onClick={() => combat.autoResolveDuel()}>
                 Đánh nhanh (tự phân giải)
               </GlassButton>
+            </div>
+          )}
+
+          {/* ---- đại chiến tương tác ---- */}
+          {combat.phase === "army_battle" && combat.armyBattleState && (
+            <div className="space-y-3">
+              <div className="text-center font-display tracking-widest text-[13px] text-[var(--accent-text)] bg-[rgba(100,150,250,0.1)] py-1.5 rounded">
+                THỜI TIẾT: {combat.armyBattleState.weather.toUpperCase()} · VÒNG {combat.armyBattleState.round}
+              </div>
+              
+              {combat.armyBattleState.isSiege && combat.armyBattleState.wallHp !== undefined && (
+                <div className="bg-[rgba(255,255,255,0.03)] p-2 rounded border border-[rgba(255,255,255,0.05)]">
+                  <div className="mb-1 flex justify-between text-[11px] font-bold text-[var(--text-soft)] uppercase tracking-wider">
+                    <span>{combat.armyBattleState.wallBreached ? "⚠️ TƯỜNG THÀNH ĐÃ VỠ!" : "🛡️ ĐỘ BỀN TƯỜNG THÀNH"}</span>
+                    <span className="font-mono">{Math.round(combat.armyBattleState.wallHp)}/{combat.armyBattleState.wallMaxHp}</span>
+                  </div>
+                  {!combat.armyBattleState.wallBreached && (
+                    <div className="h-2 overflow-hidden rounded-full bg-[rgba(0,0,0,0.5)] border border-[rgba(255,255,255,0.1)]">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500" 
+                        style={{ 
+                          width: `${Math.max(0, Math.min(100, (combat.armyBattleState.wallHp / (combat.armyBattleState.wallMaxHp || 1)) * 100))}%`, 
+                          background: combat.armyBattleState.wallHp > 1000 ? "var(--ok)" : "var(--warn)" 
+                        }} 
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="flex gap-4">
+                <ArmyBar 
+                  name={combat.armyBattleState.player.name} 
+                  currentTroops={combat.armyBattleState.player.currentTroops} 
+                  totalTroops={combat.armyBattleState.player.totalTroops} 
+                  currentMorale={combat.armyBattleState.player.currentMorale} 
+                  color="var(--ok)" 
+                />
+                <ArmyBar 
+                  name={combat.armyBattleState.enemy.name} 
+                  currentTroops={combat.armyBattleState.enemy.currentTroops} 
+                  totalTroops={combat.armyBattleState.enemy.totalTroops} 
+                  currentMorale={combat.armyBattleState.enemy.currentMorale} 
+                  color="var(--danger)" 
+                />
+              </div>
+              <p className="text-[12px] text-[var(--text-faint)] mt-2">
+                Chọn chiến thuật chỉ huy:
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {(() => {
+                  let pool = Object.values(ARMY_TACTICS);
+                  if (combat.armyBattleState!.isSiege) {
+                    if (combat.armyBattleState!.player.siegeRole === "attacker") {
+                      pool = Object.values(SIEGE_ATTACKER_TACTICS);
+                    } else {
+                      pool = Object.values(SIEGE_DEFENDER_TACTICS);
+                    }
+                  }
+                  
+                  return pool.map((t) => {
+                    const isAvailable = !t.condition || t.condition(combat.armyBattleState!.player, combat.armyBattleState!.weather);
+                    return (
+                      <GlassButton 
+                        key={t.id} 
+                        size="sm" 
+                        onClick={() => combat.armyBattleRound(t.id)} 
+                        title={t.description}
+                        disabled={!isAvailable}
+                      >
+                        <div className="flex justify-between w-full text-left">
+                          <span className={!isAvailable ? "opacity-50" : ""}>{t.name}</span>
+                          {(t.id === "dracarys" || t.id === "siege_dracarys") && <span className="text-[9px] text-[var(--danger)] uppercase font-bold ml-1">RỒNG</span>}
+                        </div>
+                      </GlassButton>
+                    );
+                  });
+                })()}
+              </div>
+              {combat.armyBattleState.finished && (
+                <div className="mt-3">
+                  <GlassButton variant="accent" className="w-full" onClick={() => combat.endArmyBattle()}>
+                    Kết Thúc Trận Đánh
+                  </GlassButton>
+                </div>
+              )}
             </div>
           )}
 
@@ -200,18 +346,18 @@ export function CombatPanel() {
           )}
 
           {/* ---- combat log expand (7.3) ---- */}
-          {(combat.duelState?.log.length || combat.resultLog.length) ? (
+          {(combat.duelState?.log.length || combat.armyBattleState?.log.length || combat.resultLog.length) ? (
             <div>
               <button
                 type="button"
                 onClick={() => setLogOpen((v) => !v)}
                 className="flex items-center gap-1 text-[12px] text-[var(--text-faint)] hover:text-[var(--text-soft)]"
               >
-                <IconChevronDown size={13} className={logOpen ? "rotate-180" : ""} /> Combat log ({(combat.resultLog.length || combat.duelState?.log.length) ?? 0} dòng)
+                <IconChevronDown size={13} className={logOpen ? "rotate-180" : ""} /> Combat log ({(combat.resultLog.length || combat.duelState?.log.length || combat.armyBattleState?.log.length) ?? 0} dòng)
               </button>
               {logOpen && (
                 <pre className="mt-1.5 max-h-44 overflow-y-auto whitespace-pre-wrap rounded-md bg-[rgba(0,0,0,0.3)] px-3 py-2 font-mono text-[11px] leading-relaxed text-[var(--text-muted)]">
-                  {(combat.resultLog.length ? combat.resultLog : combat.duelState?.log ?? []).join("\n")}
+                  {(combat.resultLog.length ? combat.resultLog : (combat.armyBattleState?.log.length ? combat.armyBattleState.log : combat.duelState?.log ?? [])).join("\n")}
                 </pre>
               )}
             </div>

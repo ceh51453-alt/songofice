@@ -463,3 +463,16 @@ export function IconZap(props: IconProps) {
     </svg>
   );
 }
+
+/** Đầu lâu — Tử vong / Game Over. */
+export function IconSkull(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 4c4.4 0 8 3 8 6.8 0 1.7-.8 3.2-2 4.4V19c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2v-3.8c-1.2-1.2-2-2.7-2-4.4C4 7 7.6 4 12 4Z" />
+      <path d="M14.5 10.5h-.01" />
+      <path d="M9.5 10.5h-.01" />
+      <path d="m15 14-1.5 2" />
+      <path d="m9 14 1.5 2" />
+    </svg>
+  );
+}

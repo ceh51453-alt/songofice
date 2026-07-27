@@ -9,15 +9,16 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useMvuStore, currentSeedInfo } from "./mvuStore";
-import { eventSeed } from "../probability/rng";
-import { resolveBattle, battlePower, type BattleResult, type BattleSideInput } from "../combat/battleResolver";
+import { eventSeed, makeRng } from "../probability/rng";
+import { resolveBattle, battlePower, type BattleResult, type BattleSideInput, type WeatherCondition } from "../combat/battleResolver";
 import { troopMatchup, compositionFromUnits, type MatchupSide } from "../combat/troopMatchup";
 import { adjustWarScore, warScoreForOutcome, setWarStatus } from "../strategy/war";
 import { captiveOpsFromGeneral } from "../strategy/betrayal";
 import { dragonSideFactor, dragonBurnsGate } from "../combat/dragon";
 import { playerHouseId } from "../territory/territoryEngine";
 import type { Dragon } from "../mvu/schema";
-import { startDuel, runDuelRound, autoDuel, type DuelState, type Stance } from "../combat/duel";
+import { startDuel, runDuelRound, autoDuel, type DuelState, type DuelAction } from "../combat/duel";
+import { initInteractiveBattle, initSiegeBattle, playArmyRound, autoPickArmyTactic, type InteractiveBattleState, type TacticId } from "../combat/battleEngine";
 import { resolveSkirmish, type SkirmishDirective, type SkirmishSide } from "../combat/skirmish";
 import { resolveNaval, playerFleetSide, enemyFleetFromAttrs, seaConditionFromAttrs, fleetMatchup } from "../combat/naval";
 import { playerBattleSide, playerDuelist, enemyBattleSideFromAttrs, enemyDuelistFromAttrs } from "../combat/playerForces";
@@ -29,7 +30,7 @@ import { createLogger } from "../lib/log";
 
 const log = createLogger("combat");
 
-export type CombatPhase = "idle" | "awaiting-choice" | "duel" | "done";
+export type CombatPhase = "idle" | "awaiting-choice" | "duel" | "army_battle" | "done";
 
 /** So sánh lực lượng 2 phe (11.5-11.6) — ước lượng, không phải kết quả đã chốt. */
 export interface ForcePreview {
@@ -55,6 +56,8 @@ interface CombatState {
   battleSeed: number;
   /** duel tương tác đang chạy. */
   duelState: DuelState | null;
+  /** army battle tương tác đang chạy. */
+  armyBattleState: InteractiveBattleState | null;
   /** log kết quả hiển thị ở panel sau khi phân giải. */
   resultLog: string[];
   resultOutcome: string | null;
@@ -70,9 +73,13 @@ interface CombatState {
   resolveArmy: (mode: "self" | "delegate", directive?: SkirmishDirective) => void;
   /** Ước lượng lực lượng 2 phe (11.5-11.6) — cho panel so sánh trước khi giải. */
   forcePreview: () => ForcePreview | null;
-  /** Đấu tay đôi: chọn thế đứng mỗi vòng / hoặc auto. */
-  duelRound: (stance: Stance) => void;
+  /** Đấu tay đôi: chọn kỹ năng/item mỗi vòng / hoặc auto. */
+  duelRound: (action: DuelAction) => void;
   autoResolveDuel: () => void;
+  /** Đại chiến tương tác: chọn chiến thuật mỗi vòng. */
+  armyBattleRound: (tactic: TacticId) => void;
+  /** Kết thúc đại chiến tương tác và áp dụng kết quả. */
+  endArmyBattle: () => void;
   /** người chơi gửi tin mới → report đã dùng xong. */
   clearReport: () => void;
   /** đóng panel (giữ reportBlock cho lượt tường thuật). */
@@ -91,11 +98,43 @@ function scaleFromAttrs(attrs: Record<string, string>): CombatScale {
   if (s === "đấu tay đôi") return "Đấu Tay Đôi";
   // suy từ enemy_size nếu AI quên scale
   const size = Number(attrs.enemy_size);
-  if (Number.isFinite(size)) {
-    if (size > 200) return "Đại Chiến";
-    if (size > 3) return "Giao Tranh";
+  if (!isNaN(size)) {
+    if (size >= 20) return "Đại Chiến";
+    return "Giao Tranh";
   }
-  return "Đấu Tay Đôi";
+  return "Giao Tranh"; // default fallback
+}
+
+function getSiegeWallHp(stat: any, attrs: Record<string, string>, playerRole: "attacker" | "defender" | undefined): number {
+  let level = 1;
+  if (playerRole === "defender") {
+    // Tìm cấp lâu đài cao nhất của người chơi
+    const territories = Object.values(stat["Lãnh Địa"] || {}) as any[];
+    for (const t of territories) {
+      const buildings = t["Các Công Trình"] || [];
+      const castle = buildings.find((b: any) => b["Loại"] === "Lâu Đài");
+      if (castle && castle["Cấp Độ"] > level) {
+        level = castle["Cấp Độ"];
+      }
+    }
+  } else {
+    // Người chơi đi công thành, lấy cấp độ từ AI (hoặc random/dựa vào size)
+    if (attrs.enemy_castle_level) {
+      level = parseInt(attrs.enemy_castle_level, 10);
+      if (isNaN(level)) level = 1;
+    } else {
+      // Suy ra từ enemy_size
+      const size = Number(attrs.enemy_size) || 10;
+      if (size >= 30) level = 3;
+      else if (size >= 15) level = 2;
+      else level = 1;
+    }
+  }
+
+  // Chuyển level thành HP
+  if (level === 3) return 10000;
+  if (level === 2) return 6000;
+  return 3000; // level 1
 }
 
 function terrainFromAttrs(attrs: Record<string, string>): Terrain | undefined {
@@ -194,6 +233,7 @@ export const useCombatStore = create<CombatState>()(
       attrs: {},
       battleSeed: 0,
       duelState: null,
+      armyBattleState: null,
       resultLog: [],
       resultOutcome: null,
       reportBlock: null,
@@ -222,9 +262,9 @@ export const useCombatStore = create<CombatState>()(
         if (scale === "Đấu Tay Đôi") {
           const stat = useMvuStore.getState().stat;
           const duel = startDuel(playerDuelist(stat), enemyDuelistFromAttrs(attrs), battleSeed);
-          set({ phase: "duel", scale, terrain, description, attrs, battleSeed, duelState: duel, resultLog: [], resultOutcome: null });
+          set({ phase: "duel", scale, terrain, description, attrs, battleSeed, duelState: duel, armyBattleState: null, resultLog: [], resultOutcome: null });
         } else {
-          set({ phase: "awaiting-choice", scale, terrain, description, attrs, battleSeed, duelState: null, resultLog: [], resultOutcome: null });
+          set({ phase: "awaiting-choice", scale, terrain, description, attrs, battleSeed, duelState: null, armyBattleState: null, resultLog: [], resultOutcome: null });
         }
       },
 
@@ -321,7 +361,7 @@ export const useCombatStore = create<CombatState>()(
           training: enemy.training,
           house: enemy.house,
         };
-        const weather = stat["Thế Giới"]["Thời Tiết"];
+        const weather = stat["Thế Giới"]["Thời Tiết"] as import("../combat/battleResolver").WeatherCondition;
         player.matchupFactor = troopMatchup(taSide, dichSide, { terrain, weather, siege });
         enemy.matchupFactor = troopMatchup(dichSide, taSide, { terrain, weather, siege });
 
@@ -351,6 +391,17 @@ export const useCombatStore = create<CombatState>()(
             traits: directive === "Đánh Thẳng" ? ["Táo Bạo"] : directive === "Bảo Vệ Nhân Vật Then Chốt" ? ["Thận Trọng"] : [],
           };
         }
+        if (mode === "self" && (scale === "Đại Chiến" || scale === "Vây Thành")) {
+          // Đối với Giao Tranh, tạm thời ép kiểu sang BattleSideInput cho tương thích minigame
+          const p = player as any;
+          const e = enemy as any;
+          const ibState = scale === "Vây Thành" 
+            ? initSiegeBattle(p, e, terrain, weather, battleSeed, getSiegeWallHp(stat, attrs, p.siegeRole)) 
+            : initInteractiveBattle(p, e, terrain, weather, battleSeed);
+          set({ phase: "army_battle", armyBattleState: ibState });
+          return;
+        }
+
         const result: BattleResult = resolveBattle({ player, enemy, terrain, seed: battleSeed, difficulty });
         const report = formatBattleReport(result, player, enemy, scale, terrain);
 
@@ -435,14 +486,23 @@ export const useCombatStore = create<CombatState>()(
         };
       },
 
-      duelRound: (stance) => {
+      duelRound: (action: import("../combat/duel").DuelAction) => {
         const { duelState, battleSeed } = get();
         if (!duelState || duelState.finished) return;
-        // AI địch chọn thế đơn giản theo tình trạng
+        
+        // AI địch tự chọn action đơn giản
         const enemy = duelState.b;
-        const enemyStance: Stance =
-          enemy.stamina < 10 ? "Cân Bằng" : enemy.hp < enemy.maxHp * 0.3 ? "Phòng Thủ" : "Cân Bằng";
-        const { state: next } = runDuelRound(duelState, stance, enemyStance, battleSeed);
+        let enemyAction: import("../combat/duel").DuelAction = { type: "skill", skillId: "tan_cong_thuong" };
+        if (enemy.hp < enemy.maxHp * 0.3 && enemy.inventory.includes("Bình Máu")) {
+          enemyAction = { type: "item", itemId: "Bình Máu" };
+        } else {
+          const availableSkills = enemy.skills.filter(s => s.staminaCost <= enemy.stamina);
+          if (availableSkills.length > 0) {
+            enemyAction = { type: "skill", skillId: availableSkills[Math.floor(Math.random() * availableSkills.length)].id };
+          }
+        }
+        
+        const { state: next } = runDuelRound(duelState, action, enemyAction, battleSeed);
         if (next.finished) {
           finishDuel(next, set);
         } else {
@@ -456,6 +516,46 @@ export const useCombatStore = create<CombatState>()(
         const r = autoDuel(duelState.a, duelState.b, battleSeed);
         const synthetic: DuelState = { ...duelState, finished: true, winner: r.winner, log: r.log, round: r.rounds };
         finishDuel(synthetic, set);
+      },
+
+      armyBattleRound: (tactic: TacticId) => {
+        const { armyBattleState, battleSeed } = get();
+        if (!armyBattleState || armyBattleState.finished) return;
+
+        const stat = useMvuStore.getState().stat;
+        const weather = stat["Thế Giới"]["Thời Tiết"] as WeatherCondition;
+        const rng = makeRng(battleSeed + armyBattleState.round * 77);
+        const enemyTactic = autoPickArmyTactic(armyBattleState.enemy, weather, rng, armyBattleState.isSiege);
+
+        const nextState = playArmyRound(armyBattleState, tactic, enemyTactic);
+        set({ armyBattleState: nextState });
+      },
+
+      endArmyBattle: () => {
+        const { armyBattleState, attrs } = get();
+        if (!armyBattleState || !armyBattleState.finished) return;
+
+        const stat = useMvuStore.getState().stat;
+        const pLoss = armyBattleState.player.totalTroops - armyBattleState.player.currentTroops;
+
+        const pWin = armyBattleState.winner === "player";
+        const eWin = armyBattleState.winner === "enemy";
+        const outcome = pWin ? "Thắng" : eWin ? "Bại" : "Giằng Co";
+
+        const ops: PatchOp[] = [
+          ...casualtyOps(stat, pLoss, pWin ? "Cao" : "Thấp"),
+          { op: "replace", path: "stat_data.Trận Đang Diễn._Đang Chiến Đấu", value: false },
+          { op: "replace", path: "stat_data.Trận Đang Diễn._Log", value: armyBattleState.log },
+        ];
+
+        const enemyHouse = attrs.enemy_house;
+        if (enemyHouse) {
+          ops.push(...setWarStatus(enemyHouse, "Chiến Tranh"));
+          ops.push(...adjustWarScore(enemyHouse, warScoreForOutcome(outcome as any)));
+        }
+
+        applyEngineOps(ops);
+        set({ phase: "done", resultLog: armyBattleState.log, resultOutcome: outcome, reportBlock: "Trận chiến kết thúc.", armyBattleState: null });
       },
 
       clearReport: () => set({ reportBlock: null, reportNarrated: false, phase: "idle", resultLog: [], resultOutcome: null, duelState: null }),

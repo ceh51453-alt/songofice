@@ -51,10 +51,13 @@ export function taxPreview(
   }
 
   // Thuế chư hầu vĩ mô
-  const canTaxMacro = hasPrivilege(state, "Thu Thuế Toàn Cõi") || hasPrivilege(state, "Thu Thuế Chư Hầu (Vùng)");
+  const canTaxAll = hasPrivilege(state, "Thu Thuế Toàn Cõi");
+  const canTaxMacro = canTaxAll || hasPrivilege(state, "Thu Thuế Chư Hầu (Vùng)");
+  
   if (canTaxMacro) {
     for (const [regionId, sov] of Object.entries(state["Chủ Quyền Lãnh Thổ"])) {
-      if (sov["Là Của Người Chơi"]) {
+      // Vua 7 Vương Quốc thu thuế toàn cõi, Quốc Vương/Đại Lãnh Chúa chỉ thu vùng của mình
+      if (canTaxAll || sov["Là Của Người Chơi"]) {
         const regionInfo = REGIONS_BY_ID[regionId];
         if (regionInfo) {
           // Thu 200 Vàng cho mỗi 1 triệu dân số
@@ -120,10 +123,12 @@ function tickTax(state: StatData, coinMult: number): number {
   }
 
   // 2. Thuế chư hầu (vĩ mô)
-  const canTaxMacro = hasPrivilege(state, "Thu Thuế Toàn Cõi") || hasPrivilege(state, "Thu Thuế Chư Hầu (Vùng)");
+  const canTaxAll = hasPrivilege(state, "Thu Thuế Toàn Cõi");
+  const canTaxMacro = canTaxAll || hasPrivilege(state, "Thu Thuế Chư Hầu (Vùng)");
+  
   if (canTaxMacro) {
     for (const [regionId, sov] of Object.entries(state["Chủ Quyền Lãnh Thổ"])) {
-      if (sov["Là Của Người Chơi"]) {
+      if (canTaxAll || sov["Là Của Người Chơi"]) {
         const regionInfo = REGIONS_BY_ID[regionId];
         if (regionInfo) {
           // Thu 200 Vàng cho mỗi 1 triệu dân số

@@ -22,9 +22,11 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
   );
 }
 
-function Bar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+function Bar({ label, value, max, color, reverseColor }: { label: string; value: number; max: number; color: string; reverseColor?: boolean }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  const barColor = pct > 50 ? color : pct > 20 ? "var(--warn)" : "var(--danger)";
+  const barColor = reverseColor 
+    ? (pct < 50 ? color : pct < 80 ? "var(--warn)" : "var(--danger)")
+    : (pct > 50 ? color : pct > 20 ? "var(--warn)" : "var(--danger)");
   return (
     <div className="mb-2 last:mb-0">
       <div className="mb-0.5 flex items-center justify-between text-[12px]">
@@ -111,6 +113,74 @@ export function StatusPanel() {
           <Bar label="HP" value={vitals["HP"]} max={derived["_HP Tối Đa"]} color="var(--ok)" />
           <Bar label="Thể Lực" value={vitals["Thể Lực"]} max={derived["_Thể Lực Tối Đa"]} color="var(--accent)" />
           {vitals["Pháp Lực"] > 0 && <Bar label="Pháp Lực" value={vitals["Pháp Lực"]} max={100} color="#7d8fb5" />}
+          
+          <div className="mt-3 border-t border-[var(--glass-border)] pt-2">
+            <Bar label="Độ No" value={vitals["Đói"]} max={100} color="#d97706" />
+            <Bar label="Độ Ẩm" value={vitals["Khát"]} max={100} color="#2563eb" />
+            <Bar label="Lo Âu" value={vitals["Lo Âu"]} max={100} color="var(--ok)" reverseColor />
+          </div>
+        </div>
+      </Section>
+
+      {/* ---- Tình Trạng Cơ Thể ---- */}
+      <Section title="CƠ THỂ" icon={<IconSpark size={14} />}>
+        <div className="flex flex-col items-center justify-center py-2 gap-1.5">
+          {(() => {
+            const body = stat["Cơ Thể"] || {};
+            const getPart = (name: string) => body[name] || { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] };
+            
+            const getStyle = (partData: { "Tình Trạng": number; "Triệu Chứng": string[] }) => {
+              const hp = partData["Tình Trạng"];
+              const ailments = partData["Triệu Chứng"] || [];
+              if (hp <= 0 || ailments.includes("Đứt Lìa") || ailments.includes("Tàn Phế")) return "bg-neutral-900 border border-neutral-700";
+              if (ailments.includes("Hoại Tử")) return "bg-purple-800";
+              if (ailments.includes("Nhiễm Độc")) return "bg-green-700";
+              if (hp <= 20) return "bg-[var(--danger)]"; // Đỏ
+              if (hp <= 50) return "bg-orange-600";
+              if (hp <= 80) return "bg-[var(--warn)]"; // Vàng
+              return "bg-slate-500"; // Bình thường
+            };
+
+            const renderPart = (name: string, className: string) => {
+              const data = getPart(name);
+              const ailmentsText = data["Triệu Chứng"].filter(a => a !== "Bình Thường").join(", ");
+              const title = `${name}: ${data["Tình Trạng"]}%${ailmentsText ? ` - ${ailmentsText}` : ""}`;
+              return (
+                <div 
+                  title={title}
+                  className={`transition-colors duration-500 cursor-help shadow-sm ${className} ${getStyle(data)}`}
+                />
+              );
+            };
+
+            return (
+              <>
+                {/* Đầu */}
+                {renderPart("Đầu", "w-8 h-8 rounded-full")}
+                
+                {/* Tay + Thân */}
+                <div className="flex justify-center gap-1.5">
+                  {/* Tay trái */}
+                  {renderPart("Tay Trái", "w-3.5 h-12 rounded-full mt-1")}
+                  
+                  {/* Thân (Ngực + Bụng) */}
+                  <div className="flex flex-col gap-0.5 w-9 h-14">
+                    {renderPart("Ngực", "w-full h-1/2 rounded-t-md")}
+                    {renderPart("Bụng", "w-full h-1/2 rounded-b-md")}
+                  </div>
+                  
+                  {/* Tay phải */}
+                  {renderPart("Tay Phải", "w-3.5 h-12 rounded-full mt-1")}
+                </div>
+                
+                {/* Chân */}
+                <div className="flex justify-center gap-2 mt-0.5">
+                  {renderPart("Chân Trái", "w-4 h-14 rounded-full")}
+                  {renderPart("Chân Phải", "w-4 h-14 rounded-full")}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </Section>
 

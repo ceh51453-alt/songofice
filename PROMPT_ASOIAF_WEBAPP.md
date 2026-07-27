@@ -877,6 +877,8 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
       "value": { "Họ Tên": "Ser Jorah Mormont", "Tuổi": 50, "Độ Hảo Cảm": 10,
                  "Chức Vụ": "Hiệp sĩ lưu vong", "Nhà": "Mormont" } }
   (Không cần khai báo trước — hệ thống tự nhận path mới là "tạo mới".)
+- QUAN HỆ & TÌNH CẢM: Độ Hảo Cảm cao KHÔNG đồng nghĩa với việc tự động trở thành "Người Tình" hay "Tình Nhân". Hảo cảm cao chỉ có nghĩa là thân thiết (Tri Kỷ/Sống Chết Có Nhau, Đồng Minh, Bằng Hữu).
+  Ngươi CHỈ ĐƯỢC THÊM trường "Quan Hệ Thân Mật" (Vai Trò: Người Tình, Thiếp, Vợ, Tình Nhân Bí Mật...) NẾU trong lời kể thực sự diễn ra việc quan hệ xác thịt (làm tình) hoặc cưới hỏi chính thức. Tuyệt đối không tự suy diễn hảo cảm thành tình dục.
 
 ## ĐIỀU CẤM (QUAN TRỌNG)
 

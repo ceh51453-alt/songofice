@@ -508,6 +508,14 @@ export const BetrothalSchema = z
   .prefault({});
 export type Betrothal = z.infer<typeof BetrothalSchema>;
 
+export const BODY_PARTS = ["Đầu", "Ngực", "Bụng", "Tay Trái", "Tay Phải", "Chân Trái", "Chân Phải"] as const;
+export const WOUND_TYPES = ["Bình Thường", "Trầy Xước", "Xuất Huyết", "Gãy Xương", "Nhiễm Độc", "Hoại Tử", "Bỏng", "Đứt Lìa", "Tàn Phế"] as const;
+
+export const BodyPartSchema = z.object({
+  "Tình Trạng": clampedStat(0, 100, 100),
+  "Triệu Chứng": z.array(z.enum(WOUND_TYPES)).catch(["Bình Thường"]).prefault(["Bình Thường"])
+}).prefault({});
+
 export const StatDataSchema = z
   .object({
     "Chế Độ Hiện Tại": z.enum(["Chế Độ Nhập Vai", "Chế Độ Chiến Tranh"]).catch("Chế Độ Nhập Vai").prefault("Chế Độ Nhập Vai"),
@@ -547,7 +555,9 @@ export const StatDataSchema = z
         "Tuổi": safeInt(25),
         "Năm Sinh": z.coerce.number().int().optional(),
         "Giai Đoạn Đời": z.enum(LIFE_STAGES).catch("Trưởng Thành").prefault("Trưởng Thành"),
-        "Tước Vị": z.enum(["Thường Dân", "Người Thừa Kế", "Hiệp Sĩ", "Lãnh Chúa", "Đại Lãnh Chúa", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế", "Hoàng Tử", "Vương Hậu", "Công Chúa", "Tiểu Thư", "Vương Thân", "Vương phi"]).catch("Thường Dân").prefault("Thường Dân"),
+        "Tước Vị": z.enum(["Thường Dân", "Người Thừa Kế", "Hiệp Sĩ", "Lãnh Chúa Thành Trì", "Lãnh Chúa", "Đại Lãnh Chúa", "Quốc Vương", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế", "Hoàng Tử", "Vương Hậu", "Công Chúa", "Tiểu Thư", "Vương Thân", "Vương phi"]).catch("Thường Dân").prefault("Thường Dân"),
+        "Đã Chết": z.boolean().catch(false).prefault(false),
+        "Nguyên Nhân Cái Chết": safeString().optional(),
       })
       .prefault({}),
 
@@ -587,8 +597,24 @@ export const StatDataSchema = z
         "HP": clampedStat(0, 9999, 100),
         "Thể Lực": clampedStat(0, 9999, 100),
         "Pháp Lực": clampedStat(0, 9999, 0), // chỉ >0 nếu thiên phú ma thuật + Era cho phép
+        "Đói": clampedStat(0, 100, 100),
+        "Khát": clampedStat(0, 100, 100),
+        "Lo Âu": clampedStat(0, 100, 0),
       })
       .prefault({}),
+
+    "Cơ Thể": z
+      .record(safeString(), BodyPartSchema)
+      .catch({})
+      .prefault({
+        "Đầu": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
+        "Ngực": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
+        "Bụng": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
+        "Tay Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
+        "Tay Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
+        "Chân Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
+        "Chân Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
+      }),
 
     // ── 6 CHỈ SỐ CỐT LÕI (5.1f-A, thang 1-20) — THAY khối 4-trục rút gọn 5.1 ──
     "Chỉ Số Cốt Lõi": z
