@@ -16,13 +16,25 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 15, "Cận Chiến (Kiếm)": 14, "Cưỡi Ngựa": 12 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Ice", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 30 }, moTa: "Thanh trọng kiếm thép Valyria của Nhà Stark." }],
     items: [],
-    gold: 8000, startingHookIds: [],
+    gold: 8000,
+    startResources: {
+      "Gỗ": 1500,
+      "Quặng Sắt": 300,
+      "Đá": 600,
+      "Lương Thực": 2000,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
       { name: "Đội Tiên Phong Phương Bắc", type: "Kỵ Binh Nhẹ", size: 3000, quality: "Thành Thạo" },
       { name: "Trung Quân Winterfell", type: "Bộ Binh", size: 17000, quality: "Thành Thạo" },
       { name: "Cấm Vệ Mùa Đông", type: "Bộ Binh", size: 5000, quality: "Tinh Nhuệ" }
     ],
-    father: "rickard-stark",
+          startRegions: ["the-north"],
+      startHoldings: ["the-north-seat"],
+      holdingsLevel: {"the-north-seat": 5},
+      baseIncome: 400,
+father: "rickard-stark",
     mother: "lyarra-stark",
     spouse: "catelyn-tully",
     siblings: ["brandon-stark-rebel", "lyanna-stark", "benjen-stark"],
@@ -33,10 +45,6 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
       { id: "tower-of-joy", title: "Tháp Niềm Vui", year: "283 AC", numericYear: 283, desc: "Chiến tranh đã kết thúc, nhưng em gái Lyanna của ngươi vẫn mất tích. Ngươi cùng 6 người bạn tìm đến dải núi Đỏ xứ Dorne." }
     ],
     children: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "rickon-stark", "jon-snow"],
-      startRegions: ["the-north"],
-      startHoldings: ["the-north-seat"],
-      holdingsLevel: {"the-north-seat":5},
-      baseIncome: 400
 },
   {
     id: "jon-arryn",
@@ -53,13 +61,25 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chính Trị": 16, "Chỉ Huy": 15, "Ngoại Giao": 18 },
     equipment: [],
     items: [],
-    gold: 3000, startingHookIds: [],
+    gold: 3000,
+    startResources: {
+      "Gỗ": 500,
+      "Quặng Sắt": 375,
+      "Đá": 2000,
+      "Lương Thực": 2000,
+      "Ngựa": 120,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Bộ Binh Eyrie", type: "Bộ Binh", size: 12000, quality: "Thành Thạo" },
           { name: "Kỵ Sĩ Thung Lũng", type: "Kỵ Binh", size: 4000, quality: "Thành Thạo" },
           { name: "Cung Thủ Eyrie", type: "Cung Thủ", size: 4000, quality: "Thành Thạo" }
         ],
-    father: "jasper-arryn",
+          startRegions: ["the-vale"],
+      startHoldings: ["the-vale-seat"],
+      holdingsLevel: {"the-vale-seat": 5},
+      baseIncome: 400,
+father: "jasper-arryn",
     spouse: "lysa-tully",
     allies: ["eddard-stark", "robert-baratheon"],
     rivals: ["aerys-ii"],
@@ -69,10 +89,6 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     mother: "",
     children: ["robert-arryn"],
     siblings: [],
-      startRegions: ["the-vale"],
-      startHoldings: ["the-vale-seat"],
-      holdingsLevel: {"the-vale-seat":5},
-      baseIncome: 400
 },
   {
     id: "hoster-tully",
@@ -89,13 +105,25 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chính Trị": 15, "Quản Lý": 16, "Ngoại Giao": 14 },
     equipment: [],
     items: [],
-    gold: 2500, startingHookIds: [],
+    gold: 2500,
+    startResources: {
+      "Gỗ": 750,
+      "Quặng Sắt": 200,
+      "Đá": 500,
+      "Lương Thực": 5000,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Dân Binh Riverlands", type: "Bộ Binh", size: 9000, quality: "Thành Thạo" },
           { name: "Kỵ Sĩ Sông Nhánh", type: "Kỵ Binh", size: 3000, quality: "Thành Thạo" },
           { name: "Cung Thủ Vùng Sông", type: "Cung Thủ", size: 3000, quality: "Thành Thạo" }
         ],
-    spouse: "minisa-whent",
+          startRegions: ["the-riverlands"],
+      startHoldings: ["the-riverlands-seat"],
+      holdingsLevel: {"the-riverlands-seat": 5},
+      baseIncome: 450,
+spouse: "minisa-whent",
     children: ["catelyn-tully", "lysa-tully", "edmure-tully"],
     allies: ["eddard-stark", "jon-arryn"],
     rivals: ["aerys-ii"],
@@ -105,10 +133,6 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     father: "",
     mother: "",
     siblings: ["brynden-tully"],
-      startRegions: ["the-riverlands"],
-      startHoldings: ["the-riverlands-seat"],
-      holdingsLevel: {"the-riverlands-seat":5},
-      baseIncome: 450
 },
   {
     id: "tywin-lannister",
@@ -125,12 +149,24 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chính Trị": 18, "Quản Lý": 20, "Chỉ Huy": 16, "Tài Chính": 20 },
     equipment: [],
     items: [],
-    gold: 100000, startingHookIds: [],
+    gold: 100000,
+    startResources: {
+      "Gỗ": 250,
+      "Quặng Sắt": 750,
+      "Đá": 750,
+      "Lương Thực": 3000,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
       { name: "Sư Tử Casterly Rock", type: "Bộ Binh", size: 25000, quality: "Tinh Nhuệ" },
       { name: "Kỵ Binh Tiên Phong", type: "Kỵ Binh", size: 10000, quality: "Tinh Nhuệ" }
     ],
-    father: "tytos-lannister",
+          startRegions: ["the-westerlands"],
+      startHoldings: ["the-westerlands-seat"],
+      holdingsLevel: {"the-westerlands-seat": 5},
+      baseIncome: 800,
+father: "tytos-lannister",
     spouse: "joanna-lannister",
     children: ["jaime-lannister", "cersei-lannister", "tyrion-lannister"],
     rivals: ["aerys-ii", "robb-stark"],
@@ -140,10 +176,6 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     mother: "",
     siblings: ["kevan-lannister", "tygett-lannister", "gerion-lannister", "genna-lannister"],
     allies: ["aerys-ii", "robert-baratheon"],
-      startRegions: ["the-westerlands"],
-      startHoldings: ["the-westerlands-seat"],
-      holdingsLevel: {"the-westerlands-seat":5},
-      baseIncome: 800
 },
   {
     id: "rhaegar-targaryen",
@@ -161,7 +193,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Kiếm)": 16, "Âm Nhạc": 18, "Thương Kỵ": 18, "Lịch Sử": 15 },
     equipment: [],
     items: [{ ten: "Đàn Hạc Bạc", soLuong: 1, moTa: "Cây đàn hạc có dây bằng bạc." }],
-    gold: 15000, startingHookIds: [],
+    gold: 15000,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
       { name: "Kỵ Binh Hoàng Gia", type: "Kỵ Binh", size: 5000, quality: "Tinh Nhuệ" },
       { name: "Trung Quân Đỉnh Aegon", type: "Trường Thương", size: 10000, quality: "Thành Thạo" },
@@ -198,12 +238,24 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chính Trị": 8, "Lửa Rồng": 10 },
     equipment: [],
     items: [{ ten: "Lửa Hoang", soLuong: 100, moTa: "Những hũ chất lỏng cháy xanh rực." }],
-    gold: 50000, startingHookIds: [],
+    gold: 50000,
+    startResources: {
+      "Gỗ": 1500,
+      "Quặng Sắt": 750,
+      "Đá": 1500,
+      "Lương Thực": 7500,
+      "Ngựa": 300,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
       { name: "Thành Cấp Vệ Vương Đô", type: "Bộ Binh", size: 35000, quality: "Thành Thạo" },
       { name: "Đội Đỏ Lửa", type: "Bộ Binh", size: 5000, quality: "Tinh Nhuệ" }
     ],
-    spouse: "rhaella-targaryen",
+          startRegions: ["the-crownlands"],
+      startHoldings: ["the-crownlands-seat"],
+      holdingsLevel: {"the-crownlands-seat": 5},
+      baseIncome: 600,
+spouse: "rhaella-targaryen",
     children: ["rhaegar-targaryen", "viserys-targaryen", "daenerys-targaryen"],
     rivals: ["robert-baratheon", "eddard-stark", "tywin-lannister"],
     personalHooks: [
@@ -213,10 +265,6 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     mother: "",
     siblings: [],
     allies: [],
-      startRegions: ["the-crownlands"],
-      startHoldings: ["the-crownlands-seat"],
-      holdingsLevel: {"the-crownlands-seat":5},
-      baseIncome: 800
 },
   {
     id: "jaime-lannister",
@@ -233,7 +281,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Kiếm)": 18, "Thương Kỵ": 16, "Cưỡi Ngựa": 15 },
     equipment: [],
     items: [],
-    gold: 500, startingHookIds: [],
+    gold: 500,
+    startResources: {
+      "Gỗ": 50,
+      "Quặng Sắt": 150,
+      "Đá": 150,
+      "Lương Thực": 600,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "tywin-lannister",
     mother: "joanna-lannister",
     siblings: ["cersei-lannister", "tyrion-lannister"],
@@ -268,7 +324,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Kiếm)": 20, "Thương Kỵ": 18, "Chỉ Huy": 15 },
     equipment: [],
     items: [],
-    gold: 200, startingHookIds: [],
+    gold: 200,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 50,
+      "Đá": 100,
+      "Lương Thực": 500,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     personalHooks: [
       { id: "barristan-trident", title: "Chiến Đấu Vì Vương Triều", year: "283 AC", numericYear: 283, desc: "Ngươi sát cánh cùng Hoàng tử Rhaegar tại sông Trident, quyết tử bảo vệ gia tộc Targaryen." }
     ],
@@ -304,7 +368,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Kiếm)": 20, "Cưỡi Ngựa": 16 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Dawn", phamChat: "Vô Giá", thuocTinh: { "Sát Thương": 35 }, moTa: "Thanh kiếm rèn từ tâm một ngôi sao băng, không kém gì Thép Valyria." }],
     items: [],
-    gold: 300, startingHookIds: [],
+    gold: 300,
+    startResources: {
+      "Gỗ": 50,
+      "Quặng Sắt": 50,
+      "Đá": 120,
+      "Lương Thực": 350,
+      "Ngựa": 60,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     personalHooks: [
       { id: "tower-defense", title: "Bảo Vệ Tháp Niềm Vui", year: "283 AC", numericYear: 283, desc: "Chỉ còn ba Vệ Vương đứng trước Tháp Niềm Vui, đối mặt với bảy người phương Bắc." }
     ],
@@ -339,13 +411,25 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chính Trị": 14, "Ngoại Giao": 15 },
     equipment: [],
     items: [],
-    gold: 80000, startingHookIds: [],
+    gold: 80000,
+    startResources: {
+      "Gỗ": 750,
+      "Quặng Sắt": 125,
+      "Đá": 500,
+      "Lương Thực": 10000,
+      "Ngựa": 150,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Vệ Binh Mùa Hè", type: "Bộ Binh", size: 42000, quality: "Thành Thạo" },
           { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 14000, quality: "Thành Thạo" },
           { name: "Người Bắn Nỏ Vùng Reach", type: "Cung Thủ", size: 14000, quality: "Thành Thạo" }
         ],
-    father: "luthor-tyrell",
+          startRegions: ["the-reach"],
+      startHoldings: ["the-reach-seat"],
+      holdingsLevel: {"the-reach-seat": 5},
+      baseIncome: 750,
+father: "luthor-tyrell",
     mother: "olenna-redwyne",
     spouse: "alerie-hightower",
     children: ["willas-tyrell", "garlan-tyrell", "loras-tyrell", "margaery-tyrell"],
@@ -355,10 +439,6 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     ],
     siblings: [],
     rivals: ["stannis-baratheon"],
-      startRegions: ["the-reach"],
-      startHoldings: ["the-reach-seat"],
-      holdingsLevel: {"the-reach-seat":5},
-      baseIncome: 700
 },
   {
     id: "randyll-tarly",
@@ -375,7 +455,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 18, "Cận Chiến (Kiếm)": 16, "Chiến Lược": 18 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Heartsbane", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 25 }, moTa: "Thanh trọng kiếm Thép Valyria của Nhà Tarly." }],
     items: [],
-    gold: 800, startingHookIds: [],
+    gold: 800,
+    startResources: {
+      "Gỗ": 300,
+      "Quặng Sắt": 50,
+      "Đá": 200,
+      "Lương Thực": 4000,
+      "Ngựa": 60,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     personalHooks: [
       { id: "tarly-ashford", title: "Trận Ashford", year: "282 AC", numericYear: 282, desc: "Ngươi dẫn đội tiên phong phe Trung Quân giáp mặt Robert Baratheon." }
     ],
@@ -410,14 +498,26 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chính Trị": 18, "Ngoại Giao": 16, "Kế Hoạch": 18 },
     equipment: [],
     items: [],
-    gold: 3000, startingHookIds: [],
+    gold: 3000,
+    startResources: {
+      "Gỗ": 250,
+      "Quặng Sắt": 250,
+      "Đá": 600,
+      "Lương Thực": 1750,
+      "Ngựa": 300,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Bộ Binh Sunspear", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
           { name: "Đội Kỵ Binh Cát Đỏ", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
           { name: "Cung Thủ Tẩm Độc", type: "Cung Thủ", size: 2000, quality: "Thành Thạo" }
         ],
     siblings: ["oberyn-martell", "elia-martell"],
-    spouse: "mellario-of-norvos",
+          startRegions: ["dorne"],
+      startHoldings: ["dorne-seat"],
+      holdingsLevel: {"dorne-seat": 5},
+      baseIncome: 450,
+spouse: "mellario-of-norvos",
     children: ["arianne-martell", "quentyn-martell", "trystane-martell"],
     personalHooks: [
       { id: "doran-waiting", title: "Gửi Quân Miễn Cưỡng", year: "283 AC", numericYear: 283, desc: "Dù tức giận vì Rhaegar phản bội Elia, ngươi vẫn phải gửi 1 vạn lính giáo Dorne lên chiến đấu." }
@@ -426,10 +526,6 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     mother: "martell-mother-doran",
     allies: [],
     rivals: ["tywin-lannister"],
-      startRegions: ["dorne"],
-      startHoldings: ["dorne-seat"],
-      holdingsLevel: {"dorne-seat":5},
-      baseIncome: 400
 },
   {
     id: "oberyn-martell",
@@ -446,7 +542,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Giáo)": 18, "Độc Dược": 18, "Quyến Rũ": 15 },
     equipment: [],
     items: [{ ten: "Độc Manticore", soLuong: 1, moTa: "Chất độc chết người." }],
-    gold: 1000, startingHookIds: [],
+    gold: 1000,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 10,
+      "Đá": 24,
+      "Lương Thực": 70,
+      "Ngựa": 12,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     personalHooks: [],
     father: "",
     mother: "martell-mother-doran",
@@ -480,7 +584,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Hàng Hải": 16, "Cướp Bóc": 15, "Cận Chiến (Rìu)": 12 },
     equipment: [],
     items: [],
-    gold: 500, startingHookIds: [],
+    gold: 500,
+    startResources: {
+      "Gỗ": 1500,
+      "Quặng Sắt": 1250,
+      "Đá": 1500,
+      "Lương Thực": 2000,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Lính Rìu Pyke", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
           { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 1500, quality: "Thành Thạo" }
@@ -516,7 +628,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 16, "Sinh Tồn": 15, "Chiến Lược": 15 },
     equipment: [],
     items: [],
-    gold: 5000, startingHookIds: [],
+    gold: 5000,
+    startResources: {
+      "Gỗ": 400,
+      "Quặng Sắt": 120,
+      "Đá": 300,
+      "Lương Thực": 1100,
+      "Ngựa": 40,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "steffon-baratheon",
     mother: "cassana-estermont",
     spouse: "selyse-florent",
@@ -554,7 +674,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     skills: { "Thuyết Phục": 8 },
     equipment: [],
     items: [],
-    gold: 20000, startingHookIds: [],
+    gold: 20000,
+    startResources: {
+      "Gỗ": 400,
+      "Quặng Sắt": 120,
+      "Đá": 300,
+      "Lương Thực": 1100,
+      "Ngựa": 40,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "steffon-baratheon",
     mother: "cassana-estermont",
     siblings: ["robert-baratheon", "stannis-baratheon"],
@@ -580,7 +708,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Sức khỏe yếu ớt nhưng mang dòng máu vương giả Dorne. Cô bị giam lỏng ở Red Keep cùng hai con nhỏ.",
     birthYear: 256, age: 26, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 6, "Thể Chất": 5, "Trí Tuệ": 14, "Tinh Tường": 12, "Uy Tín": 15 },
     talentIds: ["gentle", "beloved"], skills: { "Chính Trị": 12, "Ngoại Giao": 15 },
-    equipment: [], items: [], gold: 1000, startingHookIds: [],
+    equipment: [], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 10,
+      "Đá": 24,
+      "Lương Thực": 70,
+      "Ngựa": 12,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     spouse: "rhaegar-targaryen",
     children: ["rhaenys-targaryen-daughter", "aegon-targaryen-son"],
     siblings: ["doran-martell", "oberyn-martell"],
@@ -603,7 +739,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Vợ và em gái của Vua Điên. Bà phải chịu đựng sự lạm dụng của chồng trong nhiều năm.",
     birthYear: 245, age: 37, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 6, "Thể Chất": 6, "Trí Tuệ": 13, "Tinh Tường": 18, "Uy Tín": 14 },
     talentIds: ["resilient", "gentle"], skills: { "Chính Trị": 10, "Ngoại Giao": 10 },
-    equipment: [], items: [], gold: 500, startingHookIds: [],
+    equipment: [], items: [], gold: 500,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     spouse: "aerys-ii",
     children: ["rhaegar-targaryen", "viserys-targaryen", "daenerys-targaryen"],
     father: "jaehaerys-ii-targaryen",
@@ -628,7 +772,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Được hứa hôn với Brandon Stark, nhưng sau khi anh chết, cô kết hôn với em trai anh là Ned để củng cố liên minh.",
     birthYear: 264, age: 18, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 10, "Trí Tuệ": 14, "Tinh Tường": 16, "Uy Tín": 15 },
     talentIds: ["stubborn", "loyal", "dutiful"], skills: { "Chính Trị": 14, "Ngoại Giao": 14, "Quản Lý": 15 },
-    equipment: [], items: [], gold: 800, startingHookIds: [],
+    equipment: [], items: [], gold: 800,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 8,
+      "Đá": 20,
+      "Lương Thực": 200,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "hoster-tully",
     mother: "minisa-whent",
     spouse: "eddard-stark",
@@ -651,7 +803,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Bị ép kết hôn với một người đáng tuổi ông mình để đổi lấy quân đội của Vale.",
     birthYear: 266, age: 16, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 7, "Thể Chất": 6, "Trí Tuệ": 12, "Tinh Tường": 8, "Uy Tín": 13 },
     talentIds: ["paranoia", "jealous"], skills: { "Chính Trị": 10 },
-    equipment: [], items: [], gold: 800, startingHookIds: [],
+    equipment: [], items: [], gold: 800,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 8,
+      "Đá": 20,
+      "Lương Thực": 200,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "hoster-tully",
     mother: "minisa-whent",
     spouse: "jon-arryn",
@@ -674,7 +834,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Lạnh lùng và điềm tĩnh, Roose tham gia cuộc khởi nghĩa dưới ngọn cờ của nhà Stark.",
     birthYear: 255, age: 27, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 12, "Thể Chất": 14, "Trí Tuệ": 16, "Tinh Tường": 16, "Uy Tín": 12 },
     talentIds: ["schemer", "ruthless"], skills: { "Chỉ Huy": 15, "Chiến Lược": 14 },
-    equipment: [], items: [], gold: 1000, startingHookIds: [],
+    equipment: [], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 600,
+      "Quặng Sắt": 120,
+      "Đá": 240,
+      "Lương Thực": 800,
+      "Ngựa": 40,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -696,7 +864,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Một hiệp sĩ kiêu hãnh và là bạn thân của Rhaegar. Được phong làm Bàn Tay Nhà Vua để tiêu diệt quân khởi nghĩa.",
     birthYear: 260, age: 22, coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 14, "Thể Chất": 15, "Trí Tuệ": 14, "Tinh Tường": 14, "Uy Tín": 15 },
     talentIds: ["proud", "loyal"], skills: { "Chỉ Huy": 14, "Cận Chiến (Kiếm)": 15 },
-    equipment: [], items: [], gold: 1200, startingHookIds: [],
+    equipment: [], items: [], gold: 1200,
+    startResources: {
+      "Gỗ": 400,
+      "Quặng Sắt": 120,
+      "Đá": 300,
+      "Lương Thực": 1100,
+      "Ngựa": 40,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -718,7 +894,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Con trai thứ của Vua Điên. Khi chiến tranh nổ ra, cậu chỉ là một đứa trẻ sợ hãi, không biết tương lai lưu vong đang chờ đợi.",
     birthYear: 276, age: 6, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 5, "Thể Chất": 4, "Trí Tuệ": 10, "Tinh Tường": 8, "Uy Tín": 12 },
     talentIds: ["arrogant", "madness"], skills: { "Thuyết Phục": 6 },
-    equipment: [], items: [], gold: 200, startingHookIds: [],
+    equipment: [], items: [], gold: 200,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "aerys-ii",
     mother: "rhaella-targaryen",
     spouse: "",
@@ -743,7 +927,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Tư lệnh đội Vệ Vương. To lớn, trung thành tuyệt đối, ông sát cánh cùng Arthur Dayne bảo vệ Tháp Niềm Vui.",
     birthYear: 225, age: 57, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 12, "Thể Chất": 16, "Trí Tuệ": 14, "Tinh Tường": 18, "Uy Tín": 14 },
     talentIds: ["giant-frame", "loyal", "veteran"], skills: { "Cận Chiến (Kiếm)": 18, "Chỉ Huy": 16 },
-    equipment: [], items: [], gold: 300, startingHookIds: [],
+    equipment: [], items: [], gold: 300,
+    startResources: {
+      "Gỗ": 150,
+      "Quặng Sắt": 25,
+      "Đá": 100,
+      "Lương Thực": 2000,
+      "Ngựa": 30,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -765,7 +957,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Nổi bật với chiếc mũ giáp hình con dơi đen. Ông là người thứ ba bảo vệ Tháp Niềm Vui.",
     birthYear: 245, age: 37, coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 15, "Thể Chất": 15, "Trí Tuệ": 13, "Tinh Tường": 15, "Uy Tín": 12 },
     talentIds: ["loyal"], skills: { "Cận Chiến (Kiếm)": 16 },
-    equipment: [], items: [], gold: 200, startingHookIds: [],
+    equipment: [], items: [], gold: 200,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 50,
+      "Đá": 100,
+      "Lương Thực": 500,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -787,7 +987,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     blurb: "Bạn thân và từng là giám mã của Rhaegar Targaryen, có mặt tại giải đấu Harrenhal định mệnh.",
     birthYear: 258, age: 24, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 13, "Uy Tín": 14 },
     talentIds: ["loyal"], skills: { "Cận Chiến (Kiếm)": 14 },
-    equipment: [], items: [], gold: 400, startingHookIds: [],
+    equipment: [], items: [], gold: 400,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 50,
+      "Đá": 100,
+      "Lương Thực": 500,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -809,7 +1017,22 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
     birthYear: 262, age: 20, coreStats: { "Sức Mạnh": 20, "Nhanh Nhẹn": 14, "Thể Chất": 18, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 18 },
     talentIds: ["fearsome-warrior", "beloved", "hot-tempered"], skills: { "Cận Chiến (Rìu)": 20, "Chỉ Huy": 16 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Búa chiến của Robert", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương": 25 }, moTa: "Cây búa chiến khổng lồ mà chỉ Robert mới vung nổi." }],
-    items: [], gold: 20000, startingHookIds: [], startArmies: [
+    items: [], gold: 20000,
+    startResources: {
+      "Gỗ": 1000,
+      "Quặng Sắt": 300,
+      "Đá": 750,
+      "Lương Thực": 2750,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    },
+    startDebts: {
+      "Iron Bank": {
+        "amount": 1000000,
+        "interest": 5,
+        "duration": 100
+      }
+    }, startingHookIds: [], startArmies: [
           { name: "Lính Giáo Rừng Mưa", type: "Bộ Binh", size: 18000, quality: "Tinh Nhuệ" },
           { name: "Đội Nỏ Vùng Bão", type: "Cung Thủ", size: 4500, quality: "Tinh Nhuệ" }
         ],
@@ -827,7 +1050,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "steffon-baratheon", name: "Steffon Baratheon", tuocVi: "Cố Lãnh Chúa", house: "Baratheon", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Robert, Stannis, và Renly. Chết trong bão biển tại Vịnh Đắm Tàu.",
     birthYear: 246, deathYear: 278, age: 32, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 14 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "cassana-estermont",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 40,
+      "Quặng Sắt": 12,
+      "Đá": 30,
+      "Lương Thực": 110,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "cassana-estermont",
     father: "",
     mother: "",
     children: [],
@@ -849,7 +1080,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "cassana-estermont", name: "Cassana Estermont", tuocVi: "Tiểu Thư", house: "Estermont", role: "Phu Nhân", religion: "Thất Diện Thần", blurb: "Vợ của Steffon Baratheon. Cùng tử nạn với chồng trên tàu Windproud.",
     birthYear: 248, deathYear: 278, age: 30, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "steffon-baratheon",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "steffon-baratheon",
     father: "",
     mother: "",
     children: [],
@@ -868,7 +1107,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "selyse-florent", name: "Selyse Florent", tuocVi: "Tiểu Thư", house: "Florent", role: "Vợ Của Stannis", religion: "Thất Diện Thần", blurb: "Vợ của Stannis Baratheon, lạnh nhạt và có phần khắc khổ.",
     birthYear: 265, age: 17, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "stannis-baratheon",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 5,
+      "Đá": 20,
+      "Lương Thực": 400,
+      "Ngựa": 6,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "stannis-baratheon",
     father: "",
     mother: "",
     children: [],
@@ -887,7 +1134,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "rickard-stark", name: "Rickard Stark", tuocVi: "Cố Lãnh Chúa", house: "Stark", role: "Cố Lãnh Chúa", religion: "Cựu Thần", blurb: "Bị Vua Aerys thiêu sống bằng Lửa Hoang trong bộ giáp của mình.",
     birthYear: 235, deathYear: 282, age: 47, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 10, "Thể Chất": 15, "Trí Tuệ": 14, "Tinh Tường": 14, "Uy Tín": 15 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "lyarra-stark",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "lyarra-stark",
     father: "",
     mother: "",
     children: [],
@@ -907,7 +1162,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "lyarra-stark", name: "Lyarra Stark", tuocVi: "Phu Nhân", house: "Stark", role: "Cố Phu Nhân", religion: "Cựu Thần", blurb: "Mẹ của Brandon, Ned, Lyanna, và Benjen.",
     birthYear: 240, deathYear: 279, age: 39, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "rickard-stark",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "rickard-stark",
     father: "",
     mother: "",
     children: [],
@@ -927,7 +1190,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "brandon-stark-rebel", name: "Brandon Stark", tuocVi: "Người Thừa Kế", house: "Stark", role: "Người Thừa Kế Đã Chết", religion: "Cựu Thần", blurb: "Sói hoang. Bị thắt cổ đến chết khi cố cứu cha mình.",
     birthYear: 262, deathYear: 282, age: 20, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 15, "Thể Chất": 16, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 14 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "rickard-stark", mother: "lyarra-stark",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "rickard-stark", mother: "lyarra-stark",
     spouse: "",
     children: [],
     siblings: [],
@@ -946,7 +1217,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "lyanna-stark", name: "Lyanna Stark", tuocVi: "Tiểu Thư", house: "Stark", role: "Sói Nữ", religion: "Cựu Thần", blurb: "Em gái Ned, vị hôn thê của Robert. Nguyên nhân của cuộc khởi nghĩa.",
     birthYear: 266, deathYear: 283, age: 16, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 16, "Thể Chất": 12, "Trí Tuệ": 12, "Tinh Tường": 14, "Uy Tín": 16 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "rickard-stark", mother: "lyarra-stark",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "rickard-stark", mother: "lyarra-stark",
     spouse: "",
     children: [],
     siblings: [],
@@ -965,7 +1244,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "benjen-stark", name: "Benjen Stark", tuocVi: "Thường Dân", house: "Stark", role: "Em Út", religion: "Cựu Thần", blurb: "Sói nhỏ nhất nhà Stark, ở lại Winterfell trong thời chiến.",
     birthYear: 267, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 14, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 14, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "rickard-stark", mother: "lyarra-stark",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "rickard-stark", mother: "lyarra-stark",
     spouse: "",
     children: [],
     siblings: [],
@@ -983,7 +1270,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "jasper-arryn", name: "Jasper Arryn", tuocVi: "Cố Lãnh Chúa", house: "Arryn", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Jon Arryn.",
     birthYear: 195, deathYear: 260, age: 65, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [],
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 15,
+      "Đá": 80,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -1004,7 +1299,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "minisa-whent", name: "Minisa Whent", tuocVi: "Tiểu Thư", house: "Whent", role: "Cố Phu Nhân", religion: "Thất Diện Thần", blurb: "Vợ quá cố của Hoster Tully, mẹ của Catelyn, Lysa, Edmure.",
     birthYear: 242, deathYear: 275, age: 33, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "hoster-tully",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "hoster-tully",
     father: "",
     mother: "",
     children: [],
@@ -1023,7 +1326,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "edmure-tully", name: "Edmure Tully", tuocVi: "Người Thừa Kế", house: "Tully", role: "Người Thừa Kế Riverrun", religion: "Thất Diện Thần", blurb: "Con trai duy nhất của Hoster Tully, em trai của Catelyn và Lysa.",
     birthYear: 267, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 12, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 14 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "hoster-tully", mother: "minisa-whent",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 8,
+      "Đá": 20,
+      "Lương Thực": 200,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "hoster-tully", mother: "minisa-whent",
     spouse: "",
     children: [],
     siblings: [],
@@ -1042,7 +1353,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "tytos-lannister", name: "Tytos Lannister", tuocVi: "Cố Lãnh Chúa", house: "Lannister", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Tywin. Lãnh chúa yếu kém đã làm suy giảm uy tín của nhà Lannister.",
     birthYear: 220, deathYear: 267, age: 47, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [],
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 30,
+      "Đá": 30,
+      "Lương Thực": 120,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -1063,7 +1382,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "joanna-lannister", name: "Joanna Lannister", tuocVi: "Phu Nhân", house: "Lannister", role: "Cố Phu Nhân", religion: "Thất Diện Thần", blurb: "Vợ của Tywin. Qua đời khi sinh Tyrion.",
     birthYear: 246, deathYear: 273, age: 27, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 14, "Tinh Tường": 14, "Uy Tín": 15 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "tywin-lannister",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 30,
+      "Đá": 30,
+      "Lương Thực": 120,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "tywin-lannister",
     father: "",
     mother: "",
     children: [],
@@ -1083,7 +1410,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "cersei-lannister", name: "Cersei Lannister", tuocVi: "Tiểu Thư", house: "Lannister", role: "Tiểu Thư Casterly Rock", religion: "Thất Diện Thần", blurb: "Chị sinh đôi của Jaime. Xinh đẹp, đầy tham vọng và kiêu hãnh.",
     birthYear: 266, age: 16, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 12, "Thể Chất": 10, "Trí Tuệ": 14, "Tinh Tường": 12, "Uy Tín": 18 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 1000, startingHookIds: [], father: "tywin-lannister", mother: "joanna-lannister", siblings: ["jaime-lannister", "tyrion-lannister"],
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 30,
+      "Đá": 30,
+      "Lương Thực": 120,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "tywin-lannister", mother: "joanna-lannister", siblings: ["jaime-lannister", "tyrion-lannister"],
     spouse: "robert-baratheon",
     children: ["joffrey-baratheon", "myrcella-baratheon", "tommen-baratheon"],
     allies: ["jaime-lannister"],
@@ -1101,7 +1436,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "tyrion-lannister", name: "Tyrion Lannister", tuocVi: "Người Lùn", house: "Lannister", role: "Quỷ Lùn", religion: "Thất Diện Thần", blurb: "Con trai út của Tywin. Bị cha căm ghét vì hình hài và việc cái chết của mẹ.",
     birthYear: 273, age: 9, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 6, "Trí Tuệ": 18, "Tinh Tường": 16, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 500, startingHookIds: [], father: "tywin-lannister", mother: "joanna-lannister", siblings: ["jaime-lannister", "cersei-lannister"],
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 500,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 30,
+      "Đá": 30,
+      "Lương Thực": 120,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "tywin-lannister", mother: "joanna-lannister", siblings: ["jaime-lannister", "cersei-lannister"],
     spouse: "sansa-stark",
     children: [],
     allies: ["bronn", "varys"],
@@ -1119,7 +1462,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "luthor-tyrell", name: "Luthor Tyrell", tuocVi: "Cố Lãnh Chúa", house: "Tyrell", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Mace Tyrell, vô tình lao xuống vách đá trong một cuộc đi săn.",
     birthYear: 230, deathYear: 280, age: 50, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "olenna-redwyne",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 5,
+      "Đá": 20,
+      "Lương Thực": 400,
+      "Ngựa": 6,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "olenna-redwyne",
     father: "",
     mother: "",
     children: [],
@@ -1139,7 +1490,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "olenna-redwyne", name: "Olenna Redwyne", tuocVi: "Phu Nhân", house: "Tyrell", role: "Nữ Hoàng Gai", religion: "Thất Diện Thần", blurb: "Mẹ của Mace Tyrell. Người thực sự điều hành nhà Tyrell với trí tuệ sắc sảo.",
     birthYear: 228, age: 54, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 6, "Thể Chất": 8, "Trí Tuệ": 18, "Tinh Tường": 18, "Uy Tín": 16 },
-    talentIds: ["schemer", "cunning"], skills: { "Chính Trị": 18, "Ngoại Giao": 15 }, equipment: [], items: [], gold: 1000, startingHookIds: [], spouse: "luthor-tyrell",
+    talentIds: ["schemer", "cunning"], skills: { "Chính Trị": 18, "Ngoại Giao": 15 }, equipment: [], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 5,
+      "Đá": 20,
+      "Lương Thực": 400,
+      "Ngựa": 6,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "luthor-tyrell",
     father: "",
     mother: "",
     children: [],
@@ -1159,7 +1518,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "alerie-hightower", name: "Alerie Hightower", tuocVi: "Phu Nhân", house: "Tyrell", role: "Vợ Của Mace", religion: "Thất Diện Thần", blurb: "Vợ của Mace Tyrell.",
     birthYear: 258, age: 24, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 14 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "mace-tyrell",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 5,
+      "Đá": 20,
+      "Lương Thực": 400,
+      "Ngựa": 6,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "mace-tyrell",
     father: "",
     mother: "",
     children: [],
@@ -1179,7 +1546,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "willas-tyrell", name: "Willas Tyrell", tuocVi: "Người Thừa Kế", house: "Tyrell", role: "Người Thừa Kế Highgarden", religion: "Thất Diện Thần", blurb: "Con trai trưởng của Mace. Cậu bé chăm học, hiền lành.",
     birthYear: 275, age: 7, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 14, "Tinh Tường": 12, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "mace-tyrell", mother: "alerie-hightower",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 5,
+      "Đá": 20,
+      "Lương Thực": 400,
+      "Ngựa": 6,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "mace-tyrell", mother: "alerie-hightower",
     spouse: "",
     children: [],
     siblings: [],
@@ -1198,7 +1573,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "garlan-tyrell", name: "Garlan Tyrell", tuocVi: "Hiệp Sĩ", house: "Tyrell", role: "Con Trai Thứ", religion: "Thất Diện Thần", blurb: "Con trai thứ hai của Mace.",
     birthYear: 277, age: 5, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "mace-tyrell", mother: "alerie-hightower",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 150,
+      "Quặng Sắt": 25,
+      "Đá": 100,
+      "Lương Thực": 2000,
+      "Ngựa": 30,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "mace-tyrell", mother: "alerie-hightower",
     spouse: "",
     children: [],
     siblings: [],
@@ -1216,7 +1599,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "loras-tyrell", name: "Loras Tyrell", tuocVi: "Thường Dân", house: "Tyrell", role: "Hiệp Sĩ Hoa", religion: "Thất Diện Thần", blurb: "Con trai thứ ba, hiện chỉ là một em bé.",
     birthYear: 282, age: 0, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 4, "Thể Chất": 4, "Trí Tuệ": 4, "Tinh Tường": 4, "Uy Tín": 4 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "mace-tyrell", mother: "alerie-hightower",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 5,
+      "Đá": 20,
+      "Lương Thực": 400,
+      "Ngựa": 6,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "mace-tyrell", mother: "alerie-hightower",
     spouse: "",
     children: [],
     siblings: ["willas-tyrell", "garlan-tyrell", "margaery-tyrell"],
@@ -1234,7 +1625,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "margaery-tyrell", name: "Margaery Tyrell", tuocVi: "Tiểu Thư", house: "Tyrell", role: "Con Gái Mace", religion: "Thất Diện Thần", blurb: "Con gái út của nhà Tyrell, mới ra đời.",
     birthYear: 283, age: 0, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 4, "Thể Chất": 4, "Trí Tuệ": 4, "Tinh Tường": 4, "Uy Tín": 4 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "mace-tyrell", mother: "alerie-hightower",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 5,
+      "Đá": 20,
+      "Lương Thực": 400,
+      "Ngựa": 6,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "mace-tyrell", mother: "alerie-hightower",
     spouse: "renly-baratheon",
     children: [],
     siblings: ["willas-tyrell", "garlan-tyrell", "loras-tyrell"],
@@ -1253,7 +1652,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "quellon-greyjoy", name: "Quellon Greyjoy", tuocVi: "Lãnh Chúa", house: "Greyjoy", role: "Lãnh Chúa Quần Đảo Sắt", religion: "Thần Chết Chìm", blurb: "Cha của Balon. Lãnh chúa sáng suốt đã cố gắng hòa nhập Quần Đảo Sắt với đất liền. Chết trong trận chiến Mander cuối cuộc nổi loạn.",
     birthYear: 225, deathYear: 283, age: 58, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 14 },
-    talentIds: ["wise", "peacemaker"], skills: { "Hàng Hải": 18, "Chính Trị": 14 }, equipment: [], items: [], gold: 1000, startingHookIds: [],
+    talentIds: ["wise", "peacemaker"], skills: { "Hàng Hải": 18, "Chính Trị": 14 }, equipment: [], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 300,
+      "Quặng Sắt": 250,
+      "Đá": 300,
+      "Lương Thực": 400,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -1276,7 +1683,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "euron-greyjoy", name: "Euron Greyjoy", tuocVi: "Thuyền Trưởng", house: "Greyjoy", role: "Mắt Quạ", religion: "Thần Chết Chìm", blurb: "Em trai tàn nhẫn của Balon.",
     birthYear: 256, age: 26, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 15, "Thể Chất": 14, "Trí Tuệ": 16, "Tinh Tường": 16, "Uy Tín": 15 },
-    talentIds: ["ruthless", "cunning", "mystic"], skills: { "Hàng Hải": 18, "Phép Thuật": 10 }, equipment: [], items: [], gold: 500, startingHookIds: [], father: "quellon-greyjoy", siblings: ["balon-greyjoy", "victarion-greyjoy", "aeron-greyjoy"],
+    talentIds: ["ruthless", "cunning", "mystic"], skills: { "Hàng Hải": 18, "Phép Thuật": 10 }, equipment: [], items: [], gold: 500,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "quellon-greyjoy", siblings: ["balon-greyjoy", "victarion-greyjoy", "aeron-greyjoy"],
     mother: "",
     spouse: "",
     children: [],
@@ -1297,7 +1712,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "victarion-greyjoy", name: "Victarion Greyjoy", tuocVi: "Thuyền Trưởng", house: "Greyjoy", role: "Tướng Tiên Phong", religion: "Thần Chết Chìm", blurb: "Chiến binh mạnh mẽ và trung thành, em trai Balon.",
     birthYear: 258, age: 24, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 12, "Thể Chất": 18, "Trí Tuệ": 8, "Tinh Tường": 10, "Uy Tín": 12 },
-    talentIds: ["fearsome-warrior", "loyal", "stubborn"], skills: { "Cận Chiến (Rìu)": 18, "Hàng Hải": 15 }, equipment: [], items: [], gold: 200, startingHookIds: [], father: "quellon-greyjoy", siblings: ["balon-greyjoy", "euron-greyjoy", "aeron-greyjoy"],
+    talentIds: ["fearsome-warrior", "loyal", "stubborn"], skills: { "Cận Chiến (Rìu)": 18, "Hàng Hải": 15 }, equipment: [], items: [], gold: 200,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "quellon-greyjoy", siblings: ["balon-greyjoy", "euron-greyjoy", "aeron-greyjoy"],
     mother: "",
     spouse: "",
     children: [],
@@ -1318,7 +1741,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "aeron-greyjoy", name: "Aeron Greyjoy", tuocVi: "Thường Dân", house: "Greyjoy", role: "Em Út Quellon", religion: "Thần Chết Chìm", blurb: "Em út của Balon, trong thời gian này còn trẻ và nông nổi.",
     birthYear: 269, age: 13, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 12, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "quellon-greyjoy", siblings: ["balon-greyjoy", "euron-greyjoy", "victarion-greyjoy"],
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "quellon-greyjoy", siblings: ["balon-greyjoy", "euron-greyjoy", "victarion-greyjoy"],
     mother: "",
     spouse: "",
     children: [],
@@ -1339,7 +1770,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "alannys-harlaw", name: "Alannys Harlaw", tuocVi: "Phu Nhân", house: "Greyjoy", role: "Vợ Của Balon", religion: "Thần Chết Chìm", blurb: "Vợ của Balon Greyjoy.",
     birthYear: 258, age: 24, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "balon-greyjoy",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "balon-greyjoy",
     father: "",
     mother: "",
     children: [],
@@ -1361,7 +1800,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "rodrik-greyjoy", name: "Rodrik Greyjoy", tuocVi: "Người Thừa Kế", house: "Greyjoy", role: "Con Cả Balon", religion: "Thần Chết Chìm", blurb: "Con trai trưởng của Balon.",
     birthYear: 275, age: 7, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 8, "Tinh Tường": 8, "Uy Tín": 8 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "balon-greyjoy", mother: "alannys-harlaw",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "balon-greyjoy", mother: "alannys-harlaw",
     spouse: "",
     children: [],
     siblings: [],
@@ -1382,7 +1829,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "maron-greyjoy", name: "Maron Greyjoy", tuocVi: "Con Trai Thứ", house: "Greyjoy", role: "Con Trai Thứ Balon", religion: "Thần Chết Chìm", blurb: "Con trai thứ hai của Balon.",
     birthYear: 277, age: 5, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 6, "Thể Chất": 6, "Trí Tuệ": 6, "Tinh Tường": 6, "Uy Tín": 6 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "balon-greyjoy", mother: "alannys-harlaw",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "balon-greyjoy", mother: "alannys-harlaw",
     spouse: "",
     children: [],
     siblings: [],
@@ -1403,7 +1858,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "asha-greyjoy", name: "Asha Greyjoy", tuocVi: "Tiểu Thư", house: "Greyjoy", role: "Con Gái Balon", religion: "Thần Chết Chìm", blurb: "Con gái của Balon, mới tập bò.",
     birthYear: 279, age: 3, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 4, "Thể Chất": 4, "Trí Tuệ": 4, "Tinh Tường": 4, "Uy Tín": 4 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "balon-greyjoy", mother: "alannys-harlaw",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "balon-greyjoy", mother: "alannys-harlaw",
     spouse: "",
     children: [],
     siblings: ["theon-greyjoy"],
@@ -1424,7 +1887,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "theon-greyjoy", name: "Theon Greyjoy", tuocVi: "Con Út", house: "Greyjoy", role: "Con Út Balon", religion: "Thần Chết Chìm", blurb: "Con trai út của Balon.",
     birthYear: 281, age: 1, coreStats: { "Sức Mạnh": 2, "Nhanh Nhẹn": 2, "Thể Chất": 2, "Trí Tuệ": 2, "Tinh Tường": 2, "Uy Tín": 2 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "balon-greyjoy", mother: "alannys-harlaw",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "balon-greyjoy", mother: "alannys-harlaw",
     spouse: "",
     children: [],
     siblings: ["asha-greyjoy"],
@@ -1445,7 +1916,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "rhaenys-targaryen-daughter", name: "Rhaenys Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Con Gái Rhaegar", religion: "Thất Diện Thần", blurb: "Con gái của Rhaegar và Elia, thích ôm chú mèo đen Balerion.",
     birthYear: 280, deathYear: 283, age: 2, coreStats: { "Sức Mạnh": 2, "Nhanh Nhẹn": 4, "Thể Chất": 2, "Trí Tuệ": 4, "Tinh Tường": 4, "Uy Tín": 6 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "rhaegar-targaryen", mother: "elia-martell",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "rhaegar-targaryen", mother: "elia-martell",
     spouse: "",
     children: [],
     siblings: [],
@@ -1466,7 +1945,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "aegon-targaryen-son", name: "Aegon Targaryen (Trẻ sơ sinh)", tuocVi: "Hoàng Tử", house: "Targaryen", role: "Con Trai Rhaegar", religion: "Thất Diện Thần", blurb: "Con trai mới sinh của Rhaegar và Elia.",
     birthYear: 282, deathYear: 283, age: 0, coreStats: { "Sức Mạnh": 1, "Nhanh Nhẹn": 1, "Thể Chất": 1, "Trí Tuệ": 1, "Tinh Tường": 1, "Uy Tín": 4 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "rhaegar-targaryen", mother: "elia-martell",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "rhaegar-targaryen", mother: "elia-martell",
     spouse: "",
     children: [],
     siblings: [],
@@ -1487,7 +1974,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "mellario-of-norvos", name: "Mellario", tuocVi: "Phu Nhân", house: "Martell", role: "Vợ Của Doran", religion: "Thần Râu", blurb: "Vợ của Doran Martell, đến từ Norvos.",
     birthYear: 250, age: 32, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 8, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 14, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "doran-martell",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 10,
+      "Đá": 24,
+      "Lương Thực": 70,
+      "Ngựa": 12,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "doran-martell",
     father: "",
     mother: "",
     children: [],
@@ -1507,7 +2002,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "arianne-martell", name: "Arianne Martell", tuocVi: "Người Thừa Kế", house: "Martell", role: "Con Gái Doran", religion: "Thất Diện Thần", blurb: "Con gái lớn của Doran.",
     birthYear: 276, age: 6, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 6, "Thể Chất": 6, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 12 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "doran-martell", mother: "mellario-of-norvos",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 10,
+      "Đá": 24,
+      "Lương Thực": 70,
+      "Ngựa": 12,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "doran-martell", mother: "mellario-of-norvos",
     spouse: "",
     children: [],
     siblings: [],
@@ -1526,7 +2029,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "quentyn-martell", name: "Quentyn Martell", tuocVi: "Vương Tôn", house: "Martell", role: "Con Trai Doran", religion: "Thất Diện Thần", blurb: "Con trai trưởng của Doran.",
     birthYear: 281, age: 1, coreStats: { "Sức Mạnh": 2, "Nhanh Nhẹn": 2, "Thể Chất": 2, "Trí Tuệ": 2, "Tinh Tường": 2, "Uy Tín": 2 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "doran-martell", mother: "mellario-of-norvos",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 10,
+      "Đá": 24,
+      "Lương Thực": 70,
+      "Ngựa": 12,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "doran-martell", mother: "mellario-of-norvos",
     spouse: "",
     children: [],
     siblings: [],
@@ -1545,7 +2056,15 @@ export const robertsRebellionCharacters: CanonCharacter[] = [
   {
     id: "trystane-martell", name: "Trystane Martell", tuocVi: "Vương Tôn", house: "Martell", role: "Con Út Doran", religion: "Thất Diện Thần", blurb: "Con trai út của Doran.",
     birthYear: 283, age: 0, coreStats: { "Sức Mạnh": 1, "Nhanh Nhẹn": 1, "Thể Chất": 1, "Trí Tuệ": 1, "Tinh Tường": 1, "Uy Tín": 1 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "doran-martell", mother: "mellario-of-norvos",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 10,
+      "Đá": 24,
+      "Lương Thực": 70,
+      "Ngựa": 12,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "doran-martell", mother: "mellario-of-norvos",
     spouse: "",
     children: [],
     siblings: [],

@@ -12,6 +12,8 @@ import { useMilitaryStore } from "../../state/militaryStore";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { playerHouseId } from "../../territory/territoryEngine";
+import { lendMoney } from "../../economy/ironBank";
+import { EXCHANGE_RATES } from "../../economy/currency";
 import { canControlHolding } from "../../character/roleplay";
 import { recruitableTroopsForEra, troopMeta, type TroopTypeAll } from "../../content/westeros/troopTypes";
 import { hasBarracks, maxRecruitPerTurn } from "../../strategy/army";
@@ -174,7 +176,7 @@ function RecruitTab({ stat }: { stat: Stat }) {
   }
 
   const meta = troopMeta(type);
-  const goldCost = Math.round((meta.costPer100["Vàng"] * count) / 100);
+  const goldCost = Math.round((meta.costPer100["Ngân Khố"] * count) / 100);
   const foodCost = Math.round((meta.costPer100["Lương Thực"] * count) / 100);
   const cap = terr ? maxRecruitPerTurn(stat, terr) : 0;
 
@@ -265,6 +267,7 @@ function FleetTab({ stat }: { stat: Stat }) {
 // ── Ngoại Giao + Tù Binh ─────────────────────────────────────────────────────
 function DiplomacyTab({ stat }: { stat: Stat }) {
   const t = useT();
+  const applyAiOps = useMvuStore((s) => s.applyAiOps);
   const pHouse = playerHouseId(stat);
   const captives = Object.entries(stat["Tù Binh"]);
 
@@ -288,7 +291,30 @@ function DiplomacyTab({ stat }: { stat: Stat }) {
           <div key={hid} className="glass rounded-[var(--radius-md)] p-3">
             <div className="flex items-center justify-between">
               <span className="text-[14px] text-[var(--text-soft)]">{house?.name ?? hid}</span>
-              <span className={`text-[12px] ${atWar ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}`}>{status}</span>
+              <div className="flex items-center gap-2">
+                {!atWar && (
+                  <GlassButton
+                    className="px-2 py-0.5 text-[11px]"
+                    onClick={() => {
+                      const amountStr = window.prompt(`Nhập số Rồng Vàng muốn cho nhà ${hid} vay:`, "10");
+                      if (!amountStr) return;
+                      const amount = parseInt(amountStr, 10);
+                      if (isNaN(amount) || amount <= 0) return;
+                      const copperAmount = amount * EXCHANGE_RATES.GOLD_TO_COPPER;
+                      const res = lendMoney(stat as any, hid, copperAmount);
+                      if (res.ok) {
+                        applyAiOps(res.ops);
+                        alert(`Đã cho nhà ${hid} vay ${amount} Rồng Vàng.`);
+                      } else {
+                        alert(`Không thể cho vay: ${res.error}`);
+                      }
+                    }}
+                  >
+                    Cho Vay
+                  </GlassButton>
+                )}
+                <span className={`text-[12px] ${atWar ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}`}>{status}</span>
+              </div>
             </div>
             {atWar && (
               <div className="mt-1.5">

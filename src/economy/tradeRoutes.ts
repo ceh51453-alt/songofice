@@ -9,6 +9,7 @@ import { REGIONS_BY_ID } from "../content/westeros/regions";
 import {
   GOODS, BASELINE_PRICE, regionPrice, type Good,
 } from "../content/westeros/regionalResources";
+import { EXCHANGE_RATES } from "./currency";
 
 export interface TradeResult {
   ok: boolean;
@@ -38,7 +39,7 @@ export function estimateProfit(
   // chia cho khoảng cách → lợi nhuận/turn (vận chuyển mất thời gian)
   const dist = calcMapDistance(fromId, toId);
   const turns = Math.max(1, distanceToTurns(dist));
-  return Math.round(totalMargin / turns * 10); // ×10 vì mỗi tuyến chở lô lớn
+  return Math.round(totalMargin / turns * 10 * EXCHANGE_RATES.GOLD_TO_COPPER); // ×10 vì mỗi tuyến chở lô lớn, quy ra Đồng Đỏ
 }
 
 /**

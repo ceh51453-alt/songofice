@@ -23,7 +23,7 @@ export function CharacterPreview({ state, title }: { state: StatData; title?: st
           {title ?? (info["Họ Tên"] || "Nhân vật")}
         </h3>
         <p className="text-[var(--text-muted)]">
-          {info["Tước Vị"] !== "Thường Dân" ? `[${info["Tước Vị"]}] ` : ""}Nhà {info["Nhà"]}{info["Xuất Thân"] ? ` · ${info["Xuất Thân"]}` : ""} · Vàng {info["Vàng"].toLocaleString("vi-VN")}
+          {info["Tước Vị"] !== "Thường Dân" ? `[${info["Tước Vị"]}] ` : ""}Nhà {info["Nhà"]}{info["Xuất Thân"] ? ` · ${info["Xuất Thân"]}` : ""} · Vàng {info["Ngân Khố"].toLocaleString("vi-VN")}
         </p>
         <p className="text-[var(--text-faint)] mt-1">
           {info["Lục Địa"]} · {info["Văn Hoá"]} · {info["Tôn Giáo"]}

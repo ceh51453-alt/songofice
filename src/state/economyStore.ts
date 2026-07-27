@@ -68,7 +68,7 @@ export function goldSparklineData(store: EconomyState): number[] {
 export function economySummary(stat: StatData) {
   const income = estimateNetIncome(stat);
   return {
-    gold: stat["Thông Tin Nhân Vật"]["Vàng"],
+    gold: stat["Thông Tin Nhân Vật"]["Ngân Khố"],
     ...income,
     turnsLeft: turnsUntilBankrupt(stat),
     inDebt: isInDebt(stat),

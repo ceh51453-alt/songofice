@@ -16,7 +16,7 @@ import { makeDefaultState } from "../mvu/schema";
 function makeState(overrides: Record<string, unknown> = {}) {
   const s = makeDefaultState();
   // Áp overrides
-  if (overrides.gold !== undefined) s["Thông Tin Nhân Vật"]["Vàng"] = overrides.gold as number;
+  if (overrides.gold !== undefined) s["Thông Tin Nhân Vật"]["Ngân Khố"] = overrides.gold as number;
   if (overrides.seed !== undefined) s["_engineMeta"]["_Seed Gốc"] = overrides.seed as number;
   if (overrides.turn !== undefined) s["_engineMeta"]["turnCount"] = overrides.turn as number;
   if (overrides.season !== undefined) s["Thế Giới"]["Mùa"] = overrides.season as "Xuân" | "Hạ" | "Thu" | "Đông";

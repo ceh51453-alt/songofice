@@ -25,11 +25,11 @@ function makeTestState(): StatData {
     "Dân Số": 10000,
     "Trung Thành": 60,
     "Ven Biển": true,
-    "Tài Nguyên": { "Vàng": 0, "Lương Thực": 5000, "Gỗ": 300, "Đá": 200, "Quặng Sắt": 100 },
+    "Tài Nguyên": { "Ngân Khố": 0, "Lương Thực": 5000, "Gỗ": 300, "Đá": 200, "Quặng Sắt": 100 },
     "Công Trình": {},
     "Khủng Hoảng": [],
   } as any;
-  state["Thông Tin Nhân Vật"]["Vàng"] = 1000;
+  state["Thông Tin Nhân Vật"]["Ngân Khố"] = 1000;
   state["Thông Tin Nhân Vật"]["Nhà"] = "Tyrell";
   state["_engineMeta"]["turnCount"] = 1;
   state["_engineMeta"]["_Seed Gốc"] = 42;
@@ -99,10 +99,10 @@ describe("Tuyến thương mại (15.2)", () => {
     } as any;
     expect(isBlockaded(state, "the-north")).toBe(true);
 
-    const goldBefore = state["Thông Tin Nhân Vật"]["Vàng"];
+    const goldBefore = state["Thông Tin Nhân Vật"]["Ngân Khố"];
     tickEconomy(state);
     // lợi nhuận thương mại = 0 vì bị phong toả, Vàng chỉ đến từ thuế
-    const goldAfter = state["Thông Tin Nhân Vật"]["Vàng"];
+    const goldAfter = state["Thông Tin Nhân Vật"]["Ngân Khố"];
     // nên không có 50 gold thương mại
     expect(goldAfter - goldBefore).toBeLessThan(50 + 100); // taxGold nhỏ ở dân 10k
   });
@@ -140,11 +140,11 @@ describe("Thuế (15.3)", () => {
 
   it("Miễn Thuế → Trung Thành tăng, Vàng không thu thuế", () => {
     state["Chính Sách Thuế"]["Mức Thuế"] = "Miễn Thuế";
-    const goldBefore = state["Thông Tin Nhân Vật"]["Vàng"];
+    const goldBefore = state["Thông Tin Nhân Vật"]["Ngân Khố"];
     const loyaltyBefore = state["Lãnh Địa"]["the-reach"]["Trung Thành"];
     tickEconomy(state);
     // vàng chỉ đến từ thương mại (0 tuyến) → thuế = 0
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(goldBefore); // no trade, no tax
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(goldBefore); // no trade, no tax
     expect(state["Lãnh Địa"]["the-reach"]["Trung Thành"]).toBeGreaterThan(loyaltyBefore);
   });
 });
@@ -205,7 +205,7 @@ describe("Iron Bank (15.3)", () => {
 
   it("trả nợ sớm: trừ gốc + phạt", () => {
     state["Nợ Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false } as any;
-    state["Thông Tin Nhân Vật"]["Vàng"] = 10000;
+    state["Thông Tin Nhân Vật"]["Ngân Khố"] = 10000;
     const result = repayIronBank(state);
     expect(result.ok).toBe(true);
   });

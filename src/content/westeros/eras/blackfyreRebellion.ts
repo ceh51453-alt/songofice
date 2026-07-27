@@ -17,7 +17,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 18, "Cận Chiến (Kiếm)": 15, "Cưỡi Ngựa": 14, "Ngoại Giao": 16 },
     equipment: [],
     items: [],
-    gold: 2000, startingHookIds: [],
+    gold: 2000,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "daeron-ii-targaryen", mother: "myriah-martell",
     spouse: "jena-dondarrion",
     children: ["valarr-targaryen", "matarys-targaryen"],
@@ -55,7 +63,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Chùy)": 16, "Chỉ Huy": 15 },
     equipment: [],
     items: [],
-    gold: 1500, startingHookIds: [],
+    gold: 1500,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "daeron-ii-targaryen", mother: "myriah-martell",
     spouse: "dyanna-dayne",
     children: ["daeron-the-drunken", "aerion-brightflame", "aemon-targaryen", "aegon-v-targaryen", "daella-targaryen", "rhae-targaryen"],
@@ -92,7 +108,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Thuyết Phục": 18, "Ma Thuật (Bóng Tối)": 14, "Quyến Rũ": 20 },
     equipment: [],
     items: [{ ten: "Dây Chuyền Sao Biển", soLuong: 1, moTa: "Sợi dây chuyền bạc điểm những viên ngọc bích và ngọc lục bảo." }],
-    gold: 500, startingHookIds: [],
+    gold: 500,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "aegon-iv-targaryen", mother: "serenei-of-lys",
     siblings: ["daemon-blackfyre", "aegor-rivers", "brynden-rivers"],
     allies: ["brynden-rivers"],
@@ -127,7 +151,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Kiếm)": 18, "Cưỡi Ngựa": 14 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Lady Forlorn", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương": 25 }, moTa: "Thanh kiếm Thép Valyria của Nhà Corbray." }],
     items: [],
-    gold: 50, startingHookIds: [],
+    gold: 50,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 75,
+      "Đá": 400,
+      "Lương Thực": 400,
+      "Ngựa": 24,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre"],
     personalHooks: [
@@ -163,7 +195,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Kiếm)": 17, "Chỉ Huy": 15 },
     equipment: [],
     items: [],
-    gold: 200, startingHookIds: [],
+    gold: 200,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 50,
+      "Đá": 100,
+      "Lương Thực": 500,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     allies: ["daemon-blackfyre", "bittersteel"],
     rivals: ["daeron-ii"],
     personalHooks: [
@@ -198,7 +238,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Kiếm)": 16, "Cưỡi Ngựa": 15 },
     equipment: [],
     items: [],
-    gold: 800, startingHookIds: [],
+    gold: 800,
+    startResources: {
+      "Gỗ": 50,
+      "Quặng Sắt": 150,
+      "Đá": 150,
+      "Lương Thực": 600,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     allies: ["daemon-blackfyre", "bittersteel"],
     rivals: ["daeron-ii", "damon-lannister"],
     personalHooks: [
@@ -233,7 +281,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Thương Kỵ": 18, "Cận Chiến (Kiếm)": 14, "Chỉ Huy": 14 },
     equipment: [],
     items: [],
-    gold: 4000, startingHookIds: [],
+    gold: 4000,
+    startResources: {
+      "Gỗ": 750,
+      "Quặng Sắt": 125,
+      "Đá": 500,
+      "Lương Thực": 10000,
+      "Ngựa": 150,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre"],
     personalHooks: [
@@ -270,7 +326,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 14, "Cận Chiến (Kiếm)": 12 },
     equipment: [],
     items: [],
-    gold: 1500, startingHookIds: [],
+    gold: 1500,
+    startResources: {
+      "Gỗ": 500,
+      "Quặng Sắt": 375,
+      "Đá": 2000,
+      "Lương Thực": 2000,
+      "Ngựa": 120,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre", "bittersteel"],
     personalHooks: [
@@ -307,7 +371,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 12, "Quản Lý": 15 },
     equipment: [],
     items: [],
-    gold: 5000, startingHookIds: [],
+    gold: 5000,
+    startResources: {
+      "Gỗ": 250,
+      "Quặng Sắt": 750,
+      "Đá": 750,
+      "Lương Thực": 3000,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     allies: ["daeron-ii"],
     rivals: ["quentyn-ball", "daemon-blackfyre"],
     personalHooks: [
@@ -343,7 +415,15 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Rìu)": 15, "Cận Chiến (Kiếm)": 14 },
     equipment: [],
     items: [],
-    gold: 300, startingHookIds: [],
+    gold: 300,
+    startResources: {
+      "Gỗ": 150,
+      "Quặng Sắt": 40,
+      "Đá": 100,
+      "Lương Thực": 1000,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     allies: ["bittersteel", "daemon-blackfyre"],
     rivals: ["bloodraven"],
     personalHooks: [

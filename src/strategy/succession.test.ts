@@ -77,14 +77,14 @@ describe("Đồng bộ heir + đổi luật (13.4)", () => {
 describe("Hôn nhân chính trị (13.4)", () => {
   it("cưới → nhận của hồi môn + quan hệ Vợ/Chồng + nâng Thái Độ Nhà đối tác", () => {
     const s = makeDefaultState();
-    s["Thông Tin Nhân Vật"]["Vàng"] = 5000;
+    s["Thông Tin Nhân Vật"]["Ngân Khố"] = 5000;
     s["Thái Độ Các Nhà"]["Tyrell"] = { "Thái Độ": "Cảnh Giác", "Mô Tả": "" };
     const state = StatDataSchema.parse(s);
     const ops = marriageOps(state, "Margaery Tyrell", {
       partner: "Eddard", partnerHouse: "tyrell", dowry: 1000, dowryOutgoing: false, asSpouseOfPlayer: true, createIfMissing: true,
     });
     const { state: next } = applyPatch(state, ops);
-    expect(next["Thông Tin Nhân Vật"]["Vàng"]).toBe(6000);
+    expect(next["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(6000);
     const spouse = next["Mối Quan Hệ"]["NPC Chính"]["Margaery Tyrell"];
     expect(spouse["Đã Kết Hôn Với"]).toBe("Eddard");
     expect(spouse["Loại Quan Hệ"]).toContain("Vợ/Chồng");
@@ -93,10 +93,10 @@ describe("Hôn nhân chính trị (13.4)", () => {
 
   it("của hồi môn ta trả → trừ Vàng", () => {
     const s = StatDataSchema.parse({ ...makeDefaultState(), });
-    s["Thông Tin Nhân Vật"]["Vàng"] = 2000;
+    s["Thông Tin Nhân Vật"]["Ngân Khố"] = 2000;
     const ops = marriageOps(s, "Ai Đó", { partner: "Ta", dowry: 800, dowryOutgoing: true, createIfMissing: true });
     const { state } = applyPatch(s, ops);
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(1200);
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(1200);
   });
 });
 
@@ -104,7 +104,7 @@ describe("Hôn ước đang thương lượng (13.4)", () => {
   it("đề nghị → chấp nhận: cưới + xoá khỏi hàng thương lượng + nhận hồi môn", () => {
     const s = makeDefaultState();
     s["Thông Tin Nhân Vật"]["Họ Tên"] = "Eddard Stark";
-    s["Thông Tin Nhân Vật"]["Vàng"] = 3000;
+    s["Thông Tin Nhân Vật"]["Ngân Khố"] = 3000;
     let st = StatDataSchema.parse(s);
     st = applyPatch(st, proposeBetrothalOps("tyrell-offer", {
       "Đối Tượng": "Margaery Tyrell", "Nhà Đối Tác": "tyrell", "Của Hồi Môn": 500, "Chi Trả": "Ta Nhận", "Lợi Ích Chính Trị": "Liên minh Reach",
@@ -114,7 +114,7 @@ describe("Hôn ước đang thương lượng (13.4)", () => {
     st = applyPatch(st, acceptBetrothalOps(st, "tyrell-offer")).state;
     expect(st["Gia Tộc Học"]["Hôn Ước Đang Thương Lượng"]["tyrell-offer"]).toBeUndefined();
     expect(st["Mối Quan Hệ"]["NPC Chính"]["Margaery Tyrell"]).toBeDefined();
-    expect(st["Thông Tin Nhân Vật"]["Vàng"]).toBe(3500);
+    expect(st["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(3500);
   });
 
   it("từ chối → chỉ xoá khỏi hàng thương lượng", () => {

@@ -80,7 +80,7 @@ describe("Vòng lặp M4 hoàn chỉnh (5.7.6)", () => {
   it("send → prompt chứa lớp app (5.4b + state render) → patch áp đúng + extractor lọc field _", async () => {
     const mvu0 = useMvuStore.getState().stat;
     const hp0 = mvu0["Chỉ Số Sinh Tồn"]["HP"];
-    const gold0 = mvu0["Thông Tin Nhân Vật"]["Vàng"];
+    const gold0 = mvu0["Thông Tin Nhân Vật"]["Ngân Khố"];
     const day0 = mvu0["Thế Giới"]["Ngày"];
 
     await useChatStore.getState().send("Ta rút kiếm nghênh chiến tên lính đánh thuê.");
@@ -94,7 +94,7 @@ describe("Vòng lặp M4 hoàn chỉnh (5.7.6)", () => {
     // --- state cập nhật đúng qua patch ---
     const stat = useMvuStore.getState().stat;
     expect(stat["Chỉ Số Sinh Tồn"]["HP"]).toBe(hp0 - 15);
-    expect(stat["Thông Tin Nhân Vật"]["Vàng"]).toBe(gold0 + 50);
+    expect(stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(gold0 + 50);
     expect(stat["Thế Giới"]["Ngày"]).toBe(day0 + 3); // AI báo 3 ngày trôi
     const tyrion = stat["Mối Quan Hệ"]["NPC Chính"]["Tyrion Lannister"];
     expect(tyrion["Độ Hảo Cảm"]).toBe(20);
@@ -116,14 +116,14 @@ describe("Vòng lặp M4 hoàn chỉnh (5.7.6)", () => {
   it("reroll: ROLLBACK rồi áp bản mới — không cộng dồn (HP chỉ trừ 1 lần)", async () => {
     const before = useChatStore.getState().messages;
     const snapshotHp = before[before.length - 1].stateBefore!["Chỉ Số Sinh Tồn"]["HP"];
-    const snapshotGold = before[before.length - 1].stateBefore!["Thông Tin Nhân Vật"]["Vàng"];
+    const snapshotGold = before[before.length - 1].stateBefore!["Thông Tin Nhân Vật"]["Ngân Khố"];
 
     await useChatStore.getState().reroll();
 
     const stat = useMvuStore.getState().stat;
     // bản 2: HP -5 so với SNAPSHOT (không phải -15-5), vàng KHÔNG +50, ngày không +3
     expect(stat["Chỉ Số Sinh Tồn"]["HP"]).toBe(snapshotHp - 5);
-    expect(stat["Thông Tin Nhân Vật"]["Vàng"]).toBe(snapshotGold);
+    expect(stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(snapshotGold);
     expect(stat["Mối Quan Hệ"]["NPC Chính"]["Tyrion Lannister"]).toBeUndefined(); // bản 2 không thêm NPC
 
     const msgs = useChatStore.getState().messages;
@@ -137,13 +137,13 @@ describe("Vòng lặp M4 hoàn chỉnh (5.7.6)", () => {
     const msgs = useChatStore.getState().messages;
     const last = msgs[msgs.length - 1];
     const snapHp = last.stateBefore!["Chỉ Số Sinh Tồn"]["HP"];
-    const snapGold = last.stateBefore!["Thông Tin Nhân Vật"]["Vàng"];
+    const snapGold = last.stateBefore!["Thông Tin Nhân Vật"]["Ngân Khố"];
 
     useChatStore.getState().swipeVariant(-1); // 2 bản: index 1 → 0
 
     const stat = useMvuStore.getState().stat;
     expect(stat["Chỉ Số Sinh Tồn"]["HP"]).toBe(snapHp - 15);
-    expect(stat["Thông Tin Nhân Vật"]["Vàng"]).toBe(snapGold + 50);
+    expect(stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(snapGold + 50);
     expect(stat["Mối Quan Hệ"]["NPC Chính"]["Tyrion Lannister"]["Độ Hảo Cảm"]).toBe(20);
     expect(useChatStore.getState().messages.at(-1)!.activeVariant).toBe(0);
   });

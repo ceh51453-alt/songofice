@@ -12,6 +12,7 @@ import { houseColor } from "../../content/westeros/houseColors";
 import type { Npc } from "../../mvu/npcSchema";
 import { GlassButton } from "../components/GlassButton";
 import { GlassSelect } from "../components/GlassSelect";
+import { TradeDialog } from "../economy/TradeDialog";
 import {
   IconX, IconUsers, IconCrown, IconAlert,
   IconCrossedSwords, IconRefresh, IconSearch,
@@ -74,6 +75,7 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
   const [filterHouse, setFilterHouse] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [tradeTargetId, setTradeTargetId] = useState<string | null>(null);
 
   // Zoom & Pan state
   const [zoom, setZoom] = useState<number>(1);
@@ -735,12 +737,29 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                 </div>
               )}
 
+              {/* Action Buttons */}
+              {selectedNode.type !== "player" && selectedNode.npcData && (
+                <div className="mt-4 flex gap-2">
+                  <GlassButton onClick={() => setTradeTargetId(selectedNode.id)} variant="accent" className="flex-1 py-1.5 text-xs">
+                    Giao Dịch
+                  </GlassButton>
+                </div>
+              )}
+
             </div>
           )}
 
         </div>
 
       </div>
+
+      {tradeTargetId && (
+        <TradeDialog
+          open={!!tradeTargetId}
+          onClose={() => setTradeTargetId(null)}
+          npcId={tradeTargetId}
+        />
+      )}
     </div>
   );
 }

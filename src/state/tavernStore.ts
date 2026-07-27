@@ -120,7 +120,7 @@ export const useTavernStore = create<TavernState>()(
       },
 
       startGame: (type, bet) => {
-        const gold = useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Vàng"];
+        const gold = useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Ngân Khố"];
         const info = GAME_INFO[type];
         const effectiveBet = Math.min(bet, gold, info.maxBet);
         if (effectiveBet < info.minBet) {
@@ -261,7 +261,7 @@ export const useTavernStore = create<TavernState>()(
         const { reward } = get();
         const stat = useMvuStore.getState().stat;
         if (reward) {
-          stat["Thông Tin Nhân Vật"]["Vàng"] += reward.gold;
+          stat["Thông Tin Nhân Vật"]["Ngân Khố"] += reward.gold;
           if (reward.item) {
             stat["Túi Đồ"][reward.item.name] = {
               "Số Lượng": 1,
@@ -298,11 +298,11 @@ function finishGame(
   let reward: TavernReward | null = null;
 
   if (result === "win") {
-    reward = calculateReward(type, bet, stat["Thông Tin Nhân Vật"]["Vàng"], extraMultiplier);
+    reward = calculateReward(type, bet, stat["Thông Tin Nhân Vật"]["Ngân Khố"], extraMultiplier);
     goldChange = reward.gold;
   } else if (result === "lose") {
     const loss = calculateLoss(bet);
-    stat["Thông Tin Nhân Vật"]["Vàng"] = Math.max(0, stat["Thông Tin Nhân Vật"]["Vàng"] - loss);
+    stat["Thông Tin Nhân Vật"]["Ngân Khố"] = Math.max(0, stat["Thông Tin Nhân Vật"]["Ngân Khố"] - loss);
     goldChange = -loss;
   }
 

@@ -35,12 +35,12 @@ describe("applyPatch — 5 loại op (5.3)", () => {
 
   it("delta: cộng/trừ số", () => {
     const s = makeState();
-    const gold0 = s["Thông Tin Nhân Vật"]["Vàng"];
+    const gold0 = s["Thông Tin Nhân Vật"]["Ngân Khố"];
     const { state } = applyPatch(s, [
       { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: 50 },
       { op: "delta", path: "stat_data.Chỉ Số Sinh Tồn.HP", value: -15 },
     ]);
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(gold0 + 50);
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(gold0 + 50);
     expect(state["Chỉ Số Sinh Tồn"]["HP"]).toBe(s["Chỉ Số Sinh Tồn"]["HP"] - 15);
   });
 
@@ -85,7 +85,7 @@ describe("applyPatch — 5 loại op (5.3)", () => {
     ] as PatchOp[]);
     expect(warnings.length).toBeGreaterThanOrEqual(2);
     expect(state["Chỉ Số Sinh Tồn"]["HP"]).toBe(0);
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(10);
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(10);
   });
 
   it("clamp stat: hảo cảm vượt ±100 bị chặn", () => {

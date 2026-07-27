@@ -12,7 +12,7 @@ import { startConstruction, tickConstruction, estimateTerritoryYield } from "./c
 function lordState(gold = 5000): StatData {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
-  s["Thông Tin Nhân Vật"]["Vàng"] = gold;
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = gold;
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north-seat (Tuyết, ven biển)
   return StatDataSchema.parse(s);
 }
@@ -25,7 +25,7 @@ describe("startConstruction (10.3)", () => {
     expect(r.ok).toBe(true);
     const { state } = applyPatch(s, r.ops);
     // Vàng trừ khỏi ngân khố thống nhất (15 note)
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(5000 - 150);
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000 - 150);
     // Gỗ trừ khỏi kho vùng
     expect(state["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Gỗ"]).toBe(woodBefore - 80);
     // vào hàng đợi
@@ -90,10 +90,10 @@ describe("tickConstruction — turn-advance loop (10.3)", () => {
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Chợ").ops).state;
     // ép Chợ xong ngay
     s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Chợ"]["Đang Xây"] = false;
-    const goldBefore = s["Thông Tin Nhân Vật"]["Vàng"];
+    const goldBefore = s["Thông Tin Nhân Vật"]["Ngân Khố"];
     tickConstruction(s);
     // Chợ +120 + thuế nền dương → ngân khố tăng
-    expect(s["Thông Tin Nhân Vật"]["Vàng"]).toBeGreaterThan(goldBefore + 120 - 1);
+    expect(s["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeGreaterThan(goldBefore + 120 - 1);
   });
 
   it("estimateTerritoryYield: gộp base + công trình cho UI Tổng Quan", () => {
@@ -102,6 +102,6 @@ describe("tickConstruction — turn-advance loop (10.3)", () => {
     s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"] = false;
     const y = estimateTerritoryYield(s["Lãnh Địa"]["the-north-seat"]);
     expect(y["Lương Thực"]).toBeGreaterThanOrEqual(200);
-    expect(y["Vàng"]).toBeGreaterThan(0);
+    expect(y["Ngân Khố"]).toBeGreaterThan(0);
   });
 });

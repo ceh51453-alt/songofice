@@ -31,6 +31,7 @@ import { registerCourtLoop } from "../../strategy/court";
 import { registerSuccessionLoop } from "../../strategy/succession";
 import { registerIntelligenceLoop } from "../../strategy/intrigue";
 import { registerEconomyLoop } from "../../economy/economyEngine";
+import { registerDiseaseLoop } from "../../character/diseaseEngine";
 import { registerOffscreenLoop } from "../../npc/offscreenSim";
 import { warmupTokenizer } from "../../prompt/tokenizer";
 import { initAudioEngine } from "../../audio/audioEngine";
@@ -72,6 +73,7 @@ export function AppShell() {
     registerSuccessionLoop();
     registerIntelligenceLoop();
     registerEconomyLoop();
+    registerDiseaseLoop();
     registerOffscreenLoop();
     initAudioEngine();
     void warmupTokenizer();

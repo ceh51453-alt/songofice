@@ -73,7 +73,7 @@ describe("Luồng New Game hoàn chỉnh (8.6/8.6b)", () => {
     // ---- initvar nạp đủ (Status Panel đọc được ngay) ----
     const stat = useMvuStore.getState().stat;
     expect(stat["Thông Tin Nhân Vật"]["Họ Tên"]).toBe("Torrhen Snow");
-    expect(stat["Thông Tin Nhân Vật"]["Vàng"]).toBe(5000);
+    expect(stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000);
     expect(Object.keys(stat["Lãnh Địa"])).toHaveLength(1);
     expect(stat["Mối Quan Hệ"]["NPC Chính"]["Quân Sư Lọc Lõi"]).toBeDefined();
     expect(stat["Thế Giới"]["Năm"]).toBe(298);

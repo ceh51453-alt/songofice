@@ -23,7 +23,7 @@ export interface TroopMeta {
   /** tuyển được tại Doanh Trại (11.3). Binh chủng đặc biệt/siêu nhiên: false (đến qua cốt truyện). */
   recruitable: boolean;
   /** chi phí tuyển / 100 quân: Vàng + Lương Thực (11.3). */
-  costPer100: { "Vàng": number; "Lương Thực": number };
+  costPer100: { "Ngân Khố": number; "Lương Thực": number };
   /** số turn huấn luyện trước khi sẵn sàng chiến đấu (11.3). */
   trainTurns: number;
   /** sĩ khí không sụp (Unsullied — rule Lớp 4). */
@@ -37,7 +37,7 @@ const M = (
   opts?: Partial<TroopMeta>,
 ): TroopMeta => ({
   class: cls, counterType, special: false, supernatural: false, recruitable: false,
-  costPer100: { "Vàng": vang, "Lương Thực": luong }, trainTurns, ...opts,
+  costPer100: { "Ngân Khố": vang, "Lương Thực": luong }, trainTurns, ...opts,
 });
 
 export const TROOP_META: Record<TroopTypeAll, TroopMeta> = {

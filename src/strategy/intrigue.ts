@@ -72,7 +72,7 @@ export interface OpsResult {
 export function recruitSpyOps(state: StatData, alias: string, target: string, cost = SPY_RECRUIT_COST): OpsResult {
   if (!alias.trim()) return { ok: false, error: "Cần bí danh điệp viên", ops: [] };
   if (state["Tình Báo"]["Điệp Viên"][alias]) return { ok: false, error: "Bí danh đã tồn tại", ops: [] };
-  if (state["Thông Tin Nhân Vật"]["Vàng"] < cost) return { ok: false, error: "Không đủ Vàng để tuyển", ops: [] };
+  if (state["Thông Tin Nhân Vật"]["Ngân Khố"] < cost) return { ok: false, error: "Không đủ Vàng để tuyển", ops: [] };
   return {
     ok: true,
     ops: [

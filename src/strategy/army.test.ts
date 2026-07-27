@@ -15,7 +15,7 @@ import {
 function lordWithBarracks(gold = 5000): StatData {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
-  s["Thông Tin Nhân Vật"]["Vàng"] = gold;
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = gold;
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north-seat
   s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };
@@ -50,7 +50,7 @@ describe("Tuyển quân (11.3)", () => {
     const r = recruitUnit(s, "the-north-seat", "Bộ Binh", 500);
     expect(r.ok).toBe(true);
     const { state } = applyPatch(s, r.ops);
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(5000 - 500); // 100/100 quân
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000 - 500); // 100/100 quân
     expect(state["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"]).toBe(foodBefore - 250);
     const unit = state["Biên Chế Quân Sự"][r.unitName!];
     expect(unit["Số Lượng"]).toBe(500);
@@ -128,6 +128,6 @@ describe("Lính Đánh Thuê phản trắc (7.7)", () => {
     expect(before).toBeDefined();
     tickArmy(state);
     // hoặc đã rời (bị xoá) hoặc còn — nhưng KHÔNG bị trừ lương (vì không đủ tiền)
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(0);
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(0);
   });
 });

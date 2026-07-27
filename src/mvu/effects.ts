@@ -78,6 +78,7 @@ export function recomputeDerived(state: StatData): void {
   d["_Sát Thương Xa"] = Math.round(core["Nhanh Nhẹn"] / 2) + equipBonus(state, "Sát Thương Xa") + talentBonusFor(state, "Sát Thương Xa");
   d["_Tải Trọng"] = core["Sức Mạnh"] * 5 + talentBonusFor(state, "Tải Trọng") + equipBonus(state, "Tải Trọng");
   d["_Chống Chịu"] = Math.round(core["Thể Chất"] / 2) + talentBonusFor(state, "Chống Chịu") + equipBonus(state, "Chống Chịu");
+  d["_Kháng Bệnh"] = core["Thể Chất"] * 2 + Math.round(core["Sức Mạnh"] / 2) + talentBonusFor(state, "Kháng Bệnh") + equipBonus(state, "Kháng Bệnh");
 
   // age modifier cho HP
   const playerAge = state["Thông Tin Nhân Vật"]["Tuổi"] ?? 25;
@@ -91,6 +92,7 @@ export function recomputeDerived(state: StatData): void {
   d["_Sát Thương Xa"] += Math.round(ageMod.stats["Nhanh Nhẹn"] / 2);
   d["_Chống Chịu"] += Math.round(ageMod.stats["Thể Chất"] / 2);
   d["_Tải Trọng"] += ageMod.stats["Sức Mạnh"] * 3;
+  d["_Kháng Bệnh"] += Math.round(ageMod.stats["Thể Chất"] * 2);
 
   // clamp sinh tồn về trần mới
   const vitals = state["Chỉ Số Sinh Tồn"];
@@ -163,6 +165,52 @@ export function runCascadeEffects(prev: StatData, next: StatData): CascadeResult
   const daysPassed = Math.max(0, nextAbs - prevAbs);
   if (daysPassed > 0) {
     events.push({ kind: "time_passed", text: daysPassed === 1 ? "Một ngày trôi qua" : `${daysPassed} ngày trôi qua` });
+    
+    // ---- 1.1. Xử lý Bệnh Tật (Nhân vật chính) ----
+    if (!next["Bệnh Tật"]) next["Bệnh Tật"] = [];
+    const diseaseResistance = next["Chỉ Số Phái Sinh"]["_Kháng Bệnh"] ?? 50;
+    const DISEASE_TYPES = ["Cảm Lạnh", "Sốt Mùa Hè", "Sốt Lạnh", "Bệnh Vảy Xám", "Dịch Tả", "Bệnh Kiết Lỵ", "Giang Mai", "Bệnh Lậu", "Bệnh Hoa Liễu", "Thương Hàn", "Bệnh Dại", "Lao Phổi"] as const;
+    const DISEASE_SEVERITY = ["Nhẹ", "Nặng", "Nguy Kịch"] as const;
+
+    for (let i = 0; i < daysPassed; i++) {
+      // Xác suất nhiễm bệnh mỗi ngày (kháng càng cao tỉ lệ càng thấp, ví dụ kháng 50 -> 1% mỗi ngày)
+      const sicknessChance = Math.max(0.1, (100 - diseaseResistance) / 50);
+      if (Math.random() * 100 < sicknessChance) {
+        const randomDisease = DISEASE_TYPES[Math.floor(Math.random() * DISEASE_TYPES.length)];
+        const randomSeverity = DISEASE_SEVERITY[Math.floor(Math.random() * 2)]; // Thường là Nhẹ hoặc Nặng
+        
+        if (!next["Bệnh Tật"].find(d => d["Tên"] === randomDisease)) {
+          next["Bệnh Tật"].push({
+            "Tên": randomDisease,
+            "Mức Độ": randomSeverity,
+            "Ngày Còn Lại": Math.floor(Math.random() * 7) + 3 // 3-9 ngày
+          });
+          events.push({ kind: "time_passed", text: `⚠️ Bạn đã mắc bệnh: ${randomDisease} (Mức độ: ${randomSeverity})` });
+        }
+      }
+
+      // Xử lý hậu quả bệnh đang mắc
+      for (let j = next["Bệnh Tật"].length - 1; j >= 0; j--) {
+        const d = next["Bệnh Tật"][j];
+        d["Ngày Còn Lại"] -= 1;
+        
+        // Gây sát thương mỗi ngày
+        if (d["Mức Độ"] === "Nhẹ") {
+          next["Chỉ Số Sinh Tồn"]["Thể Lực"] = Math.max(0, next["Chỉ Số Sinh Tồn"]["Thể Lực"] - 5);
+        } else if (d["Mức Độ"] === "Nặng") {
+          next["Chỉ Số Sinh Tồn"]["HP"] = Math.max(0, next["Chỉ Số Sinh Tồn"]["HP"] - 5);
+          next["Chỉ Số Sinh Tồn"]["Thể Lực"] = Math.max(0, next["Chỉ Số Sinh Tồn"]["Thể Lực"] - 10);
+        } else if (d["Mức Độ"] === "Nguy Kịch") {
+          next["Chỉ Số Sinh Tồn"]["HP"] = Math.max(0, next["Chỉ Số Sinh Tồn"]["HP"] - 15);
+        }
+
+        // Tự khỏi khi hết ngày
+        if (d["Ngày Còn Lại"] <= 0) {
+          events.push({ kind: "time_passed", text: `✨ Bạn đã khỏi bệnh: ${d["Tên"]}` });
+          next["Bệnh Tật"].splice(j, 1);
+        }
+      }
+    }
   }
 
   // ---- 1.5. chốt sổ lãnh địa hàng tháng (30 ngày) ----

@@ -359,6 +359,8 @@ function buildCompanion(archetypeId: string, name: string | undefined, affinityO
       "Ngoại Giao": overrides?.nangLuc?.ngoaiGiao ?? arch.nangLuc.ngoaiGiao,
     },
     "Nét Tính Cách": overrides?.netTinhCach ? overrides.netTinhCach.split(",").map(s => s.trim()) : arch.netTinhCach,
+    "Ngân Khố": 2000,
+    "Túi Đồ": {},
   });
   return [npcName, npc];
 }
@@ -550,7 +552,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
     }
   }
 
-  info["Vàng"] = startingGold;
+  info["Ngân Khố"] = startingGold;
   
   if (d.hasCustomTerritory && d.customTerritoryName) {
     const lvl = d.customTerritoryLevel || 1;
@@ -610,7 +612,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
       "Mô Tả": origin.assets.lanhDia.moTa,
       "Dân Số": origin.assets.lanhDia.danSo,
       "Trung Thành": origin.assets.lanhDia.trungThanh,
-      "Tài Nguyên": { "Vàng": 0, "Lương Thực": origin.assets.luongThuc, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150 },
+      "Tài Nguyên": { "Ngân Khố": 0, "Lương Thực": origin.assets.luongThuc, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150 },
       "Khủng Hoảng": [],
       "Thuộc Vùng": regionId,
       "Ven Biển": false,
@@ -910,7 +912,35 @@ export function buildStateFromCanon(
   if (info["Tôn Giáo"] && PATRON_GODS[info["Tôn Giáo"]]) {
     info["Thần Bảo Hộ"] = PATRON_GODS[info["Tôn Giáo"]][0]?.name || "";
   }
-  info["Vàng"] = c.gold;
+  info["Ngân Khố"] = c.gold;
+  
+  if (c.startResources) {
+    info["Tài Nguyên Gia Tộc"] = { 
+      "Gỗ": c.startResources["Gỗ"] || 0,
+      "Quặng Sắt": c.startResources["Quặng Sắt"] || 0,
+      "Đá": c.startResources["Đá"] || 0,
+      "Lương Thực": c.startResources["Lương Thực"] || 0,
+      "Ngựa": c.startResources["Ngựa"] || 0,
+      "Thép Valyria": c.startResources["Thép Valyria"] || 0
+    };
+  } else {
+    // Nếu chưa có, gán mặc định để tránh lỗi undefined
+    info["Tài Nguyên Gia Tộc"] = {
+      "Gỗ": 0, "Quặng Sắt": 0, "Đá": 0, "Lương Thực": 0, "Ngựa": 0, "Thép Valyria": 0
+    };
+  }
+  
+  if (c.startDebts) {
+    for (const [creditor, debtInfo] of Object.entries(c.startDebts)) {
+      state["Các Khoản Nợ"][creditor] = {
+        "Nợ Gốc": debtInfo.amount,
+        "Lãi/Turn": debtInfo.interest,
+        "Turn Còn Lại": debtInfo.duration,
+        "Đang Quỵt": false
+      };
+    }
+  }
+
   // ---- tuổi tác ----
   info["Tuổi"] = canonAge;
   if (c.birthYear !== undefined) info["Năm Sinh"] = c.birthYear;
@@ -1108,7 +1138,7 @@ export function buildStateFromCanon(
           "Thu Nhập Bình Quân": 10 * factor,
           "Sự Kiện Đặc Biệt": [],
           "Tài Nguyên": { 
-              "Vàng": Math.floor(1000 * popMulti * rMod.gold), 
+              "Ngân Khố": Math.floor(1000 * popMulti * rMod.gold), 
               "Lương Thực": Math.floor(5000 * popMulti * rMod.food), 
               "Gỗ": Math.floor(1000 * popMulti * rMod.wood), 
               "Đá": Math.floor(1000 * popMulti * rMod.stone), 
@@ -1317,6 +1347,8 @@ export function buildStateFromCanon(
       "Loại Quan Hệ": ["Người Thân"],
       "Còn Sống": true,
       "Đánh Giá": relChar?.blurb || "Thành viên gia tộc.",
+      "Ngân Khố": relChar?.gold ?? 5000,
+      "Túi Đồ": {},
     };
   }
   
@@ -1332,6 +1364,8 @@ export function buildStateFromCanon(
         "Loại Quan Hệ": ["Đồng Minh", "Bằng Hữu"],
         "Còn Sống": true,
         "Đánh Giá": relChar?.blurb || "Đồng minh thân cận.",
+        "Ngân Khố": relChar?.gold ?? 5000,
+        "Túi Đồ": {},
       };
     }
   }
@@ -1348,6 +1382,8 @@ export function buildStateFromCanon(
         "Loại Quan Hệ": ["Kẻ Thù", "Đối Thủ"],
         "Còn Sống": true,
         "Đánh Giá": relChar?.blurb || "Kẻ thù không đội trời chung.",
+        "Ngân Khố": relChar?.gold ?? 5000,
+        "Túi Đồ": {},
       };
     }
   }

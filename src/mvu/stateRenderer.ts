@@ -99,7 +99,7 @@ export function renderStateForAI(state: StatData): string {
     `Nhân vật: ${info["Họ Tên"]}, ${info["Tuổi"]} tuổi (${info["Giai Đoạn Đời"]}), Nhà ${info["Nhà"]}. Cấp ${info["Cấp Độ"]} (EXP ${info["Kinh Nghiệm"]}). ` +
       `HP ${vitals["HP"]}/${derived["_HP Tối Đa"]}. Thể Lực ${vitals["Thể Lực"]}/${derived["_Thể Lực Tối Đa"]}.` +
       (vitals["Pháp Lực"] > 0 ? ` Pháp Lực ${vitals["Pháp Lực"]}.` : "") +
-      ` Vàng ${info["Vàng"].toLocaleString("vi-VN")}.`,
+      ` Vàng ${info["Ngân Khố"].toLocaleString("vi-VN")}.`,
   );
   lines.push(
     `Chỉ số: Sức Mạnh ${core["Sức Mạnh"]} · Nhanh Nhẹn ${core["Nhanh Nhẹn"]} · Thể Chất ${core["Thể Chất"]} · ` +

@@ -15,6 +15,7 @@ import { houseColor, ATTITUDE_HEAT } from "../../content/westeros/houseColors";
 import { type ResourceKey } from "../../content/westeros/buildings";
 import { estimateTerritoryYield } from "../../territory/construction";
 import { canManageDomain } from "../../character/roleplay";
+import { formatCurrencyShort } from "../../economy/currency";
 import { GlassButton } from "../components/GlassButton";
 import { useT } from "../../i18n";
 import {
@@ -25,7 +26,7 @@ import {
 type Tab = "overview" | "garrison" | "people";
 
 const RES_ICON: Record<ResourceKey, React.FC<{ size?: number; color?: string }>> = {
-  "Vàng": IconCoins, "Lương Thực": IconWheat, "Gỗ": IconTree, "Đá": IconMountain, "Quặng Sắt": IconMountain,
+  "Ngân Khố": IconCoins, "Lương Thực": IconWheat, "Gỗ": IconTree, "Đá": IconMountain, "Quặng Sắt": IconMountain,
 };
 
 function fmt(n: number): string {
@@ -99,7 +100,7 @@ export function TerritoryPanel() {
             <div className="mt-3 grid grid-cols-3 gap-2">
               <Gem icon={<IconPopulation size={15} />} label={t("terr.population")} value={fmt(holding["Dân Số"])} />
               <Gem icon={<IconUsers size={15} />} label={t("terr.loyalty")} value={`${holding["Trung Thành"]}%`} bar={holding["Trung Thành"]} />
-              <Gem icon={<IconCoins size={15} />} label={t("terr.treasury")} value={fmt(stat["Thông Tin Nhân Vật"]["Vàng"])} />
+              <Gem icon={<IconCoins size={15} />} label={t("terr.treasury")} value={formatCurrencyShort(stat["Thông Tin Nhân Vật"]["Ngân Khố"])} />
             </div>
           )}
 
@@ -229,7 +230,7 @@ function OverviewTab({ holding, regionName, besieged }: { holding: Holding; regi
       <Block title={t("terr.blockEconomy")}>
         <div className="mb-2 flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-muted)]"><IconCoins size={14} /> {t("terr.goldIncome")}</span>
-          <span className={`font-mono text-[13px] ${yld["Vàng"] >= 0 ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>{signed(yld["Vàng"])}/turn</span>
+          <span className={`font-mono text-[13px] ${yld["Ngân Khố"] >= 0 ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>{formatCurrencyShort(yld["Ngân Khố"])}/turn</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {resKeys.map((k) => {

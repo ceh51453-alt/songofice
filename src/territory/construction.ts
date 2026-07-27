@@ -12,6 +12,7 @@ import { registerTurnListener } from "../mvu/effects";
 import {
   BUILDING_CATALOG, buildingCost, buildingTurns, type BuildingType, type ResourceKey,
 } from "../content/westeros/buildings";
+import { EXCHANGE_RATES } from "../economy/currency";
 import { treasuryMultiplier } from "../strategy/court";
 import { clamp } from "../mvu/helpers";
 
@@ -21,7 +22,7 @@ export interface BuildResult {
   ops: PatchOp[];
 }
 
-const RES_KEYS: ResourceKey[] = ["Vàng", "Lương Thực", "Gỗ", "Đá", "Quặng Sắt"];
+const RES_KEYS: ResourceKey[] = ["Ngân Khố", "Lương Thực", "Gỗ", "Đá", "Quặng Sắt"];
 
 /** Có "Học Viện Nhỏ" đã xây xong → giảm thời gian xây (adminSpeedup). */
 function adminSpeedup(territory: StatData["Lãnh Địa"][string]): number {
@@ -60,14 +61,14 @@ export function startConstruction(
   const nextLevel = existing ? existing["Cấp Độ"] + 1 : 1;
 
   const cost = buildingCost(type, nextLevel);
-  const playerGold = state["Thông Tin Nhân Vật"]["Vàng"];
+  const playerGold = state["Thông Tin Nhân Vật"]["Ngân Khố"];
   const stock = territory["Tài Nguyên"];
 
   // kiểm tra đủ tài nguyên (Vàng ở ngân khố, còn lại ở kho vùng)
   const missing: string[] = [];
-  if ((cost["Vàng"] ?? 0) > playerGold) missing.push("Vàng");
+  if ((cost["Ngân Khố"] ?? 0) > playerGold) missing.push("Ngân Khố");
   for (const k of RES_KEYS) {
-    if (k === "Vàng") continue;
+    if (k === "Ngân Khố") continue;
     if ((cost[k] ?? 0) > (stock[k] ?? 0)) missing.push(k);
   }
   if (missing.length > 0) {
@@ -76,9 +77,9 @@ export function startConstruction(
 
   const turns = buildingTurns(type, nextLevel, adminSpeedup(territory));
   const ops: PatchOp[] = [];
-  if (cost["Vàng"]) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -cost["Vàng"] });
+  if (cost["Ngân Khố"]) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -cost["Ngân Khố"] });
   for (const k of RES_KEYS) {
-    if (k === "Vàng" || !cost[k]) continue;
+    if (k === "Ngân Khố" || !cost[k]) continue;
     ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Tài Nguyên.${k}`, value: -(cost[k] ?? 0) });
   }
   ops.push({
@@ -94,9 +95,9 @@ export function cancelConstruction(state: StatData, territoryId: string, buildin
   if (!b || !b["Đang Xây"]) return [];
   const cost = buildingCost(b["Loại"], b["Cấp Độ"]);
   const ops: PatchOp[] = [];
-  if (cost["Vàng"]) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: Math.round((cost["Vàng"] ?? 0) * 0.5) });
+  if (cost["Ngân Khố"]) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: Math.round((cost["Ngân Khố"] ?? 0) * 0.5) });
   for (const k of RES_KEYS) {
-    if (k === "Vàng" || !cost[k]) continue;
+    if (k === "Ngân Khố" || !cost[k]) continue;
     ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Tài Nguyên.${k}`, value: Math.round((cost[k] ?? 0) * 0.5) });
   }
   if (b["Cấp Độ"] > 1) {
@@ -111,12 +112,12 @@ export function cancelConstruction(state: StatData, territoryId: string, buildin
 /** Sản lượng nền mỗi turn theo địa hình + dân số (không cần công trình). */
 function baseProduction(territory: StatData["Lãnh Địa"][string]): Record<ResourceKey, number> {
   const pop = territory["Dân Số"];
-  const out: Record<ResourceKey, number> = { "Vàng": 0, "Lương Thực": Math.round(pop * 0.01), "Gỗ": 15, "Đá": 12, "Quặng Sắt": 6 };
+  const out: Record<ResourceKey, number> = { "Ngân Khố": 0, "Lương Thực": Math.round(pop * 0.01), "Gỗ": 15, "Đá": 12, "Quặng Sắt": 6 };
   const terrain: Terrain | undefined = territory["Địa Hình"];
   if (terrain === "Rừng Rậm") out["Gỗ"] += 20;
   else if (terrain === "Đồi Núi") { out["Đá"] += 15; out["Quặng Sắt"] += 10; }
   else if (terrain === "Đồng Bằng") out["Lương Thực"] += Math.round(pop * 0.01);
-  out["Vàng"] += Math.round(pop * 0.005); // thuế cơ bản → ngân khố
+  out["Ngân Khố"] += Math.round(pop * 0.005) * EXCHANGE_RATES.GOLD_TO_COPPER; // thuế cơ bản quy ra Đồng Đỏ
   return out;
 }
 
@@ -161,7 +162,7 @@ export function tickConstruction(state: StatData): void {
     stock["Gỗ"] += base["Gỗ"];
     stock["Đá"] += base["Đá"];
     stock["Quặng Sắt"] += base["Quặng Sắt"];
-    goldIncome += base["Vàng"];
+    goldIncome += base["Ngân Khố"];
 
     // 3) thu từ công trình đã xây xong (×Cấp Độ)
     for (const b of Object.values(territory["Công Trình"])) {
@@ -170,8 +171,8 @@ export function tickConstruction(state: StatData): void {
       if (def.yield) {
         for (const [k, v] of Object.entries(def.yield)) {
           const amount = (v ?? 0) * b["Cấp Độ"];
-          if (k === "Vàng") goldIncome += amount;
-          else stock[k as Exclude<ResourceKey, "Vàng">] += amount;
+          if (k === "Ngân Khố") goldIncome += amount;
+          else stock[k as Exclude<ResourceKey, "Ngân Khố">] += amount;
         }
       }
       if (def.flags?.loyaltyPerTurn) loyaltyGain += def.flags.loyaltyPerTurn * b["Cấp Độ"];
@@ -181,7 +182,7 @@ export function tickConstruction(state: StatData): void {
     // (mở rộng đầy đủ ở M8; M7 giữ khung)
 
     territory["Trung Thành"] = clamp(territory["Trung Thành"] + loyaltyGain, 0, 100);
-    state["Thông Tin Nhân Vật"]["Vàng"] = Math.max(0, state["Thông Tin Nhân Vật"]["Vàng"] + Math.round(goldIncome * coinMult));
+    state["Thông Tin Nhân Vật"]["Ngân Khố"] = Math.max(0, state["Thông Tin Nhân Vật"]["Ngân Khố"] + Math.round(goldIncome * coinMult));
   }
 }
 

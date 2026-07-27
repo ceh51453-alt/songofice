@@ -97,6 +97,10 @@ export interface CanonCharacter {
   holdingsLevel?: Record<string, number>;
   /** Thu nhập Vàng cơ bản mỗi turn */
   baseIncome?: number;
+  /** Tài nguyên gia tộc ban đầu (Gỗ, Quặng Sắt, Lương Thực, Ngựa, Thép Valyria) */
+  startResources?: Record<string, number>;
+  /** Các khoản nợ ban đầu (VD: Nợ Iron Bank) */
+  startDebts?: Record<string, { amount: number; interest: number; duration: number }>;
 }
 
 export interface EraData {

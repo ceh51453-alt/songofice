@@ -62,9 +62,9 @@ export function recruitUnit(
   if (count > cap) return { ok: false, error: `Vượt sức tuyển/turn (tối đa ${cap})`, ops: [] };
 
   const meta = troopMeta(troopType);
-  const goldCost = Math.round((meta.costPer100["Vàng"] * count) / 100);
+  const goldCost = Math.round((meta.costPer100["Ngân Khố"] * count) / 100);
   const foodCost = Math.round((meta.costPer100["Lương Thực"] * count) / 100);
-  if (goldCost > state["Thông Tin Nhân Vật"]["Vàng"]) return { ok: false, error: "Thiếu Vàng", ops: [] };
+  if (goldCost > state["Thông Tin Nhân Vật"]["Ngân Khố"]) return { ok: false, error: "Thiếu Vàng", ops: [] };
   if (foodCost > terr["Tài Nguyên"]["Lương Thực"]) return { ok: false, error: "Thiếu Lương Thực", ops: [] };
   if (count > (terr["Dân Số Chi Tiết"]["Nông Dân"] || 0)) return { ok: false, error: "Thiếu Nông Dân", ops: [] };
 
@@ -185,9 +185,9 @@ export function tickArmy(state: StatData): void {
 
   // trả lương Lính Đánh Thuê; không đủ Vàng → roll đổi phe (7.7)
   if (mercenaries.length > 0) {
-    const gold = state["Thông Tin Nhân Vật"]["Vàng"];
+    const gold = state["Thông Tin Nhân Vật"]["Ngân Khố"];
     if (gold >= unpaidWages) {
-      state["Thông Tin Nhân Vật"]["Vàng"] = gold - unpaidWages;
+      state["Thông Tin Nhân Vật"]["Ngân Khố"] = gold - unpaidWages;
     } else {
       for (const name of mercenaries) {
         const unit = state["Biên Chế Quân Sự"][name];

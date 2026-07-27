@@ -4,12 +4,13 @@
 // thêm loại công trình = thêm 1 entry (đã có enum trong schema BUILDING_TYPES),
 // KHÔNG đổi cấu trúc. Engine (construction.ts) chỉ đọc bảng này.
 // ============================================================================
-import type { BUILDING_TYPES } from "../../mvu/schema";
+import type { BUILDING_TYPES } from '../../mvu/schema';
+import { EXCHANGE_RATES } from '../../economy/currency';
 
 export type BuildingType = (typeof BUILDING_TYPES)[number];
 
 /** Tài nguyên tiêu hao/sản xuất (Vàng đi vào ngân khố thống nhất — 15 note). */
-export type ResourceKey = "Vàng" | "Lương Thực" | "Gỗ" | "Đá" | "Quặng Sắt";
+export type ResourceKey = "Ngân Khố" | "Lương Thực" | "Gỗ" | "Đá" | "Quặng Sắt";
 
 export interface BuildingDef {
   type: BuildingType;
@@ -38,49 +39,49 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
   "Lâu Đài": {
     type: "Lâu Đài", desc: "Toà thành chính — phòng thủ và giới hạn quân đồn trú.",
     effectSummary: "+Phòng thủ, +giới hạn quân đồn trú",
-    cost: { "Vàng": 800, "Gỗ": 200, "Đá": 400, "Quặng Sắt": 100 }, buildTurns: 8,
+    cost: { "Ngân Khố": 800 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 200, "Đá": 400, "Quặng Sắt": 100 }, buildTurns: 8,
     flags: { defense: 20 },
   },
   "Nông Trại": {
     type: "Nông Trại", desc: "Đồng ruộng nuôi dân và quân.",
     effectSummary: "+200 Lương Thực/turn",
-    cost: { "Vàng": 150, "Gỗ": 80, "Đá": 20 }, buildTurns: 3,
+    cost: { "Ngân Khố": 150 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 80, "Đá": 20 }, buildTurns: 3,
     yield: { "Lương Thực": 200 },
   },
   "Chợ": {
     type: "Chợ", desc: "Trung tâm mua bán — dòng vàng đều đặn.",
     effectSummary: "+120 Vàng/turn",
-    cost: { "Vàng": 300, "Gỗ": 60, "Đá": 40 }, buildTurns: 4,
-    yield: { "Vàng": 120 },
+    cost: { "Ngân Khố": 300 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 60, "Đá": 40 }, buildTurns: 4,
+    yield: { "Ngân Khố": 120 * EXCHANGE_RATES.GOLD_TO_COPPER },
   },
   "Doanh Trại": {
     type: "Doanh Trại", desc: "Nơi tuyển mộ và huấn luyện binh sĩ (mục 11).",
     effectSummary: "Mở tuyển quân, +tốc độ tuyển",
-    cost: { "Vàng": 400, "Gỗ": 150, "Đá": 100, "Quặng Sắt": 80 }, buildTurns: 5,
+    cost: { "Ngân Khố": 400 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 150, "Đá": 100, "Quặng Sắt": 80 }, buildTurns: 5,
     flags: { recruit: true },
   },
   "Tường Thành": {
     type: "Tường Thành", desc: "Luỹ đá kiên cố — cực mạnh khi bị vây (mục 12).",
     effectSummary: "+Phòng thủ khi bị vây",
-    cost: { "Vàng": 500, "Đá": 600, "Gỗ": 50 }, buildTurns: 7,
+    cost: { "Ngân Khố": 500 * EXCHANGE_RATES.GOLD_TO_COPPER, "Đá": 600, "Gỗ": 50 }, buildTurns: 7,
     flags: { defense: 15 },
   },
   "Bến Cảng": {
     type: "Bến Cảng", desc: "Cảng biển — hạm đội và giao thương (chỉ lãnh địa ven biển).",
     effectSummary: "+Hạm đội, +80 Vàng/turn",
-    cost: { "Vàng": 350, "Gỗ": 250, "Đá": 80 }, buildTurns: 5,
-    yield: { "Vàng": 80 }, requiresCoastal: true, flags: { port: true },
+    cost: { "Ngân Khố": 350 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 250, "Đá": 80 }, buildTurns: 5,
+    yield: { "Ngân Khố": 80 * EXCHANGE_RATES.GOLD_TO_COPPER }, requiresCoastal: true, flags: { port: true },
   },
   "Sept/Rừng Thần": {
     type: "Sept/Rừng Thần", desc: "Nơi thờ phụng — an lòng dân theo tôn giáo vùng.",
     effectSummary: "+2 Lòng Dân/turn",
-    cost: { "Vàng": 250, "Gỗ": 100, "Đá": 150 }, buildTurns: 4,
+    cost: { "Ngân Khố": 250 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 100, "Đá": 150 }, buildTurns: 4,
     flags: { loyaltyPerTurn: 2 },
   },
   "Học Viện Nhỏ": {
     type: "Học Viện Nhỏ", desc: "Học viện quản lý — giảm thời gian xây, +tình báo.",
     effectSummary: "−20% thời gian xây, +hiệu quả quản lý",
-    cost: { "Vàng": 700, "Gỗ": 150, "Đá": 200, "Quặng Sắt": 50 }, buildTurns: 8,
+    cost: { "Ngân Khố": 700 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 150, "Đá": 200, "Quặng Sắt": 50 }, buildTurns: 8,
     flags: { adminSpeedup: 0.2 },
   },
 };

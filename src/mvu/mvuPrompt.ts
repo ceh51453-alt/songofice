@@ -118,9 +118,9 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
 
 ## THỜI GIAN TRÔI
 
-Nếu trong lời kể thời gian trôi qua (nghỉ ngơi, hành trình, "ba ngày sau", "một tháng trôi qua"),
-BÁO cho cỗ máy bằng cách cập nhật ngày:
-   { "op": "delta", "path": "stat_data.Thế Giới.Ngày", "value": 3 }
+MỖI LƯỢT CHƠI MẶC ĐỊNH LÀ 30 NGÀY TRÔI QUA (1 Tháng).
+Ngươi BẮT BUỘC phải cộng 30 vào giá trị Ngày sau mỗi lượt kể:
+   { "op": "delta", "path": "stat_data.Thế Giới.Ngày", "value": 30 }
 Cỗ máy sẽ tự động tick các tiến trình dài (xây dựng, hành quân, kinh tế, mùa màng) theo số ngày
 này. ĐỪNG tự cập nhật các tiến trình đó — chỉ báo thời gian, cỗ máy lo phần còn lại.
 

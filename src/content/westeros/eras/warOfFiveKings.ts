@@ -7,7 +7,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 242, age: 56, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 18, "Tinh Tường": 17, "Uy Tín": 18 },
     talentIds: ["schemer", "commander-instinct"],
     skills: { "command": 9, "cunning": 8, "commerce": 8, "intimidation": 9 },
-    equipment: [], items: [{ ten: "Vàng Lannister", soLuong: 50000, moTa: "Sự giàu có vô tận" }], gold: 100000, startingHookIds: [], startArmies: [
+    equipment: [], items: [{ ten: "Vàng Lannister", soLuong: 50000, moTa: "Sự giàu có vô tận" }], gold: 100000,
+    startResources: {
+      "Gỗ": 250,
+      "Quặng Sắt": 750,
+      "Đá": 750,
+      "Lương Thực": 3000,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Bộ Binh Casterly Rock", type: "Bộ Binh", size: 21000, quality: "Tinh Nhuệ" },
           { name: "Kỵ Sĩ Vùng Đồi", type: "Kỵ Binh", size: 7000, quality: "Tinh Nhuệ" },
           { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 7000, quality: "Tinh Nhuệ" }
@@ -31,7 +39,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     talentIds: ["born-swordsman", "duelist", "highborn-charm"],
     skills: { "sword-shield": 10, "war-riding": 8, "command": 6, "brawling": 6 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép mạ vàng", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 6 }, moTa: "Tuyệt phẩm kiếm thuật" }, { slot: "Giáp Thân", ten: "Giáp Trắng Vệ Vương", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Áo giáp Vệ Vương" }],
-    items: [], gold: 1000, startingHookIds: [], startArmies: [
+    items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 50,
+      "Quặng Sắt": 150,
+      "Đá": 150,
+      "Lương Thực": 600,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Bộ Binh Casterly Rock", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
           { name: "Đội Kỵ Binh Hạng Nặng Lannister", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
           { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 2000, quality: "Thành Thạo" }
@@ -55,7 +71,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 289, age: 9, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 14, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 15, "Uy Tín": 9 },
     talentIds: ["keen-eye"],
     skills: { "brawling": 3, "stealth": 5, "hunting": 3 },
-    equipment: [{ slot: "Vũ Khí Chính", ten: "Kim", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 3 }, moTa: "Thanh kiếm nhỏ do Jon Snow tặng" }], items: [], gold: 10, startingHookIds: [],
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Kim", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 3 }, moTa: "Thanh kiếm nhỏ do Jon Snow tặng" }], items: [], gold: 10,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "eddard-stark",
     mother: "catelyn-tully",
     siblings: ["robb-stark", "sansa-stark", "bran-stark", "rickon-stark", "jon-snow"],
@@ -78,7 +102,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 286, age: 12, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 11, "Tinh Tường": 13, "Uy Tín": 16 },
     talentIds: ["highborn-charm"],
     skills: { "court-etiquette": 6, "persuasion": 4, "lore": 4 },
-    equipment: [], items: [], gold: 100, startingHookIds: [],
+    equipment: [], items: [], gold: 100,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "eddard-stark",
     mother: "catelyn-tully",
     spouse: "tyrion-lannister",
@@ -101,7 +133,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 290, age: 8, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 3, "Thể Chất": 6, "Trí Tuệ": 14, "Tinh Tường": 17, "Uy Tín": 10 },
     talentIds: ["warg"],
     skills: { "lore": 5, "animal-handling": 6 },
-    equipment: [], items: [], gold: 50, startingHookIds: [],
+    equipment: [], items: [], gold: 50,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "eddard-stark",
     mother: "catelyn-tully",
     siblings: ["robb-stark", "sansa-stark", "arya-stark", "rickon-stark", "jon-snow"],
@@ -124,7 +164,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 279, age: 19, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 14, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 13, "Uy Tín": 11 },
     talentIds: ["hot-tempered"],
     skills: { "archery": 8, "sailing": 6, "sword-shield": 5 },
-    equipment: [{ slot: "Vũ Khí Chính", ten: "Cung Dài Đảo Sắt", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Xa": 5 }, moTa: "Bắn xa rất tốt" }], items: [], gold: 500, startingHookIds: [],
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Cung Dài Đảo Sắt", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Xa": 5 }, moTa: "Bắn xa rất tốt" }], items: [], gold: 500,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "balon-greyjoy",
     mother: "alannys-harlaw",
     siblings: ["asha-greyjoy"],
@@ -150,7 +198,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 275, age: 23, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 13, "Uy Tín": 14 },
     talentIds: ["warrior-blood", "beloved"],
     skills: { "sailing": 8, "axe-mace": 7, "command": 7, "intimidation": 6 },
-    equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu chiến", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Rìu của Kraken" }], items: [], gold: 800, startingHookIds: [], startArmies: [
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu chiến", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Rìu của Kraken" }], items: [], gold: 800,
+    startResources: {
+      "Gỗ": 150,
+      "Quặng Sắt": 125,
+      "Đá": 150,
+      "Lương Thực": 200,
+      "Ngựa": 2,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 1200, quality: "Thành Thạo" },
           { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 300, quality: "Thành Thạo" }
         ],
@@ -175,7 +231,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 15, "Thể Chất": 15, "Trí Tuệ": 16, "Tinh Tường": 17, "Uy Tín": 16 },
     talentIds: ["schemer", "warrior-blood"],
     skills: { "sailing": 10, "cunning": 9, "command": 8, "intimidation": 9 },
-    equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép Valyria", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 8 }, dacTinh: ["valyrian"], moTa: "Tước đoạt từ phương đông" }], items: [], gold: 10000, startingHookIds: [], startArmies: [
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép Valyria", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 8 }, dacTinh: ["valyrian"], moTa: "Tước đoạt từ phương đông" }], items: [], gold: 10000,
+    startResources: {
+      "Gỗ": 1500,
+      "Quặng Sắt": 1250,
+      "Đá": 1500,
+      "Lương Thực": 2000,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
           { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 750, quality: "Tinh Nhuệ" }
         ],
@@ -200,7 +264,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 283, age: 15, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 15, "Tinh Tường": 15, "Uy Tín": 19 },
     talentIds: ["highborn-charm", "silver-tongue", "beloved"],
     skills: { "persuasion": 9, "court-etiquette": 9, "cunning": 7 },
-    equipment: [], items: [], gold: 5000, startingHookIds: [],
+    equipment: [], items: [], gold: 5000,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 5,
+      "Đá": 20,
+      "Lương Thực": 400,
+      "Ngựa": 6,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "mace-tyrell",
     mother: "alerie-hightower",
     spouse: "renly-baratheon",
@@ -224,7 +296,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 228, age: 70, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 5, "Thể Chất": 6, "Trí Tuệ": 18, "Tinh Tường": 19, "Uy Tín": 17 },
     talentIds: ["schemer", "silver-tongue"],
     skills: { "cunning": 10, "court-etiquette": 9, "persuasion": 8, "gather-rumor": 9 },
-    equipment: [], items: [{ ten: "Mạng lưới gián điệp", soLuong: 1, moTa: "Nhà Tyrell biết tất cả" }], gold: 20000, startingHookIds: [],
+    equipment: [], items: [{ ten: "Mạng lưới gián điệp", soLuong: 1, moTa: "Nhà Tyrell biết tất cả" }], gold: 20000,
+    startResources: {
+      "Gỗ": 750,
+      "Quặng Sắt": 125,
+      "Đá": 500,
+      "Lương Thực": 10000,
+      "Ngựa": 150,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     spouse: "luthor-tyrell",
     children: ["mace-tyrell"],
     allies: ["margaery-tyrell"],
@@ -248,7 +328,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 255, age: 43, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 13 },
     talentIds: ["schemer"],
     skills: { "cunning": 8, "command": 7, "intimidation": 9, "sword-shield": 6 },
-    equipment: [], items: [], gold: 15000, startingHookIds: [], startArmies: [
+    equipment: [], items: [], gold: 15000,
+    startResources: {
+      "Gỗ": 600,
+      "Quặng Sắt": 120,
+      "Đá": 240,
+      "Lương Thực": 800,
+      "Ngựa": 40,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Bộ Binh Dreadfort", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
           { name: "Đội Kỵ Sĩ Bóng Tối", type: "Kỵ Binh", size: 1600, quality: "Thành Thạo" },
           { name: "Cung Thủ Độc Dreadfort", type: "Cung Thủ", size: 1600, quality: "Thành Thạo" }
@@ -271,7 +359,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 276, age: 22, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 13, "Thể Chất": 15, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 10 },
     talentIds: ["hot-tempered", "warrior-blood"],
     skills: { "intimidation": 9, "brawling": 8, "hunting": 8, "sword-shield": 6 },
-    equipment: [{ slot: "Vũ Khí Chính", ten: "Cung săn", phamChat: "Thường", thuocTinh: { "Sát Thương Xa": 4 }, moTa: "Dùng để săn người" }], items: [], gold: 200, startingHookIds: [], startArmies: [
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Cung săn", phamChat: "Thường", thuocTinh: { "Sát Thương Xa": 4 }, moTa: "Dùng để săn người" }], items: [], gold: 200,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Bộ Binh Dreadfort", type: "Bộ Binh", size: 350, quality: "Thành Thạo" },
           { name: "Cung Thủ Độc Dreadfort", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
         ],
@@ -293,7 +389,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 280, age: 18, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 12, "Thể Chất": 17, "Trí Tuệ": 10, "Tinh Tường": 11, "Uy Tín": 11 },
     talentIds: ["giant-frame", "born-swordsman"],
     skills: { "sword-shield": 9, "war-riding": 6, "brawling": 7 },
-    equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép thường", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Một thanh kiếm xuất sắc" }, { slot: "Giáp Thân", ten: "Giáp xanh lam", phamChat: "Tinh Xảo", thuocTinh: { "Phòng Thủ": 4 }, moTa: "Giáp đặc trưng" }], items: [], gold: 200, startingHookIds: [],
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép thường", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Một thanh kiếm xuất sắc" }, { slot: "Giáp Thân", ten: "Giáp xanh lam", phamChat: "Tinh Xảo", thuocTinh: { "Phòng Thủ": 4 }, moTa: "Giáp đặc trưng" }], items: [], gold: 200,
+    startResources: {
+      "Gỗ": 200,
+      "Quặng Sắt": 60,
+      "Đá": 150,
+      "Lương Thực": 550,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "selwyn-tarth",
     allies: ["catelyn-tully", "jaime-lannister", "renly-baratheon"],
     mother: "",
@@ -316,7 +420,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 13, "Thể Chất": 13, "Trí Tuệ": 13, "Tinh Tường": 15, "Uy Tín": 15 },
     talentIds: ["beloved"],
     skills: { "sailing": 9, "commerce": 7, "persuasion": 8, "cunning": 6 },
-    equipment: [], items: [{ ten: "Đốt ngón tay may mắn", soLuong: 1, moTa: "Bị Stannis chặt" }], gold: 500, startingHookIds: [], startArmies: [
+    equipment: [], items: [{ ten: "Đốt ngón tay may mắn", soLuong: 1, moTa: "Bị Stannis chặt" }], gold: 500,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 50,
+      "Đá": 100,
+      "Lương Thực": 500,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Thủy Thủ Hành Tây", type: "Bộ Binh", size: 70, quality: "Thành Thạo" },
           { name: "Cung Thủ Hành Tây", type: "Cung Thủ", size: 30, quality: "Thành Thạo" }
         ],
@@ -338,7 +450,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 256, age: 42, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 12, "Tinh Tường": 11, "Uy Tín": 14 },
     talentIds: ["warrior-blood", "hot-tempered"],
     skills: { "axe-mace": 6, "command": 7, "sailing": 7 },
-    equipment: [], items: [], gold: 3000, startingHookIds: [], startArmies: [
+    equipment: [], items: [], gold: 3000,
+    startResources: {
+      "Gỗ": 1500,
+      "Quặng Sắt": 1250,
+      "Đá": 1500,
+      "Lương Thực": 2000,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Lính Rìu Pyke", type: "Bộ Binh", size: 9000, quality: "Thành Thạo" },
           { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 2250, quality: "Thành Thạo" }
         ],
@@ -363,7 +483,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 264, age: 34, coreStats: { "Sức Mạnh": 7, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 16 },
     talentIds: ["highborn-charm"],
     skills: { "persuasion": 8, "court-etiquette": 7, "lore": 6 },
-    equipment: [], items: [], gold: 1000, startingHookIds: [],
+    equipment: [], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 8,
+      "Đá": 20,
+      "Lương Thực": 200,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "hoster-tully", mother: "minisa-whent",
     spouse: "eddard-stark",
     children: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "rickon-stark"],
@@ -384,7 +512,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Con út nhà Stark, hoang dã và không kiểm soát.",
     birthYear: 295, age: 3, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 6, "Thể Chất": 5, "Trí Tuệ": 5, "Tinh Tường": 8, "Uy Tín": 6 },
     talentIds: ["warg"], skills: { "animal-handling": 4 },
-    equipment: [], items: [], gold: 10, startingHookIds: [],
+    equipment: [], items: [], gold: 10,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "eddard-stark", mother: "catelyn-tully",
     siblings: ["robb-stark", "sansa-stark", "arya-stark", "bran-stark", "jon-snow"],
     allies: ["osha"],
@@ -405,7 +541,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Hoang tưởng và ích kỷ, cô giữ chặt con trai ở The Eyrie, từ chối tham gia cuộc chiến.",
     birthYear: 266, age: 32, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 7, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 11 },
     talentIds: ["master-liar"], skills: { "deception": 7, "persuasion": 6 },
-    equipment: [], items: [], gold: 5000, startingHookIds: [], startArmies: [
+    equipment: [], items: [], gold: 5000,
+    startResources: {
+      "Gỗ": 750,
+      "Quặng Sắt": 200,
+      "Đá": 500,
+      "Lương Thực": 5000,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Vệ Binh Sông Xanh", type: "Bộ Binh", size: 18000, quality: "Thành Thạo" },
           { name: "Kỵ Sĩ Sông Nhánh", type: "Kỵ Binh", size: 6000, quality: "Thành Thạo" },
           { name: "Đội Bắn Nỏ Nước", type: "Cung Thủ", size: 6000, quality: "Thành Thạo" }
@@ -426,7 +570,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Dũng cảm nhưng bốc đồng, muốn tự chứng tỏ khả năng lãnh đạo nhưng hay mắc sai lầm.",
     birthYear: 267, age: 31, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 14 },
     talentIds: ["beloved"], skills: { "command": 6, "sword-shield": 6, "war-riding": 6 },
-    equipment: [], items: [], gold: 2000, startingHookIds: [], startArmies: [
+    equipment: [], items: [], gold: 2000,
+    startResources: {
+      "Gỗ": 750,
+      "Quặng Sắt": 200,
+      "Đá": 500,
+      "Lương Thực": 5000,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Lính Giáo Vùng Trident", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
           { name: "Đội Kỵ Binh Riverrun", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
           { name: "Cung Thủ Vùng Sông", type: "Cung Thủ", size: 2000, quality: "Thành Thạo" }
@@ -447,7 +599,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Chiến binh huyền thoại của Riverrun, tư lệnh tiền phương cho Robb Stark.",
     birthYear: 242, age: 56, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 13, "Thể Chất": 15, "Trí Tuệ": 14, "Tinh Tường": 16, "Uy Tín": 15 },
     talentIds: ["commander-instinct", "warrior-blood"], skills: { "command": 9, "sword-shield": 8, "war-riding": 8 },
-    equipment: [], items: [], gold: 500, startingHookIds: [], startArmies: [
+    equipment: [], items: [], gold: 500,
+    startResources: {
+      "Gỗ": 150,
+      "Quặng Sắt": 40,
+      "Đá": 100,
+      "Lương Thực": 1000,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Vệ Binh Sông Xanh", type: "Bộ Binh", size: 350, quality: "Tinh Nhuệ" },
           { name: "Đội Bắn Nỏ Nước", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
         ],
@@ -468,7 +628,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Lãnh chúa mập mạp của Highgarden, tham danh vọng nhưng để mẹ Olenna quyết định thực sự.",
     birthYear: 256, age: 42, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 8, "Thể Chất": 13, "Trí Tuệ": 11, "Tinh Tường": 10, "Uy Tín": 14 },
     talentIds: ["highborn-charm"], skills: { "command": 5, "court-etiquette": 7 },
-    equipment: [], items: [], gold: 80000, startingHookIds: [], startArmies: [
+    equipment: [], items: [], gold: 80000,
+    startResources: {
+      "Gỗ": 750,
+      "Quặng Sắt": 125,
+      "Đá": 500,
+      "Lương Thực": 10000,
+      "Ngựa": 150,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Vệ Binh Mùa Hè", type: "Bộ Binh", size: 42000, quality: "Thành Thạo" },
           { name: "Kỵ Binh Hạng Nặng Xứ Reach", type: "Kỵ Binh", size: 14000, quality: "Thành Thạo" },
           { name: "Cung Thủ Highgarden", type: "Cung Thủ", size: 14000, quality: "Thành Thạo" }
@@ -489,7 +657,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Hiệp sĩ hào hoa nhất Bảy Vương Quốc, người tình bí mật của Renly Baratheon.",
     birthYear: 282, age: 16, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 16, "Thể Chất": 14, "Trí Tuệ": 11, "Tinh Tường": 12, "Uy Tín": 17 },
     talentIds: ["born-swordsman", "duelist", "beloved"], skills: { "sword-shield": 8, "war-riding": 9, "court-etiquette": 7 },
-    equipment: [{ slot: "Giáp Thân", ten: "Giáp Hoa", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Áo giáp nạm ngọc" }], items: [], gold: 2000, startingHookIds: [],
+    equipment: [{ slot: "Giáp Thân", ten: "Giáp Hoa", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Áo giáp nạm ngọc" }], items: [], gold: 2000,
+    startResources: {
+      "Gỗ": 150,
+      "Quặng Sắt": 25,
+      "Đá": 100,
+      "Lương Thực": 2000,
+      "Ngựa": 30,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "mace-tyrell", mother: "alerie-hightower",
     siblings: ["willas-tyrell", "garlan-tyrell", "margaery-tyrell"],
     allies: ["renly-baratheon", "margaery-tyrell"],
@@ -510,7 +686,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Chiến binh tàn bạo trên biển, không có trí thông minh chính trị nhưng trung thành và vô cùng đáng sợ.",
     birthYear: 268, age: 30, coreStats: { "Sức Mạnh": 17, "Nhanh Nhẹn": 12, "Thể Chất": 16, "Trí Tuệ": 8, "Tinh Tường": 10, "Uy Tín": 12 },
     talentIds: ["warrior-blood", "giant-frame"], skills: { "sailing": 9, "axe-mace": 9, "command": 7 },
-    equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu lớn của Victarion", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Vũ khí tử thần trên tàu chiến" }], items: [], gold: 1000, startingHookIds: [], startArmies: [
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu lớn của Victarion", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Vũ khí tử thần trên tàu chiến" }], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 4800, quality: "Tinh Nhuệ" },
           { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 1200, quality: "Tinh Nhuệ" }
         ],
@@ -534,7 +718,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Tu sĩ cuồng tín của Thần Chết Chìm, uống nước biển và ban phước bằng cách dìm nước.",
     birthYear: 269, age: 29, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 12, "Thể Chất": 14, "Trí Tuệ": 11, "Tinh Tường": 15, "Uy Tín": 14 },
     talentIds: ["beloved"], skills: { "lore": 6, "persuasion": 8, "sailing": 6 },
-    equipment: [], items: [], gold: 50, startingHookIds: [],
+    equipment: [], items: [], gold: 50,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "quellon-greyjoy",
     siblings: ["balon-greyjoy", "euron-greyjoy", "victarion-greyjoy"],
     allies: ["victarion-greyjoy"],
@@ -559,7 +751,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Đáng tin cậy, vững vàng và luôn đứng trong cái bóng của người anh trai vĩ đại Tywin Lannister.",
     birthYear: 244, age: 54, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 9, "Thể Chất": 11, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 14 },
     talentIds: ["learned", "commander-instinct"], skills: { "command": 7, "commerce": 6, "court-etiquette": 7 },
-    equipment: [], items: [], gold: 10000, startingHookIds: [], startArmies: [
+    equipment: [], items: [], gold: 10000,
+    startResources: {
+      "Gỗ": 50,
+      "Quặng Sắt": 150,
+      "Đá": 150,
+      "Lương Thực": 600,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [], startArmies: [
           { name: "Bộ Binh Casterly Rock", type: "Bộ Binh", size: 3000, quality: "Thành Thạo" },
           { name: "Đội Kỵ Binh Hạng Nặng Lannister", type: "Kỵ Binh", size: 1000, quality: "Thành Thạo" },
           { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 1000, quality: "Thành Thạo" }
@@ -580,7 +780,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Cháu trai của Tywin, người rót rượu cho Vua Robert, giờ đã thành hiệp sĩ và là người tình bí mật của Cersei.",
     birthYear: 282, age: 16, coreStats: { "Sức Mạnh": 9, "Nhanh Nhẹn": 10, "Thể Chất": 9, "Trí Tuệ": 8, "Tinh Tường": 9, "Uy Tín": 12 },
     talentIds: ["highborn-charm"], skills: { "sword-shield": 4, "war-riding": 4, "court-etiquette": 5 },
-    equipment: [{ slot: "Giáp Thân", ten: "Giáp Lannister", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 4 }, moTa: "Áo giáp đắt tiền" }], items: [], gold: 1000, startingHookIds: [],
+    equipment: [{ slot: "Giáp Thân", ten: "Giáp Lannister", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 4 }, moTa: "Áo giáp đắt tiền" }], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 50,
+      "Quặng Sắt": 150,
+      "Đá": 150,
+      "Lương Thực": 600,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "kevan-lannister", mother: "dorna-swyft",
     siblings: ["willem-lannister", "martyn-lannister", "janei-lannister"],
     allies: ["cersei-lannister", "tywin-lannister"],
@@ -601,7 +809,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Lạnh nhạt và sùng đạo, Selyse đã từ bỏ Thất Diện Thần để theo Thần Ánh Sáng của Melisandre.",
     birthYear: 265, age: 33, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 6, "Thể Chất": 5, "Trí Tuệ": 11, "Tinh Tường": 9, "Uy Tín": 8 },
     talentIds: [], skills: { "court-etiquette": 5, "lore": 6 },
-    equipment: [], items: [], gold: 1000, startingHookIds: [],
+    equipment: [], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 40,
+      "Quặng Sắt": 12,
+      "Đá": 30,
+      "Lương Thực": 110,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     spouse: "stannis-baratheon",
     children: ["shireen-baratheon"],
     allies: ["melisandre"],
@@ -626,7 +842,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Cô con gái duy nhất của Stannis, khuôn mặt bị sẹo do bệnh Vảy Xám, nhưng rất thông minh và tốt bụng.",
     birthYear: 289, age: 9, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 4, "Thể Chất": 4, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 9 },
     talentIds: ["learned"], skills: { "lore": 6, "languages": 4 },
-    equipment: [], items: [{ ten: "Sách truyện cổ", soLuong: 5, moTa: "Shireen rất thích đọc sách" }], gold: 50, startingHookIds: [],
+    equipment: [], items: [{ ten: "Sách truyện cổ", soLuong: 5, moTa: "Shireen rất thích đọc sách" }], gold: 50,
+    startResources: {
+      "Gỗ": 40,
+      "Quặng Sắt": 12,
+      "Đá": 30,
+      "Lương Thực": 110,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "stannis-baratheon", mother: "selyse-florent",
     allies: ["davos-seaworth", "stannis-baratheon"],
     spouse: "",
@@ -650,7 +874,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Bóng ma từ Asshai, nữ tư tế của Thần Ánh Sáng. Xinh đẹp, nguy hiểm và mang theo phép thuật bóng tối.",
     birthYear: 0, age: 400, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 14, "Trí Tuệ": 17, "Tinh Tường": 18, "Uy Tín": 19 },
     talentIds: ["master-liar", "schemer"], skills: { "persuasion": 9, "lore": 10, "deception": 9, "intimidation": 7 },
-    equipment: [{ slot: "Vũ Khí Chính", ten: "Hồng ngọc cổ", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, dacTinh: ["phép thuật"], moTa: "Viên đá phát sáng trên cổ" }], items: [], gold: 1000, startingHookIds: [],
+    equipment: [{ slot: "Vũ Khí Chính", ten: "Hồng ngọc cổ", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, dacTinh: ["phép thuật"], moTa: "Viên đá phát sáng trên cổ" }], items: [], gold: 1000,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     allies: ["stannis-baratheon"],
     rivals: ["davos-seaworth"],
     father: "",

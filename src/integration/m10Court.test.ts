@@ -35,7 +35,7 @@ beforeEach(() => {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Họ Tên"] = "Eddard Stark";
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
-  s["Thông Tin Nhân Vật"]["Vàng"] = 5000;
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 5000;
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
   useMvuStore.setState({ stat: StatDataSchema.parse(s), pendingEvents: [], lastChangedPaths: [] });
@@ -62,9 +62,9 @@ describe("M10 — bổ nhiệm Tiểu Hội Đồng + hiệu ứng thu Vàng (13
     expect(after["Triều Đình"]["Có Liên Quan"]).toBe(true);
     expect(treasuryMultiplier(after)).toBeGreaterThan(1);
 
-    const goldBefore = after["Thông Tin Nhân Vật"]["Vàng"];
+    const goldBefore = after["Thông Tin Nhân Vật"]["Ngân Khố"];
     advanceDays(3); // construction loop cộng thu Vàng ×hệ số Ngân Khố
-    expect(useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Vàng"]).toBeGreaterThan(goldBefore);
+    expect(useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeGreaterThan(goldBefore);
   });
 });
 
@@ -78,7 +78,7 @@ describe("M10 — hôn nhân & hôn ước (13.4)", () => {
       partner: "Eddard Stark", partnerHouse: "tully", dowry: 1000, dowryOutgoing: false, asSpouseOfPlayer: true, createIfMissing: true,
     });
     const after = useMvuStore.getState().stat;
-    expect(after["Thông Tin Nhân Vật"]["Vàng"]).toBe(6000);
+    expect(after["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(6000);
     expect(after["Mối Quan Hệ"]["NPC Chính"]["Catelyn Tully"]["Loại Quan Hệ"]).toContain("Vợ/Chồng");
     expect(after["Thái Độ Các Nhà"]["Tully"]["Thái Độ"]).not.toBe("Cảnh Giác");
   });

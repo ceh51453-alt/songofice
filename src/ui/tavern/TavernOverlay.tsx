@@ -31,7 +31,7 @@ function GameMenu() {
   const startGame = useTavernStore((s) => s.startGame);
   const opponent = useTavernStore((s) => s.opponent);
   const tavernName = useTavernStore((s) => s.tavernName);
-  const gold = useMvuStore((s) => s.stat["Thông Tin Nhân Vật"]["Vàng"]);
+  const gold = useMvuStore((s) => s.stat["Thông Tin Nhân Vật"]["Ngân Khố"]);
   const history = useTavernStore((s) => s.history);
   const [selectedGame, setSelectedGame] = useState<TavernGameType | null>(null);
   const [betAmount, setBetAmount] = useState(0);

@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { IconBook } from "../icons";
 import { useMvuStore } from "../../state/mvuStore";
+import { formatCurrencyShort, EXCHANGE_RATES } from "../../economy/currency";
 import { getTitleLevel } from "../../character/roleplay";
 
 export const DECREE_TEMPLATES = [
-  { id: "tax_winter", name: "Thuế Đặc Biệt", type: "Thuế", effectDesc: "+50% Vàng, -10 Lòng Dân", costGold: 0, costFood: 0, reqLevel: 1 },
-  { id: "conscription", name: "Lệnh Kêu Gọi Nhập Ngũ", type: "Luật", effectDesc: "Tăng tuyển quân, -15 Lòng Dân", costGold: 0, costFood: 0, reqLevel: 2 },
-  { id: "festival", name: "Lễ Hội Lớn", type: "Phúc lợi", effectDesc: "+20 Lòng Dân, -500 Vàng, -1000 Lương Thực", costGold: 500, costFood: 1000, reqLevel: 1 },
-  { id: "agriculture", name: "Khuyến Nông", type: "Phúc lợi", effectDesc: "+20% Sản lượng Lương Thực, -200 Vàng", costGold: 200, costFood: 0, reqLevel: 1 },
-  { id: "kings_peace", name: "Hòa Bình Lục Địa", type: "Luật", effectDesc: "Chấm dứt mọi cuộc chiến nội bộ, +100 Lòng Dân Toàn Cõi", costGold: 2000, costFood: 5000, reqLevel: 3 },
+  { id: "tax_winter", name: "Thuế Đặc Biệt", type: "Thuế", effectDesc: "+50% Vàng, -10 Lòng Dân", costGold: 0 * EXCHANGE_RATES.GOLD_TO_COPPER, costFood: 0, reqLevel: 1 },
+  { id: "conscription", name: "Lệnh Kêu Gọi Nhập Ngũ", type: "Luật", effectDesc: "Tăng tuyển quân, -15 Lòng Dân", costGold: 0 * EXCHANGE_RATES.GOLD_TO_COPPER, costFood: 0, reqLevel: 2 },
+  { id: "festival", name: "Lễ Hội Lớn", type: "Phúc lợi", effectDesc: "+20 Lòng Dân, -500 Vàng, -1000 Lương Thực", costGold: 500 * EXCHANGE_RATES.GOLD_TO_COPPER, costFood: 1000, reqLevel: 1 },
+  { id: "agriculture", name: "Khuyến Nông", type: "Phúc lợi", effectDesc: "+20% Sản lượng Lương Thực, -200 Vàng", costGold: 200 * EXCHANGE_RATES.GOLD_TO_COPPER, costFood: 0, reqLevel: 1 },
+  { id: "kings_peace", name: "Hòa Bình Lục Địa", type: "Luật", effectDesc: "Chấm dứt mọi cuộc chiến nội bộ, +100 Lòng Dân Toàn Cõi", costGold: 2000 * EXCHANGE_RATES.GOLD_TO_COPPER, costFood: 5000, reqLevel: 3 },
 ];
 
 export function TabDecree({ territoryId, holding, isOwner }: { territoryId: string, holding: any, isOwner?: boolean }) {
@@ -20,7 +21,7 @@ export function TabDecree({ territoryId, holding, isOwner }: { territoryId: stri
   const [showModal, setShowModal] = useState(false);
 
   const issueDecree = (tpl: any) => {
-      const currentGold = resources["Vàng"] || 0;
+      const currentGold = resources["Ngân Khố"] || 0;
       const currentFood = resources["Lương Thực"] || 0;
       
       if (currentGold < tpl.costGold || currentFood < tpl.costFood) return;
@@ -71,7 +72,7 @@ export function TabDecree({ territoryId, holding, isOwner }: { territoryId: stri
               <div className="space-y-3">
                   {DECREE_TEMPLATES.map(tpl => {
                       const isActive = decrees[tpl.id] && decrees[tpl.id]["Trạng Thái"] === "Đang hiệu lực";
-                      const canAfford = (resources["Vàng"] || 0) >= tpl.costGold && (resources["Lương Thực"] || 0) >= tpl.costFood;
+                      const canAfford = (resources["Ngân Khố"] || 0) >= tpl.costGold && (resources["Lương Thực"] || 0) >= tpl.costFood;
                       const hasPrivilege = pLevel >= tpl.reqLevel;
                       
                       if (isActive) return null; // Hide already active ones
@@ -90,7 +91,7 @@ export function TabDecree({ territoryId, holding, isOwner }: { territoryId: stri
                               <div className="text-xs text-[var(--text-muted)] italic mb-2">{tpl.effectDesc}</div>
                               {(tpl.costGold > 0 || tpl.costFood > 0) && (
                                   <div className="flex gap-3 text-xs">
-                                      {tpl.costGold > 0 && <span className={(resources["Vàng"] || 0) < tpl.costGold ? "text-red-400" : "text-yellow-400"}>🪙 {tpl.costGold}</span>}
+                                      {tpl.costGold > 0 && <span className={(resources["Ngân Khố"] || 0) < tpl.costGold ? "text-red-400" : "text-yellow-400"}>🪙 {formatCurrencyShort(tpl.costGold)}</span>}
                                       {tpl.costFood > 0 && <span className={(resources["Lương Thực"] || 0) < tpl.costFood ? "text-red-400" : "text-yellow-200"}>🌾 {tpl.costFood}</span>}
                                   </div>
                               )}

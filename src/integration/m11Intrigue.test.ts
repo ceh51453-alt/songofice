@@ -23,7 +23,7 @@ beforeEach(() => {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Họ Tên"] = "Petyr Baelish";
   s["Thông Tin Nhân Vật"]["Nhà"] = "Không Nhà";
-  s["Thông Tin Nhân Vật"]["Vàng"] = 5000;
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 5000;
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
   // cho người chơi 1 vùng để mở được Mưu Đồ
@@ -37,7 +37,7 @@ describe("M11 — mở Mưu Đồ + tình báo (14.1/14.5)", () => {
 
     const r = useIntrigueStore.getState().recruitSpy("Con Nhện", "Lannister");
     expect(r.ok).toBe(true);
-    expect(useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Vàng"]).toBe(4500);
+    expect(useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(4500);
 
     // đào sâu thâm nhập để thu tin ổn định, không bị bắt sớm
     const s = useMvuStore.getState().stat;
@@ -88,9 +88,9 @@ describe("M11 — con tin (14.4)", () => {
     s["Tù Binh"]["Ser Amory"] = { "Họ Tên": "Ser Amory Lorch", "Nhà": "Lannister", "Vai Trò": "Tướng", "Bị Bắt Bởi": "arryn", "Giá Chuộc": 2000, "Đối Xử": "Giam Lỏng", "_Turn Bắt": 3 };
     useMvuStore.setState({ stat: s });
 
-    const goldBefore = useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Vàng"];
+    const goldBefore = useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Ngân Khố"];
     useIntrigueStore.getState().ransomCaptive("Ser Amory");
-    expect(useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Vàng"]).toBe(goldBefore + 2000);
+    expect(useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(goldBefore + 2000);
     expect(useMvuStore.getState().stat["Tù Binh"]["Ser Amory"]).toBeUndefined();
   });
 });

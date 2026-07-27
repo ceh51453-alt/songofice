@@ -9,7 +9,15 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "cunning": 10, "stealth": 9, "persuasion": 10, "commerce": 8, "command": 7 },
     equipment: [{ slot: "Vũ Khí Phụ", ten: "Dao găm mạ vàng", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 4 }, moTa: "Dao giấu trong tay áo." }], 
     items: [{ ten: "Vàng Casterly", soLuong: 100000, moTa: "Khởi đầu của huyền thoại" }], 
-    gold: 150000, startingHookIds: [],
+    gold: 150000,
+    startResources: {
+      "Gỗ": 500,
+      "Quặng Sắt": 1500,
+      "Đá": 1500,
+      "Lương Thực": 6000,
+      "Ngựa": 200,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     rivals: ["garth-greenhand"],
     startArmies: [
           { name: "Lính Giáo Lannisport", type: "Bộ Binh", size: 18000, quality: "Tinh Nhuệ" },
@@ -35,7 +43,15 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "animal-handling": 10, "weather-endurance": 8, "persuasion": 9, "command": 8 },
     equipment: [{ slot: "Vật Phẩm Đặc Biệt", ten: "Vương miện hoa lá", phamChat: "Vô Giá", thuocTinh: { "Tôn Trọng": 15 }, moTa: "Được đan từ dây leo, không bao giờ héo" }], 
     items: [{ ten: "Hạt giống thần kỳ", soLuong: 100, moTa: "Rải xuống là mọc thành rừng" }], 
-    gold: 50000, startingHookIds: [],
+    gold: 50000,
+    startResources: {
+      "Gỗ": 1000,
+      "Quặng Sắt": 500,
+      "Đá": 1000,
+      "Lương Thực": 5000,
+      "Ngựa": 200,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     rivals: ["lann-the-clever", "durran-godsgrief"],
     startArmies: [
           { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 36000, quality: "Thành Thạo" },
@@ -61,7 +77,15 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "command": 10, "weather-endurance": 10, "intimidation": 9, "sword-shield": 10 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Búa Vua Bão", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 10 }, moTa: "Đập tan cơn bão và kẻ thù" }], 
     items: [], 
-    gold: 15000, startingHookIds: [],
+    gold: 15000,
+    startResources: {
+      "Gỗ": 1000,
+      "Quặng Sắt": 500,
+      "Đá": 1000,
+      "Lương Thực": 5000,
+      "Ngựa": 200,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     spouse: "elenei",
     allies: ["brandon-builder"],
     startArmies: [
@@ -87,7 +111,15 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "sailing": 10, "axe-mace": 10, "weather-endurance": 10, "command": 9 },
     equipment: [{ slot: "Vật Phẩm Đặc Biệt", ten: "Vương miện gỗ lũa", phamChat: "Vô Giá", thuocTinh: { "Tôn Trọng": 15 }, moTa: "Vương miện của Đảo Sắt" }], 
     items: [{ ten: "Răng rồng biển Nagga", soLuong: 1, moTa: "To như thanh gươm" }], 
-    gold: 8000, startingHookIds: [],
+    gold: 8000,
+    startResources: {
+      "Gỗ": 1000,
+      "Quặng Sắt": 500,
+      "Đá": 1000,
+      "Lương Thực": 5000,
+      "Ngựa": 200,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Chiến Binh Đảo Sắt", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
           { name: "Kỵ Binh Bờ Biển", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
@@ -113,7 +145,15 @@ export const dawnAgeCharacters: CanonCharacter[] = [
     skills: { "sword-shield": 10, "brawling": 8, "cunning": 6, "animal-handling": 5 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Thương hai đầu", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 8 }, moTa: "Xoay tít như cối xay" }, { slot: "Vật Phẩm Đặc Biệt", ten: "Mặt nạ che hốc mắt", phamChat: "Thường", thuocTinh: { "Phòng Thủ": 1 }, moTa: "Che đi viên ngọc sao" }], 
     items: [{ ten: "Ngọc Sapphire", soLuong: 2, moTa: "Thay thế cho đôi mắt" }], 
-    gold: 200, startingHookIds: [],
+    gold: 200,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 50,
+      "Đá": 100,
+      "Lương Thực": 500,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",

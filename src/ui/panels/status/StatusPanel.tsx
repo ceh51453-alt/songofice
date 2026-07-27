@@ -5,8 +5,9 @@
 import { useMvuStore } from "../../../state/mvuStore";
 import { affinityStage } from "../../../mvu/npcSchema";
 import {
-  IconBackpack, IconCalendar, IconCoins, IconCrossedSwords, IconDragon, IconPin, IconSpark, IconUsers,
+  IconBackpack, IconCalendar, IconCoins, IconCrossedSwords, IconDragon, IconPin, IconSpark, IconUsers, IconAlert
 } from "../../icons";
+import { DISEASE_CATALOG } from "../../../content/westeros/diseases";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { canClaimIronThrone, claimIronThrone } from "../../../character/roleplay";
 import { applyPatch } from "../../../mvu/patchEngine";
@@ -107,7 +108,7 @@ export function StatusPanel() {
         )}
         <div className="mt-1.5 flex items-center gap-1.5 text-[13px] text-[var(--text-soft)]">
           <IconCoins size={14} color="var(--accent-text)" />
-          <AnimatedNumber value={info["Vàng"]} /> vàng
+          <AnimatedNumber value={info["Ngân Khố"]} /> vàng
         </div>
         <div className="mt-2">
           <Bar label="HP" value={vitals["HP"]} max={derived["_HP Tối Đa"]} color="var(--ok)" />
@@ -119,6 +120,30 @@ export function StatusPanel() {
             <Bar label="Độ Ẩm" value={vitals["Khát"]} max={100} color="#2563eb" />
             <Bar label="Lo Âu" value={vitals["Lo Âu"]} max={100} color="var(--ok)" reverseColor />
           </div>
+          
+          {info["Các Loại Bệnh"] && info["Các Loại Bệnh"].length > 0 && (
+            <div className="mt-3 border-t border-[var(--glass-border)] pt-2 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--danger)]">
+                <IconAlert size={14} /> TÌNH TRẠNG BỆNH LÝ
+              </div>
+              {info["Các Loại Bệnh"].map((d, i) => {
+                const conf = DISEASE_CATALOG[d["Tên"]];
+                return (
+                  <div key={i} className="rounded border border-[var(--danger-border)] bg-[var(--danger-soft)] p-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-[12px] text-[var(--danger-text)]">{d["Tên"]}</span>
+                      <span className="text-[11px] text-[var(--danger-text)] opacity-80">{d["Ngày Còn Lại"]} ngày</span>
+                    </div>
+                    {conf && (
+                      <p className="mt-0.5 text-[11px] text-[var(--danger-text)] opacity-90 leading-tight">
+                        {conf.desc} (Mất {conf.hpPerTurn} HP/ngày)
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </Section>
 

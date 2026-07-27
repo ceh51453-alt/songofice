@@ -8,7 +8,7 @@
  * - Iron Bank: thanh nợ
  * - Khủng hoảng: banner cảnh báo
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { useEconomyStore, economySummary } from "../../state/economyStore";
 import { Sparkline } from "./Sparkline";
@@ -17,10 +17,13 @@ import {
   IconCoin, IconWheat, IconTree, IconStone, IconAnvil,
   IconShip, IconBank, IconFlame, IconTrend,
 } from "./EconomyIcons";
-import { IconX } from "../icons";
+import { IconX, IconCoins } from "../icons";
 import type { TaxLevel } from "../../mvu/schema";
 import { isBlockaded } from "../../economy/economyEngine";
 import { hasPrivilege, canManageDomain } from "../../character/roleplay";
+import { formatCurrencyShort, formatCurrencyFull } from "../../economy/currency";
+import { MarketTab } from "./MarketTab";
+import { ForgeTab } from "./ForgeTab";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -43,15 +46,23 @@ function fmt(n: number): string {
 // ── Panel ────────────────────────────────────────────────────────────────────
 
 export function EconomyPanel() {
+  const [activeTab, setActiveTab] = useState('tongquan');
   const open = useEconomyStore((s) => s.panelOpen);
   const close = useEconomyStore((s) => s.closePanel);
   const goldHistory = useEconomyStore((s) => s.goldHistory);
   const sparkData = useMemo(() => goldHistory.map((h) => h.gold), [goldHistory]);
   const stat = useMvuStore((s) => s.stat);
   const summary = economySummary(stat);
-  const holdings = Object.entries(stat["Lãnh Địa"]);
+  const playerName = stat["Thông Tin Nhân Vật"]["Họ Tên"];
+  const playerHouse = stat["Thông Tin Nhân Vật"]["Nhà"];
+  const holdings = Object.entries(stat["Lãnh Địa"]).filter(([_, t]) => 
+    t["Người Kiểm Soát"] === playerName || t["Nhà Kiểm Soát"] === playerHouse
+  );
   const routes = Object.entries(stat["Tuyến Thương Mại"]);
-  const bank = stat["Nợ Iron Bank"];
+  const bank = stat["Các Khoản Nợ"]?.["Iron Bank"];
+  const loans = Object.entries(stat["Các Khoản Cho Vay"] || {});
+  const familyResources = stat["Thông Tin Nhân Vật"]["Tài Nguyên Gia Tộc"] || {};
+  const familyDebts = Object.entries(stat["Các Khoản Nợ"] || {});
 
   // Collect crises across all territories
   const crises: { region: string; crisis: string; severity: string }[] = [];
@@ -91,13 +102,39 @@ export function EconomyPanel() {
           </button>
         </div>
 
-        {/* ── Treasury Overview ── */}
-        <section className="glass-panel mb-4 rounded-xl p-4">
+        {/* Tabs */}
+        <div className="mb-4 flex space-x-2 border-b border-[var(--glass-border)] pb-2">
+          <button 
+            className={`px-3 py-1 text-sm font-medium transition-colors ${activeTab === 'tongquan' ? 'text-[var(--accent-text)] border-b-2 border-[var(--accent-text)]' : 'text-[var(--text-muted)] hover:text-[var(--text-soft)]'}`}
+            onClick={() => setActiveTab('tongquan')}
+          >
+            TỔNG QUAN
+          </button>
+          <button 
+            className={`px-3 py-1 text-sm font-medium transition-colors ${activeTab === 'thitruong' ? 'text-[var(--accent-text)] border-b-2 border-[var(--accent-text)]' : 'text-[var(--text-muted)] hover:text-[var(--text-soft)]'}`}
+            onClick={() => setActiveTab('thitruong')}
+          >
+            THỊ TRƯỜNG
+          </button>
+          <button 
+            className={`px-3 py-1 text-sm font-medium transition-colors ${activeTab === 'loren' ? 'text-[var(--accent-text)] border-b-2 border-[var(--accent-text)]' : 'text-[var(--text-muted)] hover:text-[var(--text-soft)]'}`}
+            onClick={() => setActiveTab('loren')}
+          >
+            LÒ RÈN
+          </button>
+        </div>
+
+        {activeTab === 'thitruong' && <MarketTab />}
+        {activeTab === 'loren' && <ForgeTab />}
+        {activeTab === 'tongquan' && (
+          <>
+            {/* ── Treasury Overview ── */}
+            <section className="glass-panel mb-4 rounded-xl p-4">
           <div className="mb-3 flex items-center justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-wider text-[var(--text-faint)]">Ngân Khố</p>
               <p className="font-display text-2xl tracking-tight text-[var(--text-soft)]">
-                {fmt(summary.gold)} <span className="text-[13px] text-[var(--text-faint)]">Vàng</span>
+                {formatCurrencyFull(summary.gold)}
               </p>
             </div>
             {sparkData.length >= 2 && (
@@ -105,19 +142,31 @@ export function EconomyPanel() {
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-3 text-[12px]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[12px]">
             <div className="flex flex-col gap-0.5">
-              <span className="text-[var(--text-faint)]">Thu thuế</span>
-              <span className="font-mono text-[var(--ok)]">+{fmt(summary.taxIncome)}</span>
+              <span className="text-[var(--text-faint)]">Thuế Vi Mô</span>
+              <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(summary.microTaxIncome)}</span>
             </div>
+            {summary.macroTaxIncome > 0 && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[var(--text-faint)]">Thuế Chư Hầu</span>
+                <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(summary.macroTaxIncome)}</span>
+              </div>
+            )}
             <div className="flex flex-col gap-0.5">
               <span className="text-[var(--text-faint)]">Thương mại</span>
-              <span className="font-mono text-[var(--ok)]">+{fmt(summary.tradeIncome)}</span>
+              <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(summary.tradeIncome)}</span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[var(--text-faint)]">Lương Quân Đội</span>
+              <span className={`font-mono ${summary.militaryUpkeep > 0 ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}`}>
+                {summary.militaryUpkeep > 0 ? `-${formatCurrencyShort(summary.militaryUpkeep)}` : "0 Đồng"}
+              </span>
             </div>
             <div className="flex flex-col gap-0.5">
               <span className="text-[var(--text-faint)]">Iron Bank</span>
               <span className={`font-mono ${summary.ironBankExpense > 0 ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}`}>
-                {summary.ironBankExpense > 0 ? `-${fmt(summary.ironBankExpense)}` : "0"}
+                {summary.ironBankExpense > 0 ? `-${formatCurrencyShort(summary.ironBankExpense)}` : "0 Đồng"}
               </span>
             </div>
           </div>
@@ -176,6 +225,29 @@ export function EconomyPanel() {
         </section>
 
         {/* ── Territory Resources Grid ── */}
+        <section className="glass-panel mb-4 overflow-x-auto rounded-xl p-4">
+          <p className="mb-3 text-[11px] uppercase tracking-wider text-[var(--text-faint)]">Tài Nguyên Gia Tộc (Cá Nhân)</p>
+          <div className="flex flex-wrap gap-4 mb-4 text-[12px] text-[var(--text-soft)]">
+            <div className="flex items-center gap-1.5"><ResourceIcon name="Lương Thực" /> {fmt(familyResources["Lương Thực"] || 0)} Lương Thực</div>
+            <div className="flex items-center gap-1.5"><ResourceIcon name="Gỗ" /> {fmt(familyResources["Gỗ"] || 0)} Gỗ</div>
+            <div className="flex items-center gap-1.5"><ResourceIcon name="Đá" /> {fmt(familyResources["Đá"] || 0)} Đá</div>
+            <div className="flex items-center gap-1.5"><ResourceIcon name="Quặng Sắt" /> {fmt(familyResources["Quặng Sắt"] || 0)} Sắt</div>
+            <div className="flex items-center gap-1.5">🐎 {fmt(familyResources["Ngựa"] || 0)} Ngựa</div>
+          </div>
+          
+          {familyDebts.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-[var(--glass-border)]">
+              <p className="mb-2 text-[11px] uppercase tracking-wider text-[var(--text-faint)]">Các Khoản Nợ Cần Trả</p>
+              {familyDebts.map(([creditor, d]) => d ? (
+                <div key={creditor} className="flex justify-between items-center text-[12px] text-[var(--danger)] mb-1">
+                  <span>{creditor}</span>
+                  <span>{formatCurrencyFull(d?.["Nợ Gốc"] || 0)} (Lãi: {d?.["Lãi/Turn"] || 0}%)</span>
+                </div>
+              ) : null)}
+            </div>
+          )}
+        </section>
+
         {holdings.length > 0 && (
           <section className="glass-panel mb-4 overflow-x-auto rounded-xl p-4">
             <p className="mb-3 text-[11px] uppercase tracking-wider text-[var(--text-faint)]">Tài Nguyên Lãnh Địa</p>
@@ -183,7 +255,7 @@ export function EconomyPanel() {
               <thead>
                 <tr className="border-b border-[var(--glass-border)] text-left text-[var(--text-faint)]">
                   <th className="pb-2 font-normal">Vùng</th>
-                  <th className="pb-2 font-normal text-center"><ResourceIcon name="Vàng" /></th>
+                  <th className="pb-2 font-normal text-center"><ResourceIcon name="Ngân Khố" /></th>
                   <th className="pb-2 font-normal text-center"><ResourceIcon name="Lương Thực" /></th>
                   <th className="pb-2 font-normal text-center"><ResourceIcon name="Gỗ" /></th>
                   <th className="pb-2 font-normal text-center"><ResourceIcon name="Đá" /></th>
@@ -199,7 +271,7 @@ export function EconomyPanel() {
                   return (
                     <tr key={id} className={`border-b border-[var(--glass-border)]/50 ${hasCrisis ? "text-[var(--danger)]" : "text-[var(--text-soft)]"}`}>
                       <td className="py-1.5 pr-2">{id}</td>
-                      <td className="py-1.5 text-center font-mono">{fmt(res["Vàng"])}</td>
+                      <td className="py-1.5 text-center font-mono">{fmt(res["Ngân Khố"])}</td>
                       <td className="py-1.5 text-center font-mono">{fmt(res["Lương Thực"])}</td>
                       <td className="py-1.5 text-center font-mono">{fmt(res["Gỗ"])}</td>
                       <td className="py-1.5 text-center font-mono">{fmt(res["Đá"])}</td>
@@ -247,7 +319,7 @@ export function EconomyPanel() {
                     }`}>
                       {route["Đường"]}
                     </span>
-                    <span className="font-mono text-[var(--ok)]">+{route["Lợi Nhuận/Turn"]}/30 ngày</span>
+                    <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(route["Lợi Nhuận/Turn"])}/30 ngày</span>
                     {/* Safety bar */}
                     <div className="h-1 w-12 overflow-hidden rounded-full bg-[var(--glass-bg-hover)]">
                       <div
@@ -269,13 +341,13 @@ export function EconomyPanel() {
         </section>
 
         {/* ── Iron Bank ── */}
-        {(bank["Nợ Gốc"] > 0 || bank["Đang Quỵt"]) && (
+        {bank && (bank?.["Nợ Gốc"] > 0 || bank?.["Đang Quỵt"]) && (
           <section className="glass-panel mb-4 rounded-xl p-4">
             <div className="mb-2 flex items-center gap-2">
-              <IconBank size={16} color={bank["Đang Quỵt"] ? "var(--danger)" : "var(--accent-text)"} />
+              <IconBank size={16} color={bank?.["Đang Quỵt"] ? "var(--danger)" : "var(--accent-text)"} />
               <p className="text-[11px] uppercase tracking-wider text-[var(--text-faint)]">Iron Bank of Braavos</p>
             </div>
-            {bank["Đang Quỵt"] ? (
+            {bank?.["Đang Quỵt"] ? (
               <p className="text-[13px] font-medium text-[var(--danger)]">
                 Đã quỵt nợ. Iron Bank sẽ tìm cách trả thù.
               </p>
@@ -283,19 +355,53 @@ export function EconomyPanel() {
               <div className="space-y-1 text-[12px] text-[var(--text-soft)]">
                 <div className="flex justify-between">
                   <span>Nợ gốc</span>
-                  <span className="font-mono">{fmt(bank["Nợ Gốc"])}</span>
+                  <span className="font-mono">{formatCurrencyShort(bank?.["Nợ Gốc"] || 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Lãi/30 ngày</span>
-                  <span className="font-mono text-[var(--danger)]">-{fmt(bank["Lãi/Turn"])}</span>
+                  <span className="font-mono text-[var(--danger)]">-{formatCurrencyShort(bank?.["Lãi/Turn"] || 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Thời hạn (tháng)</span>
-                  <span className="font-mono">{bank["Turn Còn Lại"]}</span>
+                  <span className="font-mono">{bank?.["Turn Còn Lại"] || 0}</span>
                 </div>
               </div>
             )}
           </section>
+        )}
+
+        {/* ── Các Khoản Cho Vay ── */}
+        {loans.length > 0 && (
+          <section className="glass-panel mb-4 rounded-xl p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <IconCoins size={16} color="var(--accent-text)" />
+              <p className="text-[11px] uppercase tracking-wider text-[var(--text-faint)]">Các Khoản Cho Vay</p>
+            </div>
+            <div className="space-y-3">
+              {loans.map(([debtorId, loan]) => loan ? (
+                <div key={debtorId} className="space-y-1 text-[12px] text-[var(--text-soft)]">
+                  <div className="flex justify-between font-medium">
+                    <span>Nhà {debtorId}</span>
+                    {loan?.["Đang Quỵt"] ? (
+                      <span className="text-[var(--danger)]">Đang Quỵt Nợ</span>
+                    ) : (
+                      <span className="text-[var(--ok)]">+{formatCurrencyShort(loan?.["Lãi/Turn"] || 0)}/tháng</span>
+                    )}
+                  </div>
+                  {!loan?.["Đang Quỵt"] && (
+                    <>
+                      <div className="flex justify-between text-[11.5px] text-[var(--text-faint)]">
+                        <span>Gốc: {formatCurrencyShort(loan?.["Nợ Gốc"] || 0)}</span>
+                        <span>Còn: {loan?.["Turn Còn Lại"] || 0} tháng</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : null)}
+            </div>
+          </section>
+        )}
+          </>
         )}
       </div>
     </div>

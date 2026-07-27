@@ -150,7 +150,7 @@ export const useTourneyStore = create<TourneyStoreState>()(
 
         // Áp vàng
         if (tourneyState.totalGoldWon > 0) {
-          stat["Thông Tin Nhân Vật"]["Vàng"] += tourneyState.totalGoldWon;
+          stat["Thông Tin Nhân Vật"]["Ngân Khố"] += tourneyState.totalGoldWon;
         }
 
         // Áp Uy Dũng

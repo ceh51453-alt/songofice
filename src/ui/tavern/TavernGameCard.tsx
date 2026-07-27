@@ -22,7 +22,7 @@ export function TavernGameCard({ content, attrs }: { content: string; attrs: Rec
     const t = useT();
   const openMenu = useTavernStore((s) => s.openMenu);
   const busy = useChatStore((s) => s.status !== "idle");
-  const gold = useMvuStore((s) => s.stat["Thông Tin Nhân Vật"]["Vàng"]);
+  const gold = useMvuStore((s) => s.stat["Thông Tin Nhân Vật"]["Ngân Khố"]);
   const phase = useTavernStore((s) => s.phase);
 
   const opponent = attrs.opponent ?? "Kẻ lạ mặt";

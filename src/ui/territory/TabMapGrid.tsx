@@ -2,14 +2,15 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
+import { formatCurrencyShort, EXCHANGE_RATES } from "../../economy/currency";
 
 export const BUILDING_TEMPLATES = [
-  { id: "farm", type: "Nông Trại", size: 1, cost: { "Vàng": 100, "Gỗ": 200, "Đá": 0 }, turns: 2, desc: "+ Sản lượng Lương Thực" },
-  { id: "market", type: "Chợ", size: 2, cost: { "Vàng": 500, "Gỗ": 300, "Đá": 100 }, turns: 3, desc: "+ Vàng từ Thương Nhân" },
-  { id: "barracks", type: "Trại Lính", size: 2, cost: { "Vàng": 300, "Gỗ": 400, "Đá": 200 }, turns: 4, desc: "Tuyển quân nhanh hơn" },
-  { id: "forge", type: "Lò Rèn", size: 1, cost: { "Vàng": 200, "Gỗ": 100, "Đá": 300 }, turns: 2, desc: "+ Vũ khí / Áo giáp" },
-  { id: "lumber", type: "Xưởng Gỗ", size: 1, cost: { "Vàng": 100, "Gỗ": 50, "Đá": 0 }, turns: 1, desc: "+ Sản lượng Gỗ" },
-  { id: "mine", type: "Mỏ Đá/Sắt", size: 2, cost: { "Vàng": 400, "Gỗ": 400, "Đá": 0 }, turns: 3, desc: "+ Sản lượng Đá & Sắt" }
+  { id: "farm", type: "Nông Trại", size: 1, cost: { "Ngân Khố": 100 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 200, "Đá": 0 }, turns: 2, desc: "+ Sản lượng Lương Thực" },
+  { id: "market", type: "Chợ", size: 2, cost: { "Ngân Khố": 500 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 300, "Đá": 100 }, turns: 3, desc: "+ Vàng từ Thương Nhân" },
+  { id: "barracks", type: "Trại Lính", size: 2, cost: { "Ngân Khố": 300 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 400, "Đá": 200 }, turns: 4, desc: "Tuyển quân nhanh hơn" },
+  { id: "forge", type: "Lò Rèn", size: 1, cost: { "Ngân Khố": 200 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 100, "Đá": 300 }, turns: 2, desc: "+ Vũ khí / Áo giáp" },
+  { id: "lumber", type: "Xưởng Gỗ", size: 1, cost: { "Ngân Khố": 100 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 50, "Đá": 0 }, turns: 1, desc: "+ Sản lượng Gỗ" },
+  { id: "mine", type: "Mỏ Đá/Sắt", size: 2, cost: { "Ngân Khố": 400 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 400, "Đá": 0 }, turns: 3, desc: "+ Sản lượng Đá & Sắt" }
 ];
 
 export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: string, holding: any, isOwner?: boolean }) {
@@ -214,11 +215,11 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
           
           // Deduct resources
           const cost = placementMode.cost;
-          const currentGold = resources["Vàng"] || 0;
+          const currentGold = resources["Ngân Khố"] || 0;
           const currentWood = resources["Gỗ"] || 0;
           const currentStone = resources["Đá"] || 0;
           
-          setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Vàng`, currentGold - (cost["Vàng"] || 0));
+          setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Vàng`, currentGold - (cost["Ngân Khố"] || 0));
           setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Gỗ`, currentWood - (cost["Gỗ"] || 0));
           setByPath(`Lãnh Địa.${territoryId}.Tài Nguyên.Đá`, currentStone - (cost["Đá"] || 0));
           
@@ -280,7 +281,7 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
             </div>
             <div className="p-2 overflow-y-auto flex-1 space-y-2">
                 {BUILDING_TEMPLATES.map(tpl => {
-                    const canAfford = (resources["Vàng"] || 0) >= (tpl.cost["Vàng"] || 0) &&
+                    const canAfford = (resources["Ngân Khố"] || 0) >= (tpl.cost["Ngân Khố"] || 0) &&
                                       (resources["Gỗ"] || 0) >= (tpl.cost["Gỗ"] || 0) &&
                                       (resources["Đá"] || 0) >= (tpl.cost["Đá"] || 0);
                     return (
@@ -298,7 +299,7 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
                             </div>
                             <div className="text-xs text-[var(--text-muted)] mb-2 italic">{tpl.desc}</div>
                             <div className="flex gap-3 text-xs">
-                                {tpl.cost["Vàng"] > 0 && <span className={((resources["Vàng"] || 0) < tpl.cost["Vàng"]) ? "text-red-400" : "text-yellow-400"}>🪙 {tpl.cost["Vàng"]}</span>}
+                                {tpl.cost["Ngân Khố"] > 0 && <span className={((resources["Ngân Khố"] || 0) < tpl.cost["Ngân Khố"]) ? "text-red-400" : "text-yellow-400"}>🪙 {formatCurrencyShort(tpl.cost["Ngân Khố"])}</span>}
                                 {tpl.cost["Gỗ"] > 0 && <span className={((resources["Gỗ"] || 0) < tpl.cost["Gỗ"]) ? "text-red-400" : "text-green-400"}>🪵 {tpl.cost["Gỗ"]}</span>}
                                 {tpl.cost["Đá"] > 0 && <span className={((resources["Đá"] || 0) < tpl.cost["Đá"]) ? "text-red-400" : "text-gray-400"}>🪨 {tpl.cost["Đá"]}</span>}
                             </div>

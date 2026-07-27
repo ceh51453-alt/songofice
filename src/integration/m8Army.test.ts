@@ -29,7 +29,7 @@ beforeEach(() => {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Họ Tên"] = "Robb Stark";
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
-  s["Thông Tin Nhân Vật"]["Vàng"] = 10000;
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 10000;
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
   s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };

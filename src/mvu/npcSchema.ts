@@ -142,6 +142,21 @@ export const NpcSchema = z
     "$Ghi Chú Ẩn": safeString().optional(), // $ = AI đọc/ghi được nhưng ẨN khỏi UI (bí mật NPC)
     "$NSFW": safeString().optional(), // Lưu thông tin nhạy cảm, sở thích NSFW dành cho AI
 
+    // ── KINH TẾ (MICRO-ECONOMY) ──
+    "Ngân Khố": safeInt(0), // Số tiền của NPC, lưu bằng chuẩn Đồng Đỏ (Pennies)
+    "Túi Đồ": z
+      .record(
+        safeString(),
+        z
+          .object({
+            "Số Lượng": safeInt(1),
+            "Mô Tả": safeString().prefault(""),
+          })
+          .prefault({}),
+      )
+      .catch({})
+      .prefault({}),
+
     // ── QUAN HỆ THÂN MẬT (NPC nữ có quan hệ tình cảm với người chơi) ──
     "Quan Hệ Thân Mật": NpcIntimacySchema.optional(),
   })

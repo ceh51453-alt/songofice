@@ -19,7 +19,7 @@ import {
 function baseState(gold = 5000): StatData {
   const s = makeDefaultState();
   s["_engineMeta"]["_Seed Gốc"] = 987654;
-  s["Thông Tin Nhân Vật"]["Vàng"] = gold;
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = gold;
   return StatDataSchema.parse(s);
 }
 
@@ -29,7 +29,7 @@ describe("Tình báo — điệp viên (14.1)", () => {
     const r = recruitSpyOps(s, "Con Nhện", "Lannister");
     expect(r.ok).toBe(true);
     const { state } = applyPatch(s, r.ops);
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(100);
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(100);
     expect(state["Tình Báo"]["Điệp Viên"]["Con Nhện"]["Cài Ở"]).toBe("Lannister");
 
     const poor = baseState(100);
@@ -145,7 +145,7 @@ describe("Con tin & tù binh (14.4)", () => {
   it("đòi tiền chuộc → +Vàng, thả, dịu quan hệ", () => {
     const s = withCaptive();
     const { state } = applyPatch(s, ransomOps(s, "Ser Amory"));
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(3000);
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(3000);
     expect(state["Tù Binh"]["Ser Amory"]).toBeUndefined();
   });
 
@@ -153,7 +153,7 @@ describe("Con tin & tù binh (14.4)", () => {
     const s = withCaptive();
     const { state } = applyPatch(s, exchangeOps(s, "Ser Amory"));
     expect(state["Tù Binh"]["Ser Amory"]).toBeUndefined();
-    expect(state["Thông Tin Nhân Vật"]["Vàng"]).toBe(1000); // không đổi
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(1000); // không đổi
     expect(state["Thái Độ Các Nhà"]["Lannister"]["Thái Độ"]).not.toBe("Địch Ý");
   });
 

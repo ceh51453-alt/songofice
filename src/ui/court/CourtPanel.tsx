@@ -342,6 +342,10 @@ function DynastyTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
   const family = livingFamily(stat);
   const crisis = successionCrisisInfo(stat);
   const player = stat["Thông Tin Nhân Vật"]["Họ Tên"];
+  const uyTin = stat["Chỉ Số Cốt Lõi"]["Uy Tín"];
+  const nganKho = stat["Thông Tin Nhân Vật"]["Ngân Khố"];
+  const [pendingLaw, setPendingLaw] = useState<SuccessionLaw | null>(null);
+  
   const spouse = [
     ...Object.entries(stat["Mối Quan Hệ"]["NPC Chính"]),
     ...Object.entries(stat["Mối Quan Hệ"]["Thành Viên Gia Tộc"]),
@@ -365,11 +369,56 @@ function DynastyTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
       )}
 
       {/* luật kế vị */}
-      <div>
-        <span className="mb-1 block text-[12px] text-[var(--text-muted)]">Luật kế vị</span>
-        <GlassSelect value={gia["Luật Kế Vị"]} onChange={(e) => setLaw(e.target.value as SuccessionLaw)}>
-          {SUCCESSION_LAWS.map((l) => <option key={l} value={l}>{l}</option>)}
-        </GlassSelect>
+      <div className="glass rounded-[var(--radius-md)] p-3">
+        <span className="mb-2 block text-[12px] font-medium text-[var(--text-muted)]">Luật kế vị hiện tại</span>
+        
+        {pendingLaw ? (
+          <div className="space-y-2">
+            <p className="text-[12px] text-[var(--text-soft)]">
+              Đổi sang <span className="font-bold text-[var(--accent-text)]">{pendingLaw}</span>?
+            </p>
+            <div className="text-[11px] space-y-1">
+              <p className={nganKho >= 5880000 ? "text-[var(--ok)]" : "text-[var(--danger)]"}>
+                • Chi phí: 500 Rồng Vàng (5,880,000 Đồng Đỏ) {nganKho >= 5880000 ? "✔" : "✘"}
+              </p>
+              <p className={uyTin >= 14 ? "text-[var(--ok)]" : "text-[var(--danger)]"}>
+                • Yêu cầu: Uy Tín 14+ (Hiện có: {uyTin}) {uyTin >= 14 ? "✔" : "✘"}
+              </p>
+            </div>
+            <div className="flex gap-2 mt-3">
+              <GlassButton 
+                size="sm" 
+                variant="accent" 
+                disabled={nganKho < 5880000 || uyTin < 14}
+                onClick={() => {
+                  setLaw(pendingLaw);
+                  setPendingLaw(null);
+                }}
+              >
+                Xác nhận
+              </GlassButton>
+              <GlassButton 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => setPendingLaw(null)}
+              >
+                Hủy
+              </GlassButton>
+            </div>
+          </div>
+        ) : (
+          <GlassSelect 
+            value={gia["Luật Kế Vị"]} 
+            onChange={(e) => {
+              const newLaw = e.target.value as SuccessionLaw;
+              if (newLaw !== gia["Luật Kế Vị"]) {
+                setPendingLaw(newLaw);
+              }
+            }}
+          >
+            {SUCCESSION_LAWS.map((l) => <option key={l} value={l}>{l}</option>)}
+          </GlassSelect>
+        )}
       </div>
 
       {/* cây gia phả gọn */}

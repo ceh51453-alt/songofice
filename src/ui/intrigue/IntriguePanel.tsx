@@ -126,7 +126,7 @@ function SpiesTab({ stat }: { stat: Stat }) {
   const intel = Object.entries(stat["Tình Báo"]["Tin Tình Báo Đã Biết"]);
   const infiltrated = stat["Tình Báo"]["Bị Cài Điệp Viên"];
   const npcs = livingNpcs(stat);
-  const gold = stat["Thông Tin Nhân Vật"]["Vàng"];
+  const gold = stat["Thông Tin Nhân Vật"]["Ngân Khố"];
 
   return (
     <div className="space-y-4">

@@ -6,6 +6,7 @@
  * - regionFill: suy màu tô runtime theo chế độ (9.5.2) — Chính Trị / Quan Hệ.
  * Bản đồ ĐỌC từ đây, không tự giữ chủ quyền — nguồn chân lý là stat_data.
  */
+import { EXCHANGE_RATES } from "../economy/currency";
 import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import { REGIONS, REGIONS_BY_ID, regionControlForYear, factionsForYear, FACTION_COLORS_MAP, type MapRegion } from "../content/westeros/regions";
@@ -34,8 +35,8 @@ export function homeRegionForHouse(houseId: string): MapRegion | null {
 }
 
 /** Kho tài nguyên khởi điểm cho 1 lãnh địa mới (10.1). */
-function baseResources(): { Vàng: number; "Lương Thực": number; Gỗ: number; Đá: number; "Quặng Sắt": number } {
-  return { "Vàng": 0, "Lương Thực": 3000, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150 };
+function baseResources(): { "Ngân Khố": number; "Lương Thực": number; Gỗ: number; Đá: number; "Quặng Sắt": number } {
+  return { "Ngân Khố": 0, "Lương Thực": 3000, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150 };
 }
 
 /** Dựng object Territory (10.1) cho 1 vùng/thành trì — dùng khi tạo/chiếm holding. */
@@ -239,7 +240,7 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
 
 // ── Tính toán Lãnh Địa (V9) ─────────────────────────────────────────────────
 
-export function calculateYield(territory: Record<string, any>, weatherFactor: number, month: number): { Vàng: number; "Lương Thực": number; Gỗ: number; Đá: number; "Quặng Sắt": number } {
+export function calculateYield(territory: Record<string, any>, weatherFactor: number, month: number): { "Ngân Khố": number; "Lương Thực": number; Gỗ: number; Đá: number; "Quặng Sắt": number } {
   // Mùa factor
   let muaFactor = 1.0;
   if (month >= 1 && month <= 3) muaFactor = 1.0;
@@ -270,11 +271,11 @@ export function calculateYield(territory: Record<string, any>, weatherFactor: nu
   const stone = Math.floor(thợMỏ * 5 * ktFactor);
   const iron = Math.floor(thợMỏ * 5 * ktFactor);
   
-  // Thương mại (Vàng)
+  // Thương mại (quy về Đồng Đỏ)
   const thuongNhan = danSo["Thương Nhân"] || 100;
-  const gold = Math.floor(thuongNhan * 0.5 * ktFactor);
+  const gold = Math.floor(thuongNhan * 0.5 * ktFactor) * EXCHANGE_RATES.GOLD_TO_COPPER;
   
-  return { Vàng: gold, "Lương Thực": food, Gỗ: wood, Đá: stone, "Quặng Sắt": iron };
+  return { "Ngân Khố": gold, "Lương Thực": food, Gỗ: wood, Đá: stone, "Quặng Sắt": iron };
 }
 
 export function monthlyTick(state: StatData): PatchOp[] {
@@ -317,7 +318,7 @@ export function monthlyTick(state: StatData): PatchOp[] {
     // Cập nhật Vàng cho Lãnh Chúa (Bước 8-10)
     // Thực tế vàng đi vào ví nhân vật
     if (holding["Người Kiểm Soát"] === state["Thông Tin Nhân Vật"]["Họ Tên"] || state["Chủ Quyền Lãnh Thổ"][holding["Thuộc Vùng"]]?.["Là Của Người Chơi"]) {
-        ops.push({ op: "delta", path: `stat_data.Thông Tin Nhân Vật.Vàng`, value: yieldRes.Vàng });
+        ops.push({ op: "delta", path: `stat_data.Thông Tin Nhân Vật.Ngân Khố`, value: yieldRes["Ngân Khố"] });
     }
   }
   

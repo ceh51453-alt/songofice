@@ -43,7 +43,7 @@ export function KingdomsPanel({ open, onClose }: KingdomsPanelProps) {
       if (holding["Thuộc Vùng"] === k.id) {
         totalHoldings += 1;
         totalPopulation += Number(holding["Dân Số"]) || 0;
-        totalGold += Number(holding["Tài Nguyên"]?.["Vàng"]) || 0;
+        totalGold += Number(holding["Tài Nguyên"]?.["Ngân Khố"]) || 0;
         totalFood += Number(holding["Tài Nguyên"]?.["Lương Thực"]) || 0;
       }
     });

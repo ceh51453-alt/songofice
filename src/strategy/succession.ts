@@ -91,8 +91,10 @@ export function reconcileSuccessionOps(state: StatData): PatchOp[] {
 /** Đổi luật kế vị + tính lại thứ tự theo luật mới. */
 export function setSuccessionLawOps(state: StatData, law: SuccessionLaw): PatchOp[] {
   const order = successionOrder(state, law);
+  const currentGold = state["Thông Tin Nhân Vật"]?.["Ngân Khố"] ?? 0;
   return [
     { op: "replace", path: "stat_data.Gia Tộc Học.Luật Kế Vị", value: law },
+    { op: "replace", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: Math.max(0, currentGold - 5880000) },
     ...orderToOps(order, state["Mối Quan Hệ"]["Thành Viên Gia Tộc"]),
   ];
 }

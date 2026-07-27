@@ -20,7 +20,7 @@ export function GameResultOverlay() {
   const claimReward = useTavernStore((s) => s.claimReward);
   const exitTavern = useTavernStore((s) => s.exitTavern);
   const startGame = useTavernStore((s) => s.startGame);
-  const gold = useMvuStore((s) => s.stat["Thông Tin Nhân Vật"]["Vàng"]);
+  const gold = useMvuStore((s) => s.stat["Thông Tin Nhân Vật"]["Ngân Khố"]);
 
   if (phase !== "result" || !activeGame) return null;
 

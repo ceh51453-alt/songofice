@@ -58,7 +58,15 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     skills: { "Ma Thuật (Tiên Tri)": 15 },
     equipment: [],
     items: [{ ten: "Bầu rượu vang Arbor", soLuong: 10, moTa: "Rượu ngon để quên đi ác mộng." }],
-    gold: 2000, startingHookIds: [],
+    gold: 2000,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "maekar-i-targaryen", mother: "dyanna-dayne",
     spouse: "kiera-tyrosh",
     children: ["vaella-targaryen"],
@@ -96,7 +104,15 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     skills: { "Quản Lý": 14, "Thuyết Phục": 15, "Bắn Cung": 12 },
     equipment: [{ slot: "Vũ Khí Phụ", ten: "Cung ngắn", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Xa": 5 }, moTa: "Cung dệt bằng tơ nhện" }],
     items: [{ ten: "Mạng che mặt Góa Phụ Đỏ", soLuong: 1, moTa: "Che đậy nhan sắc và âm mưu" }],
-    gold: 15000, startingHookIds: [],
+    gold: 15000,
+    startResources: {
+      "Gỗ": 500,
+      "Quặng Sắt": 250,
+      "Đá": 500,
+      "Lương Thực": 2500,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "wymar-webber",
     mother: "",
     spouse: "eustace-osgrey", // Hoặc gerold-lannister
@@ -132,7 +148,15 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 12, "Lịch Sử": 15 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Thanh gươm cũ rỉ", phamChat: "Thường", thuocTinh: { "Sát Thương Cận": 3 }, moTa: "Di vật từ trận Cánh Đồng Cỏ Đỏ" }],
     items: [{ ten: "Huy hiệu Sư Tử Trắng", soLuong: 1, moTa: "Sự kiêu hãnh cuối cùng của Osgrey" }],
-    gold: 50, startingHookIds: [],
+    gold: 50,
+    startResources: {
+      "Gỗ": 500,
+      "Quặng Sắt": 250,
+      "Đá": 500,
+      "Lương Thực": 2500,
+      "Ngựa": 100,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "rohanne-webber",
@@ -168,7 +192,15 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
     skills: { "Thương Kỵ": 12, "Âm Nhạc": 15, "Thuyết Phục": 14 },
     equipment: [{ slot: "Vũ Khí Phụ", ten: "Đàn Vĩ Cầm", phamChat: "Thường", thuocTinh: { "Tôn Trọng": 1 }, moTa: "Dụng cụ che giấu thân phận" }],
     items: [{ ten: "Quả trứng rồng", soLuong: 1, moTa: "Trứng rồng hóa thạch tuyệt đẹp" }],
-    gold: 2000, startingHookIds: [],
+    gold: 2000,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "daemon-blackfyre", mother: "rohanne-tyrosh",
     spouse: "",
     children: [],

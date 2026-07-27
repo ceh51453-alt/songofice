@@ -17,13 +17,25 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 10, "Ngoại Giao": 10, "Cận Chiến (Kiếm)": 8 },
     equipment: [],
     items: [{ ten: "Vàng Casterly Rock", soLuong: 1000, moTa: "Số vàng lớn mang theo từ quê nhà." }],
-    gold: 50000, startingHookIds: [],
+    gold: 50000,
+    startResources: {
+      "Gỗ": 500,
+      "Quặng Sắt": 1500,
+      "Đá": 1500,
+      "Lương Thực": 6000,
+      "Ngựa": 200,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Lính Giáo Lannisport", type: "Bộ Binh", size: 27000, quality: "Thành Thạo" },
           { name: "Kỵ Sĩ Phương Tây", type: "Kỵ Binh", size: 9000, quality: "Thành Thạo" },
           { name: "Cung Thủ Phương Tây", type: "Cung Thủ", size: 9000, quality: "Thành Thạo" }
         ],
-    father: "lannister-father-loren",
+          startRegions: ["the-westerlands"],
+      startHoldings: ["the-westerlands-seat"],
+      holdingsLevel: {"the-westerlands-seat": 5},
+      baseIncome: 800,
+father: "lannister-father-loren",
     spouse: "lannister-wife-loren",
     children: ["lyman-lannister"],
     allies: ["mern-ix-gardener"],
@@ -54,7 +66,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 12, "Cận Chiến (Kiếm)": 10 },
     equipment: [],
     items: [],
-    gold: 60000, startingHookIds: [],
+    gold: 60000,
+    startResources: {
+      "Gỗ": 1000,
+      "Quặng Sắt": 500,
+      "Đá": 1000,
+      "Lương Thực": 5000,
+      "Ngựa": 200,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Bộ Binh Xứ Reach", type: "Bộ Binh", size: 33000, quality: "Thành Thạo" },
           { name: "Kỵ Sĩ Hoa", type: "Kỵ Binh", size: 11000, quality: "Thành Thạo" },
@@ -90,7 +110,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Ngoại Giao": 15, "Thuyết Phục": 12, "Quản Lý": 14 },
     equipment: [],
     items: [],
-    gold: 1500, startingHookIds: [],
+    gold: 1500,
+    startResources: {
+      "Gỗ": 1000,
+      "Quặng Sắt": 750,
+      "Đá": 4000,
+      "Lương Thực": 4000,
+      "Ngựa": 240,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Đội Vệ Binh Cổng Máu", type: "Bộ Binh", size: 6000, quality: "Tinh Nhuệ" },
           { name: "Kỵ Sĩ Thung Lũng", type: "Kỵ Binh", size: 2000, quality: "Tinh Nhuệ" },
@@ -126,9 +154,21 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Cưỡi Ngựa": 5 },
     equipment: [],
     items: [],
-    gold: 100, startingHookIds: [],
+    gold: 100,
+    startResources: {
+      "Gỗ": 1000,
+      "Quặng Sắt": 750,
+      "Đá": 4000,
+      "Lương Thực": 4000,
+      "Ngựa": 240,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     mother: "sharra-arryn",
-    father: "arryn-king-sharra",
+          startRegions: ["the-vale"],
+      startHoldings: ["the-vale-seat"],
+      holdingsLevel: {"the-vale-seat": 5},
+      baseIncome: 400,
+father: "arryn-king-sharra",
     siblings: ["jonos-arryn"],
     personalHooks: [
       { id: "ronnel-dragon", title: "Ước Mơ Cưỡi Rồng", year: "1 AC", numericYear: 1, desc: "Visenya Targaryen đã bay đến Eyrie. Ngươi có thể thấy con rồng Vhagar vĩ đại ngoài sân." }
@@ -162,13 +202,25 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Chỉ Huy": 12, "Ngoại Giao": 10, "Cận Chiến (Kiếm)": 10 },
     equipment: [],
     items: [],
-    gold: 1200, startingHookIds: [],
+    gold: 1200,
+    startResources: {
+      "Gỗ": 1500,
+      "Quặng Sắt": 400,
+      "Đá": 1000,
+      "Lương Thực": 10000,
+      "Ngựa": 200,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Vệ Binh Sông Xanh", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
           { name: "Kỵ Sĩ Sông Nhánh", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" },
           { name: "Đội Bắn Nỏ Nước", type: "Cung Thủ", size: 2000, quality: "Thành Thạo" }
         ],
-    children: ["tully-son-edmyn"],
+          startRegions: ["the-riverlands"],
+      startHoldings: ["the-riverlands-seat"],
+      holdingsLevel: {"the-riverlands-seat": 5},
+      baseIncome: 450,
+children: ["tully-son-edmyn"],
     allies: ["aegon-the-conqueror"],
     rivals: ["harren-the-black"],
     personalHooks: [
@@ -198,7 +250,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Hàng Hải": 15, "Cận Chiến (Rìu)": 12, "Chỉ Huy": 10 },
     equipment: [],
     items: [],
-    gold: 800, startingHookIds: [],
+    gold: 800,
+    startResources: {
+      "Gỗ": 1500,
+      "Quặng Sắt": 1250,
+      "Đá": 1500,
+      "Lương Thực": 2000,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Đội Đột Kích Người Sắt", type: "Bộ Binh", size: 3000, quality: "Thành Thạo" },
           { name: "Người Ném Lao Quần Đảo", type: "Cung Thủ", size: 750, quality: "Thành Thạo" }
@@ -237,7 +297,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Ngoại Giao": 15, "Chiến Lược": 18, "Lịch Sử": 15 },
     equipment: [],
     items: [],
-    gold: 2500, startingHookIds: [],
+    gold: 2500,
+    startResources: {
+      "Gỗ": 500,
+      "Quặng Sắt": 500,
+      "Đá": 1200,
+      "Lương Thực": 3500,
+      "Ngựa": 600,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     startArmies: [
           { name: "Đội Tiên Phong Xứ Dorne", type: "Bộ Binh", size: 6000, quality: "Tinh Nhuệ" },
           { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 2000, quality: "Tinh Nhuệ" },
@@ -274,7 +342,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Ngoại Giao": 16, "Chính Trị": 14 },
     equipment: [],
     items: [],
-    gold: 1500, startingHookIds: [],
+    gold: 1500,
+    startResources: {
+      "Gỗ": 500,
+      "Quặng Sắt": 500,
+      "Đá": 1200,
+      "Lương Thực": 3500,
+      "Ngựa": 600,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     personalHooks: [
       { id: "nymor-peace", title: "Lá Thư Hòa Bình", year: "13 AC", numericYear: 13, desc: "Mẹ ngươi đã mất. Đã đến lúc chấm dứt cuộc chiến đẫm máu này bằng một lá thư bí mật gửi cho Aegon." }
     ],
@@ -310,8 +386,20 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Ngoại Giao": 14, "Can Đảm": 12 },
     equipment: [],
     items: [],
-    gold: 500, startingHookIds: [],
-    personalHooks: [
+    gold: 500,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 100,
+      "Đá": 240,
+      "Lương Thực": 700,
+      "Ngựa": 120,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
+          startRegions: ["dorne"],
+      startHoldings: ["dorne-seat"],
+      holdingsLevel: {"dorne-seat": 5},
+      baseIncome: 450,
+personalHooks: [
       { id: "deria-envoy", title: "Hành Trình Đến King's Landing", year: "13 AC", numericYear: 13, desc: "Ngươi mang theo hộp sọ của rồng Meraxes và một lá thư mật, bước vào ngai vàng để thương lượng với kẻ thù." }
     ],
     father: "nymor-martell",
@@ -347,7 +435,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
     skills: { "Cận Chiến (Kiếm)": 14, "Chỉ Huy": 12 },
     equipment: [],
     items: [],
-    gold: 100, startingHookIds: [],
+    gold: 100,
+    startResources: {
+      "Gỗ": 100,
+      "Quặng Sắt": 50,
+      "Đá": 100,
+      "Lương Thực": 500,
+      "Ngựa": 20,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     personalHooks: [
       { id: "the-last-storm", title: "Cơn Bão Cuối Cùng", year: "1 BC", numericYear: -1, desc: "Orys Baratheon đang kéo quân tới. Ngươi sẽ tử chiến vì Vua Bão Argilac." }
     ],
@@ -371,7 +467,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "lannister-father-loren", name: "Cựu Vương Lannister", tuocVi: "Thường Dân", house: "Lannister", role: "Cựu Vương", religion: "Thất Diện Thần", blurb: "Cha của Loren Lannister.",
     birthYear: -50, deathYear: -1, age: 50, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [],
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 30,
+      "Đá": 30,
+      "Lương Thực": 120,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -391,7 +495,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "lannister-wife-loren", name: "Vương Hậu Lannister", tuocVi: "Vương Hậu", house: "Lannister", role: "Vương Hậu", religion: "Thất Diện Thần", blurb: "Vợ của Loren Lannister.",
     birthYear: -25, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "loren-lannister",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 30,
+      "Đá": 30,
+      "Lương Thực": 120,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "loren-lannister",
     father: "",
     mother: "",
     children: [],
@@ -411,7 +523,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "lyman-lannister", name: "Lyman Lannister", tuocVi: "Vương Thân", house: "Lannister", role: "Con trai Loren", religion: "Thất Diện Thần", blurb: "Người thừa kế của Loren Lannister.",
     birthYear: -5, age: 5, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "loren-lannister", mother: "lannister-wife-loren",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 10,
+      "Quặng Sắt": 30,
+      "Đá": 30,
+      "Lương Thực": 120,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "loren-lannister", mother: "lannister-wife-loren",
     spouse: "",
     children: [],
     siblings: [],
@@ -430,7 +550,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "edmund-gardener", name: "Edmund Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Thái tử", religion: "Thất Diện Thần", blurb: "Con trai trưởng của Mern IX.",
     birthYear: -25, deathYear: -2, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "mern-ix-gardener",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "mern-ix-gardener",
     mother: "",
     spouse: "",
     children: [],
@@ -450,7 +578,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "gawen-gardener", name: "Gawen Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai thứ của Mern IX.",
     birthYear: -23, deathYear: -2, age: 23, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "mern-ix-gardener",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "mern-ix-gardener",
     mother: "",
     spouse: "",
     children: [],
@@ -470,7 +606,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "garth-gardener", name: "Garth Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai của Mern IX.",
     birthYear: -20, deathYear: -2, age: 20, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "mern-ix-gardener",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "mern-ix-gardener",
     mother: "",
     spouse: "",
     children: [],
@@ -490,7 +634,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "moryn-gardener", name: "Moryn Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai út của Mern IX.",
     birthYear: -18, deathYear: -2, age: 18, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "mern-ix-gardener",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "mern-ix-gardener",
     mother: "",
     spouse: "",
     children: [],
@@ -510,7 +662,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "arryn-king-sharra", name: "Cựu Vương Arryn", tuocVi: "Thường Dân", house: "Arryn", role: "Vua đã mất", religion: "Thất Diện Thần", blurb: "Người chồng đã mất của Sharra Arryn.",
     birthYear: -40, deathYear: -6, age: 34, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "sharra-arryn",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 15,
+      "Đá": 80,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "sharra-arryn",
     father: "",
     mother: "",
     children: [],
@@ -529,7 +689,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "jonos-arryn", name: "Jonos Arryn", tuocVi: "Vương Thân", house: "Arryn", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Em trai của Ronnel Arryn.",
     birthYear: -4, age: 4, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "arryn-king-sharra", mother: "sharra-arryn",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 15,
+      "Đá": 80,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "arryn-king-sharra", mother: "sharra-arryn",
     spouse: "",
     children: [],
     siblings: [],
@@ -548,7 +716,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "tully-son-edmyn", name: "Con trai Edmyn", tuocVi: "Người Thừa Kế", house: "Tully", role: "Người Thừa Kế", religion: "Thất Diện Thần", blurb: "Người kế vị Riverrun.",
     birthYear: -10, age: 10, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "edmyn-tully",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 8,
+      "Đá": 20,
+      "Lương Thực": 200,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "edmyn-tully",
     mother: "",
     spouse: "",
     children: [],
@@ -568,7 +744,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "goren-greyjoy", name: "Goren Greyjoy", tuocVi: "Người Thừa Kế", house: "Greyjoy", role: "Người Thừa Kế", religion: "Đần Thần (Drowned God)", blurb: "Con trai cả của Vickon Greyjoy.",
     birthYear: -15, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "vickon-greyjoy",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 30,
+      "Quặng Sắt": 25,
+      "Đá": 30,
+      "Lương Thực": 40,
+      "Ngựa": 0,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "vickon-greyjoy",
     mother: "",
     spouse: "",
     children: [],
@@ -591,7 +775,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "aerion-targaryen", name: "Aerion Targaryen", tuocVi: "Lãnh Chúa", house: "Targaryen", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Aegon, Visenya, và Rhaenys.",
     birthYear: -50, deathYear: -2, age: 48, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [],
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 200,
+      "Quặng Sắt": 100,
+      "Đá": 200,
+      "Lương Thực": 1000,
+      "Ngựa": 40,
+      "Thép Valyria": 0
+    }, startingHookIds: [],
     father: "",
     mother: "",
     spouse: "",
@@ -614,7 +806,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "valaena-velaryon", name: "Valaena Velaryon", tuocVi: "Tiểu Thư", house: "Velaryon", role: "Phu Nhân", religion: "Thất Diện Thần", blurb: "Mẹ của Aegon, Visenya, và Rhaenys.",
     birthYear: -48, deathYear: -2, age: 46, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], spouse: "aerion-targaryen",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], spouse: "aerion-targaryen",
     father: "",
     mother: "",
     children: [],
@@ -636,7 +836,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "hoare-son-harren", name: "Thái Tử Hoare", tuocVi: "Người Thừa Kế", house: "Hoare", role: "Con trai Harren", religion: "Thần Chết Chìm", blurb: "Người con sẽ chết trong lửa rồng cùng cha.",
     birthYear: -30, deathYear: 2, age: 30, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "harren-the-black",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "harren-the-black",
     mother: "",
     spouse: "",
     children: [],
@@ -655,7 +863,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "brandon-snow", name: "Brandon Snow", tuocVi: "Thường Dân", house: "Stark", role: "Anh em của Torrhen", religion: "Cựu Thần", blurb: "Con hoang của phương Bắc, đã từng đề xuất ám sát rồng Targaryen.",
     birthYear: -28, age: 28, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], siblings: ["torrhen-stark"],
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], siblings: ["torrhen-stark"],
     father: "",
     mother: "",
     spouse: "",
@@ -674,7 +890,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "stark-son-torrhen", name: "Con trai Torrhen", tuocVi: "Người Thừa Kế", house: "Stark", role: "Người Thừa Kế", religion: "Cựu Thần", blurb: "Con trai của Torrhen Stark, phẫn nộ vì cha phải quỳ gối.",
     birthYear: -10, age: 10, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "torrhen-stark",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 60,
+      "Quặng Sắt": 12,
+      "Đá": 24,
+      "Lương Thực": 80,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "torrhen-stark",
     mother: "",
     spouse: "",
     children: [],
@@ -694,7 +918,15 @@ export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "argella-durrandon", name: "Argella Durrandon", tuocVi: "Công Chúa", house: "Durrandon", role: "Nữ Vương Bão", religion: "Thất Diện Thần", blurb: "Con gái của Argilac, người sẽ lấy Orys Baratheon.",
     birthYear: -18, age: 18, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 14 },
-    talentIds: [], skills: {}, equipment: [], items: [], gold: 0, startingHookIds: [], father: "argilac-durrandon",
+    talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
+    startResources: {
+      "Gỗ": 20,
+      "Quặng Sắt": 10,
+      "Đá": 20,
+      "Lương Thực": 100,
+      "Ngựa": 4,
+      "Thép Valyria": 0
+    }, startingHookIds: [], father: "argilac-durrandon",
     mother: "",
     spouse: "",
     children: [],

@@ -137,14 +137,14 @@ describe("buildStateFromWizard (8.6b)", () => {
 
   it("GÓI TÀI SẢN vào state: Lãnh Chúa mở lãnh địa + kinh tế; Thường Dân gần trắng tay", () => {
     const lord = buildStateFromWizard(makeWizard({ originId: "lord-heir" }));
-    expect(lord["Thông Tin Nhân Vật"]["Vàng"]).toBe(5000);
+    expect(lord["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000);
     const lordLands = Object.values(lord["Lãnh Địa"]);
     expect(lordLands.length).toBe(1);
     expect(lordLands[0]["Tài Nguyên"]["Lương Thực"]).toBe(20000);
     expect(lord["Danh Vọng"]["Vinh Dự"]).toBe(10);
 
     const pauper = buildStateFromWizard(makeWizard({ originId: "commoner" }));
-    expect(pauper["Thông Tin Nhân Vật"]["Vàng"]).toBe(10);
+    expect(pauper["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(10);
     expect(Object.keys(pauper["Lãnh Địa"])).toHaveLength(0);
   });
 

@@ -143,8 +143,8 @@ export const TaxPolicySchema = z
   .prefault({});
 export type TaxPolicy = z.infer<typeof TaxPolicySchema>;
 
-/** Nợ Iron Bank of Braavos (15.3). */
-export const IronBankSchema = z
+/** Nợ và Cho Vay (15.3). */
+export const DebtSchema = z
   .object({
     "Nợ Gốc": safeInt(0),
     "Lãi/Turn": safeInt(0),
@@ -152,7 +152,7 @@ export const IronBankSchema = z
     "Đang Quỵt": z.boolean().catch(false).prefault(false),
   })
   .prefault({});
-export type IronBankDebt = z.infer<typeof IronBankSchema>;
+export type Debt = z.infer<typeof DebtSchema>;
 
 /** Khủng hoảng đang diễn ra tại 1 lãnh địa (15.4). */
 export const CrisisSchema = z
@@ -199,6 +199,16 @@ export const MilitaryUnitSchema = z
 export type MilitaryUnit = z.infer<typeof MilitaryUnitSchema>;
 
 /** Tướng lĩnh (7.7). */
+export const DISEASE_TYPES = ["Cảm Lạnh", "Sốt Mùa Hè", "Sốt Lạnh", "Bệnh Vảy Xám", "Dịch Tả", "Bệnh Kiết Lỵ", "Giang Mai", "Bệnh Lậu", "Bệnh Hoa Liễu", "Thương Hàn", "Bệnh Dại", "Lao Phổi"] as const;
+export const DISEASE_SEVERITY = ["Nhẹ", "Nặng", "Nguy Kịch"] as const;
+
+export const CharacterDiseaseSchema = z.object({
+  "Tên": z.enum(DISEASE_TYPES).catch("Cảm Lạnh").prefault("Cảm Lạnh"),
+  "Mức Độ": z.enum(DISEASE_SEVERITY).catch("Nhẹ").prefault("Nhẹ"),
+  "Ngày Còn Lại": safeInt(0),
+}).prefault({});
+export type CharacterDisease = z.infer<typeof CharacterDiseaseSchema>;
+
 export const GeneralSchema = z
   .object({
     "Chỉ Số Thống Soái": clampedStat(0, 100, 50),
@@ -216,6 +226,7 @@ export const GeneralSchema = z
     "Trung Thành": clampedStat(-100, 100, 0),
     "Còn Sống": z.boolean().catch(true).prefault(true),
     "Bị Bắt Bởi": safeString().optional(),
+    "Các Loại Bệnh": z.array(CharacterDiseaseSchema).catch([]).prefault([]),
   })
   .prefault({});
 export type General = z.infer<typeof GeneralSchema>;
@@ -306,7 +317,7 @@ export const TerritorySchema = z
     "Ven Biển": z.boolean().catch(false).prefault(false),
     "Tài Nguyên": z
       .object({
-        "Vàng": safeInt(0),
+        "Ngân Khố": safeInt(0),
         "Lương Thực": safeInt(0),
         "Gỗ": safeInt(0),
         "Đá": safeInt(0),
@@ -516,6 +527,7 @@ export const BodyPartSchema = z.object({
   "Triệu Chứng": z.array(z.enum(WOUND_TYPES)).catch(["Bình Thường"]).prefault(["Bình Thường"])
 }).prefault({});
 
+
 export const StatDataSchema = z
   .object({
     "Chế Độ Hiện Tại": z.enum(["Chế Độ Nhập Vai", "Chế Độ Chiến Tranh"]).catch("Chế Độ Nhập Vai").prefault("Chế Độ Nhập Vai"),
@@ -550,7 +562,8 @@ export const StatDataSchema = z
         "Ảnh Chân Dung": safeString().optional(), // khoá tham chiếu Dexie (5.1c)
         "Cấp Độ": safeInt(1, 1),
         "Kinh Nghiệm": safeInt(0),
-        "Vàng": safeInt(0),
+        "Ngân Khố": safeInt(0), // Backend lưu dưới dạng Đồng Đỏ (Copper Pennies)
+        "Ngân Khố Essos": z.record(safeString(), safeInt(0)).catch({}).prefault({}),
         // ── TUỔI TÁC (động theo thời gian truyện) ──
         "Tuổi": safeInt(25),
         "Năm Sinh": z.coerce.number().int().optional(),
@@ -558,6 +571,16 @@ export const StatDataSchema = z
         "Tước Vị": z.enum(["Thường Dân", "Người Thừa Kế", "Hiệp Sĩ", "Lãnh Chúa Thành Trì", "Lãnh Chúa", "Đại Lãnh Chúa", "Quốc Vương", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế", "Hoàng Tử", "Vương Hậu", "Công Chúa", "Tiểu Thư", "Vương Thân", "Vương phi"]).catch("Thường Dân").prefault("Thường Dân"),
         "Đã Chết": z.boolean().catch(false).prefault(false),
         "Nguyên Nhân Cái Chết": safeString().optional(),
+        "Các Loại Bệnh": z.array(CharacterDiseaseSchema).catch([]).prefault([]),
+        // Tài nguyên dùng cho rèn đúc và buôn bán
+        "Tài Nguyên Gia Tộc": z.object({
+          "Gỗ": safeInt(0),
+          "Đá": safeInt(0),
+          "Quặng Sắt": safeInt(0),
+          "Lương Thực": safeInt(0),
+          "Ngựa": safeInt(0),
+          "Thép Valyria": safeInt(0)
+        }).prefault({})
       })
       .prefault({}),
 
@@ -615,6 +638,8 @@ export const StatDataSchema = z
         "Chân Trái": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
         "Chân Phải": { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] },
       }),
+    
+    "Bệnh Tật": z.array(CharacterDiseaseSchema).catch([]).prefault([]),
 
     // ── 6 CHỈ SỐ CỐT LÕI (5.1f-A, thang 1-20) — THAY khối 4-trục rút gọn 5.1 ──
     "Chỉ Số Cốt Lõi": z
@@ -649,6 +674,7 @@ export const StatDataSchema = z
         "_Sát Thương Xa": safeInt(0),
         "_Tải Trọng": safeInt(50),
         "_Chống Chịu": safeInt(0),
+        "_Kháng Bệnh": safeInt(50),
       })
       .prefault({}),
 
@@ -723,6 +749,8 @@ export const StatDataSchema = z
       )
       .catch({})
       .prefault({}),
+
+    "Kho Vũ Khí": z.array(EquipItemSchema).catch([]).prefault([]),
 
     "Mối Quan Hệ": z
       .object({
@@ -804,8 +832,9 @@ export const StatDataSchema = z
     // ── CHÍNH SÁCH THUẾ (15.3 — M12) ──
     "Chính Sách Thuế": TaxPolicySchema,
 
-    // ── NỢ IRON BANK (15.3 — M12) ──
-    "Nợ Iron Bank": IronBankSchema,
+    // ── KHOẢN NỢ & CHO VAY (15.3 — M12) ──
+    "Các Khoản Nợ": z.record(safeString(), DebtSchema).catch({}).prefault({}),
+    "Các Khoản Cho Vay": z.record(safeString(), DebtSchema).catch({}).prefault({}),
 
     // ── QUÂN SỰ (7.4 — M8 mở rộng thêm loại quân/vị trí đồn trú) ──
     "Biên Chế Quân Sự": z.record(safeString(), MilitaryUnitSchema).catch({}).prefault({}),
@@ -944,6 +973,19 @@ export const StatDataSchema = z
         "_Seed Gốc": z.coerce.number().int().catch(0).prefault(0), // cố định lúc tạo ván (5bis.1)
       })
       .prefault({}),
+
+    "Thị Trường Khu Vực": z.record(safeString(), z.object({
+      "Hệ Số Giá": z.object({
+        "Gỗ": z.coerce.number().catch(1).prefault(1),
+        "Đá": z.coerce.number().catch(1).prefault(1),
+        "Quặng Sắt": z.coerce.number().catch(1).prefault(1),
+        "Lương Thực": z.coerce.number().catch(1).prefault(1),
+        "Ngựa": z.coerce.number().catch(1).prefault(1),
+        "Thép Valyria": z.coerce.number().catch(1).prefault(1)
+      }).prefault({}),
+      "Đang Có Thương Nhân": z.boolean().catch(false).prefault(false),
+      "Tin Đồn": safeString().prefault("Không có biến động lớn trên thị trường.")
+    })).catch({}).prefault({})
   })
   .prefault({});
 
