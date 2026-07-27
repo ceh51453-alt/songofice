@@ -309,7 +309,7 @@ export interface WizardData {
 
 export interface CraftingRequest {
   name: string;
-  slot: "Vũ Khí Chính" | "Vũ Khí Phụ" | "Giáp Thân" | "Áo Choàng" | "Vật Phẩm Đặc Biệt";
+  slot: "Vũ Khí Chính" | "Vũ Khí Phụ" | "Giáp Thân" | "Khiên" | "Vật Phẩm Đặc Biệt";
   material: "Thép Thường" | "Thép Tinh Luyện" | "Thép Valyria" | "Da Thú" | "Sắt Đen";
   crafter: "Bản thân" | "Thợ rèn Qohor" | "Thợ rèn Lâu Đài";
 }
@@ -548,6 +548,8 @@ export function buildStateFromWizard(d: WizardData): StatData {
         "Thuộc Tính": custom.slot.includes("Vũ Khí") ? { "Sát Thương Cận": dmg } : { "Phòng Thủ": def },
         "Đặc Tính": traits,
         "Mô Tả": `Một món đồ được đặt làm riêng bởi ${custom.crafter}.`,
+        "VisualClass": custom.slot.includes("Vũ Khí") ? "sword" : custom.slot === "Giáp Thân" ? "heavy-armor" : custom.slot === "Khiên" ? "cape" : "default",
+        "VisualColor": custom.material === "Thép Valyria" ? "#222" : custom.material === "Thép Tinh Luyện" ? "#aaa" : custom.material === "Da Thú" ? "#8B4513" : "#777"
       };
     }
   }

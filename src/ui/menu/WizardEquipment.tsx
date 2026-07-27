@@ -140,7 +140,7 @@ function CraftingForm({ onAdd }: { onAdd: (req: CraftingRequest) => void }) {
             <option value="Vũ Khí Chính">Vũ Khí Chính</option>
             <option value="Vũ Khí Phụ">Vũ Khí Phụ</option>
             <option value="Giáp Thân">Giáp Thân</option>
-            <option value="Áo Choàng">Áo Choàng</option>
+            <option value="Khiên">Khiên</option>
           </select>
         </div>
 

@@ -95,6 +95,9 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
     { "op": "delta", "path": "stat_data.Kỹ Năng.Kiếm Thuật.Kinh Nghiệm", "value": 20 }
     { "op": "delta", "path": "stat_data.Kinh Nghiệm Chỉ Số.Sức Mạnh", "value": 15 }
   Thưởng 10-20 điểm cho hành động thường, 50-100 cho hành động xuất chúng hoặc chiến thắng. Game sẽ tự tính toán thăng cấp.
+- HỒI PHỤC SỨC KHỎE & THỂ LỰC: Khi cốt truyện có tình tiết nhân vật nghỉ ngơi (ngủ qua đêm, dừng chân cắm trại), ăn uống no say, hoặc được học sĩ/thầy thuốc chữa trị, ngươi PHẢI tự động phục hồi HP và Thể Lực bằng lệnh "delta". Tùy mức độ nghỉ ngơi mà cộng nhiều hay ít.
+    { "op": "delta", "path": "stat_data.Chỉ Số Sinh Tồn.HP", "value": 20 }
+    { "op": "delta", "path": "stat_data.Chỉ Số Sinh Tồn.Thể Lực", "value": 40 }
 - QUAN HỆ & TÌNH CẢM: Độ Hảo Cảm cao KHÔNG đồng nghĩa với việc tự động trở thành "Người Tình" hay "Tình Nhân". Hảo cảm cao chỉ có nghĩa là thân thiết (Tri Kỷ/Sống Chết Có Nhau, Đồng Minh, Bằng Hữu).
   Ngươi CHỈ ĐƯỢC THÊM trường "Quan Hệ Thân Mật" (Vai Trò: Người Tình, Thiếp, Vợ, Tình Nhân Bí Mật...) NẾU trong lời kể thực sự diễn ra việc quan hệ xác thịt (làm tình) hoặc cưới hỏi chính thức. Tuyệt đối không tự suy diễn hảo cảm thành tình dục.
 
@@ -248,6 +251,7 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), K
 ## GHI NHỚ QUAN TRỌNG
 
 - HP, thời gian, vàng, kỹ năng: dùng delta (hp = hp - 10) KHÔNG dùng giá trị tuyệt đối.
+- Hồi phục sức khoẻ & thể lực: Khi cốt truyện diễn tả nhân vật nghỉ ngơi, ngủ qua đêm, ăn uống no say hoặc được chữa trị, tự động UPDATE bảng chỉ số sinh tồn (hoặc bảng tương ứng) để cộng thêm HP và Thể lực (VD: hp = hp + 20, the_luc = the_luc + 40).
 - NPC: dùng WHERE ho_ten = 'Tên NPC' để định vị (KHÔNG dùng row_id cho NPC).
 - Vật phẩm: INSERT khi nhận mới, UPDATE so_luong khi nhận thêm, DELETE khi dùng hết.
 - Rồng & Trứng rồng: UPDATE bảng rong (hoặc trung_rong) để thay đổi do_hao_cam, trang_thai_thu_phuc, tinh_trang_trung tuỳ theo lời kể (tăng hảo cảm, thuần hóa, ấp trứng).

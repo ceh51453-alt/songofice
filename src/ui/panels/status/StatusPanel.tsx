@@ -10,7 +10,10 @@ import {
 import { DISEASE_CATALOG } from "../../../content/westeros/diseases";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { canClaimIronThrone, claimIronThrone } from "../../../character/roleplay";
+import { useState } from "react";
 import { applyPatch } from "../../../mvu/patchEngine";
+import { BodyVisualizer } from "./BodyVisualizer";
+import { EquipmentModal } from "./EquipmentModal";
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -44,6 +47,7 @@ function Bar({ label, value, max, color, reverseColor }: { label: string; value:
 }
 
 export function StatusPanel() {
+  const [isEquipModalOpen, setEquipModalOpen] = useState(false);
   const stat = useMvuStore((s) => s.stat);
   const info = stat["Thông Tin Nhân Vật"];
   const persona = stat["Persona"];
@@ -148,64 +152,13 @@ export function StatusPanel() {
       </Section>
 
       {/* ---- Tình Trạng Cơ Thể ---- */}
-      <Section title="CƠ THỂ" icon={<IconSpark size={14} />}>
-        <div className="flex flex-col items-center justify-center py-2 gap-1.5">
-          {(() => {
-            const body = stat["Cơ Thể"] || {};
-            const getPart = (name: string) => body[name] || { "Tình Trạng": 100, "Triệu Chứng": ["Bình Thường"] };
-            
-            const getStyle = (partData: { "Tình Trạng": number; "Triệu Chứng": string[] }) => {
-              const hp = partData["Tình Trạng"];
-              const ailments = partData["Triệu Chứng"] || [];
-              if (hp <= 0 || ailments.includes("Đứt Lìa") || ailments.includes("Tàn Phế")) return "bg-neutral-900 border border-neutral-700";
-              if (ailments.includes("Hoại Tử")) return "bg-purple-800";
-              if (ailments.includes("Nhiễm Độc")) return "bg-green-700";
-              if (hp <= 20) return "bg-[var(--danger)]"; // Đỏ
-              if (hp <= 50) return "bg-orange-600";
-              if (hp <= 80) return "bg-[var(--warn)]"; // Vàng
-              return "bg-slate-500"; // Bình thường
-            };
-
-            const renderPart = (name: string, className: string) => {
-              const data = getPart(name);
-              const ailmentsText = data["Triệu Chứng"].filter(a => a !== "Bình Thường").join(", ");
-              const title = `${name}: ${data["Tình Trạng"]}%${ailmentsText ? ` - ${ailmentsText}` : ""}`;
-              return (
-                <div 
-                  title={title}
-                  className={`transition-colors duration-500 cursor-help shadow-sm ${className} ${getStyle(data)}`}
-                />
-              );
-            };
-
-            return (
-              <>
-                {/* Đầu */}
-                {renderPart("Đầu", "w-8 h-8 rounded-full")}
-                
-                {/* Tay + Thân */}
-                <div className="flex justify-center gap-1.5">
-                  {/* Tay trái */}
-                  {renderPart("Tay Trái", "w-3.5 h-12 rounded-full mt-1")}
-                  
-                  {/* Thân (Ngực + Bụng) */}
-                  <div className="flex flex-col gap-0.5 w-9 h-14">
-                    {renderPart("Ngực", "w-full h-1/2 rounded-t-md")}
-                    {renderPart("Bụng", "w-full h-1/2 rounded-b-md")}
-                  </div>
-                  
-                  {/* Tay phải */}
-                  {renderPart("Tay Phải", "w-3.5 h-12 rounded-full mt-1")}
-                </div>
-                
-                {/* Chân */}
-                <div className="flex justify-center gap-2 mt-0.5">
-                  {renderPart("Chân Trái", "w-4 h-14 rounded-full")}
-                  {renderPart("Chân Phải", "w-4 h-14 rounded-full")}
-                </div>
-              </>
-            );
-          })()}
+      <Section title="TRANG BỊ" icon={<IconSpark size={14} />}>
+        <div className="hover:bg-white/5 rounded-lg transition-colors" title="Nhấn để xem trang bị">
+          <BodyVisualizer 
+            body={stat["Cơ Thể"] || {}} 
+            equipped={stat["Trang Bị Đang Mặc"] || {}} 
+            onClick={() => setEquipModalOpen(true)}
+          />
         </div>
       </Section>
 
@@ -370,6 +323,8 @@ export function StatusPanel() {
           </div>
         </Section>
       )}
+
+      <EquipmentModal open={isEquipModalOpen} onClose={() => setEquipModalOpen(false)} />
     </div>
   );
 }

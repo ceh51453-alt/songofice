@@ -143,7 +143,7 @@ export const ERAS: EraData[] = [
         skills: { "sword-shield": 7, "weather-endurance": 8, "hunting": 6, "command": 5 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Kiếm sắt cổ", phamChat: "Thường", thuocTinh: { "Sát Thương Cận": 4 }, moTa: "Kiếm rèn bởi thợ Người Đầu Tiên" },
-          { slot: "Áo Choàng", ten: "Áo lông gấu", phamChat: "Thường", thuocTinh: { "Chống Chịu": 4 }, moTa: "Chống đại hàn" },
+          { slot: "Khiên", ten: "Áo lông gấu", phamChat: "Thường", thuocTinh: { "Chống Chịu": 4 }, moTa: "Chống đại hàn" },
         ],
         items: [{ ten: "Đuốc dragonglass", soLuong: 3, moTa: "Vũ khí duy nhất giết được Others" }],
         gold: 50, startHoldings: [],
@@ -887,7 +887,7 @@ export const ERAS: EraData[] = [
         skills: { "sword-shield": 6, "command": 6, "weather-endurance": 4, "lore": 3 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Ice", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 8 }, dacTinh: ["valyrian", "gia truyền"], moTa: "Đại kiếm thép Valyria của Nhà Stark" },
-          { slot: "Áo Choàng", ten: "Áo choàng lông sói", phamChat: "Thường", thuocTinh: { "Chống Chịu": 3 }, moTa: "Chống rét phương Bắc" },
+          { slot: "Khiên", ten: "Áo choàng lông sói", phamChat: "Thường", thuocTinh: { "Chống Chịu": 3 }, moTa: "Chống rét phương Bắc" },
         ],
         items: [],
         gold: 2000, startHoldings: ["the-north-seat"],
@@ -1087,7 +1087,7 @@ export const ERAS: EraData[] = [
         skills: { "sword-shield": 7, "command": 8, "court-etiquette": 3, "lore": 5, "weather-endurance": 4 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Ice", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 8 }, dacTinh: ["valyrian", "gia truyền"], moTa: "Đại kiếm thép Valyria của Nhà Stark — người tuyên án phải tự vung kiếm" },
-          { slot: "Áo Choàng", ten: "Áo choàng lông sói", phamChat: "Tinh Xảo", thuocTinh: { "Chống Chịu": 3 }, moTa: "Chống rét phương Bắc" },
+          { slot: "Khiên", ten: "Áo choàng lông sói", phamChat: "Tinh Xảo", thuocTinh: { "Chống Chịu": 3 }, moTa: "Chống rét phương Bắc" },
         ],
         items: [{ ten: "Ấn tín Lãnh chúa Winterfell", soLuong: 1, moTa: "Quyền cai trị phương Bắc" }],
         gold: 5000, startHoldings: ["the-north-seat"],
@@ -1157,7 +1157,7 @@ export const ERAS: EraData[] = [
         skills: { "sword-shield": 5, "war-riding": 3, "hunting": 3, "weather-endurance": 3 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Trường kiếm tập luyện", phamChat: "Thường", thuocTinh: { "Sát Thương Cận": 3 }, moTa: "Kiếm thép thường — Longclaw còn chưa tới" },
-          { slot: "Áo Choàng", ten: "Áo choàng lông sói", phamChat: "Thường", thuocTinh: { "Chống Chịu": 3 }, moTa: "Chống rét" },
+          { slot: "Khiên", ten: "Áo choàng lông sói", phamChat: "Thường", thuocTinh: { "Chống Chịu": 3 }, moTa: "Chống rét" },
         ],
         items: [{ ten: "Sói tuyết Ghost", soLuong: 1, moTa: "Con sói trắng câm lặng — luôn ở gần" }],
         gold: 50, startHoldings: ["castle-black"],

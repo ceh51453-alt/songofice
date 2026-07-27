@@ -245,6 +245,10 @@ export const EquipItemSchema = z
     "Đặc Tính": z.array(safeString()).catch([]).prefault([]), // tag: "valyrian","obsidian","xuyên giáp","gia truyền"
     "Mô Tả": safeString().prefault(""),
     "Độ Bền": clampedStat(0, 100, 100).optional(),
+    "Cấp Cường Hóa": safeInt(0, 0).optional(),
+    "Bộ Trang Bị": safeString().optional(),
+    "VisualClass": safeString().optional(),
+    "VisualColor": safeString().optional(),
   })
   .prefault({});
 
@@ -723,7 +727,7 @@ export const StatDataSchema = z
         "Vũ Khí Phụ": EquipItemSchema.optional(),
         "Giáp Thân": EquipItemSchema.optional(),
         "Mũ/Nón": EquipItemSchema.optional(),
-        "Áo Choàng": EquipItemSchema.optional(),
+        "Khiên": EquipItemSchema.optional(),
         "Trang Sức": EquipItemSchema.optional(),
         "Vật Phẩm Đặc Biệt": EquipItemSchema.optional(),
       })

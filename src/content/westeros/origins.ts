@@ -17,7 +17,7 @@ export interface AssetPackage {
 }
 
 export interface EquipGrant {
-  slot: "Vũ Khí Chính" | "Vũ Khí Phụ" | "Giáp Thân" | "Áo Choàng" | "Vật Phẩm Đặc Biệt";
+  slot: "Vũ Khí Chính" | "Vũ Khí Phụ" | "Giáp Thân" | "Khiên" | "Vật Phẩm Đặc Biệt";
   ten: string;
   phamChat: "Thô Kệch" | "Thường" | "Tinh Xảo";
   thuocTinh: Record<string, number>;
@@ -55,7 +55,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["highborn-charm"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Trường kiếm gia truyền", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 4 }, dacTinh: ["gia truyền"], moTa: "Kiếm thép tốt truyền vài đời" },
-      { slot: "Áo Choàng", ten: "Áo choàng huy hiệu Nhà", phamChat: "Tinh Xảo", thuocTinh: { "Chống Chịu": 2 }, moTa: "Khoác huy hiệu gia tộc" },
+      { slot: "Khiên", ten: "Áo choàng huy hiệu Nhà", phamChat: "Tinh Xảo", thuocTinh: { "Chống Chịu": 2 }, moTa: "Khoác huy hiệu gia tộc" },
     ],
     items: [{ ten: "Ấn tín lãnh chúa", soLuong: 1, moTa: "Chứng nhận quyền cai trị" }],
     assets: {
@@ -74,7 +74,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["highborn-charm"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Kiếm dài", phamChat: "Thường", thuocTinh: { "Sát Thương Cận": 3 }, moTa: "Kiếm thép tiêu chuẩn" },
-      { slot: "Áo Choàng", ten: "Áo choàng lụa thêu", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Trang phục quý tộc" },
+      { slot: "Khiên", ten: "Áo choàng lụa thêu", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Trang phục quý tộc" },
     ],
     items: [],
     assets: { vang: 2000, luongThuc: 5000, thuNhapKy: 500, chiPhiKy: 300, moTa: "Trang viên nhỏ, thu nhập ổn định" },
@@ -179,7 +179,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["keen-eye"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Dao găm thép tốt", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 3 }, dacTinh: ["giấu được"], moTa: "Nhỏ, sắc, kín đáo" },
-      { slot: "Áo Choàng", ten: "Áo choàng ẩn thân", phamChat: "Thường", thuocTinh: {}, dacTinh: ["ẩn nấp"], moTa: "Màu tối, không bắt sáng" },
+      { slot: "Khiên", ten: "Áo choàng ẩn thân", phamChat: "Thường", thuocTinh: {}, dacTinh: ["ẩn nấp"], moTa: "Màu tối, không bắt sáng" },
     ],
     items: [{ ten: "Lọ độc dược", soLuong: 2, moTa: "Chậm mà chắc" }],
     assets: { vang: 200, luongThuc: 30, thuNhapKy: 0, chiPhiKy: 20, moTa: "Đồ nghề của bóng tối" },
@@ -223,7 +223,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["catlike"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Kiếm Braavos", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 4 }, dacTinh: ["xuyên giáp"], moTa: "Mỏng, nhẹ và cực kỳ chết chóc" },
-      { slot: "Áo Choàng", ten: "Áo choàng rực rỡ", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Chứng minh sự tự tin của một Bravo" },
+      { slot: "Khiên", ten: "Áo choàng rực rỡ", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Chứng minh sự tự tin của một Bravo" },
     ],
     items: [],
     assets: { vang: 200, luongThuc: 50, thuNhapKy: 0, chiPhiKy: 20, moTa: "Không tài sản lớn, chỉ có danh tiếng trên đường phố" },
@@ -271,7 +271,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["keen-eye"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Giáo xương", phamChat: "Thô Kệch", thuocTinh: { "Sát Thương Cận": 2 }, moTa: "Làm từ xương dã thú" },
-      { slot: "Áo Choàng", ten: "Áo lông thú dày", phamChat: "Thường", thuocTinh: { "Chống Chịu": 3 }, dacTinh: ["chống rét"], moTa: "Bất chấp bão tuyết" },
+      { slot: "Khiên", ten: "Áo lông thú dày", phamChat: "Thường", thuocTinh: { "Chống Chịu": 3 }, dacTinh: ["chống rét"], moTa: "Bất chấp bão tuyết" },
     ],
     items: [{ ten: "Đá đánh lửa", soLuong: 1, moTa: "Vật sinh tồn quan trọng nhất" }],
     assets: { vang: 0, luongThuc: 10, thuNhapKy: 0, chiPhiKy: 0, moTa: "Không có khái niệm tiền tệ, chỉ có khả năng sinh tồn" },
@@ -286,7 +286,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["schemer"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Quyền trượng hồng ngọc", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 1 }, dacTinh: ["phép thuật"], moTa: "Một món đồ tế lễ và là công cụ tạo lửa" },
-      { slot: "Áo Choàng", ten: "Áo choàng đỏ", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Màu áo đặc trưng của người hầu R'hllor" },
+      { slot: "Khiên", ten: "Áo choàng đỏ", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Màu áo đặc trưng của người hầu R'hllor" },
     ],
     items: [{ ten: "Bột phép thuật", soLuong: 5, moTa: "Dùng để tạo ảo ảnh ngọn lửa" }],
     assets: { vang: 500, luongThuc: 100, thuNhapKy: 50, chiPhiKy: 20, moTa: "Sự ủng hộ từ các tín đồ" },
@@ -301,7 +301,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["highborn-charm"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Kiếm tập luyện", phamChat: "Thường", thuocTinh: { "Sát Thương Cận": 2 }, moTa: "Không sắc bén nhưng rèn được kỹ năng" },
-      { slot: "Áo Choàng", ten: "Áo choàng quý tộc", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Tuy là con tin nhưng vẫn giữ tước vị" },
+      { slot: "Khiên", ten: "Áo choàng quý tộc", phamChat: "Tinh Xảo", thuocTinh: {}, moTa: "Tuy là con tin nhưng vẫn giữ tước vị" },
     ],
     items: [],
     assets: { vang: 500, luongThuc: 200, thuNhapKy: 50, chiPhiKy: 100, moTa: "Không sở hữu gì, sống phụ thuộc vào chủ thành" },
@@ -316,7 +316,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["highborn-charm", "learned"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Kiếm nạm ngọc", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 4 }, dacTinh: ["gia truyền"], moTa: "Vũ khí xứng tầm hoàng tộc" },
-      { slot: "Áo Choàng", ten: "Áo choàng nhung", phamChat: "Tinh Xảo", thuocTinh: { "Chống Chịu": 1 }, moTa: "Khoác huy hiệu nhánh chính gia tộc" },
+      { slot: "Khiên", ten: "Áo choàng nhung", phamChat: "Tinh Xảo", thuocTinh: { "Chống Chịu": 1 }, moTa: "Khoác huy hiệu nhánh chính gia tộc" },
     ],
     items: [{ ten: "Dấu triện hoàng gia/đại gia tộc", soLuong: 1, moTa: "Biểu tượng quyền lực nhánh chính" }],
     assets: { vang: 8000, luongThuc: 5000, thuNhapKy: 1000, chiPhiKy: 500, moTa: "Được gia tộc chu cấp hào phóng" },
@@ -331,7 +331,7 @@ export const ORIGINS: OriginDef[] = [
     giftTalentIds: ["schemer"],
     equipment: [
       { slot: "Vũ Khí Chính", ten: "Kiếm tiêu chuẩn", phamChat: "Thường", thuocTinh: { "Sát Thương Cận": 3 }, moTa: "Vũ khí thường nhưng đủ dùng" },
-      { slot: "Áo Choàng", ten: "Áo choàng thêu huy hiệu nhỏ", phamChat: "Thường", thuocTinh: {}, moTa: "Huy hiệu nhánh phụ" },
+      { slot: "Khiên", ten: "Áo choàng thêu huy hiệu nhỏ", phamChat: "Thường", thuocTinh: {}, moTa: "Huy hiệu nhánh phụ" },
     ],
     items: [],
     assets: { vang: 500, luongThuc: 200, thuNhapKy: 50, chiPhiKy: 30, moTa: "Một điền trang rất nhỏ ở rìa lãnh thổ" },
