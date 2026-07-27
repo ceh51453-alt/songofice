@@ -80,7 +80,7 @@ export function StatusPanel() {
           <div className="flex-1 min-w-0">
             <p className="font-display text-[15px] text-[var(--text-soft)] truncate">{info["Họ Tên"]}</p>
             <p className="text-[12px] text-[var(--text-muted)] truncate flex items-center gap-2">
-              <span>Nhà {info["Tên Gia Tộc Tùy Chỉnh"] || info["Nhà"]} · Cấp {info["Cấp Độ"]}</span>
+              <span>{info["Tước Vị"] && info["Tước Vị"] !== "Thường Dân" ? `${info["Tước Vị"]} · ` : ""}Nhà {info["Tên Gia Tộc Tùy Chỉnh"] || info["Nhà"]} · Cấp {info["Cấp Độ"]}</span>
               {canClaimThrone && (
                 <button
                   onClick={() => {

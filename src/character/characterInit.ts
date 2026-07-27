@@ -305,6 +305,7 @@ export interface WizardData {
   hasCustomTerritory?: boolean;
   customTerritoryLevel?: number;
   customTerritoryName?: string;
+  customTuocVi?: string;
 }
 
 export interface CraftingRequest {
@@ -398,7 +399,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
   
   info["Họ Tên"] = d.name.trim() || "Vô Danh";
   info["Xuất Thân"] = origin.name;
-  info["Tước Vị"] = origin.tuocVi;
+  info["Tước Vị"] = d.customTuocVi || origin.tuocVi;
   info["Lục Địa"] = d.continent;
   info["Văn Hoá"] = d.culture || "Chưa Rõ";
   info["Tôn Giáo"] = d.religion || "Chưa Rõ";
@@ -561,6 +562,8 @@ export function buildStateFromWizard(d: WizardData): StatData {
     const basePop = 5000;
     const pop = basePop * lvl;
     const factor = lvl;
+    const cost = lvl === 3 ? 3000 : lvl === 2 ? 1000 : 0;
+    info["Ngân Khố"] = Math.max(0, (info["Ngân Khố"] as number) - cost);
     
     (state["Lãnh Địa"] as Record<string, unknown>)[d.customTerritoryName] = {
       "Nhà Kiểm Soát": d.houseId || d.customHouseName || "Vô Danh",

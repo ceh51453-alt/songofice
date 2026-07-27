@@ -1157,6 +1157,22 @@ export function NewGameFlow() {
             <StepHeader step={stepLabel} title="Persona & Chân Dung" hint="AI dùng phần này để giữ giọng nhân vật nhất quán." />
             <div className="space-y-3">
               <div className="flex gap-2">
+                <select 
+                  className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 outline-none focus:border-[var(--accent)] text-[var(--text-bright)]"
+                  value={wiz.customTuocVi || (origin?.tuocVi ?? "Thường Dân")}
+                  onChange={(e) => patch({ customTuocVi: e.target.value })}
+                  title="Tước Vị"
+                >
+                  <option value="Thường Dân">Thường Dân</option>
+                  <option value="Hiệp Sĩ">Hiệp Sĩ</option>
+                  <option value="Lãnh Chúa Thành Trì">Lãnh Chúa Thành Trì</option>
+                  <option value="Lãnh Chúa">Lãnh Chúa</option>
+                  <option value="Đại Lãnh Chúa">Đại Lãnh Chúa</option>
+                  <option value="Quốc Vương">Quốc Vương</option>
+                  <option value="Vua">Vua</option>
+                  <option value="Vua Bảy Vương Quốc">Vua Bảy Vương Quốc</option>
+                  <option value="Hoàng Đế">Hoàng Đế</option>
+                </select>
                 <GlassInput placeholder="Họ tên nhân vật *" value={wiz.name} onChange={(e) => patch({ name: e.target.value })} />
                 <GlassInput placeholder="Biệt danh (tuỳ chọn)" value={wiz.nickname ?? ""} onChange={(e) => patch({ nickname: e.target.value })} />
               </div>
@@ -1343,14 +1359,26 @@ export function NewGameFlow() {
                   <div>
                     <label className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Cấp Độ Lâu Đài (1 - 3)</label>
                     <div className="flex gap-2">
-                      {[1, 2, 3].map((lvl) => (
-                        <Card key={lvl} selected={wiz.customTerritoryLevel === lvl} onClick={() => patch({ customTerritoryLevel: lvl })}>
-                          <span className="text-[13px]">Cấp {lvl}</span>
-                        </Card>
-                      ))}
+                      {[1, 2, 3].map((lvl) => {
+                        const cost = lvl === 3 ? 3000 : lvl === 2 ? 1000 : 0;
+                        const canAfford = (origin?.assets.vang ?? 0) >= cost;
+                        return (
+                          <Card 
+                            key={lvl} 
+                            selected={wiz.customTerritoryLevel === lvl} 
+                            onClick={() => canAfford && patch({ customTerritoryLevel: lvl })}
+                            disabled={!canAfford}
+                          >
+                            <span className="text-[13px]">Cấp {lvl}</span>
+                            <span className="block text-[11px] text-[var(--text-faint)] mt-1">
+                              {cost > 0 ? `Tốn ${cost} Vàng` : "Miễn phí"}
+                            </span>
+                          </Card>
+                        );
+                      })}
                     </div>
                     <span className="block mt-1.5 text-[11px] text-[var(--text-muted)] italic">
-                      Cấp càng cao, dân số và tài nguyên khởi điểm càng nhiều, quy mô thành phố càng lớn.
+                      Cấp càng cao, dân số và tài nguyên khởi điểm càng nhiều, quy mô thành phố càng lớn. Ngân khố: {origin?.assets.vang ?? 0} Vàng.
                     </span>
                   </div>
                 </div>
@@ -1372,7 +1400,7 @@ export function NewGameFlow() {
             <WizardEquipment
               wiz={wiz}
               patch={patch}
-              gold={origin?.assets.vang ?? 0}
+              gold={(origin?.assets.vang ?? 0) - (wiz.hasCustomTerritory ? (wiz.customTerritoryLevel === 3 ? 3000 : wiz.customTerritoryLevel === 2 ? 1000 : 0) : 0)}
             />
             <div className="mt-4">
               <NavButtons onBack={back} onNext={next} />
