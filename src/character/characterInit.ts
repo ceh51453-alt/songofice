@@ -399,7 +399,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
   
   info["Họ Tên"] = d.name.trim() || "Vô Danh";
   info["Xuất Thân"] = origin.name;
-  info["Tước Vị"] = d.customTuocVi || origin.tuocVi;
+  info["Tước Vị"] = (d.customTuocVi || origin.tuocVi) as typeof info["Tước Vị"];
   info["Lục Địa"] = d.continent;
   info["Văn Hoá"] = d.culture || "Chưa Rõ";
   info["Tôn Giáo"] = d.religion || "Chưa Rõ";
