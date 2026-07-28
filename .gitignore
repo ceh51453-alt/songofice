@@ -7,3 +7,10 @@ coverage
 
 # File gốc lorebook (đã bundle vào src/content/westeros/lore/)
 /ASOFAI *.json
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
