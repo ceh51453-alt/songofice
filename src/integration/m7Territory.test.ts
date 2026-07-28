@@ -72,7 +72,8 @@ beforeEach(() => {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Họ Tên"] = "Robb Stark";
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
-  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 5000;
+  s["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa";
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 500 * 11760; // 500 Rồng Vàng ≈ 5,880,000 Đồng Đỏ
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
   useMvuStore.setState({ stat: StatDataSchema.parse(s), pendingEvents: [], lastChangedPaths: [] });

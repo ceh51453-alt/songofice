@@ -44,7 +44,7 @@ const sampleEvent: GameEvent = {
   choices: [
     {
       label: "Choice A",
-      outcomePatch: [{ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: 100 }],
+      outcomePatch: [{ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: 100 }],
       narrativeHint: "Gold +100",
     },
     {
@@ -64,11 +64,11 @@ const eventWithCheck: GameEvent = {
   choices: [
     {
       label: "Try persuade",
-      outcomePatch: [{ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: 200 }],
+      outcomePatch: [{ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: 200 }],
       check: {
         checkId: "persuade",
         dc: 10,
-        failPatch: [{ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -100 }],
+        failPatch: [{ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -100 }],
       },
       narrativeHint: "Persuasion check",
     },
@@ -81,17 +81,17 @@ describe("eventEngine (17.1)", () => {
   describe("evaluateCondition", () => {
     it("stat_gte: true khi đủ", () => {
       const s = makeState({ gold: 500 });
-      expect(evaluateCondition({ type: "stat_gte", path: "Thông Tin Nhân Vật.Vàng", value: 300 }, s)).toBe(true);
+      expect(evaluateCondition({ type: "stat_gte", path: "Thông Tin Nhân Vật.Ngân Khố", value: 300 }, s)).toBe(true);
     });
 
     it("stat_gte: false khi thiếu", () => {
       const s = makeState({ gold: 100 });
-      expect(evaluateCondition({ type: "stat_gte", path: "Thông Tin Nhân Vật.Vàng", value: 300 }, s)).toBe(false);
+      expect(evaluateCondition({ type: "stat_gte", path: "Thông Tin Nhân Vật.Ngân Khố", value: 300 }, s)).toBe(false);
     });
 
     it("stat_lte: đúng", () => {
       const s = makeState({ gold: 50 });
-      expect(evaluateCondition({ type: "stat_lte", path: "Thông Tin Nhân Vật.Vàng", value: 100 }, s)).toBe(true);
+      expect(evaluateCondition({ type: "stat_lte", path: "Thông Tin Nhân Vật.Ngân Khố", value: 100 }, s)).toBe(true);
     });
 
     it("has_holding: false khi không có", () => {
@@ -135,7 +135,7 @@ describe("eventEngine (17.1)", () => {
       const s = makeState({ gold: 500, holding: true });
       const conds: EventCondition[] = [
         { type: "has_holding" },
-        { type: "stat_gte", path: "Thông Tin Nhân Vật.Vàng", value: 200 },
+        { type: "stat_gte", path: "Thông Tin Nhân Vật.Ngân Khố", value: 200 },
       ];
       expect(evaluateConditions(conds, s)).toBe(true);
     });
@@ -144,7 +144,7 @@ describe("eventEngine (17.1)", () => {
       const s = makeState({ gold: 50, holding: true });
       const conds: EventCondition[] = [
         { type: "has_holding" },
-        { type: "stat_gte", path: "Thông Tin Nhân Vật.Vàng", value: 200 },
+        { type: "stat_gte", path: "Thông Tin Nhân Vật.Ngân Khố", value: 200 },
       ];
       expect(evaluateConditions(conds, s)).toBe(false);
     });

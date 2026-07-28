@@ -193,9 +193,9 @@ describe("Duel 1v1 (7.1/7.2/7.14)", () => {
 
     // Hệ quả thực chiến: kẻ giáp dày (DR 20) mà vũ khí thường gần như không xuyên nổi
     // → valyrian hạ được, đao thép thường thì bó tay (cùng seed, chỉ khác vật liệu).
-    const armored = () => duelist({ name: "Giáp Trụ", armorClass: 5, damageReduction: 20, hp: 60, maxHp: 60 });
-    const valyrianDuel = autoDuel(duelist({ name: "Valyria", damageBonus: 5, valyrianOrObsidian: true }), armored(), 11, 40);
-    const normalDuel = autoDuel(duelist({ name: "Thường", damageBonus: 5 }), armored(), 11, 40);
+    const armored = () => duelist({ name: "Giáp Trụ", armorClass: 5, damageReduction: 20, hp: 200, maxHp: 200 });
+    const valyrianDuel = autoDuel(duelist({ name: "Valyria", damageBonus: 5, valyrianOrObsidian: true }), armored(), 11, 80);
+    const normalDuel = autoDuel(duelist({ name: "Thường", damageBonus: 5 }), armored(), 11, 80);
     expect(valyrianDuel.winner).toBe("Valyria");
     expect(normalDuel.winner).toBe("Giáp Trụ");
   });

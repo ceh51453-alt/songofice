@@ -34,7 +34,7 @@ export function AiCanonAssistant({ era, onGenerated }: Props) {
     <div className="mt-6 rounded-[var(--radius-sm)] border border-[var(--accent-border)] bg-[rgba(0,0,0,0.2)] p-4 shadow-[0_0_15px_-5px_var(--accent-soft)]">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[13px] font-medium text-[var(--accent-text)]">
-          ✨ Trợ lý AI (Tạo Biến Thể / What-if)
+           Trợ lý AI (Tạo Biến Thể / What-if)
         </span>
         {error && <span className="text-[12px] text-[var(--danger)]">{error}</span>}
       </div>

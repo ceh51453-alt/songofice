@@ -170,7 +170,7 @@ export function marriageOps(state: StatData, spouseName: string, opts: MarriageO
   }
 
   if (opts.dowry && opts.dowry > 0) {
-    ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: opts.dowryOutgoing ? -opts.dowry : opts.dowry });
+    ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: opts.dowryOutgoing ? -opts.dowry : opts.dowry });
   }
   if (opts.partnerHouse) ops.push(...improveHouseAttitudeOps(state, opts.partnerHouse));
   return ops;

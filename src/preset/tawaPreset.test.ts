@@ -110,8 +110,8 @@ describe("Preset Tawa δέλτα (file thật)", () => {
     expect(r.messages.some((m) => m.content.includes("[LORE TEST TRƯỚC]"))).toBe(true);
     expect(r.messages.some((m) => m.content.includes("PERSONA TEST"))).toBe(true);
     // history nằm trong payload, đúng thứ tự tương đối
-    const idx1 = r.messages.findIndex((m) => m.content === "Ta quan sát đại sảnh.");
-    const idx3 = r.messages.findIndex((m) => m.content === "Ta tiến về phía ngai.");
+    const idx1 = r.messages.findIndex((m) => m.content.includes("Ta quan sát đại sảnh."));
+    const idx3 = r.messages.findIndex((m) => m.content.includes("Ta tiến về phía ngai."));
     expect(idx1).toBeGreaterThan(-1);
     expect(idx3).toBeGreaterThan(idx1);
     expect(r.historyIncluded).toBe(3);

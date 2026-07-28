@@ -5,11 +5,11 @@
  */
 import { useWorldNewsStore, type WorldHeadline, type EconomicBrief } from "../../state/worldNewsStore";
 
-const trendEmoji: Record<EconomicBrief["trend"], string> = {
-  rising: "📈",
-  stable: "➡️",
-  declining: "📉",
-  crisis: "🔥",
+const trendIcon: Record<EconomicBrief["trend"], string> = {
+  rising: "/\\",
+  stable: "--",
+  declining: "\\/",
+  crisis: "!!",
 };
 
 const trendLabel: Record<EconomicBrief["trend"], string> = {
@@ -56,7 +56,7 @@ function NewsPanel() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
         <h3 className="font-display text-[15px] font-semibold text-[var(--text)]">
-          📜 Tin Tức Westeros
+          Tin Tức Westeros
         </h3>
         <div className="flex gap-1.5">
           <button
@@ -69,7 +69,7 @@ function NewsPanel() {
             onClick={closeFab}
             className="rounded-md px-2 py-1 text-[13px] text-[var(--text-faint)] hover:bg-[var(--glass-bg-hover)]"
           >
-            ✕
+            ×
           </button>
         </div>
       </div>
@@ -77,7 +77,7 @@ function NewsPanel() {
       {/* Economic Brief */}
       <div className="border-b border-[var(--glass-border)] px-4 py-2.5">
         <div className="flex items-center gap-2 text-[13px]">
-          <span>{trendEmoji[economicBrief.trend]}</span>
+          <span>{trendIcon[economicBrief.trend]}</span>
           <span className="font-medium text-[var(--text)]">Kinh tế: {trendLabel[economicBrief.trend]}</span>
         </div>
         <div className="mt-0.5 text-[12px] text-[var(--text-muted)]">{economicBrief.description}</div>
@@ -116,7 +116,7 @@ export function WorldNewsFab() {
         }}
         aria-label="Tin tức thế giới"
       >
-        <span className="text-xl">📜</span>
+        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
         {/* Badge */}
         {unreadCount > 0 && !fabOpen && (
           <span

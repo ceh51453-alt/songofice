@@ -91,8 +91,8 @@ export function TabDecree({ territoryId, holding, isOwner }: { territoryId: stri
                               <div className="text-xs text-[var(--text-muted)] italic mb-2">{tpl.effectDesc}</div>
                               {(tpl.costGold > 0 || tpl.costFood > 0) && (
                                   <div className="flex gap-3 text-xs">
-                                      {tpl.costGold > 0 && <span className={(resources["Ngân Khố"] || 0) < tpl.costGold ? "text-red-400" : "text-yellow-400"}>🪙 {formatCurrencyShort(tpl.costGold)}</span>}
-                                      {tpl.costFood > 0 && <span className={(resources["Lương Thực"] || 0) < tpl.costFood ? "text-red-400" : "text-yellow-200"}>🌾 {tpl.costFood}</span>}
+                                      {tpl.costGold > 0 && <span className={(resources["Ngân Khố"] || 0) < tpl.costGold ? "text-red-400" : "text-yellow-400"}> {formatCurrencyShort(tpl.costGold)}</span>}
+                                      {tpl.costFood > 0 && <span className={(resources["Lương Thực"] || 0) < tpl.costFood ? "text-red-400" : "text-yellow-200"}> {tpl.costFood}</span>}
                                   </div>
                               )}
                           </div>

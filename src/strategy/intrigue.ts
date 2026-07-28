@@ -76,7 +76,7 @@ export function recruitSpyOps(state: StatData, alias: string, target: string, co
   return {
     ok: true,
     ops: [
-      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -cost },
+      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -cost },
       {
         op: "replace", path: `stat_data.Tình Báo.Điệp Viên.${alias}`,
         value: { "Cài Ở": target, "Độ Sâu Thâm Nhập": 10, "Bị Nghi Ngờ": 0, "Nhiệm Vụ": "Thu Thập Tin" },
@@ -185,7 +185,7 @@ export function advancePlotOps(state: StatData, name: string, resourcesInvested 
     { op: "replace", path: `stat_data.Âm Mưu.${name}.Tiến Độ`, value: newProgress },
     { op: "replace", path: `stat_data.Âm Mưu.${name}.Độ Bại Lộ`, value: newExposure },
   ];
-  if (resourcesInvested > 0) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -resourcesInvested });
+  if (resourcesInvested > 0) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -resourcesInvested });
   return { ops, progress: newProgress, exposure: newExposure, exposed };
 }
 
@@ -306,7 +306,7 @@ export function ransomOps(state: StatData, name: string): PatchOp[] {
   const c = state["Tù Binh"][name];
   if (!c) return [];
   const ops: PatchOp[] = [];
-  if (c["Giá Chuộc"] > 0) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: c["Giá Chuộc"] });
+  if (c["Giá Chuộc"] > 0) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: c["Giá Chuộc"] });
   ops.push({ op: "remove", path: `stat_data.Tù Binh.${name}` });
   if (c["Nhà"]) ops.push(...improveHouseAttitudeOps(state, c["Nhà"], 1)); // thả người → dịu 1 bậc
   return ops;

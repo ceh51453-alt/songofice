@@ -16,9 +16,12 @@ function lordWithBarracks(gold = 5000): StatData {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
   s["Thông Tin Nhân Vật"]["Ngân Khố"] = gold;
+  s["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa"; // cần quyền Quản Lý Vùng
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north-seat
   s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };
+  // Seed dân số chi tiết — cần Nông Dân để tuyển quân
+  s["Lãnh Địa"]["the-north-seat"]["Dân Số Chi Tiết"] = { "Nông Dân": 8000, "Thợ Thủ Công": 1000, "Thợ Mỏ": 500, "Tiều Phu": 300, "Thương Nhân": 100, "Nghề Khác": 50, "Thất Nghiệp": 50 };
   return StatDataSchema.parse(s);
 }
 

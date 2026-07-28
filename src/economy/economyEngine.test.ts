@@ -99,12 +99,22 @@ describe("Tuyến thương mại (15.2)", () => {
     } as any;
     expect(isBlockaded(state, "the-north")).toBe(true);
 
+    // Lưu state không phong toả để so sánh
+    const stateNoBlock = JSON.parse(JSON.stringify(state)) as StatData;
+    delete (stateNoBlock["Hạm Đội"] as any)["enemy-fleet"];
+
     const goldBefore = state["Thông Tin Nhân Vật"]["Ngân Khố"];
     tickEconomy(state);
-    // lợi nhuận thương mại = 0 vì bị phong toả, Vàng chỉ đến từ thuế
-    const goldAfter = state["Thông Tin Nhân Vật"]["Ngân Khố"];
-    // nên không có 50 gold thương mại
-    expect(goldAfter - goldBefore).toBeLessThan(50 + 100); // taxGold nhỏ ở dân 10k
+    const goldAfterBlocked = state["Thông Tin Nhân Vật"]["Ngân Khố"];
+
+    const goldBeforeNoBlock = stateNoBlock["Thông Tin Nhân Vật"]["Ngân Khố"];
+    tickEconomy(stateNoBlock);
+    const goldAfterNoBlock = stateNoBlock["Thông Tin Nhân Vật"]["Ngân Khố"];
+
+    // Bị phong toả → lợi nhuận thương mại = 0, chỉ có thuế
+    // Không phong toả → thuế + thương mại
+    // Chênh lệch chính là phần thương mại bị mất
+    expect(goldAfterBlocked - goldBefore).toBeLessThan(goldAfterNoBlock - goldBeforeNoBlock);
   });
 
   it("gợi ý cơ hội đúng cặp chênh giá lớn", () => {
@@ -191,34 +201,34 @@ describe("Iron Bank (15.3)", () => {
   it("vay → nhận Vàng ngay", () => {
     const result = borrowFromIronBank(state, 500);
     expect(result.ok).toBe(true);
-    // ops include delta Vàng +500
-    const goldOp = result.ops.find((o: any) => o.path.includes("Vàng") && o.op === "delta");
+    // ops include delta Ngân Khố +500
+    const goldOp = result.ops.find((o: any) => o.path.includes("Ngân Khố") && o.op === "delta");
     expect(goldOp).toBeDefined();
     expect((goldOp as any).value).toBe(500);
   });
 
   it("không vay được khi đang nợ", () => {
-    (state as any)["Nợ Iron Bank"]["Nợ Gốc"] = 100;
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 100, "Lãi/Turn": 5, "Turn Còn Lại": 60, "Đang Quỵt": false };
     const result = borrowFromIronBank(state, 500);
     expect(result.ok).toBe(false);
   });
 
   it("trả nợ sớm: trừ gốc + phạt", () => {
-    (state as any)["Nợ Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
     state["Thông Tin Nhân Vật"]["Ngân Khố"] = 10000;
     const result = repayIronBank(state);
     expect(result.ok).toBe(true);
   });
 
   it("không trả được nếu không đủ tiền", () => {
-    (state as any)["Nợ Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
     state["Thông Tin Nhân Vật"]["Ngân Khố"] = 0;
     const result = repayIronBank(state);
     expect(result.ok).toBe(false);
   });
 
   it("quỵt nợ → cấm vay", () => {
-    (state as any)["Nợ Iron Bank"]["Đang Quỵt"] = true;
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 0, "Lãi/Turn": 0, "Turn Còn Lại": 0, "Đang Quỵt": true };
     const result = borrowFromIronBank(state, 500);
     expect(result.ok).toBe(false);
   });
@@ -231,7 +241,7 @@ describe("economy test edge cases", () => {
   });
 
   it("defaultOnDebt", () => {
-    (state as any)["Nợ Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
     const r = defaultOnDebt(state);
     expect(r.ok).toBe(true);
     // test doesn't actually apply the patch to state, so we check the ops directly if we want
@@ -259,7 +269,8 @@ describe("Schema migration (M11 → M12)", () => {
     expect(state["Kinh Tế Vùng"]).toBeDefined();
     expect(state["Tuyến Thương Mại"]).toBeDefined();
     expect(state["Chính Sách Thuế"]["Mức Thuế"]).toBe("Vừa");
-    expect((state as any)["Nợ Iron Bank"]["Nợ Gốc"]).toBe(0);
+    expect(state["Các Khoản Nợ"]).toBeDefined();
+    expect(Object.keys(state["Các Khoản Nợ"])).toHaveLength(0); // mặc định: chưa nợ ai
     // territory cũ thiếu Khủng Hoảng → prefault []
     state["Lãnh Địa"]["test"] = {} as any;
     const reparsed = makeDefaultState();

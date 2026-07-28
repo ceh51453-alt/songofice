@@ -379,10 +379,10 @@ function DynastyTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
             </p>
             <div className="text-[11px] space-y-1">
               <p className={nganKho >= 5880000 ? "text-[var(--ok)]" : "text-[var(--danger)]"}>
-                • Chi phí: 500 Rồng Vàng (5,880,000 Đồng Đỏ) {nganKho >= 5880000 ? "✔" : "✘"}
+                • Chi phí: 500 Rồng Vàng (5,880,000 Đồng Đỏ) {nganKho >= 5880000 ? "OK" : "X"}
               </p>
               <p className={uyTin >= 14 ? "text-[var(--ok)]" : "text-[var(--danger)]"}>
-                • Yêu cầu: Uy Tín 14+ (Hiện có: {uyTin}) {uyTin >= 14 ? "✔" : "✘"}
+                • Yêu cầu: Uy Tín 14+ (Hiện có: {uyTin}) {uyTin >= 14 ? "OK" : "X"}
               </p>
             </div>
             <div className="flex gap-2 mt-3">

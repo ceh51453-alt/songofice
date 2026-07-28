@@ -241,7 +241,7 @@ export function CombatPanel() {
               {combat.armyBattleState.isSiege && combat.armyBattleState.wallHp !== undefined && (
                 <div className="bg-[rgba(255,255,255,0.03)] p-2 rounded border border-[rgba(255,255,255,0.05)]">
                   <div className="mb-1 flex justify-between text-[11px] font-bold text-[var(--text-soft)] uppercase tracking-wider">
-                    <span>{combat.armyBattleState.wallBreached ? "⚠️ TƯỜNG THÀNH ĐÃ VỠ!" : "🛡️ ĐỘ BỀN TƯỜNG THÀNH"}</span>
+                    <span>{combat.armyBattleState.wallBreached ? "[!!] TƯỜNG THÀNH ĐÃ VỠ!" : "TƯỜNG THÀNH"}</span>
                     <span className="font-mono">{Math.round(combat.armyBattleState.wallHp)}/{combat.armyBattleState.wallMaxHp}</span>
                   </div>
                   {!combat.armyBattleState.wallBreached && (

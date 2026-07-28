@@ -51,13 +51,13 @@ describe("offscreenSim (16.3)", () => {
       expect(selected[0][0]).toBe("Cersei");
     });
 
-    it("tối đa 3 NPC", () => {
+    it("tối đa 5 NPC", () => {
       const stat = makeDefaultState();
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 8; i++) {
         stat["Mối Quan Hệ"]["NPC Chính"][`NPC${i}`] = makeNpc(`Mục tiêu ${i}`, i * 20);
       }
       const selected = selectKeyNpcs(stat);
-      expect(selected.length).toBeLessThanOrEqual(3);
+      expect(selected.length).toBeLessThanOrEqual(5);
     });
   });
 

@@ -379,7 +379,7 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
         <div className="absolute top-16 right-4 w-72 bg-[#11141a] border border-[#D4AF37]/50 rounded-lg shadow-2xl z-20 overflow-hidden animate-fade-in flex flex-col max-h-[70vh]">
             <div className="bg-[#D4AF37]/20 p-3 border-b border-[#D4AF37]/30 flex justify-between items-center">
                 <h3 className="text-[#D4AF37] font-bold">CHỌN CÔNG TRÌNH</h3>
-                <button onClick={() => setShowBuildMenu(false)} className="text-white/50 hover:text-white">✕</button>
+                <button onClick={() => setShowBuildMenu(false)} className="text-white/50 hover:text-white">×</button>
             </div>
             <div className="p-2 overflow-y-auto flex-1 space-y-2">
                 {BUILDING_TEMPLATES.map(tpl => {
@@ -401,9 +401,9 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
                             </div>
                             <div className="text-xs text-[var(--text-muted)] mb-2 italic">{tpl.desc}</div>
                             <div className="flex gap-3 text-xs">
-                                {tpl.cost["Ngân Khố"] > 0 && <span className={((resources["Ngân Khố"] || 0) < tpl.cost["Ngân Khố"]) ? "text-red-400" : "text-yellow-400"}>🪙 {formatCurrencyShort(tpl.cost["Ngân Khố"])}</span>}
-                                {tpl.cost["Gỗ"] > 0 && <span className={((resources["Gỗ"] || 0) < tpl.cost["Gỗ"]) ? "text-red-400" : "text-green-400"}>🪵 {tpl.cost["Gỗ"]}</span>}
-                                {tpl.cost["Đá"] > 0 && <span className={((resources["Đá"] || 0) < tpl.cost["Đá"]) ? "text-red-400" : "text-gray-400"}>🪨 {tpl.cost["Đá"]}</span>}
+                                {tpl.cost["Ngân Khố"] > 0 && <span className={((resources["Ngân Khố"] || 0) < tpl.cost["Ngân Khố"]) ? "text-red-400" : "text-yellow-400"}> {formatCurrencyShort(tpl.cost["Ngân Khố"])}</span>}
+                                {tpl.cost["Gỗ"] > 0 && <span className={((resources["Gỗ"] || 0) < tpl.cost["Gỗ"]) ? "text-red-400" : "text-green-400"}> {tpl.cost["Gỗ"]}</span>}
+                                {tpl.cost["Đá"] > 0 && <span className={((resources["Đá"] || 0) < tpl.cost["Đá"]) ? "text-red-400" : "text-gray-400"}> {tpl.cost["Đá"]}</span>}
                             </div>
                         </div>
                     );
@@ -441,7 +441,7 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
                         onClick={() => setSelectedBuilding(null)}
                         className="text-white/50 hover:text-white"
                     >
-                        ✕
+                        ×
                     </button>
                 </div>
                 <div className="space-y-2 text-white/80">

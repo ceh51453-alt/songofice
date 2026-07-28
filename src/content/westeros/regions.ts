@@ -186,7 +186,7 @@ export function regionControlForYear(year: number): Record<string, string> {
     control["the-stormlands"] = "durrandon";
     control["dorne"] = "yronwood"; // hoặc martell
   } else if (year === 1) { // Chinh Phạt Aegon
-    control["the-crownlands"] = "targaryen";
+    control["the-crownlands"] = ""; // chưa thành lập — Aegon đang chinh phạt
     control["the-riverlands"] = "hoare";
     control["the-iron-islands"] = "hoare";
     control["the-reach"] = "gardener";

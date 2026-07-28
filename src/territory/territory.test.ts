@@ -13,8 +13,10 @@ import {
 import { houseColor, PLAYER_HEAT_COLOR, ATTITUDE_HEAT } from "../content/westeros/houseColors";
 
 function starkPlayer(era = "war-of-five-kings") {
+  const eraYears: Record<string, number> = { "aegon-conquest": 1, "war-of-five-kings": 298, "roberts-rebellion": 282 };
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
+  s["Thế Giới"]["Năm"] = eraYears[era] ?? 298;
   seedRegionControl(s, era, { createIfMissing: true });
   return s;
 }

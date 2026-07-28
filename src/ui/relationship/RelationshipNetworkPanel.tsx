@@ -788,7 +788,7 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                   {selectedNode.npcData["Chỉ Số Cốt Lõi"] && (
                     <div>
                       <h4 className="text-[11px] font-semibold text-[var(--text-faint)] uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                        ✨ Chỉ Số Cá Nhân
+                         Chỉ Số Cá Nhân
                       </h4>
                       <div className="grid grid-cols-3 gap-y-2 gap-x-2 text-[11px] mb-2">
                         <div className="flex justify-between items-center">

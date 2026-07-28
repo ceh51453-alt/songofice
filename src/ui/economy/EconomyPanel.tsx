@@ -232,7 +232,7 @@ export function EconomyPanel() {
             <div className="flex items-center gap-1.5"><ResourceIcon name="Gỗ" /> {fmt(familyResources["Gỗ"] || 0)} Gỗ</div>
             <div className="flex items-center gap-1.5"><ResourceIcon name="Đá" /> {fmt(familyResources["Đá"] || 0)} Đá</div>
             <div className="flex items-center gap-1.5"><ResourceIcon name="Quặng Sắt" /> {fmt(familyResources["Quặng Sắt"] || 0)} Sắt</div>
-            <div className="flex items-center gap-1.5">🐎 {fmt(familyResources["Ngựa"] || 0)} Ngựa</div>
+            <div className="flex items-center gap-1.5">[Ngua] {fmt(familyResources["Ngựa"] || 0)} Ngựa</div>
           </div>
           
           {familyDebts.length > 0 && (

@@ -21,7 +21,7 @@ export function OffscreenNewsCard({ actions }: { actions: OffscreenAction[] }) {
         onClick={() => setExpanded((p) => !p)}
         className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-medium text-[var(--text-soft)] transition-colors hover:bg-[var(--glass-bg-hover)]"
       >
-        <span className="text-base" role="img" aria-label="raven">🐦‍⬛</span>
+        <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10h8l-2.83-2.83A9.94 9.94 0 0022 12c0-5.52-4.48-10-10-10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/></svg>
         <span>Tin từ quạ đưa thư</span>
         <span
           className="inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold"

@@ -70,7 +70,7 @@ export function recruitUnit(
 
   const name = unitName?.trim() || `${troopType} ${REGIONS_BY_ID[territoryId]?.name ?? territoryId}`;
   const ops: PatchOp[] = [
-    { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -goldCost },
+    { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -goldCost },
     { op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Tài Nguyên.Lương Thực`, value: -foodCost },
     { op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Dân Số`, value: -count },
     { op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Dân Số Chi Tiết.Nông Dân`, value: -count },

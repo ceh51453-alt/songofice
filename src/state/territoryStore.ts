@@ -115,7 +115,7 @@ export const useTerritoryStore = create<TerritoryState>()(
       resolvePetition: (territoryId, loyaltyDelta, goldDelta) => {
         const ops: PatchOp[] = [];
         if (loyaltyDelta) ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Trung Thành`, value: loyaltyDelta });
-        if (goldDelta) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: goldDelta });
+        if (goldDelta) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: goldDelta });
         applyEngineOps(ops);
       },
     }),

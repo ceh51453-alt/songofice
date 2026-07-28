@@ -29,10 +29,12 @@ beforeEach(() => {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Họ Tên"] = "Robb Stark";
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
-  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 10000;
+  s["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa";
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 500 * 11760; // 500 Rồng Vàng
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
   s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };
+  s["Lãnh Địa"]["the-north-seat"]["Dân Số Chi Tiết"] = { "Nông Dân": 8000, "Thợ Thủ Công": 1000, "Thợ Mỏ": 500, "Tiều Phu": 300, "Thương Nhân": 100, "Nghề Khác": 50, "Thất Nghiệp": 50 };
   useMvuStore.setState({ stat: StatDataSchema.parse(s), pendingEvents: [], lastChangedPaths: [] });
 });
 

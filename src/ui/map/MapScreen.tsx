@@ -441,7 +441,7 @@ function PlayerMarker({ loc, name }: { loc: string; name: string }) {
             {name}
           </text>
           <text x={px + 28} y={py - 7} style={{ fontFamily: "var(--font-body)", fontSize: 11, fill: "rgba(230,228,220,0.7)" }}>
-            📍 {loc}
+            [*] {loc}
           </text>
         </g>
       )}
@@ -599,7 +599,7 @@ function QuestTracker({ quests, open, onToggle }: QuestTrackerProps) {
 
                 {/* Reward + deadline */}
                 <div className="mt-1 flex items-center gap-2 text-[10px] text-[var(--text-faint)]">
-                  {q["Phần Thưởng"] && <span>🎁 {q["Phần Thưởng"]}</span>}
+                  {q["Phần Thưởng"] && <span>[+] {q["Phần Thưởng"]}</span>}
                   {q["Hạn Chót Turn"] && (
                     <span className="text-[var(--warn)]">⏳ Turn {q["Hạn Chót Turn"]}</span>
                   )}

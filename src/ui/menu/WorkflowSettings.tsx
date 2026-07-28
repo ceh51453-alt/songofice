@@ -47,7 +47,7 @@ function TaskRow({ task }: { task: WorkflowTask }) {
           onClick={() => removeTask(task.id)}
           className="rounded p-1 text-[var(--text-faint)] hover:bg-[var(--glass-bg-hover)] hover:text-[var(--danger)]"
         >
-          ✕
+          ×
         </button>
       )}
     </div>
@@ -112,7 +112,7 @@ export function WorkflowSettings() {
       {/* Status */}
       {status === "running" && (
         <div className="flex items-center gap-2 rounded-lg bg-[var(--accent-soft)] px-3 py-2 text-[13px] text-[var(--accent)]">
-          <span className="animate-spin">⚙️</span>
+          <span className="animate-spin">*</span>
           Đang chạy: {tasks.find((t) => t.id === currentTaskId)?.name ?? "..."}
         </div>
       )}

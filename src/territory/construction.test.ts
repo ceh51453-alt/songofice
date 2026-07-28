@@ -8,24 +8,28 @@ import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { applyPatch } from "../mvu/patchEngine";
 import { seedRegionControl, captureRegionOps } from "./territoryEngine";
 import { startConstruction, tickConstruction, estimateTerritoryYield } from "./construction";
+import { EXCHANGE_RATES } from "../economy/currency";
 
-function lordState(gold = 5000): StatData {
+/** Ngân Khố lưu dạng Đồng Đỏ (1 Rồng Vàng = 11,760 Đồng Đỏ). */
+const GOLD = EXCHANGE_RATES.GOLD_TO_COPPER;
+
+function lordState(goldDragons = 500): StatData {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
-  s["Thông Tin Nhân Vật"]["Ngân Khố"] = gold;
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = goldDragons * GOLD; // quy ra Đồng Đỏ
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north-seat (Tuyết, ven biển)
   return StatDataSchema.parse(s);
 }
 
 describe("startConstruction (10.3)", () => {
   it("đủ tài nguyên → trừ NGAY + xếp hàng đợi (Đang Xây)", () => {
-    const s = lordState(5000);
+    const s = lordState(500);
     const woodBefore = s["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Gỗ"];
     const r = startConstruction(s, "the-north-seat", "Nông Trại");
     expect(r.ok).toBe(true);
     const { state } = applyPatch(s, r.ops);
-    // Vàng trừ khỏi ngân khố thống nhất (15 note)
-    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000 - 150);
+    // Vàng trừ khỏi ngân khố thống nhất (Nông Trại = 150 Rồng Vàng = 150*GOLD Đồng Đỏ)
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(500 * GOLD - 150 * GOLD);
     // Gỗ trừ khỏi kho vùng
     expect(state["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Gỗ"]).toBe(woodBefore - 80);
     // vào hàng đợi
@@ -35,14 +39,14 @@ describe("startConstruction (10.3)", () => {
   });
 
   it("thiếu tài nguyên → chặn, không tạo công trình", () => {
-    const s = lordState(10); // không đủ Vàng
+    const s = lordState(1); // 1 Rồng Vàng = 11,760 Đồng Đỏ — không đủ cho Chợ (300 Rồng Vàng)
     const r = startConstruction(s, "the-north-seat", "Chợ");
     expect(r.ok).toBe(false);
     expect(r.error).toContain("Thiếu");
   });
 
   it("Bến Cảng chỉ xây ở lãnh địa ven biển (10.2)", () => {
-    const s = lordState(5000);
+    const s = lordState(500);
     // the-north-seat ven biển → ok
     expect(startConstruction(s, "the-north-seat", "Bến Cảng").ok).toBe(true);
     // chiếm the-riverlands (KHÔNG ven biển) → tạo holding ven biển=false
@@ -53,7 +57,7 @@ describe("startConstruction (10.3)", () => {
   });
 
   it("xây lại loại đã có = NÂNG CẤP (cấp tăng, chi phí ×cấp)", () => {
-    let s = lordState(9000);
+    let s = lordState(900); // đủ cho lv1 + lv2 Nông Trại (150 + 300 = 450 Rồng Vàng)
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Nông Trại").ops).state;
     // hoàn tất tức thì cho test nâng cấp
     s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"] = false;
@@ -66,7 +70,7 @@ describe("startConstruction (10.3)", () => {
 
 describe("tickConstruction — turn-advance loop (10.3)", () => {
   it("hạ Turn Còn Lại qua từng tick → hoàn tất → cộng thu", () => {
-    let s = lordState(5000);
+    let s = lordState(500);
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Nông Trại").ops).state;
     const foodStart = s["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"];
 
@@ -86,18 +90,18 @@ describe("tickConstruction — turn-advance loop (10.3)", () => {
   });
 
   it("thu Vàng vào ngân khố thống nhất mỗi turn (Chợ + thuế nền)", () => {
-    let s = lordState(5000);
+    let s = lordState(500);
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Chợ").ops).state;
     // ép Chợ xong ngay
     s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Chợ"]["Đang Xây"] = false;
     const goldBefore = s["Thông Tin Nhân Vật"]["Ngân Khố"];
     tickConstruction(s);
-    // Chợ +120 + thuế nền dương → ngân khố tăng
-    expect(s["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeGreaterThan(goldBefore + 120 - 1);
+    // Chợ +120*GOLD + thuế nền dương → ngân khố tăng
+    expect(s["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeGreaterThan(goldBefore + 120 * GOLD - 1);
   });
 
   it("estimateTerritoryYield: gộp base + công trình cho UI Tổng Quan", () => {
-    let s = lordState(5000);
+    let s = lordState(500);
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Nông Trại").ops).state;
     s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"] = false;
     const y = estimateTerritoryYield(s["Lãnh Địa"]["the-north-seat"]);

@@ -166,7 +166,7 @@ export function enemyDuelistFromAttrs(attrs: Record<string, string>): Duelist {
   }
 
   return {
-    name: attrs.enemy_name || "Kẻ Địch Bí Ẩn",
+    name: attrs.enemy_name || attrs.enemy || "Kẻ Địch Bí Ẩn",
     hp: num("enemy_hp", 150),
     maxHp: num("enemy_max_hp", 150),
     armorClass: num("enemy_ac", 12),

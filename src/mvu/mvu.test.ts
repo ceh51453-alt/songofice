@@ -37,7 +37,7 @@ describe("applyPatch — 5 loại op (5.3)", () => {
     const s = makeState();
     const gold0 = s["Thông Tin Nhân Vật"]["Ngân Khố"];
     const { state } = applyPatch(s, [
-      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: 50 },
+      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: 50 },
       { op: "delta", path: "stat_data.Chỉ Số Sinh Tồn.HP", value: -15 },
     ]);
     expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(gold0 + 50);
@@ -78,10 +78,10 @@ describe("applyPatch — 5 loại op (5.3)", () => {
   it("op lỗi KHÔNG crash — log warning, op khác vẫn áp; schema tự phục hồi giá trị rác", () => {
     const s = makeState();
     const { state, warnings } = applyPatch(s, [
-      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: "không phải số" },
+      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: "không phải số" },
       { op: "remove", path: "stat_data.Không.Tồn.Tại" },
       { op: "replace", path: "stat_data.Chỉ Số Sinh Tồn.HP", value: -999 }, // clamp về 0
-      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: 10 }, // vẫn chạy
+      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: 10 }, // vẫn chạy
     ] as PatchOp[]);
     expect(warnings.length).toBeGreaterThanOrEqual(2);
     expect(state["Chỉ Số Sinh Tồn"]["HP"]).toBe(0);
@@ -102,7 +102,7 @@ describe("extractor (5.4c) — lọc an toàn", () => {
     const raw = `Ngươi nhận 50 vàng từ thương nhân.
 
 <UpdateVariable>
-{ "mvu_update": [ { "op": "delta", "path": "stat_data.Thông Tin Nhân Vật.Vàng", "value": 50 } ] }
+{ "mvu_update": [ { "op": "delta", "path": "stat_data.Thông Tin Nhân Vật.Ngân Khố", "value": 50 } ] }
 </UpdateVariable>`;
     const r = extractUpdates(raw);
     expect(r.found).toBe(true);
@@ -193,7 +193,7 @@ describe("hiệu ứng lan toả (5.7.4)", () => {
     });
     const s = makeState();
     // hội thoại ngắn — không có delta Ngày → KHÔNG tick
-    const noTime = applyPatch(s, [{ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: 5 }]).state;
+    const noTime = applyPatch(s, [{ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: 5 }]).state;
     let r = runCascadeEffects(s, noTime);
     expect(r.daysPassed).toBe(0);
     expect(ticks).toBe(0);

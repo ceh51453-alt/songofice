@@ -22,7 +22,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Mở kho phát lương cho dân",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -200 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -200 },
         ],
         narrativeHint: "Người mở kho, dân mừng rỡ — lòng dân tăng, vàng mất.",
       },
@@ -45,14 +45,14 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Hoan nghênh và thu thuế",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: 150 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: 150 },
         ],
         narrativeHint: "Vàng vào túi, thương nhân hài lòng.",
       },
       {
         label: "Cướp hàng hoá của họ",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: 400 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: 400 },
         ],
         narrativeHint: "Giàu thêm nhưng danh tiếng xấu đi. Kẻ khác sẽ biết.",
       },
@@ -73,7 +73,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Tổ chức lễ hội mừng",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -100 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -100 },
         ],
         narrativeHint: "Lễ hội vui vẻ, lòng dân cao, nhưng tốn kém.",
       },
@@ -97,14 +97,14 @@ export const COMMON_EVENTS: GameEvent[] = [
         label: "Dẫn quân chống trả",
         outcomePatch: [],
         check: { checkId: "command", dc: 12, failPatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -300 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -300 },
         ] },
         narrativeHint: "Thành công: đánh tan cướp. Thất bại: bị cướp mất vàng.",
       },
       {
         label: "Đóng cửa và chờ cướp đi",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -200 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -200 },
         ],
         narrativeHint: "Cướp biển vơ vàng ra đi. Dân thở phào nhưng thất vọng.",
       },
@@ -167,7 +167,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Mua",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -250 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -250 },
         ],
         narrativeHint: "Vũ khí nhập kho. Nhưng ai bán, và tại sao rẻ thế?",
       },
@@ -193,7 +193,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Tiếp đón trọng thể",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -50 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -50 },
         ],
         narrativeHint: "Ấn tượng tốt. Cửa mối quan hệ mới hé.",
       },
@@ -238,7 +238,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Chấp nhận — giảm thuế",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -100 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -100 },
         ],
         narrativeHint: "Dân vui. Vàng giảm nhưng lòng dân tăng.",
       },
@@ -263,7 +263,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Tham dự và tài trợ",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -150 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -150 },
         ],
         narrativeHint: "Nhân dân hoan hô. Danh tiếng tăng.",
       },
@@ -286,7 +286,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Cách ly và chữa trị",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -300 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -300 },
         ],
         narrativeHint: "Tốn kém nhưng cứu nhiều mạng.",
       },
@@ -312,7 +312,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Mở kho lương và sưởi ấm cho dân",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -200 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -200 },
         ],
         narrativeHint: "Dân sống sót qua đông. Nhưng kho gần cạn.",
       },
@@ -335,14 +335,14 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Tái thiết khẩn cấp",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -400 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -400 },
         ],
         narrativeHint: "Tái thiết tốn kém nhưng cần thiết.",
       },
       {
         label: "Chỉ sửa những thứ cần thiết nhất",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -150 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -150 },
         ],
         narrativeHint: "Tiết kiệm nhưng tường thành vẫn yếu.",
       },
@@ -416,7 +416,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Đàm phán và nhượng bộ",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -100 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -100 },
         ],
         check: { checkId: "persuade", dc: 12, failPatch: [] },
         narrativeHint: "Thành công: dân bỏ vũ khí. Thất bại: đàm phán thất bại.",
@@ -448,7 +448,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     id: "old-debt-called",
     title: "Món Nợ Cũ",
     weight: 7,
-    conditions: [{ type: "stat_gte", path: "Thông Tin Nhân Vật.Vàng", value: 500 }],
+    conditions: [{ type: "stat_gte", path: "Thông Tin Nhân Vật.Ngân Khố", value: 500 }],
     narrativeTag: "raven_scroll",
     description: "Một chi nhánh dòng đến đòi trả món nợ cha ông để lại. Pháp lý vững chắc.",
     cooldownTurns: 30,
@@ -456,7 +456,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Trả nợ",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -300 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -300 },
         ],
         narrativeHint: "Một Lannister luôn trả nợ. Người cũng vậy.",
       },
@@ -479,7 +479,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Tham dự",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -100 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -100 },
         ],
         narrativeHint: "Cơ hội chứng tỏ bản thân và gặp gỡ quyền quý.",
       },
@@ -596,7 +596,7 @@ export const COMMON_EVENTS: GameEvent[] = [
       {
         label: "Chuẩn bị phòng thủ",
         outcomePatch: [
-          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Vàng", value: -200 },
+          { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -200 },
         ],
         narrativeHint: "Phòng thủ trước rồng? Dũng cảm — hoặc điên.",
       },

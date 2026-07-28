@@ -151,7 +151,7 @@ export function BodyVisualizer({ body, onClick, className = "" }: Props) {
                 setSelectedPart(null);
               }}
             >
-              ✕
+              ×
             </button>
           </div>
           <div className="flex flex-col gap-1 text-xs">

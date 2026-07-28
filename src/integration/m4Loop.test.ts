@@ -22,7 +22,7 @@ Ba ngày sau, ngươi về tới Winterfell. Tyrion Lannister đứng chờ ở 
 <UpdateVariable>
 {"mvu_update":[
  {"op":"delta","path":"stat_data.Chỉ Số Sinh Tồn.HP","value":-15},
- {"op":"delta","path":"stat_data.Thông Tin Nhân Vật.Vàng","value":50},
+ {"op":"delta","path":"stat_data.Thông Tin Nhân Vật.Ngân Khố","value":50},
  {"op":"delta","path":"stat_data.Thế Giới.Ngày","value":3},
  {"op":"replace","path":"stat_data.Mối Quan Hệ.NPC Chính.Tyrion Lannister","value":{"Họ Tên":"Tyrion Lannister","Tuổi":38,"Độ Hảo Cảm":20,"Chức Vụ":"Quân Sư"}},
  {"op":"replace","path":"stat_data._engineMeta.turnCount","value":999}

@@ -386,7 +386,7 @@ function DragonsTab({ stat }: { stat: Stat }) {
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[14px] font-bold text-[var(--accent-text)]">🐉 {name}</span>
+                  <span className="text-[14px] font-bold text-[var(--accent-text)]">[R] {name}</span>
                 </div>
                 <p className="mt-0.5 text-[11.5px] text-[var(--text-faint)]">
                   {u["Loại Quân"]} · {fmt(u["Số Lượng"])}
