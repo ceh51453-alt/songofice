@@ -33,8 +33,8 @@ function pushToast(text: string): void {
 }
 
 function actionSeed(label: string): number {
-  const { rootSeed, turnCount } = currentSeedInfo();
-  return eventSeed(rootSeed, turnCount, label);
+  const { rootSeed, tick } = currentSeedInfo();
+  return eventSeed(rootSeed, tick, label);
 }
 
 interface IntrigueState {

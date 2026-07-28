@@ -1,16 +1,16 @@
 /**
- * construction (10.3) — cơ chế xây dựng + turn-advance loop cho lãnh địa:
+ * construction (10.3) — cơ chế xây dựng + loop thời gian cho lãnh địa:
  * - startConstruction: kiểm tra tài nguyên → trừ NGAY → xếp vào hàng đợi xây.
  *   Vàng trừ ngân khố thống nhất (Thông Tin Nhân Vật.Vàng — 15 note); Gỗ/Đá/
  *   Quặng/Lương Thực trừ kho vùng. Trả PatchOp[] cho ENGINE áp (không qua AI).
- * - registerConstructionLoop: 1 tick = 1 ngày truyện (6.2) — hạ Turn Còn Lại,
- *   hoàn tất công trình, cộng thu/chi (10.3). AI KHÔNG giữ số này.
+ * - registerConstructionLoop: công trường hạ Ngày Xây Còn Lại MỖI NGÀY truyện
+ *   (6.2); sản lượng + thu Vàng + lòng dân chốt MỖI THÁNG. AI KHÔNG giữ số này.
  */
 import type { StatData, Terrain } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
-import { registerTurnListener } from "../mvu/effects";
+import { registerDailyListener, registerMonthlyListener } from "../mvu/effects";
 import {
-  BUILDING_CATALOG, buildingCost, buildingTurns, type BuildingType, type ResourceKey,
+  BUILDING_CATALOG, buildingCost, buildingDays, type BuildingType, type ResourceKey,
 } from "../content/westeros/buildings";
 import { EXCHANGE_RATES } from "../economy/currency";
 import { treasuryMultiplier } from "../strategy/court";
@@ -75,7 +75,7 @@ export function startConstruction(
     return { ok: false, error: `Thiếu tài nguyên: ${missing.join(", ")}`, ops: [] };
   }
 
-  const turns = buildingTurns(type, nextLevel, adminSpeedup(territory));
+  const days = buildingDays(type, nextLevel, adminSpeedup(territory));
   const ops: PatchOp[] = [];
   if (cost["Ngân Khố"]) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -cost["Ngân Khố"] });
   for (const k of RES_KEYS) {
@@ -84,7 +84,7 @@ export function startConstruction(
   }
   ops.push({
     op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}`,
-    value: { "Loại": type, "Cấp Độ": nextLevel, "Đang Xây": true, "Turn Còn Lại": turns },
+    value: { "Loại": type, "Cấp Độ": nextLevel, "Đang Xây": true, "Ngày Xây Còn Lại": days },
   });
   return { ok: true, ops };
 }
@@ -102,14 +102,14 @@ export function cancelConstruction(state: StatData, territoryId: string, buildin
   }
   if (b["Cấp Độ"] > 1) {
     ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}.Đang Xây`, value: false });
-    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}.Turn Còn Lại`, value: 0 });
+    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}.Ngày Xây Còn Lại`, value: 0 });
   } else {
     ops.push({ op: "remove", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}` });
   }
   return ops;
 }
 
-/** Sản lượng nền mỗi turn theo địa hình + dân số (không cần công trình). */
+/** Sản lượng nền mỗi THÁNG theo địa hình + dân số (không cần công trình). */
 function baseProduction(territory: StatData["Lãnh Địa"][string]): Record<ResourceKey, number> {
   const pop = territory["Dân Số"];
   const out: Record<ResourceKey, number> = { "Ngân Khố": 0, "Lương Thực": Math.round(pop * 0.01), "Gỗ": 15, "Đá": 12, "Quặng Sắt": 6 };
@@ -121,7 +121,7 @@ function baseProduction(territory: StatData["Lãnh Địa"][string]): Record<Res
   return out;
 }
 
-/** Ước lượng thu ±/turn của 1 lãnh địa (base + công trình) — cho UI Tổng Quan (10.4). */
+/** Ước lượng thu ±/tháng của 1 lãnh địa (base + công trình) — cho UI Tổng Quan (10.4). */
 export function estimateTerritoryYield(
   territory: StatData["Lãnh Địa"][string],
 ): Record<ResourceKey, number> & { "Lòng Dân": number } {
@@ -131,16 +131,31 @@ export function estimateTerritoryYield(
     if (b["Đang Xây"]) continue;
     const def = BUILDING_CATALOG[b["Loại"]];
     if (def.yield) for (const [k, v] of Object.entries(def.yield)) out[k as ResourceKey] += (v ?? 0) * b["Cấp Độ"];
-    if (def.flags?.loyaltyPerTurn) out["Lòng Dân"] += def.flags.loyaltyPerTurn * b["Cấp Độ"];
+    if (def.flags?.loyaltyPerMonth) out["Lòng Dân"] += def.flags.loyaltyPerMonth * b["Cấp Độ"];
   }
   return out;
 }
 
 /**
- * 1 tick turn-advance (10.3): hạ tiến độ xây, cộng thu/chi. MUTATE state (chạy
- * trong runCascadeEffects, state đã qua schema). Vàng vào ngân khố thống nhất.
+ * 1 tick NGÀY (10.3): hạ tiến độ công trường. MUTATE state (chạy trong
+ * runCascadeEffects, state đã qua schema).
  */
 export function tickConstruction(state: StatData): void {
+  for (const territory of Object.values(state["Lãnh Địa"])) {
+    for (const b of Object.values(territory["Công Trình"])) {
+      if (b["Đang Xây"]) {
+        b["Ngày Xây Còn Lại"] = Math.max(0, b["Ngày Xây Còn Lại"] - 1);
+        if (b["Ngày Xây Còn Lại"] <= 0) b["Đang Xây"] = false;
+      }
+    }
+  }
+}
+
+/**
+ * 1 tick THÁNG (10.3): cộng sản lượng + thu Vàng + lòng dân từ công trình.
+ * Vàng vào ngân khố thống nhất.
+ */
+export function tickTerritoryIncome(state: StatData): void {
   // Đại Chưởng Ngân Khố Năng Lực cao → +% thu Vàng toàn lãnh thổ (13.1 → 10.3)
   const coinMult = treasuryMultiplier(state);
   for (const territory of Object.values(state["Lãnh Địa"])) {
@@ -148,15 +163,7 @@ export function tickConstruction(state: StatData): void {
     let loyaltyGain = 0;
     const stock = territory["Tài Nguyên"];
 
-    // 1) tiến độ xây dựng
-    for (const b of Object.values(territory["Công Trình"])) {
-      if (b["Đang Xây"]) {
-        b["Turn Còn Lại"] = Math.max(0, b["Turn Còn Lại"] - 1);
-        if (b["Turn Còn Lại"] <= 0) b["Đang Xây"] = false;
-      }
-    }
-
-    // 2) sản lượng nền
+    // sản lượng nền
     const base = baseProduction(territory);
     stock["Lương Thực"] += base["Lương Thực"];
     stock["Gỗ"] += base["Gỗ"];
@@ -164,7 +171,7 @@ export function tickConstruction(state: StatData): void {
     stock["Quặng Sắt"] += base["Quặng Sắt"];
     goldIncome += base["Ngân Khố"];
 
-    // 3) thu từ công trình đã xây xong (×Cấp Độ)
+    // thu từ công trình đã xây xong (×Cấp Độ)
     for (const b of Object.values(territory["Công Trình"])) {
       if (b["Đang Xây"]) continue;
       const def = BUILDING_CATALOG[b["Loại"]];
@@ -175,11 +182,8 @@ export function tickConstruction(state: StatData): void {
           else stock[k as Exclude<ResourceKey, "Ngân Khố">] += amount;
         }
       }
-      if (def.flags?.loyaltyPerTurn) loyaltyGain += def.flags.loyaltyPerTurn * b["Cấp Độ"];
+      if (def.flags?.loyaltyPerMonth) loyaltyGain += def.flags.loyaltyPerMonth * b["Cấp Độ"];
     }
-
-    // 4) chi phí duy trì quân đồn trú tại lãnh địa (nối 11 — tối thiểu: ăn lương thực)
-    // (mở rộng đầy đủ ở M8; M7 giữ khung)
 
     territory["Trung Thành"] = clamp(territory["Trung Thành"] + loyaltyGain, 0, 100);
     state["Thông Tin Nhân Vật"]["Ngân Khố"] = Math.max(0, state["Thông Tin Nhân Vật"]["Ngân Khố"] + Math.round(goldIncome * coinMult));
@@ -187,9 +191,10 @@ export function tickConstruction(state: StatData): void {
 }
 
 let registered = false;
-/** Đăng ký loop xây dựng/kinh tế vào turn-advance registry (idempotent). */
+/** Đăng ký loop công trường (ngày) + thu lãnh địa (tháng) — idempotent. */
 export function registerConstructionLoop(): void {
   if (registered) return;
-  registerTurnListener("construction", tickConstruction);
+  registerDailyListener("construction", tickConstruction);
+  registerMonthlyListener("territory-income", tickTerritoryIncome);
   registered = true;
 }

@@ -201,7 +201,7 @@ export const ERAS: EraData[] = [
         blurb: "Một trong những Trẻ Con Rừng cuối cùng, mang sức mạnh của cây cối và đất đai để chống lại bóng tối.",
         birthYear: -8200, age: 200, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 16, "Thể Chất": 8, "Trí Tuệ": 16, "Tinh Tường": 18, "Uy Tín": 12 },
         talentIds: ["learned"],
-        skills: { "lore": 9, "stealth": 8, "hunting": 7, "medicine": 8 },
+        skills: { "lore": 9, "stealth": 8, "hunting": 7, "maester-medicine": 8 },
         equipment: [],
         items: [{ ten: "Đuốc dragonglass", soLuong: 5, moTa: "Lưỡi dao rèn từ đá vỏ chai" }],
         gold: 0, startingHookIds: ["seek-the-children"],
@@ -337,7 +337,7 @@ export const ERAS: EraData[] = [
         blurb: "Bạn thân, và là người anh em cùng cha khác mẹ tin đồn của Aegon. Một chiến binh hung bạo và tướng quân trung thành.",
         birthYear: -2, age: 29, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 11, "Thể Chất": 15, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 13 },
         talentIds: ["warrior-blood", "commander-instinct"],
-        skills: { "axe-mace": 8, "command": 7, "brawling": 6, "war-riding": 5 },
+        skills: { "axe-mace": 8, "command": 7, "unarmed": 6, "war-riding": 5 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Búa chiến", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 6 }, moTa: "Vũ khí hạng nặng" },
           { slot: "Giáp Thân", ten: "Giáp tấm thép", phamChat: "Tinh Xảo", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Giáp tốt của tướng quân" },
@@ -582,7 +582,7 @@ export const ERAS: EraData[] = [
         blurb: "Chúa tể biển khơi, người giàu nhất Westeros, chỉ huy hạm đội khổng lồ nhất lịch sử lục địa.",
         birthYear: 53, age: 77, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 9, "Thể Chất": 13, "Trí Tuệ": 16, "Tinh Tường": 16, "Uy Tín": 17 },
         talentIds: ["learned", "beloved"],
-        skills: { "command": 9, "sailing": 10, "commerce": 9, "lore": 7 },
+        skills: { "command": 9, "trading": 10, "negotiation": 9, "lore": 7 },
         equipment: [
           { slot: "Giáp Thân", ten: "Áo choàng nhung biển", phamChat: "Thượng Hạng", thuocTinh: { "Chống Chịu": 3 }, moTa: "Trang phục đắt tiền của Rắn Biển" },
         ],
@@ -602,7 +602,7 @@ export const ERAS: EraData[] = [
         allies: ["rhaenyra-targaryen", "rhaenys-targaryen"],
       },
       {
-        id: "criston-cole", name: "Criston Cole", house: "Cole", role: "Người Tạo Vua", tuocVi: "Vua", religion: "Thất Diện Thần",
+        id: "criston-cole", name: "Criston Cole", house: "Cole", role: "Người Tạo Vua", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
         blurb: "Tư lệnh Vệ Vương, từng là hiệp sĩ được Rhaenyra ưu ái nhất — giờ là kẻ thù nguy hiểm nhất của nàng.",
         birthYear: 82, age: 48, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 15, "Thể Chất": 15, "Trí Tuệ": 11, "Tinh Tường": 13, "Uy Tín": 12 },
         talentIds: ["duelist", "warrior-blood"],
@@ -627,7 +627,7 @@ export const ERAS: EraData[] = [
         blurb: "Con gái Cánh Tay Phải, vợ thứ của Viserys. Nàng thề sẽ đưa huyết mạch mình lên ngai vàng bằng mọi giá.",
         birthYear: 88, age: 42, coreStats: { "Sức Mạnh": 7, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 15, "Tinh Tường": 16, "Uy Tín": 15 },
         talentIds: ["silver-tongue", "highborn-charm"],
-        skills: { "court-etiquette": 9, "persuasion": 8, "cunning": 7, "medicine": 5 },
+        skills: { "court-etiquette": 9, "persuasion": 8, "cunning": 7, "maester-medicine": 5 },
         equipment: [],
         items: [{ ten: "Dấu ấn Hightower", soLuong: 1, moTa: "Biểu tượng quyền lực gia tộc Hightower" }],
         gold: 4000, startHoldings: ["the-crownlands-seat"],
@@ -717,7 +717,7 @@ export const ERAS: EraData[] = [
         blurb: "Con hoang mắt đỏ bạch tạng của Aegon IV — tay cung thần sầu, mạng lưới gián điệp khắp vương quốc, và có lẽ... còn hơn thế.",
         birthYear: 175, age: 20, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 14, "Thể Chất": 11, "Trí Tuệ": 16, "Tinh Tường": 17, "Uy Tín": 12 },
         talentIds: ["keen-eye", "schemer", "warg"],
-        skills: { "archery": 9, "cunning": 7, "gather-rumor": 7, "lore": 5 },
+        skills: { "bow-crossbow": 9, "cunning": 7, "gather-rumor": 7, "lore": 5 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Cung dài huyết mộc", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Xa": 7 }, moTa: "Cung được chạm rune cổ" },
         ],
@@ -829,7 +829,7 @@ export const ERAS: EraData[] = [
         blurb: "Con hoang bạch tạng mắt đỏ, giờ là Bàn Tay Nhà Vua của Aerys I. Mạng lưới gián điệp dày đặc, quyền lực tuyệt đối — và ai đó đang thì thầm rằng ông ta dùng ma thuật.",
         birthYear: 175, age: 34, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 13, "Thể Chất": 11, "Trí Tuệ": 17, "Tinh Tường": 18, "Uy Tín": 14 },
         talentIds: ["keen-eye", "schemer", "warg"],
-        skills: { "archery": 9, "cunning": 8, "gather-rumor": 8, "lore": 6, "command": 5 },
+        skills: { "bow-crossbow": 9, "cunning": 8, "gather-rumor": 8, "lore": 6, "command": 5 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Cung dài huyết mộc", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Xa": 7 }, moTa: "Cung được chạm rune cổ — bắn trúng từ khoảng cách phi thường" },
         ],
@@ -960,7 +960,7 @@ export const ERAS: EraData[] = [
         blurb: "Lãnh chúa Casterly Rock. Đã từ bỏ chức Bàn Tay Nhà Vua. Giờ ông ngồi chờ ở hòn đá của mình, xem ai sẽ là người chiến thắng trước khi ra đòn quyết định.",
         birthYear: 242, age: 40, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 17, "Tinh Tường": 15, "Uy Tín": 16 },
         talentIds: ["learned", "schemer"],
-        skills: { "command": 9, "cunning": 8, "commerce": 8, "intimidation": 8 },
+        skills: { "command": 9, "cunning": 8, "trading": 8, "intimidation": 8 },
         equipment: [
           { slot: "Giáp Thân", ten: "Giáp mạ vàng rực", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Áo giáp nặng mạ vàng của nhà Lannister" },
         ],
@@ -1039,7 +1039,7 @@ export const ERAS: EraData[] = [
         blurb: "Cậu bé chín tuổi, con út của Balon — chưa biết rằng nếu cha thua, cậu sẽ bị mang đi làm con tin ở Winterfell.",
         birthYear: 280, age: 9, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 8, "Trí Tuệ": 9, "Tinh Tường": 8, "Uy Tín": 8 },
         talentIds: [],
-        skills: { "archery": 2, "hunting": 2 },
+        skills: { "bow-crossbow": 2, "hunting": 2 },
         equipment: [],
         items: [],
         gold: 0, startHoldings: ["the-iron-islands-seat"],
@@ -1058,7 +1058,7 @@ export const ERAS: EraData[] = [
         blurb: "Kẻ điên rồ và xảo quyệt nhất trong những người anh em của Balon. Cưỡi con tàu Silence với thủy thủ đoàn bị cắt lưỡi.",
         birthYear: 260, age: 29, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 13, "Thể Chất": 13, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 15 },
         talentIds: ["schemer", "master-liar"],
-        skills: { "sailing": 9, "cunning": 8, "intimidation": 9, "lore": 6 },
+        skills: { "trading": 9, "cunning": 8, "intimidation": 9, "lore": 6 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Kiếm thép Valyria (tin đồn)", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Thanh kiếm chém không lưu vết" },
         ],
@@ -1234,7 +1234,7 @@ export const ERAS: EraData[] = [
         blurb: "Em trai của Robert. Một con người được rèn từ sắt: cứng rắn, vô tình và không bao giờ uốn cong. Ông tin ngôi vị là quyền của mình.",
         birthYear: 264, age: 34, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 10, "Thể Chất": 15, "Trí Tuệ": 14, "Tinh Tường": 13, "Uy Tín": 9 },
         talentIds: ["commander-instinct"],
-        skills: { "command": 9, "sailing": 7, "sword-shield": 6, "lore": 5 },
+        skills: { "command": 9, "trading": 7, "sword-shield": 6, "lore": 5 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Lightbringer (Giả)", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 6 }, moTa: "Kiếm sáng rực nhưng không tỏa nhiệt" },
         ],
@@ -1287,7 +1287,7 @@ export const ERAS: EraData[] = [
         blurb: "Tàn nhẫn, kiêu ngạo và hèn nhát. Dù mang tên Baratheon, cậu lại có mái tóc vàng của nhà Lannister.",
         birthYear: 286, age: 12, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 9, "Thể Chất": 7, "Trí Tuệ": 8, "Tinh Tường": 7, "Uy Tín": 9 },
         talentIds: ["hot-tempered"],
-        skills: { "intimidation": 5, "archery": 4 },
+        skills: { "intimidation": 5, "bow-crossbow": 4 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Widow's Wail", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Kiếm thép Valyria mới rèn" },
         ],

@@ -30,9 +30,9 @@ const AI_FORGE_CONTROL = `Ta tuyên bố Vùng Tây thuộc về ta!
 
 <UpdateVariable>{"mvu_update":[{"op":"replace","path":"stat_data.Chủ Quyền Lãnh Thổ.the-westerlands.Nhà Kiểm Soát","value":"stark"}]}</UpdateVariable>`;
 
-const AI_TIME_PASSES = `Ba ngày trôi qua trong lúc thợ xây miệt mài dựng vựa lúa mới.
+const AI_TIME_PASSES = `Ba tháng trôi qua trong lúc thợ xây miệt mài dựng vựa lúa mới.
 
-<UpdateVariable>{"mvu_update":[{"op":"delta","path":"stat_data.Thế Giới.Ngày","value":3}]}</UpdateVariable>`;
+<UpdateVariable>{"mvu_update":[{"op":"delta","path":"stat_data.Thế Giới.Ngày","value":90}]}</UpdateVariable>`;
 
 beforeAll(async () => {
   registerConstructionLoop();
@@ -104,19 +104,19 @@ describe("M7 — chủ quyền + bản đồ + lãnh địa qua luồng chat", (
     expect(regionController(useMvuStore.getState().stat, "the-westerlands")).toBe("lannister");
   }, 20000);
 
-  it("xây công trình → turn-advance loop tick đúng số ngày AI kể → hoàn tất + thu tăng", async () => {
-    // khởi công Nông Trại (3 turn) ở Phương Bắc
+  it("xây công trình → loop tick đúng số ngày AI kể → hoàn tất + thu tăng", async () => {
+    // khởi công Nông Trại (3 tháng = 90 ngày) ở Phương Bắc
     const r = useTerritoryStore.getState().startBuild("the-north-seat", "Nông Trại");
     expect(r.ok).toBe(true);
     expect(useMvuStore.getState().stat["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"]).toBe(true);
     const foodStart = useMvuStore.getState().stat["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"];
 
-    // AI kể "ba ngày trôi qua" → onTurnAdvance tick 3 lần (6.2) → Nông Trại xong
+    // AI kể "ba tháng trôi qua" → tick 90 ngày + 3 mốc tháng (6.2) → Nông Trại xong
     responseQueue = [AI_TIME_PASSES];
     await useChatStore.getState().send("Ta chờ vựa lúa hoàn thành.");
 
     const north = useMvuStore.getState().stat["Lãnh Địa"]["the-north-seat"];
     expect(north["Công Trình"]["Nông Trại"]["Đang Xây"]).toBe(false);
-    expect(north["Tài Nguyên"]["Lương Thực"]).toBeGreaterThan(foodStart); // sản lượng cộng mỗi turn
+    expect(north["Tài Nguyên"]["Lương Thực"]).toBeGreaterThan(foodStart); // sản lượng cộng mỗi tháng
   }, 20000);
 });

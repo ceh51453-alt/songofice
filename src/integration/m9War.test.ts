@@ -71,7 +71,7 @@ describe("M9 — đổ bộ → vây thành ven biển (7.8→12.2)", () => {
     const siege = useMilitaryStore.getState().siege(land.unit!, "the-westerlands");
     expect(siege.ok).toBe(true);
 
-    advanceDays(14);
+    advanceDays(361); // > lương thủ (SIEGE_FOOD_DAYS = 360 ngày)
     expect(regionController(useMvuStore.getState().stat, "the-westerlands")).toBe("greyjoy");
     expect(useMvuStore.getState().stat["Lãnh Địa"]["the-westerlands-seat"]).toBeDefined();
   });

@@ -289,7 +289,7 @@ export function SaveLoadPanel({
               }}>
                 <span>{slot.meta.characterName}</span>
                 <span>{slot.meta.house}</span>
-                <span>Lượt {slot.meta.turnCount}</span>
+                <span>Ngày {slot.meta.day}/{slot.meta.month}</span>
                 <span>Năm {slot.meta.year} · {slot.meta.season}</span>
               </div>
 

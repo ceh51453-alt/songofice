@@ -48,8 +48,8 @@ describe("Vây thành (12.2)", () => {
     state = applyPatch(state, siege.ops).state;
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).toBe("Bị Vây");
 
-    // chạy turn tới khi hết lương (SIEGE_FOOD_TURNS=12)
-    for (let i = 0; i < 13; i++) tickSiege(state);
+    // chạy tới khi hết lương (SIEGE_FOOD_DAYS = 360 ngày = 12 tháng)
+    for (let i = 0; i < 361; i++) tickSiege(state);
     expect(regionController(state, "the-riverlands")).toBe("stark"); // Stark là phe vây
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
     expect(state["Lãnh Địa"]["the-riverlands-seat"]).toBeDefined(); // mở quản lý thành trì
@@ -64,7 +64,7 @@ describe("Vây thành (12.2)", () => {
       { op: "replace", path: "stat_data.Chủ Quyền Lãnh Thổ.the-north.Tình Trạng", value: "Bị Vây" },
       {
         op: "replace", path: "stat_data.Chủ Quyền Lãnh Thổ.the-north._Vây",
-        value: { "Phe Vây": "lannister", "Đơn Vị Vây": "Quân Lannister", "Turn Đã Vây": 5, "Lương Còn": 2, "Turn Tối Đa": 20 },
+        value: { "Phe Vây": "lannister", "Đơn Vị Vây": "Quân Lannister", "Ngày Đã Vây": 5, "Lương Còn": 2, "Ngày Vây Tối Đa": 20 },
       },
       // viện binh của ta đóng tại Phương Bắc
       {

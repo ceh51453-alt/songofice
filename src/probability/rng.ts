@@ -39,16 +39,16 @@ export function hashSeed(str: string): number {
 }
 
 /**
- * Seed theo sự kiện (5bis.1): dẫn xuất từ (seed gốc ván + bộ đếm turn + nhãn).
+ * Seed theo sự kiện (5bis.1): dẫn xuất từ (seed gốc ván + nhịp lượt + nhãn).
  * Mỗi roll độc lập nhưng tái lập; reroll cùng lượt cho cùng chuỗi roll.
  */
-export function eventSeed(rootSeed: number, turnCount: number, label: string): number {
-  return hashSeed(`${rootSeed}:${turnCount}:${label}`) >>> 0;
+export function eventSeed(rootSeed: number, tick: number, label: string): number {
+  return hashSeed(`${rootSeed}:${tick}:${label}`) >>> 0;
 }
 
 /** RNG cho 1 stream cụ thể của lượt hiện tại — cách gọi chuẩn toàn app. */
-export function streamRng(rootSeed: number, turnCount: number, label: string): RNG {
-  return makeRng(eventSeed(rootSeed, turnCount, label));
+export function streamRng(rootSeed: number, tick: number, label: string): RNG {
+  return makeRng(eventSeed(rootSeed, tick, label));
 }
 
 /** Sinh seed gốc ván mới (lúc tạo nhân vật) — từ thời gian + entropy trình duyệt. */

@@ -18,7 +18,7 @@ function makeState(overrides: Record<string, unknown> = {}) {
   // Áp overrides
   if (overrides.gold !== undefined) s["Thông Tin Nhân Vật"]["Ngân Khố"] = overrides.gold as number;
   if (overrides.seed !== undefined) s["_engineMeta"]["_Seed Gốc"] = overrides.seed as number;
-  if (overrides.turn !== undefined) s["_engineMeta"]["turnCount"] = overrides.turn as number;
+  if (overrides.turn !== undefined) s["_engineMeta"]["_Nhịp"] = overrides.turn as number;
   if (overrides.season !== undefined) s["Thế Giới"]["Mùa"] = overrides.season as "Xuân" | "Hạ" | "Thu" | "Đông";
   if (overrides.era !== undefined) {
     s["Cài Đặt Ván"]["Thời Kỳ"] = overrides.era as string;

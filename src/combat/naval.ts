@@ -172,7 +172,7 @@ export function amphibiousLandingOps(state: StatData, fleetName: string, targetR
     ops: [
       {
         op: "replace", path: `stat_data.Biên Chế Quân Sự.${landingUnit}`,
-        value: { "Số Lượng": troops, "Loại Quân": "Bộ Binh", "Sĩ Khí": "Ổn Định", "Huấn Luyện": "Thành Thạo", "Lãnh Địa Đồn Trú": targetRegionId, "Turn Huấn Luyện": 0 },
+        value: { "Số Lượng": troops, "Loại Quân": "Bộ Binh", "Sĩ Khí": "Ổn Định", "Huấn Luyện": "Thành Thạo", "Lãnh Địa Đồn Trú": targetRegionId, "Ngày Huấn Luyện": 0 },
       },
       { op: "replace", path: `stat_data.Hạm Đội.${fleetName}.Bộ Binh Trên Thuyền`, value: 0 },
       { op: "replace", path: `stat_data.Hạm Đội.${fleetName}.Lãnh Địa Neo Đậu`, value: targetRegionId },

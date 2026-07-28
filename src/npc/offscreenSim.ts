@@ -3,11 +3,11 @@
  * GĐ1 upgrade: lọc NPC 3 tầng ưu tiên (tham khảo Tavern Helper "角色筛选"),
  * hard reject, tích hợp interactionPreview, AI-driven sim qua extra model
  * với rule-based fallback.
- * Đăng ký vào registerTurnListener, đếm ngày tích luỹ.
+ * Đăng ký vào registerDailyListener, đếm ngày tích luỹ.
  */
 import type { StatData } from "../mvu/schema";
 import type { Npc } from "../mvu/npcSchema";
-import { registerTurnListener } from "../mvu/effects";
+import { registerDailyListener } from "../mvu/effects";
 import { previewInteractions } from "./interactionPreview";
 import { buildOffscreenMessages, parseOffscreenResult, type OffscreenAiResult } from "./offscreenPrompt";
 import { createLogger } from "../lib/log";
@@ -276,7 +276,7 @@ export async function runOffscreenSimAI(
 
 /** Đăng ký off-screen sim vào turn loop. Chạy mỗi ~7 ngày truyện. */
 export function registerOffscreenLoop(): void {
-  registerTurnListener("offscreen-sim", (state) => {
+  registerDailyListener("offscreen-sim", (state) => {
     dayCounter++;
     if (dayCounter >= SIM_INTERVAL_DAYS) {
       dayCounter = 0;

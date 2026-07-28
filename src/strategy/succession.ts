@@ -12,7 +12,7 @@ import type { StatData } from "../mvu/schema";
 import { SUCCESSION_LAWS } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import type { Npc } from "../mvu/npcSchema";
-import { registerTurnListener } from "../mvu/effects";
+import { registerDailyListener } from "../mvu/effects";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
 import { findNpc } from "./court";
 
@@ -269,6 +269,6 @@ export function tickSuccession(state: StatData): void {
 let registered = false;
 export function registerSuccessionLoop(): void {
   if (registered) return;
-  registerTurnListener("succession", tickSuccession);
+  registerDailyListener("succession", tickSuccession);
   registered = true;
 }

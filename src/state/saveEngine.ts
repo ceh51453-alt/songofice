@@ -13,6 +13,7 @@ import { db, type SaveSlotRecord, type SaveSlotMeta } from "./db";
 import { useMvuStore } from "./mvuStore";
 import { useChatStore, type UiChatMessage } from "./chatStore";
 import { StatDataSchema, makeDefaultState, type StatData } from "../mvu/schema";
+import { normalizeCalendar } from "../mvu/calendar";
 import { genId } from "../lib/id";
 import { createLogger } from "../lib/log";
 
@@ -34,25 +35,34 @@ function extractMeta(stat: StatData): SaveSlotMeta {
     characterName: stat["Thông Tin Nhân Vật"]["Họ Tên"] || "Vô Danh",
     house: stat["Thông Tin Nhân Vật"]["Nhà"] || "Không Nhà",
     era: stat["Cài Đặt Ván"]["Thời Kỳ"] || "",
-    turnCount: stat["_engineMeta"]["turnCount"],
+    day: stat["Thế Giới"]["Ngày"],
+    month: stat["Thế Giới"]["Tháng"],
     year: stat["Thế Giới"]["Năm"],
     season: stat["Thế Giới"]["Mùa"],
   };
 }
 
-/** Migration: merge save cũ thiếu field với default state (prefault). */
+/**
+ * Migration: merge save cũ thiếu field với default state (prefault), rồi chuẩn
+ * hoá lịch — save cũ lưu Ngày = 1-360 trong năm và chưa có Tháng, normalizeCalendar
+ * tách lại đúng (Ngày 250 → tháng 9 ngày 10).
+ */
 function migrateState(raw: unknown): StatData {
   const defaults = makeDefaultState();
 
   // Parse qua Zod — nếu thành công, trả luôn
   const result = StatDataSchema.safeParse(raw);
-  if (result.success) return result.data;
+  if (result.success) {
+    normalizeCalendar(result.data["Thế Giới"]);
+    return result.data;
+  }
 
   // Nếu Zod thất bại, thử merge thủ công: overlay raw lên default
   if (raw && typeof raw === "object") {
     const merged = deepMerge(defaults, raw as Record<string, unknown>);
     const retry = StatDataSchema.safeParse(merged);
     if (retry.success) {
+      normalizeCalendar(retry.data["Thế Giới"]);
       log.info("Migration: merge thành công save cũ với default state");
       return retry.data;
     }
@@ -138,7 +148,7 @@ export async function loadGame(slotId: string): Promise<void> {
   // Khôi phục stores
   useMvuStore.getState().restoreSnapshot(state);
   useChatStore.setState({ messages, status: "idle", error: null, draft: "", draftReasoning: "", retryInfo: null });
-  log.info(`Đã tải: "${record.slotName}" (turn ${record.meta.turnCount})`);
+  log.info(`Đã tải: "${record.slotName}" (ngày ${record.meta.day}/${record.meta.month}/${record.meta.year} AC)`);
 }
 
 /** Xoá slot. */

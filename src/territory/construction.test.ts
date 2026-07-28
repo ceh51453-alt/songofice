@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { applyPatch } from "../mvu/patchEngine";
 import { seedRegionControl, captureRegionOps } from "./territoryEngine";
-import { startConstruction, tickConstruction, estimateTerritoryYield } from "./construction";
+import { startConstruction, tickConstruction, tickTerritoryIncome, estimateTerritoryYield } from "./construction";
 import { EXCHANGE_RATES } from "../economy/currency";
 
 /** Ngân Khố lưu dạng Đồng Đỏ (1 Rồng Vàng = 11,760 Đồng Đỏ). */
@@ -35,7 +35,7 @@ describe("startConstruction (10.3)", () => {
     // vào hàng đợi
     const b = state["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"];
     expect(b["Đang Xây"]).toBe(true);
-    expect(b["Turn Còn Lại"]).toBe(3);
+    expect(b["Ngày Xây Còn Lại"]).toBe(90); // 3 tháng × 30 ngày
   });
 
   it("thiếu tài nguyên → chặn, không tạo công trình", () => {
@@ -68,34 +68,36 @@ describe("startConstruction (10.3)", () => {
   });
 });
 
-describe("tickConstruction — turn-advance loop (10.3)", () => {
-  it("hạ Turn Còn Lại qua từng tick → hoàn tất → cộng thu", () => {
+describe("tickConstruction — loop NGÀY (10.3)", () => {
+  it("hạ Ngày Xây Còn Lại qua từng tick ngày → hoàn tất", () => {
     let s = lordState(500);
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Nông Trại").ops).state;
-    const foodStart = s["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"];
 
-    // tick 3 lần → hoàn tất
+    // Nông Trại = 3 tháng = 90 ngày
     tickConstruction(s);
-    expect(s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Turn Còn Lại"]).toBe(2);
-    tickConstruction(s);
-    tickConstruction(s);
+    expect(s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Ngày Xây Còn Lại"]).toBe(89);
+    for (let i = 0; i < 89; i++) tickConstruction(s);
     expect(s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"]).toBe(false);
+  });
 
-    // tài nguyên tăng mỗi turn (base + sau khi xong thêm 200 Lương Thực/turn)
-    expect(s["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"]).toBeGreaterThan(foodStart);
-    // 1 tick nữa: Nông Trại đã xong → +≥200 lương thực
+  it("tickTerritoryIncome: tài nguyên tăng mỗi THÁNG (base + Nông Trại xong)", () => {
+    let s = lordState(500);
+    s = applyPatch(s, startConstruction(s, "the-north-seat", "Nông Trại").ops).state;
+    // ép Nông Trại xong ngay
+    s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"] = false;
+
     const foodBefore = s["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"];
-    tickConstruction(s);
+    tickTerritoryIncome(s);
     expect(s["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"] - foodBefore).toBeGreaterThanOrEqual(200);
   });
 
-  it("thu Vàng vào ngân khố thống nhất mỗi turn (Chợ + thuế nền)", () => {
+  it("thu Vàng vào ngân khố thống nhất mỗi THÁNG (Chợ + thuế nền)", () => {
     let s = lordState(500);
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Chợ").ops).state;
     // ép Chợ xong ngay
     s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Chợ"]["Đang Xây"] = false;
     const goldBefore = s["Thông Tin Nhân Vật"]["Ngân Khố"];
-    tickConstruction(s);
+    tickTerritoryIncome(s);
     // Chợ +120*GOLD + thuế nền dương → ngân khố tăng
     expect(s["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeGreaterThan(goldBefore + 120 * GOLD - 1);
   });

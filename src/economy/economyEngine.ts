@@ -1,17 +1,17 @@
 /**
- * economyEngine (15.1-15.4) — turn-advance loop cho kinh tế liên vùng:
+ * economyEngine (15.1-15.4) — loop kinh tế liên vùng, chốt sổ MỖI THÁNG truyện:
  *
- * - tickEconomy: chạy mỗi ngày truyện (registerTurnListener) — xử lý:
+ * - tickEconomy: chạy mỗi tháng (registerMonthlyListener) — xử lý:
  *   1. Thương mại: lợi nhuận tuyến × An Toàn, phong toả cảng = 0
- *   2. Thuế: bảng TAX_TABLE áp Vàng/turn + Δ Trung Thành/turn (× Đại Chưởng Ngân Khố)
- *   3. Iron Bank: trừ lãi mỗi turn; quỵt nợ flag
+ *   2. Thuế: bảng TAX_TABLE áp Vàng/tháng + Δ Trung Thành/tháng (× Đại Chưởng Ngân Khố)
+ *   3. Iron Bank: trừ lãi mỗi tháng; quỵt nợ flag
  *   4. Khủng hoảng: Lương Thực ≤ 0 → nạn đói; Trung Thành < 15 → nổi loạn; Mùa Đông drain
  *
  * Engine giữ số; AI KHÔNG tự quyết. Vàng cộng/trừ vào ngân khố thống nhất
  * (Thông Tin Nhân Vật.Vàng — 15.3 note). Pattern giống tickConstruction/tickArmy.
  */
 import type { StatData, TaxLevel } from "../mvu/schema";
-import { registerTurnListener } from "../mvu/effects";
+import { registerMonthlyListener } from "../mvu/effects";
 import { treasuryMultiplier } from "../strategy/court";
 import { clamp } from "../mvu/helpers";
 import { EXCHANGE_RATES } from "./currency";
@@ -27,23 +27,23 @@ const log = createLogger("economy");
 export interface TaxEffect {
   /** Hệ số thu Vàng (× baseGold per territory). */
   goldMultiplier: number;
-  /** Δ Trung Thành mỗi turn trên toàn bộ lãnh địa. */
-  loyaltyPerTurn: number;
+  /** Δ Trung Thành mỗi tháng trên toàn bộ lãnh địa. */
+  loyaltyPerMonth: number;
 }
 
 export const TAX_TABLE: Record<TaxLevel, TaxEffect> = {
-  "Miễn Thuế": { goldMultiplier: 0, loyaltyPerTurn: 3 },
-  "Nhẹ":       { goldMultiplier: 0.5, loyaltyPerTurn: 1 },
-  "Vừa":       { goldMultiplier: 1.0, loyaltyPerTurn: 0 },
-  "Nặng":      { goldMultiplier: 1.6, loyaltyPerTurn: -2 },
-  "Vắt Kiệt":  { goldMultiplier: 2.2, loyaltyPerTurn: -5 },
+  "Miễn Thuế": { goldMultiplier: 0, loyaltyPerMonth: 3 },
+  "Nhẹ":       { goldMultiplier: 0.5, loyaltyPerMonth: 1 },
+  "Vừa":       { goldMultiplier: 1.0, loyaltyPerMonth: 0 },
+  "Nặng":      { goldMultiplier: 1.6, loyaltyPerMonth: -2 },
+  "Vắt Kiệt":  { goldMultiplier: 2.2, loyaltyPerMonth: -5 },
 };
 
-/** Preview thuế: ước tính thu Vàng/turn và Δ Trung Thành cho 1 mức thuế. */
+/** Preview thuế: ước tính thu Vàng/tháng và Δ Trung Thành cho 1 mức thuế. */
 export function taxPreview(
   state: StatData,
   level: TaxLevel,
-): { goldPerTurn: number; loyaltyPerTurn: number } {
+): { goldPerMonth: number; loyaltyPerMonth: number } {
   const effect = TAX_TABLE[level];
   const coinMult = treasuryMultiplier(state);
   let baseGold = 0;
@@ -69,8 +69,8 @@ export function taxPreview(
   }
 
   return {
-    goldPerTurn: Math.round(baseGold * effect.goldMultiplier * coinMult),
-    loyaltyPerTurn: effect.loyaltyPerTurn,
+    goldPerMonth: Math.round(baseGold * effect.goldMultiplier * coinMult),
+    loyaltyPerMonth: effect.loyaltyPerMonth,
   };
 }
 
@@ -97,7 +97,7 @@ function tickTrade(state: StatData): number {
     const safety = route["An Toàn"];
     // an toàn < 30 → risk mất hàng (giảm lợi nhuận thêm)
     const effectiveSafety = safety < 30 ? safety * 0.5 : safety;
-    const profit = Math.round(route["Lợi Nhuận/Turn"] * (effectiveSafety / 100));
+    const profit = Math.round(route["Lợi Nhuận/Tháng"] * (effectiveSafety / 100));
     totalProfit += profit;
   }
   return totalProfit;
@@ -117,7 +117,7 @@ function tickTax(state: StatData, coinMult: number): number {
 
     // Δ Trung Thành
     territory["Trung Thành"] = clamp(
-      territory["Trung Thành"] + effect.loyaltyPerTurn,
+      territory["Trung Thành"] + effect.loyaltyPerMonth,
       0,
       100,
     );
@@ -147,20 +147,20 @@ function tickTax(state: StatData, coinMult: number): number {
 
 function tickIronBank(state: StatData): number {
   const bank = state["Các Khoản Nợ"]?.["Iron Bank"];
-  if (!bank || (bank["Nợ Gốc"] <= 0 && bank["Turn Còn Lại"] <= 0)) return 0;
+  if (!bank || (bank["Nợ Gốc"] <= 0 && bank["Tháng Còn Lại"] <= 0)) return 0;
 
   if (bank["Đang Quỵt"]) return 0; // đã quỵt, hậu quả xử lý bởi AI
 
-  const interest = bank["Lãi/Turn"];
-  bank["Turn Còn Lại"] = Math.max(0, bank["Turn Còn Lại"] - 1);
+  const interest = bank["Lãi/Tháng"];
+  bank["Tháng Còn Lại"] = Math.max(0, bank["Tháng Còn Lại"] - 1);
 
   // trả hết nợ
-  if (bank["Turn Còn Lại"] <= 0 && bank["Nợ Gốc"] > 0) {
+  if (bank["Tháng Còn Lại"] <= 0 && bank["Nợ Gốc"] > 0) {
     const totalOwed = bank["Nợ Gốc"] + interest;
     if (state["Thông Tin Nhân Vật"]["Ngân Khố"] >= totalOwed) {
       state["Thông Tin Nhân Vật"]["Ngân Khố"] -= totalOwed;
       bank["Nợ Gốc"] = 0;
-      bank["Lãi/Turn"] = 0;
+      bank["Lãi/Tháng"] = 0;
       return 0;
     }
     // không đủ trả → quỵt
@@ -168,19 +168,19 @@ function tickIronBank(state: StatData): number {
     return 0;
   }
 
-  return interest; // trừ mỗi turn
+  return interest; // trừ mỗi tháng
 }
 
 // ── Tick Khủng Hoảng (15.4) ──────────────────────────────────────────────────
 
-const FAMINE_POP_LOSS_RATE = 0.02;   // 2% dân số mỗi turn nạn đói
+const FAMINE_POP_LOSS_RATE = 0.02;   // 2% dân số mỗi tháng nạn đói
 const FAMINE_LOYALTY_LOSS = 3;
 const REBELLION_POP_RATIO = 0.1;     // 10% dân trở thành quân phản loạn
-const WINTER_FOOD_DRAIN = 200;       // lương tiêu thêm mỗi turn mùa đông
+const WINTER_FOOD_DRAIN = 200;       // lương tiêu thêm mỗi tháng mùa đông
 
 function tickCrises(state: StatData): void {
   const season = state["Thế Giới"]["Mùa"];
-  const turn = state["_engineMeta"]["turnCount"];
+  const tick = state["_engineMeta"]["_Nhịp"];
   const rootSeed = state["_engineMeta"]["_Seed Gốc"];
 
   for (const [regionId, territory] of Object.entries(state["Lãnh Địa"])) {
@@ -192,11 +192,11 @@ function tickCrises(state: StatData): void {
     if (food <= 0) {
       const existing = crises.find((c) => c["Loại"] === "Nạn Đói");
       if (existing) {
-        existing["Turn Kéo Dài"] += 1;
-        if (existing["Turn Kéo Dài"] > 10) existing["Mức Độ"] = "Thảm Hoạ";
-        else if (existing["Turn Kéo Dài"] > 5) existing["Mức Độ"] = "Nghiêm Trọng";
+        existing["Tháng Kéo Dài"] += 1;
+        if (existing["Tháng Kéo Dài"] > 10) existing["Mức Độ"] = "Thảm Hoạ";
+        else if (existing["Tháng Kéo Dài"] > 5) existing["Mức Độ"] = "Nghiêm Trọng";
       } else {
-        crises.push({ "Loại": "Nạn Đói", "Mức Độ": "Chớm", "Turn Kéo Dài": 1 });
+        crises.push({ "Loại": "Nạn Đói", "Mức Độ": "Chớm", "Tháng Kéo Dài": 1 });
       }
       // dân chết dần
       territory["Dân Số"] = Math.max(100, Math.round(territory["Dân Số"] * (1 - FAMINE_POP_LOSS_RATE)));
@@ -213,9 +213,9 @@ function tickCrises(state: StatData): void {
       const winterCrisis = crises.find((c) => c["Loại"] === "Mùa Đông Khắc Nghiệt");
       if (food < WINTER_FOOD_DRAIN * 3) {
         if (winterCrisis) {
-          winterCrisis["Turn Kéo Dài"] += 1;
+          winterCrisis["Tháng Kéo Dài"] += 1;
         } else {
-          crises.push({ "Loại": "Mùa Đông Khắc Nghiệt", "Mức Độ": "Chớm", "Turn Kéo Dài": 1 });
+          crises.push({ "Loại": "Mùa Đông Khắc Nghiệt", "Mức Độ": "Chớm", "Tháng Kéo Dài": 1 });
         }
       }
     } else {
@@ -228,16 +228,16 @@ function tickCrises(state: StatData): void {
     if (loyalty < 15) {
       const existing = crises.find((c) => c["Loại"] === "Nổi Loạn");
       if (!existing) {
-        const rng = makeRng(eventSeed(rootSeed, turn, `rebel-${regionId}`));
+        const rng = makeRng(eventSeed(rootSeed, tick, `rebel-${regionId}`));
         if (rng() < 0.6) {
-          crises.push({ "Loại": "Nổi Loạn", "Mức Độ": "Chớm", "Turn Kéo Dài": 1 });
+          crises.push({ "Loại": "Nổi Loạn", "Mức Độ": "Chớm", "Tháng Kéo Dài": 1 });
           // chuyển phần dân thành "quân phản loạn" (giảm dân số; quân phản loạn xử lý bởi AI)
           const rebels = Math.round(territory["Dân Số"] * REBELLION_POP_RATIO);
           territory["Dân Số"] = Math.max(100, territory["Dân Số"] - rebels);
         }
       } else {
-        existing["Turn Kéo Dài"] += 1;
-        if (existing["Turn Kéo Dài"] > 5) existing["Mức Độ"] = "Nghiêm Trọng";
+        existing["Tháng Kéo Dài"] += 1;
+        if (existing["Tháng Kéo Dài"] > 5) existing["Mức Độ"] = "Nghiêm Trọng";
       }
     } else if (loyalty >= 30) {
       // đủ yên ổn → dẹp loạn
@@ -248,10 +248,10 @@ function tickCrises(state: StatData): void {
     // ── Dịch bệnh tick (đơn giản — chi tiết mở rộng sau) ──
     const plague = crises.find((c) => c["Loại"] === "Dịch Bệnh");
     if (plague) {
-      plague["Turn Kéo Dài"] += 1;
+      plague["Tháng Kéo Dài"] += 1;
       territory["Dân Số"] = Math.max(100, Math.round(territory["Dân Số"] * 0.99));
-      // tự hết sau ~20 turn
-      if (plague["Turn Kéo Dài"] > 20) {
+      // tự hết sau ~20 tháng
+      if (plague["Tháng Kéo Dài"] > 20) {
         const idx = crises.indexOf(plague);
         if (idx >= 0) crises.splice(idx, 1);
       }
@@ -269,15 +269,15 @@ function tickLoans(state: StatData): number {
   if (!loans) return 0;
   
   for (const [debtorId, loan] of Object.entries(loans)) {
-    if (loan["Nợ Gốc"] <= 0 && loan["Turn Còn Lại"] <= 0) continue;
+    if (loan["Nợ Gốc"] <= 0 && loan["Tháng Còn Lại"] <= 0) continue;
     if (loan["Đang Quỵt"]) continue;
 
-    const interest = loan["Lãi/Turn"];
-    loan["Turn Còn Lại"] = Math.max(0, loan["Turn Còn Lại"] - 1);
+    const interest = loan["Lãi/Tháng"];
+    loan["Tháng Còn Lại"] = Math.max(0, loan["Tháng Còn Lại"] - 1);
     
     totalInterest += interest;
 
-    if (loan["Turn Còn Lại"] <= 0 && loan["Nợ Gốc"] > 0) {
+    if (loan["Tháng Còn Lại"] <= 0 && loan["Nợ Gốc"] > 0) {
       const attitude = state["Thái Độ Các Nhà"]?.[debtorId]?.["Thái Độ"] || "Cảnh Giác";
       if (attitude === "Địch Ý" || attitude === "Thù Địch") {
         loan["Đang Quỵt"] = true;
@@ -285,7 +285,7 @@ function tickLoans(state: StatData): number {
       } else {
         totalInterest += loan["Nợ Gốc"];
         loan["Nợ Gốc"] = 0;
-        loan["Lãi/Turn"] = 0;
+        loan["Lãi/Tháng"] = 0;
       }
     }
   }
@@ -366,8 +366,8 @@ function tickMarket(state: StatData): void {
 // ── Main tick ────────────────────────────────────────────────────────────────
 
 /**
- * 1 tick kinh tế (1 ngày truyện). MUTATE state — chạy trong turn-advance
- * registry (effects.ts). Thứ tự: thương mại → thuế → Iron Bank → khủng hoảng.
+ * 1 tick kinh tế (1 THÁNG truyện). MUTATE state — chạy trong monthly registry
+ * (effects.ts). Thứ tự: thương mại → thuế → Iron Bank → khủng hoảng.
  */
 export function tickEconomy(state: StatData): void {
   const coinMult = treasuryMultiplier(state);
@@ -415,7 +415,7 @@ function tickMicroEconomy(state: StatData): void {
   for (const id in npcs) {
     const npc = npcs[id];
     if (!npc) continue;
-    // NPC gain some base pennies per turn (e.g. 560 pennies = 10 silver)
+    // NPC gain some base pennies per month (e.g. 560 pennies = 10 silver)
     let income = 560;
     // If they have a role, they gain more
     if (npc["Chức Vụ"] && npc["Chức Vụ"] !== "") {
@@ -429,19 +429,19 @@ function tickMicroEconomy(state: StatData): void {
 }
 
 
-// ── Đăng ký vào turn-advance loop ────────────────────────────────────────────
+// ── Đăng ký vào loop THÁNG ───────────────────────────────────────────────────
 
 let registered = false;
 export function registerEconomyLoop(): void {
   if (registered) return;
-  registerTurnListener("economy", tickEconomy);
+  registerMonthlyListener("economy", tickEconomy);
   registered = true;
   log.info("Economy loop registered");
 }
 
 // ── Tiện ích cho UI / store ──────────────────────────────────────────────────
 
-/** Tính tổng thu/chi kinh tế ước lượng per turn — cho sparkline & bảng tổng quan. */
+/** Tính tổng thu/chi kinh tế ước lượng mỗi THÁNG — cho sparkline & bảng tổng quan. */
 export function estimateNetIncome(state: StatData): {
   tradeIncome: number;
   taxIncome: number;
@@ -456,7 +456,7 @@ export function estimateNetIncome(state: StatData): {
   let tradeIncome = 0;
   for (const route of Object.values(state["Tuyến Thương Mại"])) {
     if (route["Đường"] === "Biển" && isBlockaded(state, route["Đến"])) continue;
-    tradeIncome += Math.round(route["Lợi Nhuận/Turn"] * (route["An Toàn"] / 100));
+    tradeIncome += Math.round(route["Lợi Nhuận/Tháng"] * (route["An Toàn"] / 100));
   }
 
   const level = state["Chính Sách Thuế"]["Mức Thuế"];
@@ -492,14 +492,14 @@ export function estimateNetIncome(state: StatData): {
   const macroTaxIncome = Math.round(macroGold * effect.goldMultiplier * coinMult * EXCHANGE_RATES.GOLD_TO_COPPER);
   const taxIncome = microTaxIncome + macroTaxIncome;
 
-  const ironBankExpense = state["Các Khoản Nợ"]?.["Iron Bank"]?.["Lãi/Turn"] ?? 0;
+  const ironBankExpense = state["Các Khoản Nợ"]?.["Iron Bank"]?.["Lãi/Tháng"] ?? 0;
 
   let loanIncome = 0;
   const loans = state["Các Khoản Cho Vay"];
   if (loans) {
     for (const loan of Object.values(loans)) {
-      if (!loan["Đang Quỵt"] && (loan["Turn Còn Lại"] > 0 || loan["Nợ Gốc"] > 0)) {
-        loanIncome += loan["Lãi/Turn"];
+      if (!loan["Đang Quỵt"] && (loan["Tháng Còn Lại"] > 0 || loan["Nợ Gốc"] > 0)) {
+        loanIncome += loan["Lãi/Tháng"];
       }
     }
   }
@@ -526,8 +526,8 @@ export function estimateNetIncome(state: StatData): {
   };
 }
 
-/** Số turn trước khi cạn ngân khố (−1 nếu đang lời hoặc 0 Vàng). */
-export function turnsUntilBankrupt(state: StatData): number {
+/** Số THÁNG trước khi cạn ngân khố (−1 nếu đang lời hoặc 0 Vàng). */
+export function monthsUntilBankrupt(state: StatData): number {
   const { net } = estimateNetIncome(state);
   if (net >= 0) return -1;
   const gold = state["Thông Tin Nhân Vật"]["Ngân Khố"];

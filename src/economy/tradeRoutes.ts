@@ -4,7 +4,8 @@
  */
 import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
-import { calcMapDistance, distanceToTurns } from "../strategy/army";
+import { calcMapDistance, distanceToDays } from "../strategy/army";
+import { DAYS_PER_MONTH } from "../mvu/calendar";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import {
   GOODS, BASELINE_PRICE, regionPrice, type Good,
@@ -21,7 +22,7 @@ export interface TradeResult {
 
 /**
  * Tính lợi nhuận dự kiến khi vận chuyển `goods` từ `fromId` → `toId`.
- * Lợi nhuận = Σ (giá bán − giá mua) mỗi hàng, chia cho khoảng cách (turn).
+ * Lợi nhuận = Σ (giá bán − giá mua) mỗi hàng, chia cho số THÁNG vận chuyển.
  */
 export function estimateProfit(
   state: StatData,
@@ -36,10 +37,10 @@ export function estimateProfit(
     const sellPrice = state["Kinh Tế Vùng"][toId]?.["Giá Cả"][good] ?? regionPrice(toId, good);
     totalMargin += Math.max(0, sellPrice - buyPrice);
   }
-  // chia cho khoảng cách → lợi nhuận/turn (vận chuyển mất thời gian)
+  // chia cho thời gian đi đường → lợi nhuận/tháng (vận chuyển mất thời gian)
   const dist = calcMapDistance(fromId, toId);
-  const turns = Math.max(1, distanceToTurns(dist));
-  return Math.round(totalMargin / turns * 10 * EXCHANGE_RATES.GOLD_TO_COPPER); // ×10 vì mỗi tuyến chở lô lớn, quy ra Đồng Đỏ
+  const months = Math.max(1, distanceToDays(dist) / DAYS_PER_MONTH);
+  return Math.round(totalMargin / months * 10 * EXCHANGE_RATES.GOLD_TO_COPPER); // ×10 vì mỗi tuyến chở lô lớn, quy ra Đồng Đỏ
 }
 
 /**
@@ -84,7 +85,7 @@ export function createTradeRoute(
         "Từ": fromId,
         "Đến": toId,
         "Hàng Hoá": [...goods],
-        "Lợi Nhuận/Turn": profit,
+        "Lợi Nhuận/Tháng": profit,
         "Đường": type,
         "An Toàn": 80,
       },

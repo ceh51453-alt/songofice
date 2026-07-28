@@ -5,7 +5,7 @@
  */
 import type { StatData } from "../mvu/schema";
 import type { TimelineBeat } from "../content/westeros/events/timelineBeats";
-import { addJournalEntry } from "./questEngine";
+import { addJournalEntry, journalStamp } from "./questEngine";
 import { applyPatch } from "../mvu/patchEngine";
 import { createLogger } from "../lib/log";
 
@@ -74,8 +74,7 @@ export function applyBeat(
 
   // Ghi Nhật Ký
   addJournalEntry(state, {
-    Turn: state["_engineMeta"]["turnCount"],
-    "Năm": state["Thế Giới"]["Năm"],
+    ...journalStamp(state),
     "Loại": "Cột Mốc",
     "Mô Tả": altered
       ? `${beat.title} — LỊCH SỬ BỊ THAY ĐỔI bởi người chơi!`

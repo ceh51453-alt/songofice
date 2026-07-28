@@ -10,13 +10,14 @@ import { useMvuStore } from "../../state/mvuStore";
 import { useMilitaryStore } from "../../state/militaryStore";
 
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
+import { formatDuration } from "../../mvu/calendar";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { playerHouseId } from "../../territory/territoryEngine";
 import { lendMoney } from "../../economy/ironBank";
 import { EXCHANGE_RATES } from "../../economy/currency";
 import { canControlHolding } from "../../character/roleplay";
 import { recruitableTroopsForEra, troopMeta, type TroopTypeAll } from "../../content/westeros/troopTypes";
-import { hasBarracks, maxRecruitPerTurn } from "../../strategy/army";
+import { hasBarracks, maxRecruitPerMonth } from "../../strategy/army";
 import { GlassButton } from "../components/GlassButton";
 import { GlassSelect } from "../components/GlassSelect";
 import { useT } from "../../i18n";
@@ -115,7 +116,7 @@ function ForcesTab({ stat }: { stat: Stat }) {
       {units.map(([name, u]) => {
         const loc = REGIONS_BY_ID[u["Lãnh Địa Đồn Trú"]]?.name ?? u["Lãnh Địa Đồn Trú"] ?? "—";
         const movingTo = u["Đang Di Chuyển Đến"] ? REGIONS_BY_ID[u["Đang Di Chuyển Đến"]]?.name : null;
-        const training = u["Turn Huấn Luyện"] > 0;
+        const training = u["Ngày Huấn Luyện"] > 0;
         return (
           <div key={name} className="glass rounded-[var(--radius-md)] p-3">
             <div className="flex items-start justify-between gap-2">
@@ -137,9 +138,9 @@ function ForcesTab({ stat }: { stat: Stat }) {
             </div>
             <p className="mt-1.5 text-[12px] text-[var(--text-muted)]">
               {training
-                ? t("mil.training", { n: u["Turn Huấn Luyện"] })
+                ? t("mil.training", { n: formatDuration(u["Ngày Huấn Luyện"]) })
                 : movingTo
-                  ? t("mil.movingTo", { region: movingTo, n: u["Turn Di Chuyển Còn Lại"] })
+                  ? t("mil.movingTo", { region: movingTo, n: formatDuration(u["Ngày Hành Quân Còn Lại"]) })
                   : t("mil.stationed", { region: loc })}
             </p>
 
@@ -178,7 +179,7 @@ function RecruitTab({ stat }: { stat: Stat }) {
   const meta = troopMeta(type);
   const goldCost = Math.round((meta.costPer100["Ngân Khố"] * count) / 100);
   const foodCost = Math.round((meta.costPer100["Lương Thực"] * count) / 100);
-  const cap = terr ? maxRecruitPerTurn(stat, terr) : 0;
+  const cap = terr ? maxRecruitPerMonth(stat, terr) : 0;
 
   return (
     <div className="space-y-3">
@@ -205,7 +206,7 @@ function RecruitTab({ stat }: { stat: Stat }) {
           <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconCoins size={13} /> {fmt(goldCost)}</span>
           <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconWheat size={13} /> {fmt(foodCost)}</span>
           <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconUsers size={13} /> {fmt(count)}</span>
-          <span className="text-[var(--text-faint)]">· {meta.trainTurns} tháng</span>
+          <span className="text-[var(--text-faint)]">· {meta.trainMonths} tháng</span>
         </span>
       </div>
       {msg && <p className="text-[12px] text-[var(--danger)]">{msg}</p>}
@@ -400,7 +401,7 @@ function DragonsTab({ stat }: { stat: Stat }) {
             </div>
             <p className="mt-1.5 text-[12px] text-[var(--text-muted)]">
               {movingTo
-                ? t("mil.movingTo", { region: movingTo, n: u["Turn Di Chuyển Còn Lại"] })
+                ? t("mil.movingTo", { region: movingTo, n: formatDuration(u["Ngày Hành Quân Còn Lại"]) })
                 : t("mil.stationed", { region: loc })}
             </p>
             <p className="mt-2 text-[11.5px] italic text-[var(--text-faint)]">

@@ -7,7 +7,7 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     birthYear: 250, age: 50, coreStats: { "Sức Mạnh": 17, "Nhanh Nhẹn": 11, "Thể Chất": 16, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 85, "Thống Soái": 80, "Trí Mưu": 50, "Ngoại Giao": 60 },
     talentIds: ["warrior-blood", "beloved", "hot-tempered"],
-    skills: { "axe-mace": 9, "brawling": 8, "weather-endurance": 9, "command": 7 },
+    skills: { "axe-mace": 9, "unarmed": 8, "weather-endurance": 9, "command": 7 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu chiến lớn", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 6 }, moTa: "Vũ khí của Tormund" }], 
     items: [], gold: 50,
     startResources: {
@@ -25,6 +25,11 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     children: ["toregg", "torwynd", "dryn", "munda"],
     siblings: [],
     rivals: ["others"],
+    liege: "mance-rayder",
+    relationshipDetails: {
+      "jon-snow": { type: "Bằng Hữu", trust: 90, affinity: 95, detail: "Jon Snow là người duy nhất từ phương Nam được Tormund thật sự kính trọng. Hai người từng chiến đấu cùng nhau chống Bạch Quỉ." },
+      "mance-rayder": { type: "Lãnh Đạo", trust: 100, affinity: 100, detail: "Mance là người đã đoàn kết các bộ lạc. Tormund theo ông vì tôn trọng." }
+    },
     startArmies: [
           { name: "Tộc Thenn", type: "Bộ Binh", size: 2400, quality: "Mới Lập Đội" },
           { name: "Người Khổng Lồ", type: "Kỵ Binh", size: 800, quality: "Mới Lập Đội" },
@@ -76,7 +81,7 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     birthYear: 100, age: 200, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 10, "Thể Chất": 8, "Trí Tuệ": 18, "Tinh Tường": 19, "Uy Tín": 17 },
     năngLực: { "Võ Lực": 25, "Thống Soái": 85, "Trí Mưu": 90, "Ngoại Giao": 95 },
     talentIds: ["schemer", "silver-tongue"],
-    skills: { "lore": 10, "persuasion": 9, "cunning": 8, "medicine": 6 },
+    skills: { "lore": 10, "persuasion": 9, "cunning": 8, "maester-medicine": 6 },
     equipment: [], items: [{ ten: "Hồng ngọc", soLuong: 1, moTa: "Tỏa sáng kỳ ảo che giấu thân phận thật" }], gold: 500,
     startResources: {
       "Gỗ": 20,
@@ -142,7 +147,7 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     birthYear: 268, age: 32, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 11, "Thể Chất": 17, "Trí Tuệ": 7, "Tinh Tường": 9, "Uy Tín": 13 },
     năngLực: { "Võ Lực": 90, "Thống Soái": 65, "Trí Mưu": 35, "Ngoại Giao": 45 },
     talentIds: ["warrior-blood", "hot-tempered"],
-    skills: { "axe-mace": 10, "sailing": 9, "command": 7, "intimidation": 8 },
+    skills: { "axe-mace": 10, "trading": 9, "command": 7, "intimidation": 8 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu khổng lồ", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Rìu của Kraken" }, { slot: "Giáp Thân", ten: "Giáp tấm Đảo Sắt", phamChat: "Tinh Xảo", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Chìm nghỉm nếu rơi xuống nước" }], 
     items: [], gold: 1000,
     startResources: {
@@ -178,7 +183,7 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     birthYear: 248, age: 52, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 3, "Thể Chất": 5, "Trí Tuệ": 18, "Tinh Tường": 17, "Uy Tín": 15 },
     năngLực: { "Võ Lực": 15, "Thống Soái": 75, "Trí Mưu": 90, "Ngoại Giao": 85 },
     talentIds: ["schemer", "learned"],
-    skills: { "cunning": 9, "command": 8, "lore": 8, "commerce": 7 },
+    skills: { "cunning": 9, "command": 8, "lore": 8, "trading": 7 },
     equipment: [], items: [], gold: 20000,
     startResources: {
       "Gỗ": 250,
@@ -243,7 +248,7 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     birthYear: 268, age: 32, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 9, "Trí Tuệ": 19, "Tinh Tường": 18, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 30, "Thống Soái": 80, "Trí Mưu": 95, "Ngoại Giao": 90 },
     talentIds: ["schemer", "silver-tongue"],
-    skills: { "cunning": 10, "commerce": 10, "persuasion": 9, "gather-rumor": 9 },
+    skills: { "cunning": 10, "trading": 10, "persuasion": 9, "gather-rumor": 9 },
     equipment: [], items: [{ ten: "Dao găm thép Valyria", soLuong: 1, moTa: "Nguồn gốc của nội chiến" }], gold: 50000,
     startResources: {
       "Gỗ": 200,
@@ -308,7 +313,7 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     birthYear: 270, age: 30, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 13, "Thể Chất": 17, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 9 },
     năngLực: { "Võ Lực": 90, "Thống Soái": 45, "Trí Mưu": 50, "Ngoại Giao": 60 },
     talentIds: ["warrior-blood", "giant-frame"],
-    skills: { "sword-shield": 9, "brawling": 8, "war-riding": 7, "intimidation": 9 },
+    skills: { "sword-shield": 9, "unarmed": 8, "war-riding": 7, "intimidation": 9 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép lớn", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 6 }, moTa: "Vung bằng một tay" }], items: [], gold: 100,
     startResources: {
       "Gỗ": 20,

@@ -10,6 +10,7 @@ import { StatDataSchema, makeDefaultState, type StatData } from "../mvu/schema";
 import { applyPatch, parsePath, type PatchOp } from "../mvu/patchEngine";
 import { runCascadeEffects, recomputeDerived, type EffectEvent } from "../mvu/effects";
 import { newRootSeed } from "../probability/rng";
+import { absoluteDay, normalizeCalendar } from "../mvu/calendar";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("mvu/store");
@@ -18,6 +19,7 @@ export interface AppliedTurn {
   events: EffectEvent[];
   changedPaths: string[];
   daysPassed: number;
+  monthsPassed: number;
 }
 
 interface MvuState {
@@ -32,7 +34,7 @@ interface MvuState {
   /** Deep-clone snapshot cho reroll/rollback (5.3). */
   getSnapshot: () => StatData;
   restoreSnapshot: (snapshot: StatData) => void;
-  /** Áp ops CỦA AI (đã qua extractor) + hiệu ứng lan toả + tăng turnCount. */
+  /** Áp ops CỦA AI (đã qua extractor) + hiệu ứng lan toả + tăng nhịp RNG. */
   applyAiOps: (ops: PatchOp[]) => AppliedTurn;
   /** Đọc giá trị theo path (getvar lore/macro). */
   getByPath: (path: string) => unknown;
@@ -82,11 +84,11 @@ export const useMvuStore = create<MvuState>()(
       applyAiOps: (ops) => {
         const prev = get().stat;
         const { state: patched, warnings, changedPaths } = applyPatch(prev, ops);
-        const { state: cascaded, events, daysPassed } = runCascadeEffects(prev, patched);
-        cascaded["_engineMeta"]["turnCount"] += 1;
+        const { state: cascaded, events, daysPassed, monthsPassed } = runCascadeEffects(prev, patched);
+        cascaded["_engineMeta"]["_Nhịp"] += 1;
         for (const w of warnings) log.warn(`Patch warning: ${w.reason}`);
         set({ stat: cascaded, pendingEvents: [...get().pendingEvents, ...events], lastChangedPaths: changedPaths });
-        return { events, changedPaths, daysPassed };
+        return { events, changedPaths, daysPassed, monthsPassed };
       },
 
       getByPath: (path) => getAt(get().stat, parsePath(path)),
@@ -99,12 +101,41 @@ export const useMvuStore = create<MvuState>()(
 
       clearEvents: () => set({ pendingEvents: [] }),
     }),
-    { name: "asoiaf-mvu", version: 1, partialize: (s) => ({ stat: s.stat }) },
+    {
+      name: "asoiaf-mvu",
+      version: 2,
+      partialize: (s) => ({ stat: s.stat }),
+      /**
+       * Ván cũ (version 1) dùng lịch 1 field: Ngày = 1-360 trong năm, chưa có
+       * Tháng. Đưa qua schema (prefault Tháng = 1) rồi normalizeCalendar để tách
+       * lại thành Tháng/Ngày đúng — ví dụ Ngày 250 → tháng 9 ngày 10.
+       */
+      migrate: (persisted, version) => {
+        const s = persisted as { stat?: unknown } | undefined;
+        if (!s?.stat) return persisted as { stat: StatData };
+        const parsed = StatDataSchema.safeParse(s.stat);
+        if (!parsed.success) return persisted as { stat: StatData };
+        if (version < 2) {
+          normalizeCalendar(parsed.data["Thế Giới"]);
+          log.info(`Migrate save v${version} → v2: lịch Ngày/Tháng/Năm`);
+        }
+        return { stat: parsed.data };
+      },
+    },
   ),
 );
 
-/** RNG root/turn hiện tại — mọi stream (macro, lore, check) dẫn xuất từ đây. */
-export function currentSeedInfo(): { rootSeed: number; turnCount: number } {
+/**
+ * RNG root + nhịp hiện tại — mọi stream (macro, lore, check) dẫn xuất từ đây.
+ * `tick` là số lượt trả lời, KHÔNG phải thời gian trong game: giữ mỗi lượt một
+ * chuỗi RNG riêng kể cả khi thời gian truyện không trôi (5bis.1).
+ */
+export function currentSeedInfo(): { rootSeed: number; tick: number } {
   const meta = useMvuStore.getState().stat["_engineMeta"];
-  return { rootSeed: meta["_Seed Gốc"], turnCount: meta["turnCount"] };
+  return { rootSeed: meta["_Seed Gốc"], tick: meta["_Nhịp"] };
+}
+
+/** Ngày tuyệt đối hiện tại — mốc so sánh cho hạn chót, ngày bắt, ngày đổi chủ. */
+export function currentDay(): number {
+  return absoluteDay(useMvuStore.getState().stat["Thế Giới"]);
 }

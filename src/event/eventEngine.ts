@@ -14,6 +14,7 @@ import { resolveCheck, type CheckInput, type CheckActor } from "../probability/r
 import type { PatchOp } from "../mvu/patchEngine";
 import { isSuccess } from "../probability/grades";
 import type { ResultGrade } from "../probability/grades";
+import { absoluteDay } from "../mvu/calendar";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("event/eventEngine");
@@ -96,10 +97,10 @@ export function evaluateConditions(conditions: EventCondition[], state: StatData
 // ── Build pool ──
 
 export function buildEventPool(allEvents: GameEvent[], state: StatData): GameEvent[] {
-  const turnCount = state["_engineMeta"]["turnCount"];
+  const today = absoluteDay(state["Thế Giới"]);
 
   // Lọc cooldowns hết hạn
-  cooldowns = cooldowns.filter((c) => c.expiresAtTurn > turnCount);
+  cooldowns = cooldowns.filter((c) => c.expiresOnDay > today);
   const coolingIds = new Set(cooldowns.map((c) => c.eventId));
 
   return allEvents.filter((e) => {
@@ -117,8 +118,8 @@ export function rollForEvent(
   if (pool.length === 0) return null;
 
   const rootSeed = state["_engineMeta"]["_Seed Gốc"];
-  const turnCount = state["_engineMeta"]["turnCount"];
-  const rng = streamRng(rootSeed, turnCount, "event");
+  const tick = state["_engineMeta"]["_Nhịp"];
+  const rng = streamRng(rootSeed, tick, "event");
 
   // Roll xác suất có sự kiện không
   if (rng() > EVENT_CHANCE_PER_CHECK) return null;
@@ -129,10 +130,10 @@ export function rollForEvent(
     rng,
   );
 
-  if (chosen && chosen.cooldownTurns) {
+  if (chosen && chosen.cooldownDays) {
     cooldowns.push({
       eventId: chosen.id,
-      expiresAtTurn: turnCount + chosen.cooldownTurns,
+      expiresOnDay: absoluteDay(state["Thế Giới"]) + chosen.cooldownDays,
     });
   }
 
@@ -172,8 +173,8 @@ export function applyEventChoice(
 
   // Có skill check
   const rootSeed = state["_engineMeta"]["_Seed Gốc"];
-  const turnCount = state["_engineMeta"]["turnCount"];
-  const seed = rootSeed ^ (turnCount * 31337);
+  const tick = state["_engineMeta"]["_Nhịp"];
+  const seed = rootSeed ^ (tick * 31337);
 
   const input: CheckInput = {
     checkId: choice.check.checkId,
@@ -196,7 +197,7 @@ export function applyEventChoice(
   };
 }
 
-// ── Turn listener: tick mỗi ngày, check mỗi CHECK_INTERVAL_DAYS ──
+// ── Daily listener: tick mỗi ngày, check mỗi CHECK_INTERVAL_DAYS ──
 
 export function eventTick(state: StatData, allEvents: GameEvent[]): ActiveEvent | null {
   dayAccumulator++;
@@ -212,7 +213,7 @@ export function eventTick(state: StatData, allEvents: GameEvent[]): ActiveEvent 
   if (chosen) {
     const active: ActiveEvent = {
       event: chosen,
-      triggeredAtTurn: state["_engineMeta"]["turnCount"],
+      triggeredOnDay: absoluteDay(state["Thế Giới"]),
     };
     pendingEvent = active;
     log.info(`Sự kiện: ${chosen.title}`);

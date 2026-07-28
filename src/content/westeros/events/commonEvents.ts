@@ -17,7 +17,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     ],
     narrativeTag: "event_popup",
     description: "Mùa màng thất bát, kho lương dần cạn. Dân chúng bắt đầu hoang mang.",
-    cooldownTurns: 30,
+    cooldownDays: 30,
     choices: [
       {
         label: "Mở kho phát lương cho dân",
@@ -40,7 +40,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "event_popup",
     description: "Một đoàn thương nhân từ Essos ghé qua lãnh địa người, mang theo hàng hoá lạ mắt.",
-    cooldownTurns: 15,
+    cooldownDays: 15,
     choices: [
       {
         label: "Hoan nghênh và thu thuế",
@@ -68,7 +68,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     ],
     narrativeTag: "event_popup",
     description: "Mùa thu năm nay bội thu khác thường. Kho lúa đầy ắp, dân chúng ấm túi.",
-    cooldownTurns: 50,
+    cooldownDays: 50,
     choices: [
       {
         label: "Tổ chức lễ hội mừng",
@@ -91,7 +91,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "raven_scroll",
     description: "Cướp biển từ Iron Islands đột kích bờ biển lãnh địa người.",
-    cooldownTurns: 25,
+    cooldownDays: 25,
     choices: [
       {
         label: "Dẫn quân chống trả",
@@ -119,7 +119,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "event_popup",
     description: "Một hiệp sĩ lang thang phong trần xin được phụng sự người.",
-    cooldownTurns: 20,
+    cooldownDays: 20,
     choices: [
       {
         label: "Chấp nhận",
@@ -140,7 +140,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "at_war" }],
     narrativeTag: "event_popup",
     description: "Một nhóm lính đào ngũ bị bắt gần lãnh địa. Chúng khai là từ quân địch chạy sang.",
-    cooldownTurns: 15,
+    cooldownDays: 15,
     choices: [
       {
         label: "Xử tử theo luật",
@@ -162,7 +162,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "raven_scroll",
     description: "Một thương nhân bí mật đề nghị bán vũ khí với giá rẻ — nhưng xuất xứ đáng ngờ.",
-    cooldownTurns: 20,
+    cooldownDays: 20,
     choices: [
       {
         label: "Mua",
@@ -188,7 +188,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "event_popup",
     description: "Một đại sứ từ một Nhà lớn ghé thăm, mang theo đề nghị liên minh.",
-    cooldownTurns: 20,
+    cooldownDays: 20,
     choices: [
       {
         label: "Tiếp đón trọng thể",
@@ -211,7 +211,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_spy" }],
     narrativeTag: "event_popup",
     description: "Điệp viên của người phát hiện một âm mưu chống lại người từ bên trong triều đình.",
-    cooldownTurns: 25,
+    cooldownDays: 25,
     choices: [
       {
         label: "Bắt giữ kẻ chủ mưu",
@@ -233,7 +233,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "event_popup",
     description: "Dân chúng gửi đơn thỉnh nguyện: họ muốn giảm thuế và xây giếng nước mới.",
-    cooldownTurns: 15,
+    cooldownDays: 15,
     choices: [
       {
         label: "Chấp nhận — giảm thuế",
@@ -258,7 +258,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "event_popup",
     description: "Dân chúng tổ chức lễ hội truyền thống. Họ mời người tham dự.",
-    cooldownTurns: 30,
+    cooldownDays: 30,
     choices: [
       {
         label: "Tham dự và tài trợ",
@@ -281,7 +281,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "event_popup",
     description: "Dịch bệnh lan tràn trong lãnh địa. Dân chúng lo sợ.",
-    cooldownTurns: 40,
+    cooldownDays: 40,
     choices: [
       {
         label: "Cách ly và chữa trị",
@@ -307,7 +307,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     ],
     narrativeTag: "event_popup",
     description: "Tuyết rơi dày bất thường. Đường sá đóng băng, lương thực cạn kiệt.",
-    cooldownTurns: 30,
+    cooldownDays: 30,
     choices: [
       {
         label: "Mở kho lương và sưởi ấm cho dân",
@@ -330,7 +330,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "event_popup",
     description: "Mặt đất rung chuyển. Tường thành nứt, nhà cửa sụp đổ.",
-    cooldownTurns: 60,
+    cooldownDays: 60,
     choices: [
       {
         label: "Tái thiết khẩn cấp",
@@ -357,7 +357,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "event_popup",
     description: "Người hầu mang cho người chén rượu — nhưng có gì đó lạ. Mùi vị khác thường.",
-    cooldownTurns: 30,
+    cooldownDays: 30,
     choices: [
       {
         label: "Dừng lại và điều tra",
@@ -383,7 +383,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "raven_scroll",
     description: "Tin đồn xấu về người lan truyền khắp vùng — ai đó đang bôi nhọ danh dự người.",
-    cooldownTurns: 25,
+    cooldownDays: 25,
     choices: [
       {
         label: "Công khai bác bỏ",
@@ -406,7 +406,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "event_popup",
     description: "Một nhóm dân bất mãn đang tụ tập và kích động nổi loạn.",
-    cooldownTurns: 30,
+    cooldownDays: 30,
     choices: [
       {
         label: "Đàn áp bằng lực lượng",
@@ -430,7 +430,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "event_popup",
     description: "Một kẻ lạ mặt xin gặp riêng người. Kẻ ấy mang theo tin tức quan trọng — hoặc một cái bẫy.",
-    cooldownTurns: 20,
+    cooldownDays: 20,
     choices: [
       {
         label: "Gặp riêng",
@@ -451,7 +451,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "stat_gte", path: "Thông Tin Nhân Vật.Ngân Khố", value: 500 }],
     narrativeTag: "raven_scroll",
     description: "Một chi nhánh dòng đến đòi trả món nợ cha ông để lại. Pháp lý vững chắc.",
-    cooldownTurns: 30,
+    cooldownDays: 30,
     choices: [
       {
         label: "Trả nợ",
@@ -474,7 +474,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "raven_scroll",
     description: "Tin đến: một giải đấu thương lớn đang được tổ chức. Người được mời tham dự.",
-    cooldownTurns: 35,
+    cooldownDays: 35,
     choices: [
       {
         label: "Tham dự",
@@ -497,7 +497,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "raven_scroll",
     description: "Chim ưng từ Citadel mang tin: một Maester mới sẽ được cử đến phục vụ người.",
-    cooldownTurns: 40,
+    cooldownDays: 40,
     choices: [
       {
         label: "Chào đón",
@@ -518,7 +518,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "event_popup",
     description: "Thợ xây phát hiện một kho lửa xanh cũ dưới tầng hầm lãnh địa.",
-    cooldownTurns: 60,
+    cooldownDays: 60,
     choices: [
       {
         label: "Cẩn thận di chuyển và lưu trữ",
@@ -542,7 +542,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [{ type: "has_holding" }],
     narrativeTag: "event_popup",
     description: "Người theo đạo Bảy và người thờ Cây Thần cũ bất hoà. Bạo lực sắp bùng nổ.",
-    cooldownTurns: 30,
+    cooldownDays: 30,
     choices: [
       {
         label: "Trung phạt — không thiên vị bên nào",
@@ -563,7 +563,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "event_popup",
     description: "Một kẻ tự xưng là con hoang của dòng tộc người xuất hiện, đòi được thừa nhận.",
-    cooldownTurns: 40,
+    cooldownDays: 40,
     choices: [
       {
         label: "Thừa nhận",
@@ -586,7 +586,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     ],
     narrativeTag: "event_popup",
     description: "Một con rồng bay qua bầu trời lãnh địa người. Dân chúng kinh hoàng.",
-    cooldownTurns: 50,
+    cooldownDays: 50,
     choices: [
       {
         label: "Trấn an dân chúng",
@@ -609,7 +609,7 @@ export const COMMON_EVENTS: GameEvent[] = [
     conditions: [],
     narrativeTag: "event_popup",
     description: "Một anh em của Night's Watch đến xin người giao tù nhân hoặc tình nguyện cho Tường Thành.",
-    cooldownTurns: 25,
+    cooldownDays: 25,
     choices: [
       {
         label: "Giao tù nhân",

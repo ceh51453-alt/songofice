@@ -4,6 +4,7 @@
  */
 import { CheckCircleIcon, ClockIcon, XCircleIcon } from "./JournalIcons";
 import type { StatData } from "../../mvu/schema";
+import { absoluteDay, formatDuration, DAYS_PER_MONTH } from "../../mvu/calendar";
 
 interface QuestData {
   id: string;
@@ -12,7 +13,8 @@ interface QuestData {
   status: string;
   objectives: { description: string; done: boolean }[];
   reward: string;
-  deadlineTurn?: number;
+  /** hạn chót dạng ngày tuyệt đối (calendar.absoluteDay). */
+  deadlineDay?: number;
   description: string;
 }
 
@@ -35,18 +37,18 @@ function extractQuests(state: StatData): QuestData[] {
       done: o["Xong"],
     })),
     reward: q["Phần Thưởng"],
-    deadlineTurn: q["Hạn Chót Turn"],
+    deadlineDay: q["Hạn Chót Ngày"],
     description: q["Mô Tả"],
   }));
 }
 
-export function QuestCard({ quest, currentTurn }: { quest: QuestData; currentTurn: number }) {
+export function QuestCard({ quest, today }: { quest: QuestData; today: number }) {
   const doneCount = quest.objectives.filter((o) => o.done).length;
   const totalCount = quest.objectives.length;
   const progress = totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
 
-  const turnsLeft = quest.deadlineTurn !== undefined ? quest.deadlineTurn - currentTurn : null;
-  const urgent = turnsLeft !== null && turnsLeft <= 5;
+  const daysLeft = quest.deadlineDay !== undefined ? quest.deadlineDay - today : null;
+  const urgent = daysLeft !== null && daysLeft <= DAYS_PER_MONTH;
 
   const isCompleted = quest.status === "Hoàn Thành";
   const isFailed = quest.status === "Thất Bại";
@@ -158,7 +160,7 @@ export function QuestCard({ quest, currentTurn }: { quest: QuestData; currentTur
             Thưởng: {quest.reward}
           </span>
         )}
-        {turnsLeft !== null && !isCompleted && !isFailed && (
+        {daysLeft !== null && !isCompleted && !isFailed && (
           <span style={{
             display: "flex",
             alignItems: "center",
@@ -167,7 +169,7 @@ export function QuestCard({ quest, currentTurn }: { quest: QuestData; currentTur
             fontWeight: urgent ? 600 : 400,
           }}>
             <ClockIcon size={12} />
-            {turnsLeft > 0 ? `${turnsLeft} lượt` : "Hết hạn!"}
+            {daysLeft > 0 ? `còn ${formatDuration(daysLeft)}` : "Hết hạn!"}
           </span>
         )}
       </div>
@@ -185,7 +187,7 @@ export function QuestList({
   filter: "Đang Làm" | "Hoàn Thành" | "Thất Bại";
 }) {
   const quests = extractQuests(state).filter((q) => q.status === filter);
-  const turn = state["_engineMeta"]["turnCount"];
+  const today = absoluteDay(state["Thế Giới"]);
 
   if (quests.length === 0) {
     return (
@@ -205,7 +207,7 @@ export function QuestList({
   return (
     <div>
       {quests.map((q) => (
-        <QuestCard key={q.id} quest={q} currentTurn={turn} />
+        <QuestCard key={q.id} quest={q} today={today} />
       ))}
     </div>
   );

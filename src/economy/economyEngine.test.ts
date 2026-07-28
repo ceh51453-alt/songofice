@@ -10,7 +10,7 @@
  */
 import { describe, it, expect, beforeEach } from "vitest";
 import { makeDefaultState, type StatData } from "../mvu/schema";
-import { tickEconomy, TAX_TABLE, isBlockaded, estimateNetIncome, turnsUntilBankrupt } from "./economyEngine";
+import { tickEconomy, TAX_TABLE, isBlockaded, estimateNetIncome, monthsUntilBankrupt } from "./economyEngine";
 import { createTradeRoute, suggestOpportunities, cancelTradeRoute } from "./tradeRoutes";
 import { borrowFromIronBank, repayIronBank, defaultOnDebt } from "./ironBank";
 import { seedRegionalEconomy, regionPrice } from "../content/westeros/regionalResources";
@@ -31,7 +31,7 @@ function makeTestState(): StatData {
   } as any;
   state["Thông Tin Nhân Vật"]["Ngân Khố"] = 1000;
   state["Thông Tin Nhân Vật"]["Nhà"] = "Tyrell";
-  state["_engineMeta"]["turnCount"] = 1;
+  state["_engineMeta"]["_Nhịp"] = 1;
   state["_engineMeta"]["_Seed Gốc"] = 42;
   return state;
 }
@@ -89,7 +89,7 @@ describe("Tuyến thương mại (15.2)", () => {
   it("tuyến bị phong toả cảng → lợi nhuận = 0 trong tick", () => {
     state["Tuyến Thương Mại"]["test-route"] = {
       "Từ": "the-reach", "Đến": "the-north",
-      "Hàng Hoá": ["Lương Thực"], "Lợi Nhuận/Turn": 50,
+      "Hàng Hoá": ["Lương Thực"], "Lợi Nhuận/Tháng": 50,
       "Đường": "Biển", "An Toàn": 80,
     } as any;
     state["Hạm Đội"]["enemy-fleet"] = {
@@ -183,7 +183,7 @@ describe("Khủng hoảng (15.4)", () => {
     state["Lãnh Địa"]["the-reach"]["Trung Thành"] = 10;
     // cần nhiều tick hoặc seed tốt; test rng seed = 42 nên có xác suất cao
     for (let i = 0; i < 5; i++) {
-      state["_engineMeta"]["turnCount"] = i + 1;
+      state["_engineMeta"]["_Nhịp"] = i + 1;
       tickEconomy(state);
     }
     const crises = state["Lãnh Địa"]["the-reach"]["Khủng Hoảng"];
@@ -208,27 +208,27 @@ describe("Iron Bank (15.3)", () => {
   });
 
   it("không vay được khi đang nợ", () => {
-    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 100, "Lãi/Turn": 5, "Turn Còn Lại": 60, "Đang Quỵt": false };
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 100, "Lãi/Tháng": 5, "Tháng Còn Lại": 60, "Đang Quỵt": false };
     const result = borrowFromIronBank(state, 500);
     expect(result.ok).toBe(false);
   });
 
   it("trả nợ sớm: trừ gốc + phạt", () => {
-    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Tháng": 25, "Tháng Còn Lại": 30, "Đang Quỵt": false };
     state["Thông Tin Nhân Vật"]["Ngân Khố"] = 10000;
     const result = repayIronBank(state);
     expect(result.ok).toBe(true);
   });
 
   it("không trả được nếu không đủ tiền", () => {
-    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Tháng": 25, "Tháng Còn Lại": 30, "Đang Quỵt": false };
     state["Thông Tin Nhân Vật"]["Ngân Khố"] = 0;
     const result = repayIronBank(state);
     expect(result.ok).toBe(false);
   });
 
   it("quỵt nợ → cấm vay", () => {
-    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 0, "Lãi/Turn": 0, "Turn Còn Lại": 0, "Đang Quỵt": true };
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 0, "Lãi/Tháng": 0, "Tháng Còn Lại": 0, "Đang Quỵt": true };
     const result = borrowFromIronBank(state, 500);
     expect(result.ok).toBe(false);
   });
@@ -241,7 +241,7 @@ describe("economy test edge cases", () => {
   });
 
   it("defaultOnDebt", () => {
-    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Turn": 25, "Turn Còn Lại": 30, "Đang Quỵt": false };
+    state["Các Khoản Nợ"]["Iron Bank"] = { "Nợ Gốc": 500, "Lãi/Tháng": 25, "Tháng Còn Lại": 30, "Đang Quỵt": false };
     const r = defaultOnDebt(state);
     expect(r.ok).toBe(true);
     // test doesn't actually apply the patch to state, so we check the ops directly if we want
@@ -256,9 +256,9 @@ describe("Tiện ích UI", () => {
     expect(income.net).toBe(income.tradeIncome + income.taxIncome - income.ironBankExpense);
   });
 
-  it("turnsUntilBankrupt = -1 khi đang lời", () => {
+  it("monthsUntilBankrupt = -1 khi đang lời", () => {
     const state = makeTestState();
-    expect(turnsUntilBankrupt(state)).toBe(-1);
+    expect(monthsUntilBankrupt(state)).toBe(-1);
   });
 });
 

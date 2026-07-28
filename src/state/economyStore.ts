@@ -1,15 +1,16 @@
 /**
  * economyStore (M12) — Zustand store cho UI Kinh Tế:
  * - Panel mở/đóng
- * - Lịch sử Vàng qua các turn (cho sparkline)
+ * - Lịch sử Vàng theo ngày truyện (cho sparkline)
  * - Action thay đổi thuế, mở/đóng panel
  */
 import { create } from "zustand";
 import type { StatData } from "../mvu/schema";
-import { estimateNetIncome, turnsUntilBankrupt, isInDebt } from "../economy/economyEngine";
+import { estimateNetIncome, monthsUntilBankrupt, isInDebt } from "../economy/economyEngine";
 
 interface GoldHistoryEntry {
-  turn: number;
+  /** ngày tuyệt đối trong game (calendar.absoluteDay). */
+  day: number;
   gold: number;
 }
 
@@ -24,8 +25,8 @@ interface EconomyState {
   openPanel: () => void;
   closePanel: () => void;
   togglePanel: () => void;
-  /** Ghi snapshot Vàng vào history (gọi mỗi turn trong UI). */
-  recordGold: (turn: number, gold: number) => void;
+  /** Ghi snapshot Vàng vào history (gọi khi ngày truyện đổi). */
+  recordGold: (day: number, gold: number) => void;
   clearHistory: () => void;
   /** GĐ4: cập nhật xu hướng kinh tế thế giới. */
   setWorldTrend: (trend: "rising" | "stable" | "declining" | "crisis") => void;
@@ -41,13 +42,13 @@ export const useEconomyStore = create<EconomyState>()((set) => ({
   closePanel: () => set({ panelOpen: false }),
   togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
 
-  recordGold: (turn, gold) =>
+  recordGold: (day, gold) =>
     set((s) => {
-      // tránh ghi trùng turn
-      if (s.goldHistory.length > 0 && s.goldHistory[s.goldHistory.length - 1].turn === turn) {
+      // tránh ghi trùng ngày
+      if (s.goldHistory.length > 0 && s.goldHistory[s.goldHistory.length - 1].day === day) {
         return s;
       }
-      const history = [...s.goldHistory, { turn, gold }];
+      const history = [...s.goldHistory, { day, gold }];
       if (history.length > s.maxHistoryLength) history.shift();
       return { goldHistory: history };
     }),
@@ -70,7 +71,7 @@ export function economySummary(stat: StatData) {
   return {
     gold: stat["Thông Tin Nhân Vật"]["Ngân Khố"],
     ...income,
-    turnsLeft: turnsUntilBankrupt(stat),
+    monthsLeft: monthsUntilBankrupt(stat),
     inDebt: isInDebt(stat),
     taxLevel: stat["Chính Sách Thuế"]["Mức Thuế"],
     tradeRouteCount: Object.keys(stat["Tuyến Thương Mại"]).length,

@@ -240,7 +240,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
               <div className="space-y-1">
                 {memories.slice(0, 5).map((m, i) => (
                   <div key={i} className="flex items-start gap-2 text-[11px]">
-                    <span className="shrink-0 font-mono text-[var(--text-faint)]">T{m["Turn"]}</span>
+                    <span className="shrink-0 font-mono text-[var(--text-faint)]">{m["Ngày"]}/{m["Tháng"]}</span>
                     <span className="text-[var(--text-muted)]">{m["Sự Việc"]}</span>
                     <span className="ml-auto shrink-0 text-[var(--text-faint)]">{m["Cảm Xúc"]} ({m["Trọng Số"]})</span>
                   </div>

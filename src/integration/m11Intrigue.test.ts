@@ -85,7 +85,7 @@ describe("M11 — âm mưu (14.2)", () => {
 describe("M11 — con tin (14.4)", () => {
   it("đòi tiền chuộc → +Vàng + thả", () => {
     const s = useMvuStore.getState().stat;
-    s["Tù Binh"]["Ser Amory"] = { "Họ Tên": "Ser Amory Lorch", "Nhà": "Lannister", "Vai Trò": "Tướng", "Bị Bắt Bởi": "arryn", "Giá Chuộc": 2000, "Đối Xử": "Giam Lỏng", "_Turn Bắt": 3 };
+    s["Tù Binh"]["Ser Amory"] = { "Họ Tên": "Ser Amory Lorch", "Nhà": "Lannister", "Vai Trò": "Tướng", "Bị Bắt Bởi": "arryn", "Giá Chuộc": 2000, "Đối Xử": "Giam Lỏng", "_Ngày Bắt": 3 };
     useMvuStore.setState({ stat: s });
 
     const goldBefore = useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Ngân Khố"];

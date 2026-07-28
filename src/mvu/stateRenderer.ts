@@ -5,6 +5,7 @@
  * hiển thị để AI biết nhưng bị cấm ghi (extractor chặn).
  */
 import type { StatData } from "./schema";
+import { absoluteDay, dayOfYear, formatDate, formatDuration } from "./calendar";
 import type { Npc } from "./npcSchema";
 import { formatPersonalityForPrompt } from "../npc/personalityEngine";
 import { renderReputationForAI } from "../npc/reputationEngine";
@@ -30,7 +31,7 @@ function fmtNpc(name: string, npc: Npc): string {
   const memories = [...npc["Ký Ức"]].sort((a, b) => b["Trọng Số"] - a["Trọng Số"]);
   if (memories.length > 0) {
     const m = memories[0];
-    lines.push(`    Ký ức nổi bật: [Turn ${m["Turn"]}] ${m["Sự Việc"]} (${m["Cảm Xúc"]}, trọng số ${m["Trọng Số"]}).`);
+    lines.push(`    Ký ức nổi bật: [ngày ${m["Ngày"]}/${m["Tháng"]}${m["Năm"] !== undefined ? `/${m["Năm"]} AC` : ""}] ${m["Sự Việc"]} (${m["Cảm Xúc"]}, trọng số ${m["Trọng Số"]}).`);
   }
   if (npc["Lời Hứa Chưa Giữ"].length > 0) {
     lines.push(`    Lời hứa chưa giữ: ${npc["Lời Hứa Chưa Giữ"].map((p) => `"${p}"`).join("; ")}.`);
@@ -98,12 +99,12 @@ export function renderStateForAI(state: StatData): string {
   const eraData = ERAS_BY_ID[eraId];
   if (eraData) {
     lines.push(
-      `[BỐI CẢNH THỜI KỲ] ${eraData.name} | Năm: ${world["Năm"]} AC | Mùa: ${world["Mùa"]}`,
+      `[BỐI CẢNH THỜI KỲ] ${eraData.name} | ${formatDate(world)} | Mùa: ${world["Mùa"]}`,
       getTimelineContext(world["Năm"]),
       `⛔ GIỚI HẠN KIẾN THỨC: Mọi thông tin chỉ hợp lệ tới năm ${world["Năm"]} AC. KHÔNG tham chiếu sự kiện/nhân vật sau mốc này.`,
     );
     // ── Đại hội đấu sắp diễn ra (tourney hint) ──
-    const tourneyHint = getTourneyHint(world["Năm"], world["Ngày"]);
+    const tourneyHint = getTourneyHint(world["Năm"], dayOfYear(world));
     if (tourneyHint) {
       lines.push(
         `[ĐẠI HỘI ĐẤU]\n${tourneyHint}\n→ Khi nhân vật đến gần hoặc nghe tin, dùng thẻ <tourney tourney-id="ID" location="Địa Điểm">mô tả</tourney> để hiển thị thông tin đại hội cho người chơi.`,
@@ -120,7 +121,7 @@ export function renderStateForAI(state: StatData): string {
     `Chỉ số: Sức Mạnh ${core["Sức Mạnh"]} · Nhanh Nhẹn ${core["Nhanh Nhẹn"]} · Thể Chất ${core["Thể Chất"]} · ` +
       `Trí Tuệ ${core["Trí Tuệ"]} · Tinh Tường ${core["Tinh Tường"]} · Uy Tín ${core["Uy Tín"]}.`,
   );
-  lines.push(`Vị trí: ${world["Vị Trí"]}. Ngày ${world["Ngày"]}, năm ${world["Năm"]} AC. Mùa: ${world["Mùa"]}. Thời tiết: ${world["Thời Tiết"]}.`);
+  lines.push(`Vị trí: ${world["Vị Trí"]}. Hôm nay là ${formatDate(world)}. Mùa: ${world["Mùa"]}. Thời tiết: ${world["Thời Tiết"]}.`);
   lines.push(`Chế độ: ${state["Chế Độ Hiện Tại"]}.`);
   lines.push(renderReputationForAI(state));
 
@@ -272,7 +273,7 @@ export function renderStateForAI(state: StatData): string {
     lines.push("Lãnh địa quản lý:");
     for (const [name, terr] of holdings.slice(0, 6)) {
       const building = Object.entries(terr["Công Trình"]);
-      const inProgress = building.filter(([, b]) => b["Đang Xây"]).map(([bn, b]) => `${bn} (còn ${b["Turn Còn Lại"]} turn)`);
+      const inProgress = building.filter(([, b]) => b["Đang Xây"]).map(([bn, b]) => `${bn} (còn ${formatDuration(b["Ngày Xây Còn Lại"])})`);
       const done = building.filter(([, b]) => !b["Đang Xây"]).map(([bn, b]) => `${bn} c${b["Cấp Độ"]}`);
       const parts = [`• ${name}: Dân ${terr["Dân Số"].toLocaleString("vi-VN")}, Lòng Dân ${terr["Trung Thành"]}`];
       if (done.length > 0) parts.push(`Công trình: ${done.join(", ")}`);
@@ -312,11 +313,11 @@ export function renderStateForAI(state: StatData): string {
     for (const [, q] of activeQuests.slice(0, 5)) {
       const done = q["Mục Tiêu"].filter((o) => o["Xong"]).length;
       const total = q["Mục Tiêu"].length;
-      const deadline = q["Hạn Chót Turn"];
+      const deadline = q["Hạn Chót Ngày"];
       const parts = [`• ${q["Tiêu Đề"]} [${q["Loại"]}] (${done}/${total} mục tiêu)`];
       if (deadline !== undefined) {
-        const left = deadline - state["_engineMeta"]["turnCount"];
-        parts.push(left > 0 ? `còn ${left} lượt` : "HẾT HẠN!");
+        const left = deadline - absoluteDay(world);
+        parts.push(left > 0 ? `còn ${formatDuration(left)}` : "HẾT HẠN!");
       }
       lines.push(`  ${parts.join(" — ")}`);
     }

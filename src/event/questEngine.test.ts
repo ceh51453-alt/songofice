@@ -11,12 +11,20 @@ import {
   countQuests,
 } from "./questEngine";
 import { makeDefaultState } from "../mvu/schema";
+import { absoluteDay } from "../mvu/calendar";
 
-function makeState(turn = 10) {
+/** State ở ngày `day` tháng `month` năm 298 AC. */
+function makeState(day = 10, month = 1) {
   const s = makeDefaultState();
-  s["_engineMeta"]["turnCount"] = turn;
   s["Thế Giới"]["Năm"] = 298;
+  s["Thế Giới"]["Tháng"] = month;
+  s["Thế Giới"]["Ngày"] = day;
   return s;
+}
+
+/** Ngày tuyệt đối cách hôm nay `n` ngày (âm = quá khứ). */
+function dayFromNow(s: ReturnType<typeof makeState>, n: number) {
+  return absoluteDay(s["Thế Giới"]) + n;
 }
 
 describe("questEngine (17.2)", () => {
@@ -86,7 +94,7 @@ describe("questEngine (17.2)", () => {
         title: "Het han",
         type: "Phụ",
         objectives: ["A"],
-        deadlineTurn: 15,
+        deadlineDay: dayFromNow(s, -5), // hạn chót đã trôi qua 5 ngày
       });
       s["Nhiệm Vụ"]["q1"]["Trạng Thái"] = "Đang Làm";
       const events = advanceQuests(s);
@@ -100,7 +108,7 @@ describe("questEngine (17.2)", () => {
         title: "Chua het han",
         type: "Phụ",
         objectives: ["A"],
-        deadlineTurn: 50,
+        deadlineDay: dayFromNow(s, 40), // còn 40 ngày nữa mới hết hạn
       });
       s["Nhiệm Vụ"]["q1"]["Trạng Thái"] = "Đang Làm";
       const events = advanceQuests(s);
@@ -109,7 +117,7 @@ describe("questEngine (17.2)", () => {
     });
 
     it("không đụng quest không có deadline", () => {
-      const s = makeState(999);
+      const s = makeState(29, 12);
       addQuest(s, "q1", { title: "Vo han", type: "Phụ", objectives: ["A"] });
       s["Nhiệm Vụ"]["q1"]["Trạng Thái"] = "Đang Làm";
       const events = advanceQuests(s);
@@ -133,7 +141,7 @@ describe("questEngine (17.2)", () => {
     it("thêm entry vào nhật ký", () => {
       const s = makeState();
       addJournalEntry(s, {
-        Turn: 5,
+        "Ngày": 5, "Tháng": 1,
         "Năm": 298,
         "Loại": "Chiến Thắng",
         "Mô Tả": "Thang tran Blackwater",

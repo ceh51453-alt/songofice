@@ -71,14 +71,14 @@ describe("reroll rollback (19.1)", () => {
     expect(snapshot["Chỉ Số Sinh Tồn"]["HP"]).toBe(state0["Chỉ Số Sinh Tồn"]["HP"]);
   });
 
-  it("turnCount trong snapshot khôi phục theo — chuỗi RNG stream của lượt giữ nguyên khi reroll (5bis.1)", () => {
+  it("_Nhịp trong snapshot khôi phục theo — chuỗi RNG stream của lượt giữ nguyên khi reroll (5bis.1)", () => {
     const state0 = makeState();
-    state0["_engineMeta"]["turnCount"] = 7;
+    state0["_engineMeta"]["_Nhịp"] = 7;
     const snapshot = structuredClone(state0);
     const after = applyAiResponse(state0, RESPONSE_V1);
-    after["_engineMeta"]["turnCount"] += 1; // store tăng sau mỗi lượt
+    after["_engineMeta"]["_Nhịp"] += 1; // store tăng sau mỗi lượt
     // rollback
     const restored = structuredClone(snapshot);
-    expect(restored["_engineMeta"]["turnCount"]).toBe(7); // cùng turn → cùng eventSeed
+    expect(restored["_engineMeta"]["_Nhịp"]).toBe(7); // cùng turn → cùng eventSeed
   });
 });

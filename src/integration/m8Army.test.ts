@@ -33,7 +33,7 @@ beforeEach(() => {
   s["Thông Tin Nhân Vật"]["Ngân Khố"] = 500 * 11760; // 500 Rồng Vàng
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
-  s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };
+  s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Ngày Xây Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };
   s["Lãnh Địa"]["the-north-seat"]["Dân Số Chi Tiết"] = { "Nông Dân": 8000, "Thợ Thủ Công": 1000, "Thợ Mỏ": 500, "Tiều Phu": 300, "Thương Nhân": 100, "Nghề Khác": 50, "Thất Nghiệp": 50 };
   useMvuStore.setState({ stat: StatDataSchema.parse(s), pendingEvents: [], lastChangedPaths: [] });
 });
@@ -43,24 +43,24 @@ describe("M8 — tuyển quân + huấn luyện + di chuyển (11.3/11.4)", () =
     const r = useMilitaryStore.getState().recruit("the-north-seat", "Bộ Binh", 1000);
     expect(r.ok).toBe(true);
     const unitName = Object.keys(useMvuStore.getState().stat["Biên Chế Quân Sự"])[0];
-    expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Turn Huấn Luyện"]).toBeGreaterThan(0);
+    expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Ngày Huấn Luyện"]).toBeGreaterThan(0);
 
-    // AI kể vài ngày trôi → huấn luyện xong (Bộ Binh 2 turn)
-    advanceDays(3);
-    expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Turn Huấn Luyện"]).toBe(0);
+    // AI kể thời gian trôi → huấn luyện xong (Bộ Binh 2 tháng = 60 ngày)
+    advanceDays(61);
+    expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Ngày Huấn Luyện"]).toBe(0);
 
     // điều quân sang Vùng Sông → tới nơi sau khi đủ ngày
     const mv = useMilitaryStore.getState().moveUnit(unitName, "the-riverlands");
     expect(mv.ok).toBe(true);
     expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Đang Di Chuyển Đến"]).toBe("the-riverlands");
-    advanceDays((mv.turns ?? 1) + 1);
+    advanceDays((mv.days ?? 1) + 1);
     expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Lãnh Địa Đồn Trú"]).toBe("the-riverlands");
     expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Đang Di Chuyển Đến"]).toBeFalsy();
   });
 });
 
-describe("M8 — vây thành qua turn loop (12.2)", () => {
-  it("vây Vùng Sông (Tully) đủ turn → đổi chủ về Stark + War Score", () => {
+describe("M8 — vây thành qua loop ngày (12.2)", () => {
+  it("vây Vùng Sông (Tully) đủ ngày → đổi chủ về Stark + War Score", () => {
     // đặt sẵn 1 đại quân
     const st = applyPatch(useMvuStore.getState().stat, [{
       op: "replace", path: "stat_data.Biên Chế Quân Sự.Đại quân Bắc",
@@ -72,7 +72,7 @@ describe("M8 — vây thành qua turn loop (12.2)", () => {
     expect(r.ok).toBe(true);
     expect(useMvuStore.getState().stat["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).toBe("Bị Vây");
 
-    advanceDays(14); // > lương thủ (12 turn)
+    advanceDays(361); // > lương thủ (SIEGE_FOOD_DAYS = 360 ngày)
     expect(regionController(useMvuStore.getState().stat, "the-riverlands")).toBe("stark");
     expect(useMvuStore.getState().stat["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
     console.log("Holdings in state:", Object.keys(useMvuStore.getState().stat["Lãnh Địa"]));

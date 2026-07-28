@@ -128,7 +128,7 @@ export const TradeRouteSchema = z
     "Từ": safeString().prefault(""),
     "Đến": safeString().prefault(""),
     "Hàng Hoá": z.array(safeString()).catch([]).prefault([]),
-    "Lợi Nhuận/Turn": safeInt(0),
+    "Lợi Nhuận/Tháng": safeInt(0),
     "Đường": z.enum(TRADE_ROUTE_TYPES).catch("Bộ").prefault("Bộ"),
     "An Toàn": clampedStat(0, 100, 80),
   })
@@ -147,8 +147,8 @@ export type TaxPolicy = z.infer<typeof TaxPolicySchema>;
 export const DebtSchema = z
   .object({
     "Nợ Gốc": safeInt(0),
-    "Lãi/Turn": safeInt(0),
-    "Turn Còn Lại": safeInt(0),
+    "Lãi/Tháng": safeInt(0),
+    "Tháng Còn Lại": safeInt(0),
     "Đang Quỵt": z.boolean().catch(false).prefault(false),
   })
   .prefault({});
@@ -159,7 +159,7 @@ export const CrisisSchema = z
   .object({
     "Loại": z.enum(CRISIS_TYPES).catch("Nạn Đói").prefault("Nạn Đói"),
     "Mức Độ": z.enum(CRISIS_SEVERITY).catch("Chớm").prefault("Chớm"),
-    "Turn Kéo Dài": safeInt(0),
+    "Tháng Kéo Dài": safeInt(0),
   })
   .prefault({});
 export type Crisis = z.infer<typeof CrisisSchema>;
@@ -192,8 +192,8 @@ export const MilitaryUnitSchema = z
     // vị trí & hành quân trên bản đồ (11.4) — territoryId khớp regionId (mục 9-10)
     "Lãnh Địa Đồn Trú": safeString().prefault(""),
     "Đang Di Chuyển Đến": safeString().optional(), // territoryId đích; rỗng = đứng yên
-    "Turn Di Chuyển Còn Lại": safeInt(0),
-    "Turn Huấn Luyện": safeInt(0), // >0 = quân mới tuyển đang huấn luyện, chưa chiến đấu (11.3)
+    "Ngày Hành Quân Còn Lại": safeInt(0),
+    "Ngày Huấn Luyện": safeInt(0), // >0 = quân mới tuyển đang huấn luyện, chưa chiến đấu (11.3)
   })
   .prefault({});
 export type MilitaryUnit = z.infer<typeof MilitaryUnitSchema>;
@@ -260,7 +260,7 @@ export const BuildingSchema = z
     "Loại": z.enum(BUILDING_TYPES).catch("Nông Trại").prefault("Nông Trại"),
     "Cấp Độ": safeInt(1, 1),
     "Đang Xây": z.boolean().catch(false).prefault(false),
-    "Turn Còn Lại": safeInt(0),
+    "Ngày Xây Còn Lại": safeInt(0),
     "Tọa Độ X": safeInt(0),
     "Tọa Độ Y": safeInt(0),
     "Kích Thước": safeInt(1),
@@ -371,7 +371,7 @@ export const CaptiveSchema = z
     "Bị Bắt Bởi": safeString().prefault(""), // houseId phe giữ (thường là người chơi)
     "Giá Chuộc": safeInt(0),
     "Đối Xử": z.enum(CAPTIVE_TREATMENTS).catch("Giam Lỏng").prefault("Giam Lỏng"), // 14.4
-    "_Turn Bắt": z.coerce.number().int().catch(0).prefault(0),
+    "_Ngày Bắt": z.coerce.number().int().catch(0).prefault(0), // readonly — ngày tuyệt đối lúc bị bắt (calendar.absoluteDay)
   })
   .prefault({});
 export type Captive = z.infer<typeof CaptiveSchema>;
@@ -799,8 +799,10 @@ export const StatDataSchema = z
       .object({
         "Vị Trí": safeString().prefault("Winterfell"),
         "Năm": z.coerce.number().int().catch(298).prefault(298), // 298 AC = mốc AGOT
-        // ngày trong năm (lịch 360 ngày — 8.7); AI báo delta khi thời gian trôi,
-        // engine xử lý tràn năm trong hiệu ứng lan toả (Ngày>360 → Năm+1)
+        // Lịch Westeros: 12 tháng × 30 ngày = 360 ngày/năm (8.7). AI báo delta
+        // Ngày/Tháng khi thời gian trôi; engine chuẩn hoá tràn trong hiệu ứng
+        // lan toả (Ngày>30 → Tháng+1; Tháng>12 → Năm+1) — xem mvu/calendar.ts.
+        "Tháng": safeInt(1, 1),
         "Ngày": safeInt(1, 1),
         "Mùa": z.enum(SEASONS).catch("Hạ").prefault("Hạ"),
         "Thời Tiết": safeString().prefault("Quang đãng"),
@@ -822,15 +824,15 @@ export const StatDataSchema = z
 
             "Tình Trạng": z.enum(REGION_STATUS).catch("Ổn Định").prefault("Ổn Định"),
             "Là Của Người Chơi": z.boolean().catch(false).prefault(false),
-            "_Đổi Chủ Turn": z.coerce.number().int().catch(0).prefault(0), // readonly — turn đổi chủ gần nhất (animation + replay 9.3)
+            "_Ngày Đổi Chủ": z.coerce.number().int().catch(0).prefault(0), // readonly — ngày tuyệt đối đổi chủ gần nhất (animation + replay 9.3)
             // trạng thái vây thành (12.2) — engine giữ (readonly), chỉ có khi Tình Trạng "Bị Vây"
             "_Vây": z
               .object({
                 "Phe Vây": safeString().prefault(""), // houseId phe đang vây
                 "Đơn Vị Vây": safeString().prefault(""), // key Biên Chế Quân Sự của quân vây
-                "Turn Đã Vây": z.coerce.number().int().catch(0).prefault(0),
+                "Ngày Đã Vây": z.coerce.number().int().catch(0).prefault(0),
                 "Lương Còn": z.coerce.number().int().catch(0).prefault(0),
-                "Turn Tối Đa": z.coerce.number().int().catch(30).prefault(30),
+                "Ngày Vây Tối Đa": z.coerce.number().int().catch(900).prefault(900), // 30 tháng
               })
               .optional(),
           })
@@ -923,7 +925,7 @@ export const StatDataSchema = z
       .prefault({}),
 
     // ── TÌNH BÁO (14.1) — mạng lưới điệp viên + tin tình báo. Điệp viên tick mỗi
-    // turn: thu tin theo Độ Sâu, Bị Nghi Ngờ tăng → bị bắt ở 100. Đại Điệp Viên
+    // ngày: thu tin theo Độ Sâu, Bị Nghi Ngờ tăng → bị bắt ở 100. Đại Điệp Viên
     // (Tiểu Hội Đồng 13.1) Năng Lực cao → giảm "Bị Cài Điệp Viên" + tăng hiệu quả. ──
     "Tình Báo": z
       .object({
@@ -964,13 +966,14 @@ export const StatDataSchema = z
         "Xong": z.boolean().catch(false).prefault(false),
       })).catch([]).prefault([]),
       "Phần Thưởng": safeString().prefault(""),
-      "Hạn Chót Turn": z.coerce.number().int().optional(),
+      "Hạn Chót Ngày": z.coerce.number().int().optional(), // ngày tuyệt đối (calendar.absoluteDay)
       "Mô Tả": safeString().prefault(""),
     }).prefault({})).catch({}).prefault({}),
 
     /** Nhật Ký / Biên Niên Sử (17.4) — tự ghi sự kiện lớn. */
     "Nhật Ký": z.array(z.object({
-      "Turn": safeInt(0),
+      "Ngày": safeInt(1, 1),
+      "Tháng": safeInt(1, 1),
       "Năm": safeInt(0),
       "Loại": z.enum([
         "Chiến Thắng", "Thất Bại", "Liên Minh", "Phản Bội",
@@ -989,7 +992,10 @@ export const StatDataSchema = z
 
     "_engineMeta": z
       .object({
-        "turnCount": safeInt(0),
+        // Nhịp = số lần AI trả lời đã áp. KHÔNG phải đơn vị thời gian trong game
+        // (thời gian dùng Thế Giới.Ngày/Tháng/Năm) — chỉ để seed RNG mỗi lượt
+        // trả lời sao cho tái lập được khi reroll/rollback (5bis.1).
+        "_Nhịp": safeInt(0),
         "_Seed Gốc": z.coerce.number().int().catch(0).prefault(0), // cố định lúc tạo ván (5bis.1)
       })
       .prefault({}),

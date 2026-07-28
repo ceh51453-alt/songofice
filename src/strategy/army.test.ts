@@ -9,7 +9,7 @@ import { seedRegionControl } from "../territory/territoryEngine";
 import { availableTroopsForEra, recruitableTroopsForEra } from "../content/westeros/troopTypes";
 import {
   recruitUnit, hasBarracks, moveArmy, tickArmy, armyMarkerPosition, calcMapDistance,
-  distanceToTurns, checkSellswordDefection, sellswordWage,
+  distanceToDays, checkSellswordDefection, sellswordWage,
 } from "./army";
 
 function lordWithBarracks(gold = 5000): StatData {
@@ -19,7 +19,7 @@ function lordWithBarracks(gold = 5000): StatData {
   s["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa"; // cần quyền Quản Lý Vùng
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north-seat
-  s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };
+  s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Ngày Xây Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };
   // Seed dân số chi tiết — cần Nông Dân để tuyển quân
   s["Lãnh Địa"]["the-north-seat"]["Dân Số Chi Tiết"] = { "Nông Dân": 8000, "Thợ Thủ Công": 1000, "Thợ Mỏ": 500, "Tiều Phu": 300, "Thương Nhân": 100, "Nghề Khác": 50, "Thất Nghiệp": 50 };
   return StatDataSchema.parse(s);
@@ -57,7 +57,7 @@ describe("Tuyển quân (11.3)", () => {
     expect(state["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"]).toBe(foodBefore - 250);
     const unit = state["Biên Chế Quân Sự"][r.unitName!];
     expect(unit["Số Lượng"]).toBe(500);
-    expect(unit["Turn Huấn Luyện"]).toBeGreaterThan(0); // chưa chiến đấu được
+    expect(unit["Ngày Huấn Luyện"]).toBeGreaterThan(0); // chưa chiến đấu được
     expect(unit["Lãnh Địa Đồn Trú"]).toBe("the-north-seat");
   });
 
@@ -87,7 +87,7 @@ describe("Di chuyển trên bản đồ (11.4)", () => {
     }]);
     const r = moveArmy(state, "Bộ binh Bắc", "the-riverlands");
     expect(r.ok).toBe(true);
-    expect(r.turns).toBeGreaterThanOrEqual(1);
+    expect(r.days).toBeGreaterThanOrEqual(1);
     const moved = applyPatch(state, r.ops).state;
     expect(moved["Biên Chế Quân Sự"]["Bộ binh Bắc"]["Đang Di Chuyển Đến"]).toBe("the-riverlands");
 
@@ -96,13 +96,13 @@ describe("Di chuyển trên bản đồ (11.4)", () => {
     expect(midPos).not.toBeNull();
 
     // tick đủ số turn → tới nơi
-    for (let i = 0; i < (r.turns ?? 0); i++) tickArmy(moved);
+    for (let i = 0; i < (r.days ?? 0); i++) tickArmy(moved);
     expect(moved["Biên Chế Quân Sự"]["Bộ binh Bắc"]["Lãnh Địa Đồn Trú"]).toBe("the-riverlands");
     expect(moved["Biên Chế Quân Sự"]["Bộ binh Bắc"]["Đang Di Chuyển Đến"]).toBeFalsy();
   });
 
-  it("distanceToTurns ≥ 1; calcMapDistance đối xứng", () => {
-    expect(distanceToTurns(0)).toBe(1);
+  it("distanceToDays ≥ 1; calcMapDistance đối xứng", () => {
+    expect(distanceToDays(0)).toBe(1);
     expect(calcMapDistance("the-north", "dorne")).toBeCloseTo(calcMapDistance("dorne", "the-north"), 5);
   });
 });

@@ -32,7 +32,8 @@ export const INTIMACY_ROLES = [
 
 export const NpcMemorySchema = z
   .object({
-    "Turn": safeInt(0),
+    "Ngày": safeInt(1, 1),
+    "Tháng": safeInt(1, 1),
     "Năm": z.coerce.number().int().optional(),
     "Sự Việc": safeString().prefault(""),
     "Cảm Xúc": z

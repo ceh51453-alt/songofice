@@ -1,6 +1,6 @@
 import type { StatData } from "../mvu/schema";
 import { DISEASE_CATALOG } from "../content/westeros/diseases";
-import { registerTurnListener } from "../mvu/effects";
+import { registerDailyListener } from "../mvu/effects";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("health/diseases");
@@ -45,7 +45,7 @@ export function tickDiseases(state: StatData) {
 let registered = false;
 export function registerDiseaseLoop() {
   if (registered) return;
-  registerTurnListener("diseases", tickDiseases);
+  registerDailyListener("diseases", tickDiseases);
   registered = true;
   log.info("Disease loop registered");
 }

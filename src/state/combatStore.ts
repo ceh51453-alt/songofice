@@ -8,7 +8,7 @@
  */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { useMvuStore, currentSeedInfo } from "./mvuStore";
+import { useMvuStore, currentSeedInfo, currentDay } from "./mvuStore";
 import { eventSeed, makeRng } from "../probability/rng";
 import { resolveBattle, battlePower, type BattleResult, type BattleSideInput, type WeatherCondition } from "../combat/battleResolver";
 import { troopMatchup, compositionFromUnits, type MatchupSide } from "../combat/troopMatchup";
@@ -242,8 +242,8 @@ export const useCombatStore = create<CombatState>()(
       markNarrated: () => set({ reportNarrated: true }),
 
       startFromTrigger: (attrs, description) => {
-        const { rootSeed, turnCount } = currentSeedInfo();
-        const battleSeed = eventSeed(rootSeed, turnCount, "combat");
+        const { rootSeed, tick } = currentSeedInfo();
+        const battleSeed = eventSeed(rootSeed, tick, "combat");
         const scale = scaleFromAttrs(attrs);
         const terrain = terrainFromAttrs(attrs);
         log.info(`Trận mới: ${scale} seed=${battleSeed}`, attrs);
@@ -419,7 +419,7 @@ export const useCombatStore = create<CombatState>()(
         // số phận tướng (7.7): tử trận/bị bắt
         if (result.generalFate) {
           const gname = result.generalFate.general;
-          const turn = currentSeedInfo().turnCount;
+          const capturedOn = currentDay();
           if (result.generalFate.side === "player" && stat["Tướng Lĩnh"][gname]) {
             // tướng TA: ghi vào Tướng Lĩnh
             if (result.generalFate.fate === "tử trận") {
@@ -429,7 +429,7 @@ export const useCombatStore = create<CombatState>()(
             }
           } else if (result.generalFate.side === "enemy" && result.generalFate.fate === "bị bắt") {
             // tướng ĐỊCH bị ta bắt → làm con tin (7.7 → tiền chuộc M11)
-            ops.push(...captiveOpsFromGeneral(gname, undefined, playerHouseId(stat), turn));
+            ops.push(...captiveOpsFromGeneral(gname, undefined, playerHouseId(stat), capturedOn));
           }
         }
         applyEngineOps(ops);

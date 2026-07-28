@@ -11,7 +11,7 @@ import type { StatData } from "../mvu/schema";
 import { COURT_POSITIONS, type CourtPosition } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import type { Npc } from "../mvu/npcSchema";
-import { registerTurnListener } from "../mvu/effects";
+import { registerDailyListener } from "../mvu/effects";
 
 type AbilityKey = keyof Npc["Năng Lực"];
 
@@ -125,6 +125,6 @@ export function tickCourt(state: StatData): void {
 let registered = false;
 export function registerCourtLoop(): void {
   if (registered) return;
-  registerTurnListener("court", tickCourt);
+  registerDailyListener("court", tickCourt);
   registered = true;
 }

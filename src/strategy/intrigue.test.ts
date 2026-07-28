@@ -41,7 +41,7 @@ describe("Tình báo — điệp viên (14.1)", () => {
     s["Tình Báo"]["Điệp Viên"]["Điệp"] = { "Cài Ở": "Lannister", "Độ Sâu Thâm Nhập": 90, "Bị Nghi Ngờ": 0, "Nhiệm Vụ": "Thu Thập Tin" };
     const state = StatDataSchema.parse(s);
     for (let t = 0; t < 20; t++) {
-      state["_engineMeta"]["turnCount"] = t;
+      state["_engineMeta"]["_Nhịp"] = t;
       tickIntelligence(state);
     }
     expect(Object.keys(state["Tình Báo"]["Tin Tình Báo Đã Biết"]).length).toBeGreaterThan(0);
@@ -137,7 +137,7 @@ describe("Hành động lẻ (14.3)", () => {
 describe("Con tin & tù binh (14.4)", () => {
   function withCaptive(): StatData {
     const s = baseState(1000);
-    s["Tù Binh"]["Ser Amory"] = { "Họ Tên": "Ser Amory Lorch", "Nhà": "Lannister", "Vai Trò": "Tướng", "Bị Bắt Bởi": "stark", "Giá Chuộc": 2000, "Đối Xử": "Giam Lỏng", "_Turn Bắt": 5 };
+    s["Tù Binh"]["Ser Amory"] = { "Họ Tên": "Ser Amory Lorch", "Nhà": "Lannister", "Vai Trò": "Tướng", "Bị Bắt Bởi": "stark", "Giá Chuộc": 2000, "Đối Xử": "Giam Lỏng", "_Ngày Bắt": 5 };
     s["Thái Độ Các Nhà"]["Lannister"] = { "Thái Độ": "Địch Ý", "Mô Tả": "" };
     return StatDataSchema.parse(s);
   }

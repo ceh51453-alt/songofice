@@ -27,7 +27,7 @@ describe("Phản trắc (7.7)", () => {
   it("tickBetrayal: tướng phản mang quân bỏ đi (seed cố định → tái lập)", () => {
     const s = makeDefaultState();
     s["_engineMeta"]["_Seed Gốc"] = 12345;
-    s["_engineMeta"]["turnCount"] = 3;
+    s["_engineMeta"]["_Nhịp"] = 3;
     (s["Tướng Lĩnh"] as Record<string, unknown>)["Roose Bolton"] = traitor(-95);
     (s["Biên Chế Quân Sự"] as Record<string, unknown>)["Quân Bolton"] = { "Số Lượng": 4000, "Loại Quân": "Bộ Binh", "Tướng Chỉ Huy": "Roose Bolton" };
     (s["Biên Chế Quân Sự"] as Record<string, unknown>)["Quân trung thành"] = { "Số Lượng": 3000, "Loại Quân": "Kỵ Binh", "Tướng Chỉ Huy": "Khác" };
@@ -36,7 +36,7 @@ describe("Phản trắc (7.7)", () => {
     // chạy nhiều turn (mỗi turn 1 roll) — với trung thành -95, xác suất ~0.47/turn
     let betrayed = false;
     for (let t = 0; t < 30 && !betrayed; t++) {
-      state["_engineMeta"]["turnCount"] = t;
+      state["_engineMeta"]["_Nhịp"] = t;
       tickBetrayal(state);
       if (!state["Tướng Lĩnh"]["Roose Bolton"]) betrayed = true;
     }
@@ -50,7 +50,7 @@ describe("Phản trắc (7.7)", () => {
     const s = makeDefaultState();
     (s["Tướng Lĩnh"] as Record<string, unknown>)["Ser Trung Nghĩa"] = traitor(80); // Phản Trắc nhưng trung thành cao
     const state = StatDataSchema.parse(s);
-    for (let t = 0; t < 50; t++) { state["_engineMeta"]["turnCount"] = t; tickBetrayal(state); }
+    for (let t = 0; t < 50; t++) { state["_engineMeta"]["_Nhịp"] = t; tickBetrayal(state); }
     expect(state["Tướng Lĩnh"]["Ser Trung Nghĩa"]).toBeDefined();
   });
 });
@@ -65,6 +65,6 @@ describe("Con tin (7.7)", () => {
     expect(captive["Bị Bắt Bởi"]).toBe("stark");
     expect(captive["Vai Trò"]).toBe("Tướng");
     expect(captive["Giá Chuộc"]).toBeGreaterThan(0);
-    expect(captive["_Turn Bắt"]).toBe(8);
+    expect(captive["_Ngày Bắt"]).toBe(8);
   });
 });

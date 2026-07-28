@@ -63,7 +63,7 @@ describe("M10 — bổ nhiệm Tiểu Hội Đồng + hiệu ứng thu Vàng (13
     expect(treasuryMultiplier(after)).toBeGreaterThan(1);
 
     const goldBefore = after["Thông Tin Nhân Vật"]["Ngân Khố"];
-    advanceDays(3); // construction loop cộng thu Vàng ×hệ số Ngân Khố
+    advanceDays(31); // sang tháng mới → loop thu lãnh địa cộng Vàng ×hệ số Ngân Khố
     expect(useMvuStore.getState().stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeGreaterThan(goldBefore);
   });
 });

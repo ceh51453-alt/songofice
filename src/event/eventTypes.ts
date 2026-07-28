@@ -60,8 +60,8 @@ export interface GameEvent {
   narrativeTag?: "event_popup" | "raven_scroll";
   /** 2-4 lựa chọn phản ứng. */
   choices: EventChoice[];
-  /** Cooldown: bao nhiêu turn trước khi event này có thể xảy ra lại. */
-  cooldownTurns?: number;
+  /** Cooldown: bao nhiêu NGÀY truyện trước khi event này có thể xảy ra lại. */
+  cooldownDays?: number;
   /** Mô tả tình huống — AI dùng để tường thuật sống động. */
   description: string;
 }
@@ -70,10 +70,12 @@ export interface GameEvent {
 
 export interface ActiveEvent {
   event: GameEvent;
-  triggeredAtTurn: number;
+  /** ngày tuyệt đối lúc sự kiện nổ ra (calendar.absoluteDay). */
+  triggeredOnDay: number;
 }
 
 export interface EventCooldown {
   eventId: string;
-  expiresAtTurn: number;
+  /** ngày tuyệt đối cooldown hết hạn. */
+  expiresOnDay: number;
 }

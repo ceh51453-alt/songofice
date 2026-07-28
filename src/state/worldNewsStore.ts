@@ -8,7 +8,8 @@ import { persist } from "zustand/middleware";
 
 export interface WorldHeadline {
   id: string;
-  turn: number;
+  /** ngày tuyệt đối trong game (calendar.absoluteDay). */
+  day: number;
   text: string;          // nội dung tin
   source: "offscreen" | "ai" | "event" | "player";
   region?: string;       // vùng liên quan
@@ -26,7 +27,8 @@ export interface PoliticalEvent {
   title: string;
   description: string;
   factions: string[];    // các phe liên quan
-  turn: number;
+  /** ngày tuyệt đối trong game (calendar.absoluteDay). */
+  day: number;
 }
 
 interface WorldNewsState {
@@ -45,7 +47,7 @@ interface WorldNewsState {
   toggleFab: () => void;
   openFab: () => void;
   closeFab: () => void;
-  clearOldNews: (keepTurns: number) => void;
+  clearOldNews: (keepDays: number) => void;
 }
 
 let headlineId = 0;
@@ -89,11 +91,11 @@ export const useWorldNewsStore = create<WorldNewsState>()(
       openFab: () => set({ fabOpen: true }),
       closeFab: () => set({ fabOpen: false }),
 
-      clearOldNews: (keepTurns) =>
+      clearOldNews: (keepDays) =>
         set((s) => {
-          const currentTurn = Math.max(...s.headlines.map((h) => h.turn), 0);
+          const latestDay = Math.max(...s.headlines.map((h) => h.day), 0);
           return {
-            headlines: s.headlines.filter((h) => currentTurn - h.turn <= keepTurns),
+            headlines: s.headlines.filter((h) => latestDay - h.day <= keepDays),
           };
         }),
     }),

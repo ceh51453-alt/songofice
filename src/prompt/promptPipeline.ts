@@ -34,7 +34,7 @@ function makeAppMacroContext(history: ApiChatMessage[]): MacroContext {
   registerBuiltinMacros();
   const vars = useVariablesStore.getState();
   const mvu = useMvuStore.getState();
-  const { rootSeed, turnCount } = currentSeedInfo();
+  const { rootSeed, tick } = currentSeedInfo();
   const playerName = mvu.stat["Thông Tin Nhân Vật"]["Họ Tên"];
 
   const getChat = (key: string): string => {
@@ -57,7 +57,7 @@ function makeAppMacroContext(history: ApiChatMessage[]): MacroContext {
     user: playerName !== "Vô Danh" ? playerName : "Người Chơi",
     lastMessage: history.length > 0 ? history[history.length - 1].content : "",
     // RNG seedable (5bis.1): stream "macro", tái lập theo (seed gốc, turn)
-    rng: streamRng(rootSeed, turnCount, "macro"),
+    rng: streamRng(rootSeed, tick, "macro"),
     vars: {
       getChat,
       setChat,

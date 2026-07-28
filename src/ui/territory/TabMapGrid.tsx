@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { formatCurrencyShort, EXCHANGE_RATES } from "../../economy/currency";
+import { turnsToDays, formatDuration } from "../../mvu/calendar";
 
 export const BUILDING_TEMPLATES = [
-  { id: "farm", type: "Nông Trại", size: 1, cost: { "Ngân Khố": 100 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 200, "Đá": 0 }, turns: 2, desc: "+ Sản lượng Lương Thực" },
-  { id: "market", type: "Chợ", size: 2, cost: { "Ngân Khố": 500 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 300, "Đá": 100 }, turns: 3, desc: "+ Vàng từ Thương Nhân" },
-  { id: "barracks", type: "Trại Lính", size: 2, cost: { "Ngân Khố": 300 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 400, "Đá": 200 }, turns: 4, desc: "Tuyển quân nhanh hơn" },
-  { id: "forge", type: "Lò Rèn", size: 1, cost: { "Ngân Khố": 200 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 100, "Đá": 300 }, turns: 2, desc: "+ Vũ khí / Áo giáp" },
-  { id: "lumber", type: "Xưởng Gỗ", size: 1, cost: { "Ngân Khố": 100 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 50, "Đá": 0 }, turns: 1, desc: "+ Sản lượng Gỗ" },
-  { id: "mine", type: "Mỏ Đá/Sắt", size: 2, cost: { "Ngân Khố": 400 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 400, "Đá": 0 }, turns: 3, desc: "+ Sản lượng Đá & Sắt" }
+  { id: "farm", type: "Nông Trại", size: 1, cost: { "Ngân Khố": 100 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 200, "Đá": 0 }, months: 2, desc: "+ Sản lượng Lương Thực" },
+  { id: "market", type: "Chợ", size: 2, cost: { "Ngân Khố": 500 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 300, "Đá": 100 }, months: 3, desc: "+ Vàng từ Thương Nhân" },
+  { id: "barracks", type: "Trại Lính", size: 2, cost: { "Ngân Khố": 300 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 400, "Đá": 200 }, months: 4, desc: "Tuyển quân nhanh hơn" },
+  { id: "forge", type: "Lò Rèn", size: 1, cost: { "Ngân Khố": 200 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 100, "Đá": 300 }, months: 2, desc: "+ Vũ khí / Áo giáp" },
+  { id: "lumber", type: "Xưởng Gỗ", size: 1, cost: { "Ngân Khố": 100 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 50, "Đá": 0 }, months: 1, desc: "+ Sản lượng Gỗ" },
+  { id: "mine", type: "Mỏ Đá/Sắt", size: 2, cost: { "Ngân Khố": 400 * EXCHANGE_RATES.GOLD_TO_COPPER, "Gỗ": 400, "Đá": 0 }, months: 3, desc: "+ Sản lượng Đá & Sắt" }
 ];
 
 export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: string, holding: any, isOwner?: boolean }) {
@@ -297,7 +298,7 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
 				  "Tọa Độ Y": gridY,
 				  "Kích Thước": placementMode.size,
 				  "Đang Xây": true,
-				  "Turn Còn Lại": placementMode.turns,
+				  "Ngày Xây Còn Lại": turnsToDays(placementMode.months),
 				};
 
 			const cost = placementMode.cost;
@@ -397,7 +398,7 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
                         >
                             <div className="flex justify-between items-start mb-1">
                                 <span className="font-bold text-white">{tpl.type}</span>
-                                <span className="text-xs text-[#D4AF37]">{tpl.turns} lượt</span>
+                                <span className="text-xs text-[#D4AF37]">{tpl.months} tháng</span>
                             </div>
                             <div className="text-xs text-[var(--text-muted)] mb-2 italic">{tpl.desc}</div>
                             <div className="flex gap-3 text-xs">
@@ -460,7 +461,7 @@ export function TabMapGrid({ territoryId, holding, isOwner }: { territoryId: str
                     <div className="flex justify-between">
                         <span>Tình Trạng:</span>
                         <span className={selectedBuilding["Đang Xây"] ? "text-yellow-500" : "text-green-500"}>
-                            {selectedBuilding["Đang Xây"] ? `Đang Xây (${selectedBuilding["Turn Còn Lại"]} turn)` : "Hoạt Động"}
+                            {selectedBuilding["Đang Xây"] ? `Đang Xây (còn ${formatDuration(selectedBuilding["Ngày Xây Còn Lại"])})` : "Hoạt Động"}
                         </span>
                     </div>
                 </div>

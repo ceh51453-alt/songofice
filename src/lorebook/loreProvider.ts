@@ -71,14 +71,14 @@ export async function getLoreForBuild(history: ApiChatMessage[], maxContext: num
 
   // ngân sách lore: 25% context (4.3 "không vượt X% context budget")
   const tokenBudget = Math.max(1000, Math.floor(maxContext * 0.25));
-  const { rootSeed, turnCount } = currentSeedInfo();
+  const { rootSeed, tick } = currentSeedInfo();
   const mvu = useMvuStore.getState();
   const eraId = mvu.stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
   const currentYear = mvu.stat["Thế Giới"]["Năm"];
   const result: TriggerResult = getActiveEntries(entries, {
     messages: history,
     // RNG seedable stream "lore" (5bis.1) — reroll cùng lượt cho cùng entry roll
-    rng: streamRng(rootSeed, turnCount, "lore"),
+    rng: streamRng(rootSeed, tick, "lore"),
     tokenBudget,
     countTokens,
     eraId: eraId || undefined,

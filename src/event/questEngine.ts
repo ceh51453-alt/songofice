@@ -1,9 +1,10 @@
 /**
  * questEngine.ts (17.2) — Hệ thống quest: deadline, complete, fail, journal.
- * Tick mỗi ngày qua registerTurnListener.
+ * Tick mỗi ngày qua registerDailyListener.
  */
 import type { StatData } from "../mvu/schema";
-import { registerTurnListener, type EffectEvent } from "../mvu/effects";
+import { registerDailyListener, type EffectEvent } from "../mvu/effects";
+import { absoluteDay } from "../mvu/calendar";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("event/questEngine");
@@ -16,13 +17,20 @@ export type JournalType =
   | "Sự Kiện" | "Quest" | "Cột Mốc" | "Khác";
 
 export interface JournalEntry {
-  "Turn": number;
+  "Ngày": number;
+  "Tháng": number;
   "Năm": number;
   "Loại": JournalType;
   "Mô Tả": string;
 }
 
 // ── Journal ──
+
+/** Dấu thời gian hiện tại cho 1 mục nhật ký — dùng chung mọi engine. */
+export function journalStamp(state: StatData): Pick<JournalEntry, "Ngày" | "Tháng" | "Năm"> {
+  const w = state["Thế Giới"];
+  return { "Ngày": w["Ngày"], "Tháng": w["Tháng"], "Năm": w["Năm"] };
+}
 
 export function addJournalEntry(state: StatData, entry: JournalEntry): void {
   state["Nhật Ký"].push(entry);
@@ -34,26 +42,25 @@ export function addJournalEntry(state: StatData, entry: JournalEntry): void {
 /** Kiểm tra quest quá hạn và chuyển sang Thất Bại. */
 export function advanceQuests(state: StatData): EffectEvent[] {
   const events: EffectEvent[] = [];
-  const turn = state["_engineMeta"]["turnCount"];
+  const today = absoluteDay(state["Thế Giới"]);
 
   for (const [id, quest] of Object.entries(state["Nhiệm Vụ"])) {
     if (quest["Trạng Thái"] !== "Đang Làm") continue;
 
     // Kiểm tra deadline
-    const deadline = quest["Hạn Chót Turn"];
-    if (deadline !== undefined && turn >= deadline) {
+    const deadline = quest["Hạn Chót Ngày"];
+    if (deadline !== undefined && today >= deadline) {
       quest["Trạng Thái"] = "Thất Bại";
       events.push({
         kind: "stage_down",
         text: `Nhiệm vụ thất bại (quá hạn): ${quest["Tiêu Đề"]}`,
       });
       addJournalEntry(state, {
-        Turn: turn,
-        "Năm": state["Thế Giới"]["Năm"],
+        ...journalStamp(state),
         "Loại": "Quest",
         "Mô Tả": `Nhiệm vụ "${quest["Tiêu Đề"]}" đã thất bại do quá hạn chót.`,
       });
-      log.info(`Quest ${id} thất bại (quá hạn turn ${deadline})`);
+      log.info(`Quest ${id} thất bại (quá hạn ngày ${deadline})`);
     }
   }
 
@@ -84,8 +91,7 @@ export function completeObjective(
       text: `Nhiệm vụ hoàn thành: ${quest["Tiêu Đề"]}`,
     });
     addJournalEntry(state, {
-      Turn: state["_engineMeta"]["turnCount"],
-      "Năm": state["Thế Giới"]["Năm"],
+      ...journalStamp(state),
       "Loại": "Quest",
       "Mô Tả": `Nhiệm vụ "${quest["Tiêu Đề"]}" đã hoàn thành!`,
     });
@@ -107,8 +113,7 @@ export function failQuest(state: StatData, questId: string): EffectEvent[] {
     text: `Nhiệm vụ thất bại: ${quest["Tiêu Đề"]}`,
   });
   addJournalEntry(state, {
-    Turn: state["_engineMeta"]["turnCount"],
-    "Năm": state["Thế Giới"]["Năm"],
+    ...journalStamp(state),
     "Loại": "Quest",
     "Mô Tả": `Nhiệm vụ "${quest["Tiêu Đề"]}" đã thất bại.`,
   });
@@ -125,7 +130,8 @@ export function addQuest(
     type: "Cốt Truyện Chính" | "Phụ" | "Gia Tộc" | "Chính Trị" | "Quân Sự";
     objectives: string[];
     reward?: string;
-    deadlineTurn?: number;
+    /** hạn chót dạng NGÀY TUYỆT ĐỐI (calendar.absoluteDay). */
+    deadlineDay?: number;
     description?: string;
   },
 ): void {
@@ -135,12 +141,11 @@ export function addQuest(
     "Trạng Thái": "Đang Làm",
     "Mục Tiêu": data.objectives.map((d) => ({ "Mô Tả": d, "Xong": false })),
     "Phần Thưởng": data.reward ?? "",
-    ...(data.deadlineTurn !== undefined ? { "Hạn Chót Turn": data.deadlineTurn } : {}),
+    ...(data.deadlineDay !== undefined ? { "Hạn Chót Ngày": data.deadlineDay } : {}),
     "Mô Tả": data.description ?? "",
   };
   addJournalEntry(state, {
-    Turn: state["_engineMeta"]["turnCount"],
-    "Năm": state["Thế Giới"]["Năm"],
+    ...journalStamp(state),
     "Loại": "Quest",
     "Mô Tả": `Nhiệm vụ mới: "${data.title}"`,
   });
@@ -158,14 +163,14 @@ export function countQuests(state: StatData): { active: number; completed: numbe
   return { active, completed, failed };
 }
 
-// ── Turn listener ──
+// ── Daily listener ──
 
 let registered = false;
 
 export function registerQuestListener(): void {
   if (registered) return;
   registered = true;
-  registerTurnListener("quest-engine", (state) => {
+  registerDailyListener("quest-engine", (state) => {
     advanceQuests(state);
   });
 }

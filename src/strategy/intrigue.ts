@@ -12,7 +12,8 @@
  */
 import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
-import { registerTurnListener } from "../mvu/effects";
+import { registerDailyListener } from "../mvu/effects";
+import { formatDateShort } from "../mvu/calendar";
 import { clamp } from "../mvu/helpers";
 import { makeRng, eventSeed } from "../probability/rng";
 import { resolveCheck, type CheckActor, type CheckResult } from "../probability/resolveCheck";
@@ -94,14 +95,14 @@ export function recallSpyOps(alias: string): PatchOp[] {
   return [{ op: "remove", path: `stat_data.Tình Báo.Điệp Viên.${alias}` }];
 }
 
-/** 1 tick tình báo (14.1): thu tin + tăng nghi ngờ + bị bắt ở ngưỡng. MUTATE state. */
+/** 1 tick NGÀY tình báo (14.1): thu tin + tăng nghi ngờ + bị bắt ở ngưỡng. MUTATE state. */
 export function tickIntelligence(state: StatData): void {
-  const turn = state["_engineMeta"]["turnCount"];
+  const tick = state["_engineMeta"]["_Nhịp"];
   const rootSeed = state["_engineMeta"]["_Seed Gốc"];
   const master = whisperAbility(state);
   const intel = state["Tình Báo"];
 
-  // Đại Điệp Viên giảm mức bị địch cài mỗi turn (little birds)
+  // Đại Điệp Viên giảm mức bị địch cài mỗi ngày (little birds)
   if (master > 0) intel["Bị Cài Điệp Viên"] = clamp(intel["Bị Cài Điệp Viên"] - Math.round(master / 20), 0, 100);
 
   for (const [name, spy] of Object.entries(intel["Điệp Viên"])) {
@@ -116,10 +117,10 @@ export function tickIntelligence(state: StatData): void {
     }
 
     if (mission === "Thu Thập Tin") {
-      const rng = makeRng(eventSeed(rootSeed, turn, `intel:${name}`));
+      const rng = makeRng(eventSeed(rootSeed, tick, `intel:${name}`));
       const chance = 0.25 + depth / 200 + master / 400;
       if (rng() < chance) {
-        const key = `Tin từ ${spy["Cài Ở"] || name} (turn ${turn})`;
+        const key = `Tin từ ${spy["Cài Ở"] || name} (${formatDateShort(state["Thế Giới"])})`;
         if (!intel["Tin Tình Báo Đã Biết"][key]) {
           intel["Tin Tình Báo Đã Biết"][key] = `Điệp viên ${name} thu được tin tức từ ${spy["Cài Ở"] || "mục tiêu"}.`;
         }
@@ -349,6 +350,6 @@ export function setTreatmentOps(state: StatData, name: string, treatment: string
 let registered = false;
 export function registerIntelligenceLoop(): void {
   if (registered) return;
-  registerTurnListener("intelligence", tickIntelligence);
+  registerDailyListener("intelligence", tickIntelligence);
   registered = true;
 }

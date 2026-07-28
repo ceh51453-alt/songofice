@@ -770,7 +770,7 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                         {selectedNode.npcData["Ký Ức"].slice(-3).map((mem, i) => (
                           <div key={i} className="rounded bg-[rgba(0,0,0,0.3)] p-2 text-xs border border-[var(--glass-border)]">
                             <div className="flex justify-between text-[10px] text-[var(--text-faint)] mb-0.5">
-                              <span>Lượt {mem["Turn"]}</span>
+                              <span>Ngày {mem["Ngày"]}/{mem["Tháng"]}{mem["Năm"] !== undefined ? `/${mem["Năm"]} AC` : ""}</span>
                               <span className="text-[#10b981]">{mem["Cảm Xúc"]}</span>
                             </div>
                             <p className="text-[var(--text-muted)] leading-relaxed">

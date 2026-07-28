@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { makeDefaultState } from "./schema";
 import { applyPatch, type PatchOp } from "./patchEngine";
 import { extractUpdates, rejectReason } from "./extractor";
-import { runCascadeEffects, recomputeDerived, parseEffect, registerTurnListener, DAYS_PER_YEAR } from "./effects";
+import { runCascadeEffects, recomputeDerived, parseEffect, registerDailyListener, registerMonthlyListener, DAYS_PER_YEAR } from "./effects";
 import { affinityStage, lifeStage } from "./npcSchema";
 import { renderStateForAI } from "./stateRenderer";
 
@@ -53,7 +53,7 @@ describe("applyPatch — 5 loại op (5.3)", () => {
       {
         op: "insert",
         path: "stat_data.Mối Quan Hệ.NPC Chính.Bran.Ký Ức",
-        value: { "Turn": 3, "Sự Việc": "Ngươi cứu cậu bé khỏi ngã", "Cảm Xúc": "Biết Ơn", "Trọng Số": 80 },
+        value: { "Ngày": 3, "Tháng": 1, "Sự Việc": "Ngươi cứu cậu bé khỏi ngã", "Cảm Xúc": "Biết Ơn", "Trọng Số": 80 },
       },
     ]);
     expect(state["Mối Quan Hệ"]["NPC Chính"]["Bran"]["Ký Ức"]).toHaveLength(1);
@@ -130,7 +130,7 @@ describe("extractor (5.4c) — lọc an toàn", () => {
   it("op hợp lệ đi qua; op bị lọc nằm trong rejected", () => {
     const raw = `<UpdateVariable>{"mvu_update":[
       {"op":"delta","path":"stat_data.Chỉ Số Sinh Tồn.HP","value":-10},
-      {"op":"replace","path":"stat_data._engineMeta.turnCount","value":999}
+      {"op":"replace","path":"stat_data._engineMeta._Nhịp","value":999}
     ]}</UpdateVariable>`;
     const r = extractUpdates(raw);
     expect(r.ops).toHaveLength(1);
@@ -188,7 +188,7 @@ describe("hiệu ứng lan toả (5.7.4)", () => {
 
   it("thời gian trôi: AI báo delta Ngày → onTurnAdvance tick ĐÚNG N lần; không trôi → 0 tick (6.2)", () => {
     let ticks = 0;
-    registerTurnListener("test-loop", () => {
+    registerDailyListener("test-loop", () => {
       ticks += 1;
     });
     const s = makeState();
@@ -202,6 +202,37 @@ describe("hiệu ứng lan toả (5.7.4)", () => {
     r = runCascadeEffects(s, withTime);
     expect(r.daysPassed).toBe(3);
     expect(ticks).toBe(3);
+  });
+
+  it("loop THÁNG chỉ chạy khi sang tháng mới, đúng số tháng đã qua", () => {
+    let months = 0;
+    registerMonthlyListener("test-monthly", () => {
+      months += 1;
+    });
+    const s = makeState();
+    s["Thế Giới"]["Tháng"] = 1;
+    s["Thế Giới"]["Ngày"] = 10;
+
+    // trôi 5 ngày — vẫn trong tháng 1 → KHÔNG chốt sổ
+    let next = applyPatch(s, [{ op: "delta", path: "stat_data.Thế Giới.Ngày", value: 5 }]).state;
+    let r = runCascadeEffects(s, next);
+    expect(r.daysPassed).toBe(5);
+    expect(r.monthsPassed).toBe(0);
+    expect(months).toBe(0);
+
+    // trôi 25 ngày — ngày 10 → ngày 5 tháng 2 → chốt sổ 1 lần
+    next = applyPatch(s, [{ op: "delta", path: "stat_data.Thế Giới.Ngày", value: 25 }]).state;
+    r = runCascadeEffects(s, next);
+    expect(r.monthsPassed).toBe(1);
+    expect(months).toBe(1);
+
+    // trôi 90 ngày — qua 3 mốc tháng → chốt sổ 3 lần nữa
+    months = 0;
+    next = applyPatch(s, [{ op: "delta", path: "stat_data.Thế Giới.Ngày", value: 90 }]).state;
+    r = runCascadeEffects(s, next);
+    expect(r.daysPassed).toBe(90);
+    expect(r.monthsPassed).toBe(3);
+    expect(months).toBe(3);
   });
 
   it("tràn năm: Ngày vượt 360 → sang Năm mới", () => {

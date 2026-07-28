@@ -47,7 +47,7 @@ describe("memoryEngine (16.1)", () => {
     it("chọn 5 ký ức trọng số cao nhất cho NPC active", () => {
       const npc = makeNpc({
         "Ký Ức": Array.from({ length: 10 }, (_, i) => ({
-          "Turn": i, "Sự Việc": `Sự kiện ${i}`, "Cảm Xúc": "Trung Lập" as const, "Trọng Số": (i + 1) * 10,
+          "Ngày": i, "Tháng": 1, "Sự Việc": `Sự kiện ${i}`, "Cảm Xúc": "Trung Lập" as const, "Trọng Số": (i + 1) * 10,
         })),
       });
       const selected = selectRelevantMemories(npc, true);
@@ -58,7 +58,7 @@ describe("memoryEngine (16.1)", () => {
     it("chọn 2 ký ức cho NPC passive", () => {
       const npc = makeNpc({
         "Ký Ức": Array.from({ length: 5 }, (_, i) => ({
-          "Turn": i, "Sự Việc": `Sự kiện ${i}`, "Cảm Xúc": "Trung Lập" as const, "Trọng Số": 50,
+          "Ngày": i, "Tháng": 1, "Sự Việc": `Sự kiện ${i}`, "Cảm Xúc": "Trung Lập" as const, "Trọng Số": 50,
         })),
       });
       const selected = selectRelevantMemories(npc, false);
@@ -70,8 +70,8 @@ describe("memoryEngine (16.1)", () => {
     it("giảm trọng số ký ức dưới 80", () => {
       const npc = makeNpc({
         "Ký Ức": [
-          { "Turn": 1, "Sự Việc": "Nhỏ", "Cảm Xúc": "Trung Lập", "Trọng Số": 50 },
-          { "Turn": 2, "Sự Việc": "Lớn", "Cảm Xúc": "Biết Ơn", "Trọng Số": 90 },
+          { "Ngày": 1, "Tháng": 1, "Sự Việc": "Nhỏ", "Cảm Xúc": "Trung Lập", "Trọng Số": 50 },
+          { "Ngày": 2, "Tháng": 1, "Sự Việc": "Lớn", "Cảm Xúc": "Biết Ơn", "Trọng Số": 90 },
         ],
       });
       decayMemories(npc, 10);
@@ -82,7 +82,7 @@ describe("memoryEngine (16.1)", () => {
     it("xoá ký ức dưới ngưỡng MIN_WEIGHT", () => {
       const npc = makeNpc({
         "Ký Ức": [
-          { "Turn": 1, "Sự Việc": "Rất cũ", "Cảm Xúc": "Trung Lập", "Trọng Số": 6 },
+          { "Ngày": 1, "Tháng": 1, "Sự Việc": "Rất cũ", "Cảm Xúc": "Trung Lập", "Trọng Số": 6 },
         ],
       });
       decayMemories(npc, 10); // 6 - 5 = 1, dưới 5 → xoá
@@ -91,7 +91,7 @@ describe("memoryEngine (16.1)", () => {
 
     it("turnsPassed <= 0 → không làm gì", () => {
       const npc = makeNpc({
-        "Ký Ức": [{ "Turn": 1, "Sự Việc": "Test", "Cảm Xúc": "Trung Lập", "Trọng Số": 50 }],
+        "Ký Ức": [{ "Ngày": 1, "Tháng": 1, "Sự Việc": "Test", "Cảm Xúc": "Trung Lập", "Trọng Số": 50 }],
       });
       decayMemories(npc, 0);
       expect(npc["Ký Ức"][0]["Trọng Số"]).toBe(50);
@@ -101,16 +101,16 @@ describe("memoryEngine (16.1)", () => {
   describe("addMemory", () => {
     it("thêm ký ức mới", () => {
       const npc = makeNpc();
-      addMemory(npc, { turn: 5, event: "Cứu mạng", emotion: "Biết Ơn", weight: 85 });
+      addMemory(npc, { day: 5, month: 1, event: "Cứu mạng", emotion: "Biết Ơn", weight: 85 });
       expect(npc["Ký Ức"]).toHaveLength(1);
       expect(npc["Ký Ức"][0]["Sự Việc"]).toBe("Cứu mạng");
     });
 
     it("deduplicate: cùng Sự Việc → cập nhật trọng số", () => {
       const npc = makeNpc({
-        "Ký Ức": [{ "Turn": 1, "Sự Việc": "Gặp gỡ", "Cảm Xúc": "Trung Lập", "Trọng Số": 30 }],
+        "Ký Ức": [{ "Ngày": 1, "Tháng": 1, "Sự Việc": "Gặp gỡ", "Cảm Xúc": "Trung Lập", "Trọng Số": 30 }],
       });
-      addMemory(npc, { turn: 5, event: "Gặp gỡ", emotion: "Yêu Mến", weight: 60 });
+      addMemory(npc, { day: 5, month: 1, event: "Gặp gỡ", emotion: "Yêu Mến", weight: 60 });
       expect(npc["Ký Ức"]).toHaveLength(1);
       expect(npc["Ký Ức"][0]["Trọng Số"]).toBe(60);
       expect(npc["Ký Ức"][0]["Cảm Xúc"]).toBe("Yêu Mến");
@@ -119,10 +119,10 @@ describe("memoryEngine (16.1)", () => {
     it("enforce MAX_MEMORIES = 20", () => {
       const npc = makeNpc({
         "Ký Ức": Array.from({ length: 20 }, (_, i) => ({
-          "Turn": i, "Sự Việc": `Event ${i}`, "Cảm Xúc": "Trung Lập" as const, "Trọng Số": 50,
+          "Ngày": i, "Tháng": 1, "Sự Việc": `Event ${i}`, "Cảm Xúc": "Trung Lập" as const, "Trọng Số": 50,
         })),
       });
-      addMemory(npc, { turn: 99, event: "Mới", emotion: "Ngưỡng Mộ", weight: 90 });
+      addMemory(npc, { day: 99, month: 1, event: "Mới", emotion: "Ngưỡng Mộ", weight: 90 });
       expect(npc["Ký Ức"].length).toBeLessThanOrEqual(20);
       // ký ức mới (trọng số 90) phải được giữ
       expect(npc["Ký Ức"].some((m) => m["Sự Việc"] === "Mới")).toBe(true);
@@ -133,7 +133,7 @@ describe("memoryEngine (16.1)", () => {
     it("phai ký ức tất cả NPC trong state", () => {
       const stat = makeDefaultState();
       const npc = makeNpc({
-        "Ký Ức": [{ "Turn": 1, "Sự Việc": "Test", "Cảm Xúc": "Trung Lập", "Trọng Số": 50 }],
+        "Ký Ức": [{ "Ngày": 1, "Tháng": 1, "Sự Việc": "Test", "Cảm Xúc": "Trung Lập", "Trọng Số": 50 }],
       });
       stat["Mối Quan Hệ"]["NPC Chính"]["Tyrion"] = npc;
       decayAllMemories(stat, 10);
@@ -147,7 +147,7 @@ describe("memoryEngine (16.1)", () => {
       stat["Mối Quan Hệ"]["NPC Chính"]["Tyrion"] = makeNpc({
         "Họ Tên": "Tyrion Lannister",
         "Ký Ức": [
-          { "Turn": 5, "Năm": 298, "Sự Việc": "Cứu mạng ở Blackwater", "Cảm Xúc": "Biết Ơn", "Trọng Số": 90 },
+          { "Ngày": 5, "Tháng": 1, "Năm": 298, "Sự Việc": "Cứu mạng ở Blackwater", "Cảm Xúc": "Biết Ơn", "Trọng Số": 90 },
         ],
         "Lời Hứa Chưa Giữ": ["Trả nợ vàng"],
       });

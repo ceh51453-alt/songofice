@@ -175,11 +175,11 @@ export function EconomyPanel() {
           <div className="mt-3 flex items-center gap-2 border-t border-[var(--glass-border)] pt-3">
             <IconTrend size={14} color={summary.net >= 0 ? "var(--ok)" : "var(--danger)"} />
             <span className={`text-[13px] font-medium ${summary.net >= 0 ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>
-              Ròng: {summary.net >= 0 ? "+" : ""}{fmt(summary.net)}/30 ngày
+              Ròng: {summary.net >= 0 ? "+" : ""}{fmt(summary.net)}/tháng
             </span>
-            {summary.turnsLeft >= 0 && summary.turnsLeft < 30 && (
+            {summary.monthsLeft >= 0 && summary.monthsLeft < 12 && (
               <span className="ml-auto text-[11px] text-[var(--danger)]">
-                Cạn kho sau ~{summary.turnsLeft} (x30 ngày)
+                Cạn kho sau ~{summary.monthsLeft} tháng
               </span>
             )}
           </div>
@@ -241,7 +241,7 @@ export function EconomyPanel() {
               {familyDebts.map(([creditor, d]) => d ? (
                 <div key={creditor} className="flex justify-between items-center text-[12px] text-[var(--danger)] mb-1">
                   <span>{creditor}</span>
-                  <span>{formatCurrencyFull(d?.["Nợ Gốc"] || 0)} (Lãi: {d?.["Lãi/Turn"] || 0}%/30 ngày)</span>
+                  <span>{formatCurrencyFull(d?.["Nợ Gốc"] || 0)} (Lãi: {d?.["Lãi/Tháng"] || 0}%/tháng)</span>
                 </div>
               ) : null)}
             </div>
@@ -319,7 +319,7 @@ export function EconomyPanel() {
                     }`}>
                       {route["Đường"]}
                     </span>
-                    <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(route["Lợi Nhuận/Turn"])}/30 ngày</span>
+                    <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(route["Lợi Nhuận/Tháng"])}/tháng</span>
                     {/* Safety bar */}
                     <div className="h-1 w-12 overflow-hidden rounded-full bg-[var(--glass-bg-hover)]">
                       <div
@@ -358,12 +358,12 @@ export function EconomyPanel() {
                   <span className="font-mono">{formatCurrencyShort(bank?.["Nợ Gốc"] || 0)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Lãi/30 ngày</span>
-                  <span className="font-mono text-[var(--danger)]">-{formatCurrencyShort(bank?.["Lãi/Turn"] || 0)}/30 ngày</span>
+                  <span>Lãi mỗi tháng</span>
+                  <span className="font-mono text-[var(--danger)]">-{formatCurrencyShort(bank?.["Lãi/Tháng"] || 0)}/tháng</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Thời hạn (x30 ngày)</span>
-                  <span className="font-mono">{bank?.["Turn Còn Lại"] || 0} (x30 ngày)</span>
+                  <span>Thời hạn còn lại</span>
+                  <span className="font-mono">{bank?.["Tháng Còn Lại"] || 0} tháng</span>
                 </div>
               </div>
             )}
@@ -385,14 +385,14 @@ export function EconomyPanel() {
                     {loan?.["Đang Quỵt"] ? (
                       <span className="text-[var(--danger)]">Đang Quỵt Nợ</span>
                     ) : (
-                      <span className="text-[var(--ok)]">+{formatCurrencyShort(loan?.["Lãi/Turn"] || 0)}/30 ngày</span>
+                      <span className="text-[var(--ok)]">+{formatCurrencyShort(loan?.["Lãi/Tháng"] || 0)}/tháng</span>
                     )}
                   </div>
                   {!loan?.["Đang Quỵt"] && (
                     <>
                       <div className="flex justify-between text-[11.5px] text-[var(--text-faint)]">
                         <span>Gốc: {formatCurrencyShort(loan?.["Nợ Gốc"] || 0)}</span>
-                        <span>Còn: {loan?.["Turn Còn Lại"] || 0} (x30 ngày)</span>
+                        <span>Còn: {loan?.["Tháng Còn Lại"] || 0} tháng</span>
                       </div>
                     </>
                   )}

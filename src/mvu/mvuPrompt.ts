@@ -41,7 +41,7 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
 3. "insert" — THÊM một phần tử vào CUỐI một danh sách (mảng).
    Dùng cho: thêm ký ức mới cho NPC, thêm lời hứa, thêm nét tính cách.
    { "op": "insert", "path": "stat_data.Mối Quan Hệ.NPC Chính.Tyrion Lannister.Ký Ức",
-     "value": { "Turn": 42, "Sự Việc": "Ngươi che chở hắn trước lời buộc tội của Cersei",
+     "value": { "Ngày": 12, "Tháng": 3, "Năm": 298, "Sự Việc": "Ngươi che chở hắn trước lời buộc tội của Cersei",
                 "Cảm Xúc": "Biết Ơn", "Trọng Số": 70 } }
 
 4. "remove" — XOÁ một field/phần tử.
@@ -60,7 +60,7 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
   Chỉ Số Sinh Tồn (HP/Thể Lực/Pháp Lực) · Chỉ Số Cốt Lõi (Sức Mạnh/Nhanh Nhẹn/Thể Chất/
   Trí Tuệ/Tinh Tường/Uy Tín) · Thiên Phú · Kỹ Năng · Trang Bị Đang Mặc · Túi Đồ ·
   Mối Quan Hệ (NPC Chính / Thành Viên Gia Tộc) · Thái Độ Các Nhà ·
-  Thế Giới (Vị Trí/Năm/Ngày/Mùa/Thời Tiết) · Chế Độ Hiện Tại.
+  Thế Giới (Vị Trí/Năm/Tháng/Ngày/Mùa/Thời Tiết) · Chế Độ Hiện Tại.
 - Với NPC/vật phẩm: path đi qua tên riêng, ví dụ:
     stat_data.Mối Quan Hệ.NPC Chính.<Tên NPC>.Độ Hảo Cảm
     stat_data.Túi Đồ.<Tên vật phẩm>.Số Lượng
@@ -121,11 +121,23 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
 
 ## THỜI GIAN TRÔI
 
-MỖI LƯỢT CHƠI MẶC ĐỊNH LÀ 30 NGÀY TRÔI QUA (1 Tháng).
-Ngươi BẮT BUỘC phải cộng 30 vào giá trị Ngày sau mỗi lượt kể:
+LỊCH WESTEROS: 12 tháng × 30 ngày = 360 ngày/năm. Ba field: Thế Giới.Ngày (1-30),
+Thế Giới.Tháng (1-12), Thế Giới.Năm (AC). Cỗ máy TỰ chuẩn hoá khi tràn
+(Ngày > 30 → sang tháng sau; Tháng > 12 → sang năm sau) — ngươi chỉ cần báo delta.
+
+MỖI LƯỢT CHƠI MẶC ĐỊNH LÀ 30 NGÀY TRÔI QUA (1 tháng).
+Ngươi BẮT BUỘC phải báo thời gian trôi sau mỗi lượt kể:
    { "op": "delta", "path": "stat_data.Thế Giới.Ngày", "value": 30 }
-Cỗ máy sẽ tự động tick các tiến trình dài (xây dựng, hành quân, kinh tế, mùa màng) theo số ngày
-này. ĐỪNG tự cập nhật các tiến trình đó — chỉ báo thời gian, cỗ máy lo phần còn lại.
+Nếu cảnh chỉ diễn ra trong vài ngày (hội thoại ngắn, một trận đánh, một đêm),
+hãy báo ĐÚNG số ngày thực tế thay vì 30:
+   { "op": "delta", "path": "stat_data.Thế Giới.Ngày", "value": 3 }
+Nếu muốn nhảy nhiều tháng, cộng thẳng vào Tháng:
+   { "op": "delta", "path": "stat_data.Thế Giới.Tháng", "value": 6 }
+
+Cỗ máy tự tick theo lịch: MỖI NGÀY trôi qua nó hạ tiến độ xây dựng, huấn luyện quân,
+hành quân, vây thành, bệnh tật; MỖI THÁNG nó chốt sổ thuế, lãi nợ, lợi nhuận thương mại,
+quân lương, sản lượng lãnh địa và khủng hoảng. ĐỪNG tự cập nhật các tiến trình đó —
+chỉ báo thời gian, cỗ máy lo phần còn lại.
 
 ## NGUYÊN TẮC VÀNG
 

@@ -14,6 +14,7 @@ import { REGIONS, REGIONS_BY_ID, MAP_W, MAP_H, seatVisible, factionsForYear, FAC
 import { markersForEra } from "../../content/westeros/mapMarkers";
 import { MAP_CONFIG } from "../../content/westeros/mapConfig";
 import { regionFill } from "../../territory/territoryEngine";
+import { absoluteDay, fromAbsoluteDay, formatDateShort } from "../../mvu/calendar";
 import { HOUSE_COLORS, ATTITUDE_HEAT, PLAYER_HEAT_COLOR } from "../../content/westeros/houseColors";
 import { useT } from "../../i18n";
 import { IconLayers, IconTarget, IconPlus, IconPin, IconCheck, IconChevronDown } from "../icons";
@@ -57,7 +58,7 @@ export function MapScreen() {
   };
 
   const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
-  const currentTurn = stat["_engineMeta"]["turnCount"];
+  const today = absoluteDay(stat["Thế Giới"]);
   const playerLoc = stat["Thế Giới"]["Vị Trí"];
   const playerName = stat["Thông Tin Nhân Vật"]["Họ Tên"];
   const quests = stat["Nhiệm Vụ"];
@@ -212,7 +213,7 @@ export function MapScreen() {
               REGIONS.map((r) => {
                 const fill = regionFill(stat, r.id, mode);
                 const pts = r.polygonPx.map(([x, y]) => `${x},${y}`).join(" ");
-                const justChanged = fill.changedTurn > 0 && fill.changedTurn === currentTurn;
+                const justChanged = fill.changedDay > 0 && fill.changedDay === today;
                 return (
                   <g key={r.id}>
                     {/* Shadow / Coastline Glow border */}
@@ -502,7 +503,7 @@ interface QuestTrackerProps {
     "Trạng Thái": string;
     "Mục Tiêu": { "Mô Tả": string; "Xong": boolean }[];
     "Phần Thưởng": string;
-    "Hạn Chót Turn"?: number;
+    "Hạn Chót Ngày"?: number;
     "Mô Tả": string;
   }>;
   open: boolean;
@@ -600,8 +601,8 @@ function QuestTracker({ quests, open, onToggle }: QuestTrackerProps) {
                 {/* Reward + deadline */}
                 <div className="mt-1 flex items-center gap-2 text-[10px] text-[var(--text-faint)]">
                   {q["Phần Thưởng"] && <span>[+] {q["Phần Thưởng"]}</span>}
-                  {q["Hạn Chót Turn"] && (
-                    <span className="text-[var(--warn)]">⏳ Turn {q["Hạn Chót Turn"]}</span>
+                  {q["Hạn Chót Ngày"] && (
+                    <span className="text-[var(--warn)]">⏳ hạn {formatDateShort(fromAbsoluteDay(q["Hạn Chót Ngày"]))}</span>
                   )}
                 </div>
               </div>

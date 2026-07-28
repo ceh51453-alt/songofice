@@ -8,7 +8,7 @@
  */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { useMvuStore, currentSeedInfo } from "./mvuStore";
+import { useMvuStore, currentDay } from "./mvuStore";
 import { applyPatch, type PatchOp } from "../mvu/patchEngine";
 import { captureRegionOps, playerHouseId, type MapMode } from "../territory/territoryEngine";
 import { startConstruction, cancelConstruction } from "../territory/construction";
@@ -87,8 +87,7 @@ export const useTerritoryStore = create<TerritoryState>()(
         const before = stat["Chủ Quyền Lãnh Thổ"][regionId]?.["Nhà Kiểm Soát"] ?? "";
         if (before === newHouseId) return; // không đổi → bỏ qua (idempotent reroll)
 
-        const { turnCount } = currentSeedInfo();
-        applyEngineOps(captureRegionOps(stat, regionId, newHouseId, turnCount));
+        applyEngineOps(captureRegionOps(stat, regionId, newHouseId, currentDay()));
 
         const houseLabel = HOUSES_BY_ID[newHouseId]?.name ?? newHouseId ?? "vô chủ";
         if (!!pHouse && newHouseId === pHouse) {

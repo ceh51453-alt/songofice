@@ -76,7 +76,7 @@ describe("captureRegion đồng bộ 2 chiều (9.5.1)", () => {
     const { state } = applyPatch(s, ops);
     expect(regionController(state, "the-riverlands")).toBe("stark");
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
-    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["_Đổi Chủ Turn"]).toBe(7);
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["_Ngày Đổi Chủ"]).toBe(7);
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).toBe("Mới Chiếm");
     // mở quản trị nội bộ thành trì trọng trấn (10.1)
     expect(state["Lãnh Địa"]["the-riverlands-seat"]).toBeDefined();
@@ -99,7 +99,7 @@ describe("Extractor chặn AI ghi thẳng Chủ Quyền (9.5.1)", () => {
   it("op AI ghi Chủ Quyền Lãnh Thổ bị lọc — engine giữ số", () => {
     expect(rejectReason({ op: "replace", path: "stat_data.Chủ Quyền Lãnh Thổ.the-north.Nhà Kiểm Soát", value: "lannister" })).toBeTruthy();
     // field _ vẫn bị chặn
-    expect(rejectReason({ op: "replace", path: "stat_data.Chủ Quyền Lãnh Thổ.the-north._Đổi Chủ Turn", value: 5 })).toBeTruthy();
+    expect(rejectReason({ op: "replace", path: "stat_data.Chủ Quyền Lãnh Thổ.the-north._Ngày Đổi Chủ", value: 5 })).toBeTruthy();
     // ghi Lãnh Địa nội bộ (Dân Số) thì cho phép
     expect(rejectReason({ op: "delta", path: "stat_data.Lãnh Địa.the-north-seat.Dân Số", value: -100 })).toBeNull();
   });

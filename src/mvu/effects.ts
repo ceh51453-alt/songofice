@@ -5,8 +5,10 @@
  * 3. Nhãn Giai Đoạn Quan Hệ từ Độ Hảo Cảm (5.1d) — vượt ngưỡng = SỰ KIỆN (toast 6.4).
  * 4. Chỉ Số Phái Sinh tính lại từ cốt lõi + cấp + trang bị + thiên phú (5.1f-B/C1).
  * 5. Clamp HP/Thể Lực về trần mới.
- * 6. onTurnAdvance: đăng ký listener theo REGISTRY — mỗi hệ chiến lược (10-17)
- *    cắm vào; tick đúng SỐ NGÀY thời gian truyện đã trôi (6.2 — không phải mỗi tin +1).
+ * 6. Hai REGISTRY tick theo thời gian truyện (6.2 — không phải mỗi tin +1):
+ *    - listener NGÀY: thời lượng ngắn (xây, huấn luyện, hành quân, vây thành).
+ *    - listener THÁNG: dòng tiền định kỳ (thuế, lãi, lợi nhuận, quân lương) và
+ *      sản lượng/khủng hoảng lãnh địa.
  */
 import type { StatData } from "./schema";
 import { DRAGON_SIZE_HP, type DragonSize } from "./schema";
@@ -19,10 +21,11 @@ import { processExperience } from "../character/experienceSystem";
 import { createLogger } from "../lib/log";
 import { monthlyTick } from "../territory/territoryEngine";
 import { applyPatch } from "./patchEngine";
+import { absoluteDay, absoluteMonth, normalizeCalendar, DAYS_PER_MONTH, DAYS_PER_YEAR } from "./calendar";
 
 const log = createLogger("mvu/effects");
 
-export const DAYS_PER_YEAR = 360;
+export { DAYS_PER_YEAR, DAYS_PER_MONTH };
 
 // ---------------------------------------------------------------------------
 // Parser hiệu ứng thiên phú (5.1f-C1) — chuỗi máy-đọc "Sức Mạnh+2, Tải Trọng+20"
@@ -115,14 +118,21 @@ export function recomputeDragonDerived(state: StatData): void {
 }
 
 // ---------------------------------------------------------------------------
-// onTurnAdvance — registry cho các loop chiến lược (10-17 cắm vào sau)
+// Registry tick theo thời gian — các loop chiến lược (10-17) cắm vào
 // ---------------------------------------------------------------------------
-export type TurnListener = (state: StatData) => void;
-const turnListeners = new Map<string, TurnListener>();
+export type TimeListener = (state: StatData) => void;
 
-/** Đăng ký loop chiến lược (xây dựng, hành quân, kinh tế...) — 1 tick = 1 ngày truyện. */
-export function registerTurnListener(id: string, fn: TurnListener): void {
-  turnListeners.set(id, fn);
+const dailyListeners = new Map<string, TimeListener>();
+const monthlyListeners = new Map<string, TimeListener>();
+
+/** Loop chạy MỖI NGÀY truyện: tiến độ xây, huấn luyện, hành quân, vây thành, điệp viên. */
+export function registerDailyListener(id: string, fn: TimeListener): void {
+  dailyListeners.set(id, fn);
+}
+
+/** Loop chạy MỖI THÁNG truyện: thuế, lãi nợ, lợi nhuận thương mại, quân lương, khủng hoảng. */
+export function registerMonthlyListener(id: string, fn: TimeListener): void {
+  monthlyListeners.set(id, fn);
 }
 
 // ---------------------------------------------------------------------------
@@ -138,6 +148,8 @@ export interface CascadeResult {
   events: EffectEvent[];
   /** số ngày truyện đã trôi lượt này (0 = hội thoại ngắn, không tick). */
   daysPassed: number;
+  /** số tháng truyện đã sang lượt này (mốc chốt sổ kinh tế). */
+  monthsPassed: number;
 }
 
 function eachNpc(state: StatData, fn: (name: string, npc: Npc) => void): void {
@@ -154,14 +166,16 @@ const STAGE_ORDER = ["Tử Thù", "Thù Địch", "Ác Cảm", "Xa Lạ", "Quen 
 export function runCascadeEffects(prev: StatData, next: StatData): CascadeResult {
   const events: EffectEvent[] = [];
 
-  // ---- 1. tràn năm + tính số ngày trôi ----
+  // ---- 1. chuẩn hoá lịch (tràn Ngày→Tháng→Năm) + tính số ngày trôi ----
+  // normalizeCalendar cũng tự migrate save cũ (Ngày 1-360, chưa có Tháng).
   const world = next["Thế Giới"];
-  while (world["Ngày"] > DAYS_PER_YEAR) {
-    world["Ngày"] -= DAYS_PER_YEAR;
-    world["Năm"] += 1;
-  }
-  const prevAbs = prev["Thế Giới"]["Năm"] * DAYS_PER_YEAR + prev["Thế Giới"]["Ngày"];
-  const nextAbs = world["Năm"] * DAYS_PER_YEAR + world["Ngày"];
+  normalizeCalendar(world);
+  // bản sao đã chuẩn hoá của mốc trước — KHÔNG mutate prev (state đang nằm trong store)
+  const prevWorld = { ...prev["Thế Giới"] };
+  normalizeCalendar(prevWorld);
+
+  const prevAbs = absoluteDay(prevWorld);
+  const nextAbs = absoluteDay(world);
   const daysPassed = Math.max(0, nextAbs - prevAbs);
   if (daysPassed > 0) {
     events.push({ kind: "time_passed", text: daysPassed === 1 ? "Một ngày trôi qua" : `${daysPassed} ngày trôi qua` });
@@ -213,14 +227,15 @@ export function runCascadeEffects(prev: StatData, next: StatData): CascadeResult
     }
   }
 
-  // ---- 1.5. chốt sổ lãnh địa hàng tháng (30 ngày) ----
-  const prevMonthAbs = Math.floor(Math.max(0, prevAbs - 1) / 30);
-  const nextMonthAbs = Math.floor(Math.max(0, nextAbs - 1) / 30);
-  const monthsPassed = Math.max(0, nextMonthAbs - prevMonthAbs);
+  // ---- 1.5. chốt sổ lãnh địa hàng tháng ----
+  const monthsPassed = Math.max(0, absoluteMonth(world) - absoluteMonth(prevWorld));
 
   if (monthsPassed > 0) {
-    events.push({ kind: "territory", text: `Đã qua ${monthsPassed} tháng, chốt sổ lãnh địa.` });
-    
+    events.push({
+      kind: "territory",
+      text: monthsPassed === 1 ? "Sang tháng mới — chốt sổ lãnh địa." : `Đã qua ${monthsPassed} tháng, chốt sổ lãnh địa.`,
+    });
+
     // Simulate multiple months if needed
     for (let i = 0; i < monthsPassed; i++) {
         const ops = monthlyTick(next);
@@ -230,7 +245,7 @@ export function runCascadeEffects(prev: StatData, next: StatData): CascadeResult
   }
 
   // ---- 2. tuổi NPC theo Năm Sinh (5.1e) ----
-  if (world["Năm"] !== prev["Thế Giới"]["Năm"]) {
+  if (world["Năm"] !== prevWorld["Năm"]) {
     events.push({ kind: "year_change", text: `Năm ${world["Năm"]} AC` });
     // Tuổi NPC theo Năm Sinh (5.1e)
     eachNpc(next, (_name, npc) => {
@@ -321,18 +336,31 @@ export function runCascadeEffects(prev: StatData, next: StatData): CascadeResult
     });
   }
 
-  // ---- 6. tick các loop chiến lược đúng số ngày trôi (6.2) ----
-  if (daysPassed > 0 && turnListeners.size > 0) {
+  // ---- 6. tick loop theo NGÀY đúng số ngày trôi (6.2) ----
+  if (daysPassed > 0 && dailyListeners.size > 0) {
     for (let i = 0; i < daysPassed; i++) {
-      for (const fn of turnListeners.values()) {
+      for (const fn of dailyListeners.values()) {
         try {
           fn(next);
         } catch (e) {
-          log.error("Turn listener lỗi", e);
+          log.error("Daily listener lỗi", e);
         }
       }
     }
   }
 
-  return { state: next, events, daysPassed };
+  // ---- 7. tick loop theo THÁNG mỗi lần sang tháng mới ----
+  if (monthsPassed > 0 && monthlyListeners.size > 0) {
+    for (let i = 0; i < monthsPassed; i++) {
+      for (const fn of monthlyListeners.values()) {
+        try {
+          fn(next);
+        } catch (e) {
+          log.error("Monthly listener lỗi", e);
+        }
+      }
+    }
+  }
+
+  return { state: next, events, daysPassed, monthsPassed };
 }

@@ -98,11 +98,11 @@ export function TaxSlider({ currentLevel, onChangeLevel, disabled }: TaxSliderPr
         }
       `}>
         <span>
-          Vàng/30 ngày: <b className="font-mono">{preview.goldPerTurn >= 0 ? "+" : ""}{preview.goldPerTurn}</b>
+          Vàng/tháng: <b className="font-mono">{preview.goldPerMonth >= 0 ? "+" : ""}{preview.goldPerMonth}</b>
         </span>
         <span>
-          Trung Thành: <b className={`font-mono ${effect.loyaltyPerTurn < 0 ? "text-[var(--danger)]" : effect.loyaltyPerTurn > 0 ? "text-[var(--ok)]" : ""}`}>
-            {effect.loyaltyPerTurn >= 0 ? "+" : ""}{effect.loyaltyPerTurn}/30 ngày
+          Trung Thành: <b className={`font-mono ${effect.loyaltyPerMonth < 0 ? "text-[var(--danger)]" : effect.loyaltyPerMonth > 0 ? "text-[var(--ok)]" : ""}`}>
+            {effect.loyaltyPerMonth >= 0 ? "+" : ""}{effect.loyaltyPerMonth}/tháng
           </b>
         </span>
       </div>

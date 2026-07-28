@@ -4,6 +4,7 @@
  * Glassmorphism FAB + overlay panel với tin tức timeline.
  */
 import { useWorldNewsStore, type WorldHeadline, type EconomicBrief } from "../../state/worldNewsStore";
+import { fromAbsoluteDay, formatDateShort } from "../../mvu/calendar";
 
 const trendIcon: Record<EconomicBrief["trend"], string> = {
   rising: "/\\",
@@ -30,7 +31,7 @@ function HeadlineItem({ headline }: { headline: WorldHeadline }) {
   return (
     <div className="rounded-md bg-[var(--glass-bg)] p-2.5 transition-colors hover:bg-[var(--glass-bg-hover)]">
       <div className="mb-1 flex items-center gap-2 text-[11px] text-[var(--text-faint)]">
-        <span>Lượt {headline.turn}</span>
+        <span>{formatDateShort(fromAbsoluteDay(headline.day))}</span>
         <span>·</span>
         <span>{sourceLabel[headline.source]}</span>
         {headline.region && (

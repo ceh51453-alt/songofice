@@ -7,7 +7,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 242, age: 56, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 18, "Tinh Tường": 17, "Uy Tín": 18 },
     năngLực: { "Võ Lực": 55, "Thống Soái": 90, "Trí Mưu": 90, "Ngoại Giao": 85 },
     talentIds: ["schemer", "commander-instinct"],
-    skills: { "command": 9, "cunning": 8, "commerce": 8, "intimidation": 9 },
+    skills: { "sword-shield": 9, "unarmed": 8, "war-riding": 7, "intimidation": 9 },
     equipment: [], items: [{ ten: "Vàng Lannister", soLuong: 50000, moTa: "Sự giàu có vô tận" }], gold: 100000,
     startResources: {
       "Gỗ": 250,
@@ -39,7 +39,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 266, age: 32, coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 17, "Thể Chất": 14, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 15 },
     năngLực: { "Võ Lực": 75, "Thống Soái": 75, "Trí Mưu": 50, "Ngoại Giao": 60 },
     talentIds: ["born-swordsman", "duelist", "highborn-charm"],
-    skills: { "sword-shield": 10, "war-riding": 8, "command": 6, "brawling": 6 },
+    skills: { "sword-shield": 10, "war-riding": 8, "command": 6, "unarmed": 6 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép mạ vàng", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 6 }, moTa: "Tuyệt phẩm kiếm thuật" }, { slot: "Giáp Thân", ten: "Giáp Trắng Vệ Vương", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Áo giáp Vệ Vương" }],
     items: [], gold: 1000,
     startResources: {
@@ -61,6 +61,8 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["cersei-lannister", "tyrion-lannister"],
     allies: ["cersei-lannister"],
     rivals: ["eddard-stark", "brienne-tarth"],
+    liege: "joffrey-baratheon",
+    courtPosition: "Tổng Chỉ Huy Ngự Lâm Quân",
     secretBiologicalFather: "",
     secretBiologicalMother: "",
     relationshipDetails: {
@@ -70,6 +72,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
       "myrcella-baratheon": { type: "Con Cái (Bí mật)", trust: 50, affinity: 50, detail: "Con gái ruột với Cersei." },
       "tommen-baratheon": { type: "Con Cái (Bí mật)", trust: 50, affinity: 50, detail: "Con trai ruột với Cersei." },
       "robert-baratheon": { type: "Kẻ Thù", trust: -80, affinity: -80, detail: "Vua hiện tại, người kết hôn với Cersei. Jaime khinh thường ông." },
+      "brienne-tarth": { type: "Hộ Vệ", trust: 70, affinity: 60, detail: "Người phụ nữ duy nhất khiến Jaime phải nể phục. Cô thay đổi cách nhìn của Jaime về danh dự." }
     },
       startRegions: [],
       startHoldings: [],
@@ -83,7 +86,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 289, age: 9, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 14, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 15, "Uy Tín": 9 },
     năngLực: { "Võ Lực": 30, "Thống Soái": 45, "Trí Mưu": 60, "Ngoại Giao": 75 },
     talentIds: ["keen-eye"],
-    skills: { "brawling": 3, "stealth": 5, "hunting": 3 },
+    skills: { "unarmed": 3, "stealth": 5, "hunting": 3 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Kim", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 3 }, moTa: "Thanh kiếm nhỏ do Jon Snow tặng" }], items: [], gold: 10,
     startResources: {
       "Gỗ": 60,
@@ -98,6 +101,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["robb-stark", "sansa-stark", "bran-stark", "rickon-stark", "jon-snow"],
     allies: ["sandor-clegane", "jaqen-hghar"],
     rivals: ["cersei-lannister", "joffrey-baratheon"],
+    liege: "robb-stark",
+    relationshipDetails: {
+      "eddard-stark": { type: "Cha", trust: 100, affinity: 100, detail: "Cha cô, người dạy Arya rằng mùa đông đang đến và kẻ mạnh phải bảo vệ kẻ yếu." },
+      "jon-snow": { type: "Anh Chị Em", trust: 100, affinity: 100, detail: "Anh trai cưng nhất, người tặng cô thanh kiếm Needle. Giống hệt cha." },
+      "sandor-clegane": { type: "Hộ Vệ", trust: 40, affinity: 50, detail: "Chó Săn — kẻ thù trở thành người bảo vệ bất đắc dĩ. Arya vừa ghét vừa nể." }
+    },
     spouse: "",
     children: [],
     startArmies: [
@@ -147,7 +156,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 290, age: 8, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 3, "Thể Chất": 6, "Trí Tuệ": 14, "Tinh Tường": 17, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 15, "Thống Soái": 50, "Trí Mưu": 70, "Ngoại Giao": 85 },
     talentIds: ["warg"],
-    skills: { "lore": 5, "animal-handling": 6 },
+    skills: { "lore": 5, "hunting": 6 },
     equipment: [], items: [], gold: 50,
     startResources: {
       "Gỗ": 60,
@@ -179,7 +188,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 279, age: 19, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 14, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 13, "Uy Tín": 11 },
     năngLực: { "Võ Lực": 60, "Thống Soái": 55, "Trí Mưu": 50, "Ngoại Giao": 65 },
     talentIds: ["hot-tempered"],
-    skills: { "archery": 8, "sailing": 6, "sword-shield": 5 },
+    skills: { "bow-crossbow": 8, "trading": 6, "sword-shield": 5 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Cung Dài Đảo Sắt", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Xa": 5 }, moTa: "Bắn xa rất tốt" }], items: [], gold: 500,
     startResources: {
       "Gỗ": 30,
@@ -194,6 +203,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["asha-greyjoy"],
     allies: ["robb-stark"],
     rivals: ["ramsay-snow"],
+    liege: "balon-greyjoy",
+    relationshipDetails: {
+      "robb-stark": { type: "Anh Em Nuôi", trust: 50, affinity: 60, detail: "Lớn lên cùng Robb nhưng luôn cảm thấy là người ngoài. Theon phản bội Robb để chứng minh mình xứng đáng." },
+      "balon-greyjoy": { type: "Cha", trust: 20, affinity: 30, detail: "Balon khinh thường Theon vì sống như người Xanh. Cha con xa cách." },
+      "ramsay-snow": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Kẻ tra tấn và bẻ gãy Theon, biến cậu thành Reek." }
+    },
     spouse: "",
     children: [],
     startArmies: [
@@ -214,7 +229,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 275, age: 23, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 13, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 65, "Thống Soái": 70, "Trí Mưu": 60, "Ngoại Giao": 65 },
     talentIds: ["warrior-blood", "beloved"],
-    skills: { "sailing": 8, "axe-mace": 7, "command": 7, "intimidation": 6 },
+    skills: { "trading": 8, "axe-mace": 7, "command": 7, "intimidation": 6 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu chiến", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Rìu của Kraken" }], items: [], gold: 800,
     startResources: {
       "Gỗ": 150,
@@ -235,6 +250,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["theon-greyjoy"],
     allies: [],
     rivals: ["euron-greyjoy"],
+    liege: "balon-greyjoy",
+    relationshipDetails: {
+      "balon-greyjoy": { type: "Cha", trust: 90, affinity: 80, detail: "Balon coi Asha là người thừa kế thực sự, không phải Theon." },
+      "theon-greyjoy": { type: "Em Trai", trust: 50, affinity: 60, detail: "Asha thương Theon nhưng coi thường sự yếu đuối và mong muốn được công nhận của cậu." },
+      "euron-greyjoy": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Euron cướp ngôi vua bằng phép thuật và sự tàn ác. Asha coi chú là mối đe dọa cho toàn bộ Quần Đảo Sắt." }
+    },
     spouse: "",
     children: [],
       startRegions: [],
@@ -248,7 +269,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 15, "Thể Chất": 15, "Trí Tuệ": 16, "Tinh Tường": 17, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 70, "Thống Soái": 80, "Trí Mưu": 80, "Ngoại Giao": 85 },
     talentIds: ["schemer", "warrior-blood"],
-    skills: { "sailing": 10, "cunning": 9, "command": 8, "intimidation": 9 },
+    skills: { "trading": 10, "cunning": 9, "command": 8, "intimidation": 9 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép Valyria", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 8 }, dacTinh: ["valyrian"], moTa: "Tước đoạt từ phương đông" }], items: [], gold: 10000,
     startResources: {
       "Gỗ": 1500,
@@ -298,6 +319,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["willas-tyrell", "garlan-tyrell", "loras-tyrell"],
     allies: ["olenna-tyrell"],
     rivals: ["cersei-lannister"],
+    liege: "mace-tyrell",
+    relationshipDetails: {
+      "olenna-tyrell": { type: "Bà Nội", trust: 100, affinity: 100, detail: "Olenna dạy Margaery nghệ thuật chính trị. Bà cháu như nhau — sắc sảo và nguy hiểm." },
+      "cersei-lannister": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Cersei ghen tỵ và sợ hãi sự nổi tiếng của Margaery. Hai người chiến tranh lạnh ngay trong Hồng Bảo Thành." },
+      "renly-baratheon": { type: "Chồng Cũ", trust: 60, affinity: 50, detail: "Renly hào hoa nhưng không yêu Margaery. Cô biết điều đó và chấp nhận vì quyền lực." }
+    },
     children: [],
     startArmies: [
           { name: "Bộ Binh Vùng Reach", type: "Bộ Binh", size: 4800, quality: "Thành Thạo" },
@@ -329,6 +356,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     children: ["mace-tyrell"],
     allies: ["margaery-tyrell"],
     rivals: ["tywin-lannister", "cersei-lannister"],
+    relationshipDetails: {
+      "margaery-tyrell": { type: "Cháu Gái", trust: 100, affinity: 100, detail: "Margaery là con cờ chính trị hoàn hảo của Olenna. Bà huấn luyện cháu thành Vương Hậu." },
+      "tywin-lannister": { type: "Đối Thủ", trust: 20, affinity: 10, detail: "Hai bộ óc chính trị sắc bén nhất. Olenna đầu độc Joffrey một phần vì Tywin kiểm soát ngai vàng." },
+      "cersei-lannister": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Olenna coi Cersei là ngu ngốc và nguy hiểm. Chính Olenna ra tay giết Joffrey." }
+    },
     father: "",
     mother: "",
     siblings: [],
@@ -380,7 +412,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 276, age: 22, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 13, "Thể Chất": 15, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 70, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 60 },
     talentIds: ["hot-tempered", "warrior-blood"],
-    skills: { "intimidation": 9, "brawling": 8, "hunting": 8, "sword-shield": 6 },
+    skills: { "intimidation": 9, "unarmed": 8, "hunting": 8, "sword-shield": 6 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Cung săn", phamChat: "Thường", thuocTinh: { "Sát Thương Xa": 4 }, moTa: "Dùng để săn người" }], items: [], gold: 200,
     startResources: {
       "Gỗ": 60,
@@ -411,7 +443,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 280, age: 18, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 12, "Thể Chất": 17, "Trí Tuệ": 10, "Tinh Tường": 11, "Uy Tín": 11 },
     năngLực: { "Võ Lực": 90, "Thống Soái": 55, "Trí Mưu": 50, "Ngoại Giao": 55 },
     talentIds: ["giant-frame", "born-swordsman"],
-    skills: { "sword-shield": 9, "war-riding": 6, "brawling": 7 },
+    skills: { "sword-shield": 9, "war-riding": 6, "unarmed": 7 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Kiếm thép thường", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Một thanh kiếm xuất sắc" }, { slot: "Giáp Thân", ten: "Giáp xanh lam", phamChat: "Tinh Xảo", thuocTinh: { "Phòng Thủ": 4 }, moTa: "Giáp đặc trưng" }], items: [], gold: 200,
     startResources: {
       "Gỗ": 200,
@@ -428,6 +460,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     children: [],
     siblings: [],
     rivals: ["stannis-baratheon"],
+    liege: "renly-baratheon",
+    relationshipDetails: {
+      "renly-baratheon": { type: "Chủ", trust: 100, affinity: 100, detail: "Brienne yêu Renly vì ông là người duy nhất đối xử tốt với cô. Cái chết của Renly là nỗi đau lớn nhất." },
+      "jaime-lannister": { type: "Bằng Hữu", trust: 80, affinity: 70, detail: "Jaime giao cho Brienne nhiệm vụ bảo vệ con gái Stark. Hai người dần kính trọng nhau sau hành trình gian khổ." },
+      "catelyn-tully": { type: "Chủ", trust: 90, affinity: 85, detail: "Catelyn tin tưởng Brienne hơn hầu hết đàn ông. Brienne thề bảo vệ con gái của Catelyn." }
+    },
     startArmies: [
           { name: "Bộ Binh Đảo Tarth", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
           { name: "Cung Thủ Biển", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
@@ -443,7 +481,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 13, "Thể Chất": 13, "Trí Tuệ": 13, "Tinh Tường": 15, "Uy Tín": 15 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 75, "Trí Mưu": 65, "Ngoại Giao": 75 },
     talentIds: ["beloved"],
-    skills: { "sailing": 9, "commerce": 7, "persuasion": 8, "cunning": 6 },
+    skills: { "trading": 9, "trading": 7, "persuasion": 8, "cunning": 6 },
     equipment: [], items: [{ ten: "Đốt ngón tay may mắn", soLuong: 1, moTa: "Bị Stannis chặt" }], gold: 500,
     startResources: {
       "Gỗ": 100,
@@ -460,6 +498,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     children: ["dale-seaworth", "allard-seaworth", "matthos-seaworth", "maric-seaworth", "devan-seaworth", "stannis-seaworth", "steffon-seaworth"],
     allies: ["stannis-baratheon"],
     rivals: ["melisandre"],
+    liege: "stannis-baratheon",
+    relationshipDetails: {
+      "stannis-baratheon": { type: "Chủ", trust: 100, affinity: 100, detail: "Davos trung thành tuyệt đối với Stannis. Ông là người duy nhất dám nói thật với Stannis." },
+      "melisandre": { type: "Đối Thủ", trust: 10, affinity: 10, detail: "Davos không tin phép thuật và sợ ảnh hưởng của Melisandre lên Stannis. Hai người liên tục tranh giành ảnh hưởng." },
+      "shireen-baratheon": { type: "Bảo Vệ", trust: 100, affinity: 100, detail: "Davos yêu thương Shireen như con gái. Cô bé dạy ông đọc chữ." }
+    },
     father: "",
     mother: "",
     siblings: [],
@@ -474,7 +518,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 256, age: 42, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 12, "Tinh Tường": 11, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 60, "Thống Soái": 70, "Trí Mưu": 60, "Ngoại Giao": 55 },
     talentIds: ["warrior-blood", "hot-tempered"],
-    skills: { "axe-mace": 6, "command": 7, "sailing": 7 },
+    skills: { "axe-mace": 6, "command": 7, "trading": 7 },
     equipment: [], items: [], gold: 3000,
     startResources: {
       "Gỗ": 1500,
@@ -497,6 +541,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     rivals: ["robert-baratheon", "eddard-stark", "robb-stark"],
     mother: "",
     allies: [],
+    relationshipDetails: {
+      "theon-greyjoy": { type: "Con Cái", trust: 10, affinity: 10, detail: "Balon coi Theon là đứa con đã mất, bị đồng hóa bởi người Xanh. Ông từ chối nhìn nhận Theon." },
+      "asha-greyjoy": { type: "Con Cái", trust: 90, affinity: 80, detail: "Asha là niềm tự hào của Balon — chiến binh thực sự của Quần Đảo Sắt." },
+      "euron-greyjoy": { type: "Em Trai", trust: 10, affinity: 0, detail: "Balon cấm Euron quay về Quần Đảo Sắt. Ông biết Euron nguy hiểm và điên loạn." }
+    },
       startRegions: ["the-iron-islands"],
       startHoldings: ["the-iron-islands-seat"],
       holdingsLevel: {"the-iron-islands-seat":5},
@@ -524,6 +573,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["lysa-tully", "edmure-tully"],
     allies: ["brynden-tully"],
     rivals: ["cersei-lannister", "jaime-lannister", "walder-frey"],
+    liege: "robb-stark",
+    relationshipDetails: {
+      "eddard-stark": { type: "Chồng (Đã Mất)", trust: 100, affinity: 100, detail: "Catelyn yêu Ned sâu sắc, mặc dù cuộc hôn nhân bắt đầu từ chính trị. Cái chết của Ned là khoen đau để đời." },
+      "robb-stark": { type: "Con Cái", trust: 100, affinity: 100, detail: "Robb là con trai trưởng. Catelyn cố vấn cho Robb nhưng cậu thường không nghe." },
+      "jon-snow": { type: "Con Nuôi", trust: 20, affinity: 10, detail: "Catelyn không bao giờ chấp nhận Jon — đứa con hoang nhắc nhở cô về sự không chung thủy của Ned." },
+      "petyr-baelish": { type: "Bạn Cũ", trust: 60, affinity: 40, detail: "Petyr yêu Catelyn từ nhỏ. Catelyn coi Petyr như em trai nhưng không biết sự ám ảnh của hắn." }
+    },
     startArmies: [
           { name: "Dân Binh Riverlands", type: "Bộ Binh", size: 168, quality: "Thành Thạo" },
           { name: "Cung Thủ Vùng Sông", type: "Cung Thủ", size: 72, quality: "Thành Thạo" }
@@ -538,7 +594,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Con út nhà Stark, hoang dã và không kiểm soát.",
     birthYear: 295, age: 3, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 6, "Thể Chất": 5, "Trí Tuệ": 5, "Tinh Tường": 8, "Uy Tín": 6 },
     năngLực: { "Võ Lực": 20, "Thống Soái": 30, "Trí Mưu": 25, "Ngoại Giao": 40 },
-    talentIds: ["warg"], skills: { "animal-handling": 4 },
+    talentIds: ["warg"], skills: { "hunting": 4 },
     equipment: [], items: [], gold: 10,
     startResources: {
       "Gỗ": 60,
@@ -588,6 +644,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["catelyn-tully", "edmure-tully"],
     allies: ["petyr-baelish"],
     rivals: ["catelyn-tully"],
+    relationshipDetails: {
+      "petyr-baelish": { type: "Người Tình", trust: 100, affinity: 100, detail: "Lysa yêu Petyr điên cuồng từ bé. Cô giết chồng Jon Arryn theo lệnh Petyr mà không hề hay biết mình bị lợi dụng." },
+      "catelyn-tully": { type: "Chị Gái", trust: 30, affinity: 20, detail: "Lysa ghen tỵ với Catelyn vì Petyr yêu chị. Mối quan hệ chị em đổ vỡ vì ghen tuông." },
+      "robert-arryn": { type: "Con Cái", trust: 100, affinity: 100, detail: "Lysa bảo vệ Robin bằng sự hoang tưởng và tình yêu bệnh hoạn, không cho cậu bé lớn lên." }
+    },
       startRegions: ["the-riverlands"],
       startHoldings: ["the-riverlands-seat"],
       holdingsLevel: {"the-riverlands-seat":5},
@@ -616,6 +677,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["catelyn-tully", "lysa-tully"],
     allies: ["robb-stark", "brynden-tully"],
     rivals: ["jaime-lannister", "tywin-lannister"],
+    liege: "robb-stark",
+    relationshipDetails: {
+      "robb-stark": { type: "Chủ", trust: 90, affinity: 80, detail: "Edmure chiến đấu cho Robb nhưng nhiều lần gây rối chiến lược của Robb vì bốc đồng." },
+      "brynden-tully": { type: "Chú", trust: 100, affinity: 100, detail: "Cá Đen luôn bảo vệ và hướng dẫn Edmure, mặc dù thường chê Edmure thiếu kiên nhẫn." }
+    },
     spouse: "",
     children: [],
       startRegions: ["the-riverlands"],
@@ -644,6 +710,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["hoster-tully"],
     allies: ["robb-stark", "catelyn-tully"],
     rivals: ["jaime-lannister", "walder-frey"],
+    liege: "robb-stark",
+    relationshipDetails: {
+      "robb-stark": { type: "Chủ", trust: 100, affinity: 90, detail: "Brynden là tư lệnh tiền tuyến của Robb. Ông kính trọng khả năng lãnh đạo của Robb." },
+      "catelyn-tully": { type: "Cháu Gái", trust: 100, affinity: 100, detail: "Brynden yêu thương Catelyn như con gái. Ông là người bảo vệ gia đình Tully." },
+      "jaime-lannister": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Kẻ Sát Vương bắt cóc và làm nhục gia tộc Tully. Brynden thề sẽ trả thù." }
+    },
     father: "hoster-tully-senior",
     mother: "",
     spouse: "",
@@ -678,6 +750,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     allies: ["randyll-tarly", "tywin-lannister"],
     siblings: [],
     rivals: ["stannis-baratheon"],
+    relationshipDetails: {
+      "olenna-redwyne": { type: "Mẹ", trust: 100, affinity: 80, detail: "Mace nghĩ mình ra quyết định, nhưng thực ra Olenna điều khiển mọi thứ từ phía sau." },
+      "margaery-tyrell": { type: "Con Gái", trust: 100, affinity: 100, detail: "Mace tự hào vì Margaery trở thành Vương Hậu. Ông coi đó là thành tựu lớn nhất." },
+      "randyll-tarly": { type: "Đồng Minh", trust: 80, affinity: 70, detail: "Tarly là tướng giỏi nhất của Mace. Mace phụ thuộc vào tài quân sự của ông." }
+    },
       startRegions: ["the-reach"],
       startHoldings: ["the-reach-seat"],
       holdingsLevel: {"the-reach-seat":5},
@@ -702,6 +779,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["willas-tyrell", "garlan-tyrell", "margaery-tyrell"],
     allies: ["renly-baratheon", "margaery-tyrell"],
     rivals: [],
+    liege: "mace-tyrell",
+    relationshipDetails: {
+      "renly-baratheon": { type: "Người Tình", trust: 100, affinity: 100, detail: "Người tình bí mật. Cái chết của Renly khiến Loras vô cùng đau khổ và thề sẽ trả thù." },
+      "margaery-tyrell": { type: "Chị Em", trust: 100, affinity: 100, detail: "Em gái yêu quý. Loras bảo vệ Margaery bằng mọi giá." },
+      "jaime-lannister": { type: "Đối Thủ", trust: 30, affinity: 40, detail: "Hai kiếm sĩ giỏi nhất vương quốc, kính trọng nhau trên trường đấu." }
+    },
     spouse: "",
     children: [],
     startArmies: [
@@ -718,7 +801,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Chiến binh tàn bạo trên biển, không có trí thông minh chính trị nhưng trung thành và vô cùng đáng sợ.",
     birthYear: 268, age: 30, coreStats: { "Sức Mạnh": 17, "Nhanh Nhẹn": 12, "Thể Chất": 16, "Trí Tuệ": 8, "Tinh Tường": 10, "Uy Tín": 12 },
     năngLực: { "Võ Lực": 85, "Thống Soái": 60, "Trí Mưu": 40, "Ngoại Giao": 50 },
-    talentIds: ["warrior-blood", "giant-frame"], skills: { "sailing": 9, "axe-mace": 9, "command": 7 },
+    talentIds: ["warrior-blood", "giant-frame"], skills: { "trading": 9, "axe-mace": 9, "command": 7 },
     equipment: [{ slot: "Vũ Khí Chính", ten: "Rìu lớn của Victarion", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Vũ khí tử thần trên tàu chiến" }], items: [], gold: 1000,
     startResources: {
       "Gỗ": 30,
@@ -736,8 +819,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
         ],
     father: "quellon-greyjoy",
     siblings: ["balon-greyjoy", "euron-greyjoy", "aeron-greyjoy"],
-    allies: [],
+    allies: ["balon-greyjoy"],
     rivals: ["euron-greyjoy"],
+    liege: "balon-greyjoy",
+    relationshipDetails: {
+      "balon-greyjoy": { type: "Lãnh Chúa", trust: 100, affinity: 80, detail: "Trung thành tuyệt đối với anh trai Balon. Victarion luôn tuân lệnh mà không hỏi." },
+      "euron-greyjoy": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Euron giết vợ cũ của Victarion. Mối thù máu không bao giờ nguôi." }
+    },
     mother: "",
     spouse: "",
     children: [],
@@ -751,7 +839,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Tu sĩ cuồng tín của Thần Chết Chìm, uống nước biển và ban phước bằng cách dìm nước.",
     birthYear: 269, age: 29, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 12, "Thể Chất": 14, "Trí Tuệ": 11, "Tinh Tường": 15, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 55, "Thống Soái": 70, "Trí Mưu": 55, "Ngoại Giao": 75 },
-    talentIds: ["beloved"], skills: { "lore": 6, "persuasion": 8, "sailing": 6 },
+    talentIds: ["beloved"], skills: { "lore": 6, "persuasion": 8, "trading": 6 },
     equipment: [], items: [], gold: 50,
     startResources: {
       "Gỗ": 30,
@@ -785,7 +873,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     blurb: "Đáng tin cậy, vững vàng và luôn đứng trong cái bóng của người anh trai vĩ đại Tywin Lannister.",
     birthYear: 244, age: 54, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 9, "Thể Chất": 11, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 70, "Trí Mưu": 75, "Ngoại Giao": 70 },
-    talentIds: ["learned", "commander-instinct"], skills: { "command": 7, "commerce": 6, "court-etiquette": 7 },
+    talentIds: ["learned", "commander-instinct"], skills: { "command": 7, "trading": 6, "court-etiquette": 7 },
     equipment: [], items: [], gold: 10000,
     startResources: {
       "Gỗ": 50,
@@ -805,10 +893,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["tywin-lannister", "genna-lannister", "tygett-lannister", "gerion-lannister"],
     allies: ["tywin-lannister"],
     rivals: [],
+    liege: "tywin-lannister",
+    relationshipDetails: {
+      "tywin-lannister": { type: "Anh Trai", trust: 100, affinity: 90, detail: "Kevan luôn là cánh tay phải trung thành nhất của Tywin, không bao giờ tranh giành quyền lực." },
+      "cersei-lannister": { type: "Cháu Gái", trust: 40, affinity: 30, detail: "Kevan thấy Cersei kiêu ngạo và thiếu khả năng, nhưng im lặng khi Tywin còn sống." }
+    },
       startRegions: [],
       startHoldings: [],
       holdingsLevel: {},
-      baseIncome: 25
+      baseIncome: 200
 },
   {
     id: "lancel-lannister", name: "Lancel Lannister", house: "Lannister", role: "Hiệp Sĩ Trẻ", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
@@ -922,8 +1015,14 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
       "Ngựa": 4,
       "Thép Valyria": 0
     }, startingHookIds: [],
-    allies: ["stannis-baratheon"],
+    allies: ["stannis-baratheon", "selyse-florent"],
     rivals: ["davos-seaworth"],
+    liege: "stannis-baratheon",
+    relationshipDetails: {
+      "stannis-baratheon": { type: "Chủ/Khách Hàng", trust: 80, affinity: 60, detail: "Melisandre tin Stannis là Azor Ahai tái sinh. Cô phục vụ ông vì sứ mệnh thiêng liêng." },
+      "davos-seaworth": { type: "Đối Thủ", trust: 10, affinity: 10, detail: "Davos không tin phép thuật và coi Melisandre là mối nguy. Hai người liên tục tranh giành ảnh hưởng với Stannis." },
+      "selyse-florent": { type: "Tín Đồ", trust: 90, affinity: 70, detail: "Selyse sùng bái Melisandre và Thần Ánh Sáng, nghe theo mọi lời cô." }
+    },
     father: "",
     mother: "",
     spouse: "",

@@ -33,7 +33,7 @@ interface MilitaryState {
   setMoveMode: (v: boolean) => void;
 
   recruit: (territoryId: string, type: TroopTypeAll, count: number, name?: string) => { ok: boolean; error?: string };
-  moveUnit: (unitName: string, targetTerritoryId: string) => { ok: boolean; error?: string; turns?: number };
+  moveUnit: (unitName: string, targetTerritoryId: string) => { ok: boolean; error?: string; days?: number };
   siege: (unitName: string, targetTerritoryId: string) => { ok: boolean; error?: string };
   setWar: (houseId: string, atWar: boolean) => void;
   bumpWarScore: (houseId: string, delta: number) => void;
@@ -62,7 +62,7 @@ export const useMilitaryStore = create<MilitaryState>()((set) => ({
     if (!r.ok) return { ok: false, error: r.error };
     applyEngineOps(r.ops);
     set({ moveMode: false, selectedUnit: null });
-    return { ok: true, turns: r.turns };
+    return { ok: true, days: r.days };
   },
 
   siege: (unitName, targetTerritoryId) => {

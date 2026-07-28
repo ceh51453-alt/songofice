@@ -25,7 +25,7 @@ Ba ngày sau, ngươi về tới Winterfell. Tyrion Lannister đứng chờ ở 
  {"op":"delta","path":"stat_data.Thông Tin Nhân Vật.Ngân Khố","value":50},
  {"op":"delta","path":"stat_data.Thế Giới.Ngày","value":3},
  {"op":"replace","path":"stat_data.Mối Quan Hệ.NPC Chính.Tyrion Lannister","value":{"Họ Tên":"Tyrion Lannister","Tuổi":38,"Độ Hảo Cảm":20,"Chức Vụ":"Quân Sư"}},
- {"op":"replace","path":"stat_data._engineMeta.turnCount","value":999}
+ {"op":"replace","path":"stat_data._engineMeta._Nhịp","value":999}
 ]}
 </UpdateVariable>`,
   `Ngươi né kịp nhát chém, chỉ trẹo nhẹ cổ chân. Tên lính bỏ chạy.
@@ -100,8 +100,8 @@ describe("Vòng lặp M4 hoàn chỉnh (5.7.6)", () => {
     expect(tyrion["Độ Hảo Cảm"]).toBe(20);
     expect(tyrion["Giai Đoạn Quan Hệ"]).toBe("Quen Biết"); // engine dẫn xuất nhãn (5.1d)
 
-    // --- extractor CHẶN op ghi field _ (AI cố ghi turnCount=999) ---
-    expect(stat["_engineMeta"]["turnCount"]).toBe(1); // 0 + 1 lượt, KHÔNG phải 999
+    // --- extractor CHẶN op ghi field _ (AI cố ghi _Nhịp=999) ---
+    expect(stat["_engineMeta"]["_Nhịp"]).toBe(1); // 0 + 1 lượt, KHÔNG phải 999
 
     // --- JSON patch bị ẩn khỏi text hiển thị (5.5), thẻ raven_scroll giữ nguyên cho renderer ---
     const msgs = useChatStore.getState().messages;

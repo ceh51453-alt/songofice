@@ -14,8 +14,8 @@ type NpcMemory = Npc["Ký Ức"][number];
 
 /** Ngưỡng trọng số mà ký ức KHÔNG phai (sự kiện lớn: phản bội, cứu mạng). */
 const PERMANENT_THRESHOLD = 80;
-/** Trọng số giảm mỗi turn cho ký ức dưới ngưỡng. */
-const DECAY_PER_TURN = 0.5;
+/** Trọng số giảm mỗi NGÀY truyện cho ký ức dưới ngưỡng. */
+const DECAY_PER_DAY = 0.5;
 /** Trọng số tối thiểu trước khi bị loại bỏ hoàn toàn. */
 const MIN_WEIGHT_BEFORE_PURGE = 5;
 /** Số ký ức tối đa giữ trên mỗi NPC (tránh phình). */
@@ -38,17 +38,17 @@ export function selectRelevantMemories(npc: Npc, isActive: boolean): NpcMemory[]
 // ── Decay ────────────────────────────────────────────────────────────────────
 
 /**
- * Phai ký ức NPC theo số turn đã trôi. Mutate trực tiếp.
+ * Phai ký ức NPC theo số NGÀY truyện đã trôi. Mutate trực tiếp.
  * - Ký ức >= PERMANENT_THRESHOLD (80): không phai
- * - Ký ức < 80: giảm DECAY_PER_TURN × turnsPassed
+ * - Ký ức < 80: giảm DECAY_PER_DAY × daysPassed
  * - Ký ức < MIN_WEIGHT_BEFORE_PURGE (5): xoá khỏi mảng
  */
-export function decayMemories(npc: Npc, turnsPassed: number): void {
-  if (turnsPassed <= 0 || npc["Ký Ức"].length === 0) return;
+export function decayMemories(npc: Npc, daysPassed: number): void {
+  if (daysPassed <= 0 || npc["Ký Ức"].length === 0) return;
 
   for (const mem of npc["Ký Ức"]) {
     if (mem["Trọng Số"] < PERMANENT_THRESHOLD) {
-      mem["Trọng Số"] = Math.max(0, mem["Trọng Số"] - DECAY_PER_TURN * turnsPassed);
+      mem["Trọng Số"] = Math.max(0, mem["Trọng Số"] - DECAY_PER_DAY * daysPassed);
     }
   }
   // Purge ký ức quá yếu
@@ -56,23 +56,24 @@ export function decayMemories(npc: Npc, turnsPassed: number): void {
 }
 
 /**
- * Phai ký ức cho TẤT CẢ NPC. Gọi từ effects cascade mỗi turn.
+ * Phai ký ức cho TẤT CẢ NPC. Gọi từ effects cascade theo số ngày đã trôi.
  */
-export function decayAllMemories(state: StatData, turnsPassed: number): void {
-  if (turnsPassed <= 0) return;
+export function decayAllMemories(state: StatData, daysPassed: number): void {
+  if (daysPassed <= 0) return;
   const allNpcs = [
     ...Object.values(state["Mối Quan Hệ"]["NPC Chính"]),
     ...Object.values(state["Mối Quan Hệ"]["Thành Viên Gia Tộc"]),
   ];
   for (const npc of allNpcs) {
-    decayMemories(npc, turnsPassed);
+    decayMemories(npc, daysPassed);
   }
 }
 
 // ── Add ──────────────────────────────────────────────────────────────────────
 
 interface AddMemoryInput {
-  turn: number;
+  day: number;
+  month: number;
   year?: number;
   event: string;
   emotion: NpcMemory["Cảm Xúc"];
@@ -89,13 +90,15 @@ export function addMemory(npc: Npc, input: AddMemoryInput): void {
   if (existing) {
     existing["Trọng Số"] = Math.max(existing["Trọng Số"], input.weight);
     existing["Cảm Xúc"] = input.emotion;
-    existing["Turn"] = input.turn;
+    existing["Ngày"] = input.day;
+    existing["Tháng"] = input.month;
     if (input.year !== undefined) existing["Năm"] = input.year;
     return;
   }
 
   npc["Ký Ức"].push({
-    "Turn": input.turn,
+    "Ngày": input.day,
+    "Tháng": input.month,
     "Năm": input.year,
     "Sự Việc": input.event,
     "Cảm Xúc": input.emotion,
@@ -134,7 +137,10 @@ export function formatMemoriesForPrompt(
 
     lines.push(`[Ký ức ${name}]`);
     for (const m of memories) {
-      lines.push(`  - [Turn ${m["Turn"]}${m["Năm"] ? `, năm ${m["Năm"]}` : ""}] ${m["Sự Việc"]} (${m["Cảm Xúc"]}, trọng số ${m["Trọng Số"]})`);
+      const when = m["Năm"] !== undefined
+        ? `ngày ${m["Ngày"]}/${m["Tháng"]}/${m["Năm"]} AC`
+        : `ngày ${m["Ngày"]} tháng ${m["Tháng"]}`;
+      lines.push(`  - [${when}] ${m["Sự Việc"]} (${m["Cảm Xúc"]}, trọng số ${m["Trọng Số"]})`);
     }
     if (npc["Lời Hứa Chưa Giữ"].length > 0) {
       lines.push(`  Lời hứa: ${npc["Lời Hứa Chưa Giữ"].map((p) => `"${p}"`).join("; ")}`);

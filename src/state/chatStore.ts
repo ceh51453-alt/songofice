@@ -12,7 +12,7 @@ import { genId } from "../lib/id";
 import { streamChat } from "../api/client";
 import { friendlyMessage, toApiError } from "../api/errors";
 import { useConnectionStore } from "./connectionStore";
-import { useMvuStore } from "./mvuStore";
+import { useMvuStore, currentDay } from "./mvuStore";
 import { useCombatStore } from "./combatStore";
 import { useTerritoryStore } from "./territoryStore";
 import { buildPipeline } from "../prompt/promptPipeline";
@@ -236,7 +236,7 @@ export const useChatStore = create<ChatState>()(
                 for (const a of result.aiResult.actions) {
                   collectedNews.push({ npcName: a.npcName, action: a.action, newsText: a.newsText });
                   useWorldNewsStore.getState().addHeadline({
-                    turn: useMvuStore.getState().stat["_engineMeta"]["turnCount"],
+                    day: currentDay(),
                     text: a.newsText,
                     source: "offscreen",
                   });
@@ -253,7 +253,7 @@ export const useChatStore = create<ChatState>()(
                 for (const a of result.fallbackActions) {
                   collectedNews.push(a);
                   useWorldNewsStore.getState().addHeadline({
-                    turn: useMvuStore.getState().stat["_engineMeta"]["turnCount"],
+                    day: currentDay(),
                     text: a.newsText,
                     source: "offscreen",
                   });

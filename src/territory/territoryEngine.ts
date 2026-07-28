@@ -72,7 +72,7 @@ export function seedRegionControl(state: StatData, _eraId: string, opts?: { crea
       "Nhà Kiểm Soát": house,
       "Tình Trạng": "Ổn Định",
       "Là Của Người Chơi": !!pHouse && house === pHouse,
-      "_Đổi Chủ Turn": 0,
+      "_Ngày Đổi Chủ": 0,
     };
   }
 
@@ -113,7 +113,7 @@ export function captureRegionOps(
   state: StatData,
   regionId: string,
   newHouseId: string,
-  turn: number,
+  capturedOnDay: number,
 ): PatchOp[] {
   const region = REGIONS_BY_ID[regionId];
   if (!region) return [];
@@ -126,7 +126,7 @@ export function captureRegionOps(
     { op: "replace", path: `${base}.Nhà Kiểm Soát`, value: newHouseId },
     { op: "replace", path: `${base}.Tình Trạng`, value: "Mới Chiếm" },
     { op: "replace", path: `${base}.Là Của Người Chơi`, value: isPlayer },
-    { op: "replace", path: `${base}._Đổi Chủ Turn`, value: turn },
+    { op: "replace", path: `${base}._Ngày Đổi Chủ`, value: capturedOnDay },
   ];
 
   // Tìm seat marker ID cho region
@@ -161,8 +161,8 @@ export interface RegionFill {
   isPlayer: boolean;
   status: string;
   house: string;
-  /** turn đổi chủ gần nhất (animation "lan chiếm" 9.5.3). */
-  changedTurn: number;
+  /** ngày tuyệt đối đổi chủ gần nhất (animation "lan chiếm" 9.5.3). */
+  changedDay: number;
 }
 
 export function regionController(state: StatData, regionId: string): string {
@@ -175,19 +175,19 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
   const house = sov?.["Nhà Kiểm Soát"] ?? "";
   const isPlayer = !!sov?.["Là Của Người Chơi"];
   const status = sov?.["Tình Trạng"] ?? "Ổn Định";
-  const changedTurn = sov?.["_Đổi Chủ Turn"] ?? 0;
+  const changedDay = sov?.["_Ngày Đổi Chủ"] ?? 0;
 
   if (mode === "relationship") {
     if (isPlayer) {
-      return { color: PLAYER_HEAT_COLOR, striped: false, isPlayer, status, house, changedTurn };
+      return { color: PLAYER_HEAT_COLOR, striped: false, isPlayer, status, house, changedDay };
     }
     if (!house) {
-      return { color: NEUTRAL_COLOR.base, striped: true, isPlayer, status, house, changedTurn };
+      return { color: NEUTRAL_COLOR.base, striped: true, isPlayer, status, house, changedDay };
     }
     const schemaName = HOUSES_BY_ID[house]?.schemaName ?? "";
     const attitude = state["Thái Độ Các Nhà"][schemaName]?.["Thái Độ"] ?? "Cảnh Giác";
     const heat = ATTITUDE_HEAT[attitude] ?? ATTITUDE_HEAT["Cảnh Giác"];
-    return { color: heat.color, striped: false, isPlayer, status, house, changedTurn };
+    return { color: heat.color, striped: false, isPlayer, status, house, changedDay };
   }
 
   if (mode === "faction") {
@@ -212,7 +212,7 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
           isPlayer,
           status,
           house, // still keep the house for UI tooltips
-          changedTurn,
+          changedDay,
         };
       }
       // Vùng không thuộc phe nào trong thời kỳ nội chiến sẽ có màu trung lập
@@ -222,7 +222,7 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
         isPlayer,
         status,
         house,
-        changedTurn,
+        changedDay,
       };
     }
   }
@@ -234,7 +234,7 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
     isPlayer,
     status,
     house,
-    changedTurn,
+    changedDay,
   };
 }
 
@@ -280,7 +280,7 @@ export function calculateYield(territory: Record<string, any>, weatherFactor: nu
 
 export function monthlyTick(state: StatData): PatchOp[] {
   const ops: PatchOp[] = [];
-  const month = state["Thế Giới"]["Ngày"] > 30 ? Math.floor(state["Thế Giới"]["Ngày"]/30) + 1 : 1; // Giả sử mỗi tháng 30 ngày
+  const month = state["Thế Giới"]["Tháng"];
   const weatherFactor = 1.0; // Tạm thời 1.0
   
   const holdings = state["Lãnh Địa"] as Record<string, any>;
@@ -365,7 +365,7 @@ export function placeBuilding(state: StatData, territoryId: string, buildingType
           "Loại": buildingType,
           "Cấp Độ": 1,
           "Đang Xây": true,
-          "Turn Còn Lại": 3,
+          "Ngày Xây Còn Lại": 90, // 3 tháng
           "Tọa Độ X": x,
           "Tọa Độ Y": y,
           "Kích Thước": 1

@@ -75,7 +75,7 @@ describe("audioEngine (M16)", () => {
         "Nhà Kiểm Soát": "Stark",
         "Tình Trạng": "Bị Vây",
         "Là Của Người Chơi": true,
-        "_Đổi Chủ Turn": 0,
+        "_Ngày Đổi Chủ": 0,
       };
       expect(deriveMood(state)).toBe("war");
     });
@@ -83,7 +83,7 @@ describe("audioEngine (M16)", () => {
     it("nhật ký gần nhất là Chiến Thắng → victory", () => {
       const state = makeState();
       state["Nhật Ký"] = [
-        { "Turn": 1, "Năm": 298, "Loại": "Chiến Thắng", "Mô Tả": "Thắng trận Blackwater" },
+        { "Ngày": 1, "Tháng": 1, "Năm": 298, "Loại": "Chiến Thắng", "Mô Tả": "Thắng trận Blackwater" },
       ];
       expect(deriveMood(state)).toBe("victory");
     });

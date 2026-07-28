@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { useTerritoryStore } from "../../state/territoryStore";
 
+import { formatDuration } from "../../mvu/calendar";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { houseColor, ATTITUDE_HEAT } from "../../content/westeros/houseColors";
@@ -208,7 +209,7 @@ function OverviewTab({ holding, regionName, besieged }: { holding: Holding; regi
   const t = useT();
   const yld = estimateTerritoryYield(holding);
   const stock = holding["Tài Nguyên"];
-  const foodTurns = yld["Lương Thực"] < 0 ? Math.floor(stock["Lương Thực"] / -yld["Lương Thực"]) : Infinity;
+  const foodMonths = yld["Lương Thực"] < 0 ? Math.floor(stock["Lương Thực"] / -yld["Lương Thực"]) : Infinity;
   const resKeys: ResourceKey[] = ["Lương Thực", "Gỗ", "Đá", "Quặng Sắt"];
 
   return (
@@ -218,8 +219,8 @@ function OverviewTab({ holding, regionName, besieged }: { holding: Holding; regi
       {holding["Trung Thành"] < 30 && (
         <Banner text={t("terr.warnLoyalty")} />
       )}
-      {foodTurns !== Infinity && foodTurns < 5 && (
-        <Banner text={t("terr.warnFamine", { n: foodTurns })} />
+      {foodMonths !== Infinity && foodMonths < 5 && (
+        <Banner text={t("terr.warnFamine", { n: foodMonths })} />
       )}
 
       <Block title={t("terr.blockLand")}>
@@ -300,7 +301,7 @@ function GarrisonTab({ territoryId }: { territoryId: string }) {
             </div>
             <p className="mt-0.5 text-[11.5px] text-[var(--text-faint)]">
               {u["Loại Quân"]} · {u["Sĩ Khí"]} · {u["Huấn Luyện"]}
-              {u["Turn Huấn Luyện"] > 0 ? ` · ${t("mil.training", { n: u["Turn Huấn Luyện"] })}` : ""}
+              {u["Ngày Huấn Luyện"] > 0 ? ` · ${t("mil.training", { n: formatDuration(u["Ngày Huấn Luyện"]) })}` : ""}
             </p>
           </div>
         ))

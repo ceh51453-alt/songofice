@@ -39,7 +39,8 @@ export interface SaveSlotMeta {
   characterName: string;
   house: string;
   era: string;
-  turnCount: number;
+  day: number;
+  month: number;
   year: number;
   season: string;
 }

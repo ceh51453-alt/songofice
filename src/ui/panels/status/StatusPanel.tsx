@@ -187,7 +187,7 @@ export function StatusPanel() {
             <IconPin size={13} color="var(--text-faint)" /> {world["Vị Trí"]}
           </p>
           <p className="text-[12px] text-[var(--text-muted)]">
-            Ngày {world["Ngày"]} · Năm {world["Năm"]} AC · Mùa {world["Mùa"]}
+            Ngày {world["Ngày"]} tháng {world["Tháng"]} · Năm {world["Năm"]} AC · Mùa {world["Mùa"]}
           </p>
           <p className="text-[12px] text-[var(--text-faint)]">{world["Thời Tiết"]}</p>
         </div>

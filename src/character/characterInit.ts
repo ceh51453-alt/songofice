@@ -119,7 +119,7 @@ export function validatePointBuy(
 export const autoBuildCity = (level: number) => {
   const b: Record<string, any> = {};
   const center = 750;
-  b[`Lâu Đài_${center}_${center}`] = { "Loại": "Lâu Đài", "Cấp Độ": level, "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": center, "Tọa Độ Y": center, "Kích Thước": 2 };
+  b[`Lâu Đài_${center}_${center}`] = { "Loại": "Lâu Đài", "Cấp Độ": level, "Đang Xây": false, "Ngày Xây Còn Lại": 0, "Tọa Độ X": center, "Tọa Độ Y": center, "Kích Thước": 2 };
   
   const tryPlace = (type: string, count: number, size: number = 1) => {
       for (let i = 0; i < count; i++) {
@@ -141,7 +141,7 @@ export const autoBuildCity = (level: number) => {
                       }
                   }
                   if (!collides) {
-                      b[`${type}_${x}_${y}`] = { "Loại": type, "Cấp Độ": Math.max(1, level - 1), "Đang Xây": false, "Turn Còn Lại": 0, "Tọa Độ X": x, "Tọa Độ Y": y, "Kích Thước": size };
+                      b[`${type}_${x}_${y}`] = { "Loại": type, "Cấp Độ": Math.max(1, level - 1), "Đang Xây": false, "Ngày Xây Còn Lại": 0, "Tọa Độ X": x, "Tọa Độ Y": y, "Kích Thước": size };
                       placedHere = true;
                       break;
                   }
@@ -607,7 +607,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
     if (!state["Chủ Quyền Lãnh Thổ"]) state["Chủ Quyền Lãnh Thổ"] = {};
     const regionId = d.startingLocation || state["Thế Giới"]["Vị Trí"];
     if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
-      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Đổi Chủ Turn": 0 };
+      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0 };
     }
     state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = d.houseId || d.customHouseName || "Vô Danh";
     state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
@@ -627,7 +627,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
     if (!state["Chủ Quyền Lãnh Thổ"]) state["Chủ Quyền Lãnh Thổ"] = {};
     if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
-      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Đổi Chủ Turn": 0 };
+      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0 };
     }
     state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = d.houseId || d.customHouseName || "Vô Danh";
     state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
@@ -699,8 +699,8 @@ export function buildStateFromWizard(d: WizardData): StatData {
         "Trang Bị": "Đồng Bộ Chỉnh Tề",
         "Huấn Luyện": "Thành Thạo",
         "Lãnh Địa Đồn Trú": d.startingLocation || state["Thế Giới"]["Vị Trí"],
-        "Turn Di Chuyển Còn Lại": 0,
-        "Turn Huấn Luyện": 0,
+        "Ngày Hành Quân Còn Lại": 0,
+        "Ngày Huấn Luyện": 0,
       };
     }
     for (const n of d.customForce.npcs) {
@@ -939,8 +939,8 @@ export function buildStateFromCanon(
     for (const [creditor, debtInfo] of Object.entries(c.startDebts)) {
       state["Các Khoản Nợ"][creditor] = {
         "Nợ Gốc": debtInfo.amount,
-        "Lãi/Turn": debtInfo.interest,
-        "Turn Còn Lại": debtInfo.duration,
+        "Lãi/Tháng": debtInfo.interest,
+        "Tháng Còn Lại": debtInfo.duration,
         "Đang Quỵt": false
       };
     }
@@ -1010,8 +1010,8 @@ export function buildStateFromCanon(
       "Trang Bị": "Không Có",
       "Huấn Luyện": "Tinh Nhuệ",
       "Lãnh Địa Đồn Trú": loc,
-      "Turn Di Chuyển Còn Lại": 0,
-      "Turn Huấn Luyện": 0
+      "Ngày Hành Quân Còn Lại": 0,
+      "Ngày Huấn Luyện": 0
     };
   }
 
@@ -1180,8 +1180,8 @@ export function buildStateFromCanon(
             "Trang Bị": "Đồng Bộ Chỉnh Tề",
             "Huấn Luyện": a.quality as any,
             "Lãnh Địa Đồn Trú": loc,
-            "Turn Di Chuyển Còn Lại": 0,
-            "Turn Huấn Luyện": 0
+            "Ngày Hành Quân Còn Lại": 0,
+            "Ngày Huấn Luyện": 0
           };
         }
       }
@@ -1219,8 +1219,8 @@ export function buildStateFromCanon(
         "Trang Bị": "Đồng Bộ Chỉnh Tề",
         "Huấn Luyện": quality as any,
         "Lãnh Địa Đồn Trú": loc,
-        "Turn Di Chuyển Còn Lại": 0,
-        "Turn Huấn Luyện": 0
+        "Ngày Hành Quân Còn Lại": 0,
+        "Ngày Huấn Luyện": 0
       };
     };
 
@@ -1322,7 +1322,7 @@ export function buildStateFromCanon(
           "Người Kiểm Soát": ch.name,
           "Là Của Người Chơi": false,
           "Tình Trạng": "Ổn Định",
-          "_Đổi Chủ Turn": 0
+          "_Ngày Đổi Chủ": 0
         };
         
         const loc = ch.startHoldings?.[0] || def.seat;

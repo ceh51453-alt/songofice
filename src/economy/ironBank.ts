@@ -6,9 +6,10 @@
 import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 
-/** Lãi suất mặc định: 5% gốc mỗi turn. */
+/** Lãi suất mặc định: 5% gốc mỗi THÁNG. */
 const DEFAULT_INTEREST_RATE = 0.05;
-const DEFAULT_TERM_TURNS = 60; // ~2 tháng truyện
+/** Kỳ hạn mặc định: 24 tháng (2 năm truyện). */
+const DEFAULT_TERM_MONTHS = 24;
 
 export interface BorrowResult {
   ok: boolean;
@@ -17,14 +18,14 @@ export interface BorrowResult {
 }
 
 /**
- * Vay từ Iron Bank. Nhận Vàng ngay, trả lãi mỗi turn, trả gốc khi hết hạn.
+ * Vay từ Iron Bank. Nhận Vàng ngay, trả lãi mỗi tháng, trả gốc khi hết hạn.
  * Chỉ vay được khi chưa nợ hoặc đã trả hết nợ trước.
  */
 export function borrowFromIronBank(
   state: StatData,
   amount: number,
   interestRate = DEFAULT_INTEREST_RATE,
-  termTurns = DEFAULT_TERM_TURNS,
+  termMonths = DEFAULT_TERM_MONTHS,
 ): BorrowResult {
   if (amount <= 0) return { ok: false, error: "Số tiền vay phải > 0", ops: [] };
   const bankDebt = state["Các Khoản Nợ"]["Iron Bank"];
@@ -35,7 +36,7 @@ export function borrowFromIronBank(
     return { ok: false, error: "Iron Bank từ chối — ngươi đã quỵt nợ trước đó", ops: [] };
   }
 
-  const interestPerTurn = Math.max(1, Math.round(amount * interestRate));
+  const interestPerMonth = Math.max(1, Math.round(amount * interestRate));
 
   return {
     ok: true,
@@ -43,8 +44,8 @@ export function borrowFromIronBank(
       { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: amount },
       { op: "replace", path: "stat_data.Các Khoản Nợ.Iron Bank", value: {
         "Nợ Gốc": amount,
-        "Lãi/Turn": interestPerTurn,
-        "Turn Còn Lại": termTurns,
+        "Lãi/Tháng": interestPerMonth,
+        "Tháng Còn Lại": termMonths,
         "Đang Quỵt": false,
       }},
     ],
@@ -57,7 +58,7 @@ export function repayIronBank(state: StatData): BorrowResult {
   if (!bank || bank["Nợ Gốc"] <= 0) return { ok: false, error: "Không có nợ để trả", ops: [] };
   if (bank["Đang Quỵt"]) return { ok: false, error: "Đã quỵt nợ — không thể trả lại", ops: [] };
 
-  const totalOwed = bank["Nợ Gốc"] + bank["Lãi/Turn"] * Math.min(5, bank["Turn Còn Lại"]); // phạt lãi 5 turn sớm
+  const totalOwed = bank["Nợ Gốc"] + bank["Lãi/Tháng"] * Math.min(5, bank["Tháng Còn Lại"]); // phạt lãi 5 tháng sớm
   if (state["Thông Tin Nhân Vật"]["Ngân Khố"] < totalOwed) {
     return { ok: false, error: `Cần ${totalOwed} Ngân Khố để trả nợ (gốc + phạt lãi sớm)`, ops: [] };
   }
@@ -68,8 +69,8 @@ export function repayIronBank(state: StatData): BorrowResult {
       { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -totalOwed },
       { op: "replace", path: "stat_data.Các Khoản Nợ.Iron Bank", value: {
         "Nợ Gốc": 0,
-        "Lãi/Turn": 0,
-        "Turn Còn Lại": 0,
+        "Lãi/Tháng": 0,
+        "Tháng Còn Lại": 0,
         "Đang Quỵt": false,
       }},
     ],
@@ -88,8 +89,8 @@ export function defaultOnDebt(state: StatData): BorrowResult {
     ok: true,
     ops: [
       { op: "replace", path: "stat_data.Các Khoản Nợ.Iron Bank.Đang Quỵt", value: true },
-      { op: "replace", path: "stat_data.Các Khoản Nợ.Iron Bank.Lãi/Turn", value: 0 },
-      { op: "replace", path: "stat_data.Các Khoản Nợ.Iron Bank.Turn Còn Lại", value: 0 },
+      { op: "replace", path: "stat_data.Các Khoản Nợ.Iron Bank.Lãi/Tháng", value: 0 },
+      { op: "replace", path: "stat_data.Các Khoản Nợ.Iron Bank.Tháng Còn Lại", value: 0 },
     ],
   };
 }
@@ -101,7 +102,7 @@ export function borrowMoney(
   creditorId: string,
   amount: number,
   interestRate = 0.05,
-  termTurns = 60
+  termMonths = DEFAULT_TERM_MONTHS
 ): BorrowResult {
   if (amount <= 0) return { ok: false, error: "Số tiền vay phải > 0", ops: [] };
   const existingDebt = state["Các Khoản Nợ"][creditorId];
@@ -112,7 +113,7 @@ export function borrowMoney(
     return { ok: false, error: "Chủ nợ từ chối — bạn đã quỵt nợ trước đó", ops: [] };
   }
 
-  const interestPerTurn = Math.max(1, Math.round(amount * interestRate));
+  const interestPerMonth = Math.max(1, Math.round(amount * interestRate));
 
   return {
     ok: true,
@@ -120,8 +121,8 @@ export function borrowMoney(
       { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: amount },
       { op: "replace", path: `stat_data.Các Khoản Nợ.${creditorId}`, value: {
         "Nợ Gốc": amount,
-        "Lãi/Turn": interestPerTurn,
-        "Turn Còn Lại": termTurns,
+        "Lãi/Tháng": interestPerMonth,
+        "Tháng Còn Lại": termMonths,
         "Đang Quỵt": false,
       }},
     ],
@@ -132,7 +133,7 @@ export function lendMoney(
   state: StatData,
   debtorId: string,
   amount: number,
-  termTurns = 60
+  termMonths = DEFAULT_TERM_MONTHS
 ): BorrowResult {
   if (amount <= 0) return { ok: false, error: "Số tiền cho vay phải > 0", ops: [] };
   if (state["Thông Tin Nhân Vật"]["Ngân Khố"] < amount) {
@@ -153,7 +154,7 @@ export function lendMoney(
   // Dynamic interest: 5% normally, 15% if in crisis
   const interestRate = hasCrisis ? 0.15 : 0.05;
 
-  const interestPerTurn = Math.max(1, Math.round(amount * interestRate));
+  const interestPerMonth = Math.max(1, Math.round(amount * interestRate));
 
   return {
     ok: true,
@@ -161,8 +162,8 @@ export function lendMoney(
       { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -amount },
       { op: "replace", path: `stat_data.Các Khoản Cho Vay.${debtorId}`, value: {
         "Nợ Gốc": amount,
-        "Lãi/Turn": interestPerTurn,
-        "Turn Còn Lại": termTurns,
+        "Lãi/Tháng": interestPerMonth,
+        "Tháng Còn Lại": termMonths,
         "Đang Quỵt": false,
       }},
     ],
