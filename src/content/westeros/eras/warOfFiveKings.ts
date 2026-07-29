@@ -428,6 +428,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     father: "roose-bolton",
     allies: ["roose-bolton"],
     rivals: ["jon-snow", "theon-greyjoy"],
+    liege: "roose-bolton",
+    relationshipDetails: {
+      "roose-bolton": { type: "Cha", trust: 50, affinity: 30, detail: "Roose biết Ramsay nguy hiểm nhưng cần một người thừa kế. Ramsay khát khao được cha công nhận." },
+      "theon-greyjoy": { type: "Nạn Nhân", trust: 0, affinity: 0, detail: "Ramsay tra tấn Theon cho đến khi bẻ gãy tinh thần, biến cậu thành Reek." },
+      "sansa-stark": { type: "Vợ", trust: 0, affinity: 0, detail: "Cuộc hôn nhân cưỡng ép. Ramsay hành hạ Sansa để khẳng định quyền lực." }
+    },
     mother: "",
     spouse: "sansa-stark",
     children: [],
@@ -481,7 +487,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 13, "Thể Chất": 13, "Trí Tuệ": 13, "Tinh Tường": 15, "Uy Tín": 15 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 75, "Trí Mưu": 65, "Ngoại Giao": 75 },
     talentIds: ["beloved"],
-    skills: { "trading": 9, "trading": 7, "persuasion": 8, "cunning": 6 },
+    skills: { "trading": 9, "persuasion": 8, "cunning": 6 },
     equipment: [], items: [{ ten: "Đốt ngón tay may mắn", soLuong: 1, moTa: "Bị Stannis chặt" }], gold: 500,
     startResources: {
       "Gỗ": 100,
@@ -610,6 +616,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     rivals: ["ramsay-snow"],
+    liege: "robb-stark",
     startArmies: [
           { name: "Quân Đoàn Rừng Sói", type: "Bộ Binh", size: 210, quality: "Thành Thạo" },
           { name: "Cung Thủ Vùng Tuyết", type: "Cung Thủ", size: 90, quality: "Thành Thạo" }
@@ -853,6 +860,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["balon-greyjoy", "euron-greyjoy", "victarion-greyjoy"],
     allies: ["victarion-greyjoy"],
     rivals: ["euron-greyjoy"],
+    liege: "balon-greyjoy",
+    relationshipDetails: {
+      "balon-greyjoy": { type: "Anh Trai", trust: 80, affinity: 70, detail: "Aeron tôn thờ anh trai như một vị vua xứng đáng của Quần Đảo Sắt." },
+      "euron-greyjoy": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Euron làm những việc khủng khiếp với Aeron khi còn nhỏ. Aeron không bao giờ quên và sợ hãi anh ta." }
+    },
     mother: "",
     spouse: "",
     children: [],
@@ -922,6 +934,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: ["willem-lannister", "martyn-lannister", "janei-lannister"],
     allies: ["cersei-lannister", "tywin-lannister"],
     rivals: ["tyrion-lannister"],
+    liege: "tywin-lannister",
+    relationshipDetails: {
+      "cersei-lannister": { type: "Người Tình", trust: 70, affinity: 80, detail: "Cersei dụ dỗ Lancel để hại vua Robert. Lancel đam mê Cersei nhưng sau này hối hận sâu sắc." },
+      "robert-baratheon": { type: "Nạn Nhân", trust: 0, affinity: 0, detail: "Lancel rót rượu mạnh cho Robert theo lệnh Cersei, góp phần giết vua." }
+    },
     spouse: "",
     children: [],
     startArmies: [
@@ -952,6 +969,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     children: ["shireen-baratheon"],
     allies: ["melisandre"],
     rivals: ["renly-baratheon"],
+    liege: "stannis-baratheon",
+    relationshipDetails: {
+      "stannis-baratheon": { type: "Chồng", trust: 60, affinity: 30, detail: "Stannis không yêu Selyse nhưng cần cô là vợ. Selyse chấp nhận vì bổn phận." },
+      "melisandre": { type: "Tín Đồ", trust: 100, affinity: 100, detail: "Selyse sùng bái Melisandre và Thần Ánh Sáng, sẵn sàng hy sinh mọi thứ cho đức tin." },
+      "shireen-baratheon": { type: "Con Gái", trust: 40, affinity: 30, detail: "Selyse thương Shireen nhưng xấu hổ về bệnh Vảy Xám của con." }
+    },
     father: "",
     mother: "",
     siblings: [],
@@ -985,6 +1008,12 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     father: "stannis-baratheon", mother: "selyse-florent",
     allies: ["davos-seaworth", "stannis-baratheon"],
     spouse: "",
+    liege: "stannis-baratheon",
+    relationshipDetails: {
+      "stannis-baratheon": { type: "Cha", trust: 80, affinity: 60, detail: "Stannis ít biểu lộ tình cảm nhưng yêu Shireen theo cách riêng." },
+      "davos-seaworth": { type: "Bằng Hữu", trust: 100, affinity: 100, detail: "Davos là người bạn thân nhất của Shireen. Cô dạy ông đọc chữ." },
+      "melisandre": { type: "Mối Đe Dọa", trust: 0, affinity: 0, detail: "Melisandre nhìn Shireen với ánh mắt kỳ lạ. Máu vua chảy trong huyết quản cô bé." }
+    },
     children: [],
     siblings: [],
     rivals: [],

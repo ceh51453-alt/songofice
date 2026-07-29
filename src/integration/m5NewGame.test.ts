@@ -8,6 +8,7 @@ import http from "node:http";
 import { useChatStore } from "../state/chatStore";
 import { useConnectionStore } from "../state/connectionStore";
 import { useMvuStore } from "../state/mvuStore";
+import { EXCHANGE_RATES } from "../economy/currency";
 import { useLoreStore } from "../state/loreStore";
 import { buildStateFromWizard, resolveCrisisDesc, CORE_STATS, STAT_BASE } from "../character/characterInit";
 import { startNewGame } from "../character/startGame";
@@ -73,7 +74,8 @@ describe("Luồng New Game hoàn chỉnh (8.6/8.6b)", () => {
     // ---- initvar nạp đủ (Status Panel đọc được ngay) ----
     const stat = useMvuStore.getState().stat;
     expect(stat["Thông Tin Nhân Vật"]["Họ Tên"]).toBe("Torrhen Snow");
-    expect(stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000);
+    // 5000 Rồng Vàng của xuất thân, lưu theo Đồng Đỏ
+    expect(stat["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000 * EXCHANGE_RATES.GOLD_TO_COPPER);
     expect(Object.keys(stat["Lãnh Địa"])).toHaveLength(1);
     expect(stat["Mối Quan Hệ"]["NPC Chính"]["Quân Sư Lọc Lõi"]).toBeDefined();
     expect(stat["Thế Giới"]["Năm"]).toBe(298);

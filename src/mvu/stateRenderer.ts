@@ -276,10 +276,66 @@ export function renderStateForAI(state: StatData): string {
       const inProgress = building.filter(([, b]) => b["Đang Xây"]).map(([bn, b]) => `${bn} (còn ${formatDuration(b["Ngày Xây Còn Lại"])})`);
       const done = building.filter(([, b]) => !b["Đang Xây"]).map(([bn, b]) => `${bn} c${b["Cấp Độ"]}`);
       const parts = [`• ${name}: Dân ${terr["Dân Số"].toLocaleString("vi-VN")}, Lòng Dân ${terr["Trung Thành"]}`];
+
+      // DÂN CƯ & VIỆC LÀM — để AI kể đúng cảnh phố xá: thất nghiệp thì có
+      // người vạ vật ở cổng chợ, thiếu nhà thì có lều dựng ngoài tường thành.
+      const jobless = terr["Dân Số Chi Tiết"]?.["Thất Nghiệp"] ?? 0;
+      const homeless = terr["Vô Gia Cư"] ?? 0;
+      if (jobless > 0 || homeless > 0) {
+        const social: string[] = [];
+        if (jobless > 0) social.push(`${jobless.toLocaleString("vi-VN")} người thất nghiệp`);
+        if (homeless > 0) social.push(`${homeless.toLocaleString("vi-VN")} người không có chỗ ở`);
+        parts.push(social.join(", "));
+      }
       if (done.length > 0) parts.push(`Công trình: ${done.join(", ")}`);
       if (inProgress.length > 0) parts.push(`Đang xây: ${inProgress.join(", ")}`);
+
+      // ĐỊA THẾ & TÀI NGUYÊN — bản đồ và lời kể phải khớp nhau. Nếu bảng dưới
+      // nói nơi này có mạch sắt giàu thì lời kể được phép nhắc tới nó; nếu lời
+      // kể muốn thêm một nguồn tài nguyên mới, hãy ghi vào
+      // "Gợi Ý Địa Thế"."Tài Nguyên Sẵn Có" để engine gieo điểm tương ứng.
+      const hint = terr["Gợi Ý Địa Thế"];
+      const geo: string[] = [];
+      if (hint?.["Gần Sông"]) geo.push("bên sông");
+      if (hint?.["Gần Biển"] || terr["Ven Biển"]) geo.push("giáp biển");
+      if (hint?.["Trên Núi"]) geo.push("dưới chân núi");
+      if (terr["Địa Hình"]) geo.push(terr["Địa Hình"].toLowerCase());
+      if (geo.length > 0) parts.push(`Địa thế: ${geo.join(", ")}`);
+
+      const nodes = terr["Điểm Tài Nguyên"] ?? [];
+      if (nodes.length > 0) {
+        const byRes = new Map<string, number>();
+        for (const n of nodes) {
+          if (!n["Đã Khám Phá"] || n["Trữ Lượng"] <= 0) continue;
+          byRes.set(n["Tài Nguyên"], Math.max(byRes.get(n["Tài Nguyên"]) ?? 0, n["Trữ Lượng"]));
+        }
+        if (byRes.size > 0) {
+          const grade = (g: number) => (g >= 3 ? "giàu" : g === 2 ? "khá" : "nghèo");
+          parts.push(`Tài nguyên trong đất: ${[...byRes].map(([r, g]) => `${r} (${grade(g)})`).join(", ")}`);
+        }
+      }
+
+      const walls = (terr["Tường Thành"] ?? []).filter((w) => !w["Đang Xây"]);
+      if (walls.length > 0) {
+        parts.push(`Tường thành: ${walls.map((w) => `${w["Tên"]} (${w["Vật Liệu"]} cấp ${w["Cấp"]})`).join(", ")}`);
+      }
       lines.push(`  ${parts.join(". ")}.`);
     }
+  }
+
+  // ── Chợ nơi người chơi đang đứng (M18) ──
+  const here = state["Thế Giới"]?.["Vị Trí"] ?? "";
+  const market = state["Thị Trường Khu Vực"]?.[here];
+  if (market) {
+    const moves = Object.entries(market["Hàng Hoá"] ?? {})
+      .filter(([, g]) => Math.abs(g["Biến Động"]) >= 5)
+      .sort((a, b) => Math.abs(b[1]["Biến Động"]) - Math.abs(a[1]["Biến Động"]))
+      .slice(0, 4)
+      .map(([id, g]) => `${id} ${g["Biến Động"] > 0 ? "tăng" : "giảm"} ${Math.abs(g["Biến Động"]).toFixed(0)}%`);
+    const bits = [market["Tin Đồn"]];
+    if (moves.length > 0) bits.push(`Giá cả: ${moves.join(", ")}`);
+    if (market["Đang Có Thương Nhân"]) bits.push("Có thương đoàn ngoại quốc đang neo tại đây.");
+    lines.push("", `Chợ búa quanh đây: ${bits.join(" ")}`);
   }
 
   // tin tức off-screen (16.3 + GĐ2) — NPC tự chủ + vắng mặt

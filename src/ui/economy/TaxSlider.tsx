@@ -6,6 +6,7 @@
 import { useState, useCallback } from "react";
 import { TAX_LEVELS, type TaxLevel } from "../../mvu/schema";
 import { TAX_TABLE, taxPreview } from "../../economy/economyEngine";
+import { formatCurrencyShort } from "../../economy/currency";
 import { useMvuStore } from "../../state/mvuStore";
 import { IconTax } from "./EconomyIcons";
 
@@ -98,7 +99,7 @@ export function TaxSlider({ currentLevel, onChangeLevel, disabled }: TaxSliderPr
         }
       `}>
         <span>
-          Vàng/tháng: <b className="font-mono">{preview.goldPerMonth >= 0 ? "+" : ""}{preview.goldPerMonth}</b>
+          Thu/tháng: <b className="font-mono">{preview.goldPerMonth >= 0 ? "+" : "−"}{formatCurrencyShort(Math.abs(preview.goldPerMonth))}</b>
         </span>
         <span>
           Trung Thành: <b className={`font-mono ${effect.loyaltyPerMonth < 0 ? "text-[var(--danger)]" : effect.loyaltyPerMonth > 0 ? "text-[var(--ok)]" : ""}`}>

@@ -86,6 +86,11 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     siblings: ["baelor-breakspear"],
     allies: ["baelor-breakspear"],
     rivals: ["daemon-blackfyre"],
+    liege: "daeron-ii-targaryen",
+    relationshipDetails: {
+      "baelor-breakspear": { type: "Anh Trai", trust: 80, affinity: 70, detail: "Maekar kính trọng Baelor nhưng ghen tị với sự hoàn hảo của anh. Bi kịch là Maekar vô tình giết Baelor tại Ashford." },
+      "daemon-blackfyre": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Kẻ phản loạn phải bị nghiền nát. Maekar là cái đe chắn đứng Bước Tiến của phản quân." }
+    },
     personalHooks: [
       { id: "maekar-anvil", title: "Cái Đe Của Maekar", year: "196 AC", numericYear: 196, desc: "Bức tường khiên của ngươi phải đứng vững trước cuộc tấn công mãnh liệt của Bittersteel, tạo thành cái đe cho chiếc búa của Baelor đập xuống." }
     ],
@@ -130,6 +135,10 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     siblings: ["daemon-blackfyre", "aegor-rivers", "brynden-rivers"],
     allies: ["brynden-rivers"],
     rivals: [],
+    relationshipDetails: {
+      "brynden-rivers": { type: "Người Tình", trust: 80, affinity: 80, detail: "Bloodraven yêu Shiera điên cuồng. Cô nhận tình yêu của anh nhưng không bao giờ thuộc về ai." },
+      "aegor-rivers": { type: "Đối Thủ", trust: 20, affinity: 30, detail: "Bittersteel cũng yêu Shiera, và sự từ chối của cô làm sâu thêm mối hận giữa Bittersteel và Bloodraven." }
+    },
     personalHooks: [
       { id: "shiera-choice", title: "Lựa Chọn Của Ngôi Sao", year: "196 AC", numericYear: 196, desc: "Cả Bloodraven và Bittersteel đều cầu xin tình yêu của ngươi trước khi họ ra trận để chém giết lẫn nhau." }
     ],
@@ -172,6 +181,12 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     }, startingHookIds: [],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre"],
+    liege: "daeron-ii-targaryen",
+    courtPosition: "Vệ Vương",
+    relationshipDetails: {
+      "daemon-blackfyre": { type: "Kẻ Thù", trust: 0, affinity: 30, detail: "Cuộc đấu tay đôi huyền thoại. Gwayne kính trọng kiếm thuật của Daemon nhưng không lay chuyển lòng trung thành." },
+      "baelor-breakspear": { type: "Đồng Minh", trust: 100, affinity: 90, detail: "Gwayne chiến đấu vì Hoàng tử Baelor và vua Daeron. Danh dự trên hết." }
+    },
     personalHooks: [
       { id: "corbray-duel", title: "Cuộc Đấu Huyền Thoại", year: "196 AC", numericYear: 196, desc: "Trực diện với Daemon Blackfyre. Lady Forlorn chạm trán thanh Blackfyre trong tiếng gầm thét của hàng vạn binh lính." }
     ],
@@ -217,6 +232,11 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     }, startingHookIds: [],
     allies: ["daemon-blackfyre", "bittersteel"],
     rivals: ["daeron-ii"],
+    liege: "daemon-blackfyre",
+    relationshipDetails: {
+      "daemon-blackfyre": { type: "Chủ", trust: 100, affinity: 100, detail: "Fireball coi Daemon là vị vua thực sự. Ông chiến đấu đến chết vì nhà Blackfyre." },
+      "daeron-ii": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Daeron từ chối chỗ Vệ Vương cho Quentyn. Mối thù này dẫn đến cuộc phản loạn." }
+    },
     personalHooks: [
       { id: "fireball-strike", title: "Cơn Phẫn Nộ Của Fireball", year: "196 AC", numericYear: 196, desc: "Ngươi vượt sông Mander, đánh úp quân trung thành và tiêu diệt hoàn toàn gia tộc Lefford." }
     ],

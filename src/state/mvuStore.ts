@@ -11,6 +11,8 @@ import { applyPatch, parsePath, type PatchOp } from "../mvu/patchEngine";
 import { runCascadeEffects, recomputeDerived, type EffectEvent } from "../mvu/effects";
 import { newRootSeed } from "../probability/rng";
 import { absoluteDay, normalizeCalendar } from "../mvu/calendar";
+import { normalizeHouseIds } from "../territory/territoryEngine";
+import { repairAllHoldings } from "../territory/localMap";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("mvu/store");
@@ -103,12 +105,13 @@ export const useMvuStore = create<MvuState>()(
     }),
     {
       name: "asoiaf-mvu",
-      version: 2,
+      version: 3,
       partialize: (s) => ({ stat: s.stat }),
       /**
-       * Ván cũ (version 1) dùng lịch 1 field: Ngày = 1-360 trong năm, chưa có
-       * Tháng. Đưa qua schema (prefault Tháng = 1) rồi normalizeCalendar để tách
-       * lại thành Tháng/Ngày đúng — ví dụ Ngày 250 → tháng 9 ngày 10.
+       * v1 → v2: ván cũ dùng lịch 1 field (Ngày = 1-360 trong năm, chưa có
+       * Tháng) — normalizeCalendar tách lại đúng (Ngày 250 → tháng 9 ngày 10).
+       * v2 → v3: bản đồ đa tầng — chuẩn hoá khoá Nhà và dời công trình của hệ
+       * lưới cũ về ô hợp lệ trên lưới lãnh địa 5 m.
        */
       migrate: (persisted, version) => {
         const s = persisted as { stat?: unknown } | undefined;
@@ -118,6 +121,11 @@ export const useMvuStore = create<MvuState>()(
         if (version < 2) {
           normalizeCalendar(parsed.data["Thế Giới"]);
           log.info(`Migrate save v${version} → v2: lịch Ngày/Tháng/Năm`);
+        }
+        if (version < 3) {
+          normalizeHouseIds(parsed.data);
+          const moved = repairAllHoldings(parsed.data);
+          log.info(`Migrate save v${version} → v3: bản đồ đa tầng (dời ${moved} công trình)`);
         }
         return { stat: parsed.data };
       },

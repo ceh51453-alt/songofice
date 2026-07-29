@@ -14,6 +14,7 @@ import { makeDefaultState, StatDataSchema } from "../mvu/schema";
 import { NpcSchema } from "../mvu/npcSchema";
 import { seedRegionControl } from "../territory/territoryEngine";
 import { registerConstructionLoop } from "../territory/construction";
+import { registerEconomyLoop } from "../economy/economyEngine";
 import { registerCourtLoop, canAppoint, courtInvolved, treasuryMultiplier } from "../strategy/court";
 import { registerSuccessionLoop, proposeBetrothalOps } from "../strategy/succession";
 import { applyPatch } from "../mvu/patchEngine";
@@ -28,6 +29,7 @@ const fm = (name: string, gioi: "Nam" | "Nữ", tuoi: number) =>
 
 beforeEach(() => {
   registerConstructionLoop();
+  registerEconomyLoop(); // thuế & hệ số Đại Chưởng Ngân Khố chốt ở sổ thu chi (M18)
   registerCourtLoop();
   registerSuccessionLoop();
   useMvuStore.getState().newGame();

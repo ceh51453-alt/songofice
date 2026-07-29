@@ -141,6 +141,10 @@ spouse: "minisa-whent",
     children: ["catelyn-tully", "lysa-tully", "edmure-tully"],
     allies: ["eddard-stark", "jon-arryn"],
     rivals: ["aerys-ii"],
+    relationshipDetails: {
+      "eddard-stark": { type: "Đồng Minh", trust: 80, affinity: 70, detail: "Hôn nhân chính trị: Hoster gả Catelyn cho Ned để đổi lấy liên minh. Thực dụng nhưng hiệu quả." },
+      "jon-arryn": { type: "Đồng Minh", trust: 80, affinity: 60, detail: "Jon Arryn cưới Lysa để có Riverlands. Hoster biết tuổi tác chênh lệch nhưng chấp nhận." }
+    },
     personalHooks: [
       { id: "tully-alliance", title: "Cái Giá Của Liên Minh", year: "282 AC", numericYear: 282, desc: "Quân khởi nghĩa cần Riverlands để vượt sông. Ngươi ra điều kiện: Ned và Jon phải cưới con gái của ngươi." }
     ],
@@ -294,6 +298,11 @@ spouse: "rhaella-targaryen",
     mother: "",
     siblings: [],
     allies: [],
+    relationshipDetails: {
+      "rhaegar-targaryen": { type: "Con", trust: 30, affinity: 20, detail: "Aerys nghi ngờ Rhaegar âm mưu lật đổ mình tại giải đấu Harrenhal. Cha con không tin nhau." },
+      "tywin-lannister": { type: "Cựu Bàn Tay", trust: 0, affinity: -80, detail: "Aerys ghen ghét Tywin, xúc phạm ông liên tục. Việc lợi dụng Joanna là sự sỉ nhục không tha thứ." },
+      "jaime-lannister": { type: "Vệ Vương", trust: 10, affinity: 0, detail: "Aerys giữ Jaime làm con tin để kiểm soát Tywin. Jaime sẽ là người kết thúc đời ông." }
+    },
 },
   {
     id: "jaime-lannister",
@@ -308,7 +317,7 @@ spouse: "rhaella-targaryen",
     coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 18, "Thể Chất": 15, "Trí Tuệ": 12, "Tinh Tường": 12, "Uy Tín": 18 },
     năngLực: { "Võ Lực": 80, "Thống Soái": 90, "Trí Mưu": 60, "Ngoại Giao": 60 },
     talentIds: ["highborn-charm", "born-swordsman", "hot-tempered", "duelist"],
-    skills: { "sword-shield": 9, "war-riding": 8, "war-riding": 8 },
+    skills: { "sword-shield": 9, "war-riding": 8 },
     equipment: [],
     items: [],
     gold: 500,
@@ -330,6 +339,13 @@ spouse: "rhaella-targaryen",
     children: ["joffrey-baratheon", "myrcella-baratheon", "tommen-baratheon"],
     allies: ["cersei-lannister"],
     rivals: ["eddard-stark", "brienne-tarth"],
+    liege: "aerys-ii",
+    courtPosition: "Vệ Vương",
+    relationshipDetails: {
+      "aerys-ii": { type: "Vua", trust: 10, affinity: -50, detail: "Jaime chứng kiến Aerys thiêu sống người vô tội và cưỡng bức Rhaella. Lời thề bảo vệ vua trở nên đau đớn." },
+      "cersei-lannister": { type: "Chị Em", trust: 90, affinity: 100, detail: "Tình yêu tội lỗi với chị gái sinh đôi. Jaime sẵn sàng làm mọi thứ cho Cersei." },
+      "tywin-lannister": { type: "Cha", trust: 50, affinity: 30, detail: "Tywin thất vọng vì Jaime từ chối quyền thừa kế Casterly Rock để làm Vệ Vương." }
+    },
     startArmies: [
           { name: "Bộ Binh Casterly Rock", type: "Bộ Binh", size: 350, quality: "Tinh Nhuệ" },
           { name: "Đội Bắn Nỏ Lannister", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
@@ -374,6 +390,12 @@ spouse: "rhaella-targaryen",
     siblings: [],
     allies: ["rhaegar-targaryen", "daenerys-targaryen"],
     rivals: [],
+    liege: "aerys-ii",
+    courtPosition: "Vệ Vương",
+    relationshipDetails: {
+      "rhaegar-targaryen": { type: "Hoàng Tử", trust: 100, affinity: 100, detail: "Barristan kính trọng Rhaegar như một vị vua lý tưởng mà Westeros không bao giờ có được." },
+      "aerys-ii": { type: "Vua", trust: 40, affinity: 10, detail: "Barristan phục vụ Aerys dù biết ông ta điên. Lời thề Vệ Vương là tất cả." }
+    },
     startArmies: [
           { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
           { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
@@ -419,6 +441,12 @@ spouse: "rhaella-targaryen",
     siblings: ["ashara-dayne"],
     allies: ["rhaegar-targaryen"],
     rivals: ["eddard-stark"],
+    liege: "aerys-ii",
+    courtPosition: "Vệ Vương",
+    relationshipDetails: {
+      "rhaegar-targaryen": { type: "Bằng Hữu", trust: 100, affinity: 100, detail: "Rhaegar là bạn thân nhất của Arthur. Arthur chết để bảo vệ lời thề với Rhaegar tại Tháp Niềm Vui." },
+      "eddard-stark": { type: "Kẻ Thù", trust: 20, affinity: 30, detail: "Ned là người danh dự duy nhất ở phe địch. Arthur tôn trọng Ned dù phải chiến đấu với anh." }
+    },
     startArmies: [
           { name: "Dân Binh ", type: "Bộ Binh", size: 42, quality: "Mới Lập Đội" },
           { name: "Cung Thủ ", type: "Cung Thủ", size: 18, quality: "Mới Lập Đội" }
@@ -561,6 +589,11 @@ spouse: "mellario-of-norvos",
     mother: "martell-mother-doran",
     allies: [],
     rivals: ["tywin-lannister"],
+    relationshipDetails: {
+      "elia-martell": { type: "Em Gái", trust: 100, affinity: 100, detail: "Doran yêu thương Elia nhưng không thể cứu cô khỏi Kings Landing. Nỗi đau này ận ức suốt đời." },
+      "oberyn-martell": { type: "Em Trai", trust: 90, affinity: 80, detail: "Oberyn nóng nảy nhưng trung thành. Doran kìm giữ Oberyn để đợi thời cơ trả thù." },
+      "tywin-lannister": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Tywin ra lệnh giết Elia và con nhỏ của cô. Doran không bao giờ quên và âm thầm lên kế hoạch." }
+    },
 },
   {
     id: "oberyn-martell",
@@ -595,6 +628,12 @@ spouse: "mellario-of-norvos",
     siblings: ["doran-martell", "elia-martell"],
     allies: ["doran-martell"],
     rivals: ["gregor-clegane", "tywin-lannister"],
+    liege: "doran-martell",
+    relationshipDetails: {
+      "elia-martell": { type: "Em Gái", trust: 100, affinity: 100, detail: "Oberyn yêu Elia vô cùng. Anh sống để trả thù cho cô — và sẽ chết vì điều đó." },
+      "gregor-clegane": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Con Quỷ Núi đã hiếp dâm và giết Elia. Oberyn không bao giờ nghỉ trả thù." },
+      "doran-martell": { type: "Anh Trai", trust: 80, affinity: 70, detail: "Doran cẩn thận, Oberyn liều lĩnh. Hai anh em bổ sung cho nhau." }
+    },
     startArmies: [
           { name: "Đội Tiên Phong Xứ Dorne", type: "Bộ Binh", size: 1800, quality: "Thành Thạo" },
           { name: "Kỵ Binh Nhẹ Xứ Dorne", type: "Kỵ Binh", size: 600, quality: "Thành Thạo" },
@@ -685,6 +724,12 @@ spouse: "mellario-of-norvos",
     children: ["shireen-baratheon"],
     allies: ["davos-seaworth", "melisandre"],
     rivals: ["renly-baratheon", "joffrey-baratheon", "roose-bolton"],
+    liege: "robert-baratheon",
+    relationshipDetails: {
+      "robert-baratheon": { type: "Anh Trai", trust: 50, affinity: 30, detail: "Stannis hận Robert vì tặng Storm's End cho Renly thay vì mình. Ông không bao giờ thấy được sự công nhận từ anh." },
+      "renly-baratheon": { type: "Em Trai", trust: 10, affinity: 10, detail: "Renly cưới nhạo Stannis và tranh ngai vàng. Stannis không tha thứ sự phản bội của máu mủ." },
+      "davos-seaworth": { type: "Tâm Phúc", trust: 100, affinity: 90, detail: "Davos cứu Storm's End khỏi nạn đói. Stannis chặt ngón tay ông nhưng cũng phong hiệp sĩ — đó là công lý." }
+    },
     startArmies: [
           { name: "Bộ Binh Bão Tố", type: "Bộ Binh", size: 3000, quality: "Tinh Nhuệ" },
           { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 750, quality: "Tinh Nhuệ" }
@@ -730,6 +775,12 @@ spouse: "mellario-of-norvos",
     children: [],
     allies: ["mace-tyrell", "loras-tyrell"],
     rivals: ["stannis-baratheon", "joffrey-baratheon"],
+    liege: "robert-baratheon",
+    relationshipDetails: {
+      "robert-baratheon": { type: "Anh Trai", trust: 60, affinity: 50, detail: "Robert yêu Renly nhưng không quan tâm nhiều. Renly lớn lên trong bóng của hai anh." },
+      "stannis-baratheon": { type: "Anh Trai", trust: 20, affinity: 10, detail: "Renly cười nhạo Stannis và tin mình xứng đáng làm vua hơn. Stannis không bao giờ tha thứ." },
+      "loras-tyrell": { type: "Người Tình", trust: 100, affinity: 100, detail: "Renly và Loras yêu nhau bí mật. Loras là tình yêu duy nhất của Renly." }
+    },
     startArmies: [
           { name: "Lính Kích Storm's End", type: "Bộ Binh", size: 48000, quality: "Thành Thạo" },
           { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 12000, quality: "Thành Thạo" }

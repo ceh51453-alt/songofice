@@ -6,13 +6,15 @@
  * - regionFill: suy màu tô runtime theo chế độ (9.5.2) — Chính Trị / Quan Hệ.
  * Bản đồ ĐỌC từ đây, không tự giữ chủ quyền — nguồn chân lý là stat_data.
  */
-import { EXCHANGE_RATES } from "../economy/currency";
 import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import { REGIONS, REGIONS_BY_ID, regionControlForYear, factionsForYear, FACTION_COLORS_MAP, type MapRegion } from "../content/westeros/regions";
 import { HOUSES_DATA, HOUSES_BY_ID } from "../content/westeros/houses";
 import { houseColor, ATTITUDE_HEAT, PLAYER_HEAT_COLOR, NEUTRAL_COLOR } from "../content/westeros/houseColors";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
+import { eventSeed } from "../probability/rng";
+import { loreSeatFor } from "../content/westeros/loreSeats";
+import { defaultJobSplit } from "../content/westeros/buildings";
 
 /** schemaName ("Stark") → houseId ("stark"). */
 export const HOUSE_ID_BY_SCHEMA: Record<string, string> = Object.fromEntries(
@@ -21,6 +23,33 @@ export const HOUSE_ID_BY_SCHEMA: Record<string, string> = Object.fromEntries(
 
 export function playerHouseId(state: StatData): string {
   return HOUSE_ID_BY_SCHEMA[state["Thông Tin Nhân Vật"]["Nhà"]] ?? "";
+}
+
+/**
+ * Chuẩn hoá tên Nhà về houseId (khoá của HOUSES_BY_ID / bảng màu).
+ * Dữ liệu cốt truyện hay ghi schemaName ("Lannister") vào chỗ đòi houseId
+ * ("lannister") — khi đó bản đồ tra không ra Nhà và tô thành "vô chủ".
+ */
+export function toHouseId(name: string): string {
+  if (!name) return "";
+  if (HOUSES_BY_ID[name]) return name;
+  const bySchema = HOUSE_ID_BY_SCHEMA[name];
+  if (bySchema) return bySchema;
+  const lower = name.toLowerCase().replace(/\s+/g, "-");
+  return HOUSES_BY_ID[lower] ? lower : name;
+}
+
+/**
+ * Sửa mọi chỗ ghi tên Nhà sai dạng trong state (chủ quyền + lãnh địa). MUTATE.
+ * Chỉ đổi ĐỊNH DẠNG khoá, không đụng tới ai làm chủ cái gì.
+ */
+export function normalizeHouseIds(state: StatData): void {
+  for (const sov of Object.values(state["Chủ Quyền Lãnh Thổ"])) {
+    sov["Nhà Kiểm Soát"] = toHouseId(sov["Nhà Kiểm Soát"]);
+  }
+  for (const holding of Object.values(state["Lãnh Địa"])) {
+    holding["Nhà Kiểm Soát"] = toHouseId(holding["Nhà Kiểm Soát"]);
+  }
 }
 
 /** Vùng "quê nhà" của 1 Nhà: khớp trọng trấn (houses.seat === region.seat), fallback Nhà mặc định. */
@@ -34,24 +63,82 @@ export function homeRegionForHouse(houseId: string): MapRegion | null {
   );
 }
 
+/**
+ * AI THẬT SỰ LÀ CHỦ của một thành trì — quy tắc DUY NHẤT, dùng cho cả quyền
+ * quản trị lẫn quyền xây dựng.
+ *
+ * Thứ tự xét quan trọng: nếu thành trì đã ghi rõ người cai quản thì người ĐÓ
+ * là chủ, kể cả khi cả vùng thuộc Nhà của người chơi — nếu không, đóng vai một
+ * nhân vật canon sẽ xây được cả trên đất của lãnh chúa khác cùng Nhà.
+ * Chỉ khi thành trì bỏ trống chủ mới xét tới chủ quyền vùng.
+ */
+export function holdingOwnedByPlayer(state: StatData, holdingId: string): boolean {
+  const holding = state["Lãnh Địa"][holdingId];
+  if (!holding) return false;
+  const lord = (holding["Người Kiểm Soát"] ?? "").trim();
+  const me = (state["Thông Tin Nhân Vật"]["Họ Tên"] ?? "").trim();
+  if (lord) return !!me && lord === me;
+  return !!state["Chủ Quyền Lãnh Thổ"][holding["Thuộc Vùng"]]?.["Là Của Người Chơi"];
+}
+
+/** Danh sách thành trì người chơi được quyền cai quản. */
+export function playerHoldingIds(state: StatData): string[] {
+  return Object.keys(state["Lãnh Địa"]).filter((id) => holdingOwnedByPlayer(state, id));
+}
+
 /** Kho tài nguyên khởi điểm cho 1 lãnh địa mới (10.1). */
-function baseResources(): { "Ngân Khố": number; "Lương Thực": number; Gỗ: number; Đá: number; "Quặng Sắt": number } {
-  return { "Ngân Khố": 0, "Lương Thực": 3000, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150 };
+function baseResources(): Record<string, number> {
+  return {
+    "Ngân Khố": 0, "Lương Thực": 3000, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150,
+    "Than Đá": 80, "Thép": 40, "Vải Vóc": 60, "Ngựa": 20, "Muối": 100,
+  };
 }
 
 /** Dựng object Territory (10.1) cho 1 vùng/thành trì — dùng khi tạo/chiếm holding. */
-export function makeHolding(opts?: { regionId?: string; terrain?: string; coastal?: boolean; name?: string; danSo?: number; trungThanh?: number; moTa?: string; taiNguyen?: Record<string, number> }): Record<string, unknown> {
+export function makeHolding(opts?: { regionId?: string; terrain?: string; coastal?: boolean; name?: string; danSo?: number; trungThanh?: number; moTa?: string; taiNguyen?: Record<string, number>; lord?: string; terrainSeed?: number }): Record<string, unknown> {
   return {
     "Mô Tả": opts?.moTa ?? (opts?.name ? `${opts.name}` : `Thành trì`),
     "Dân Số": opts?.danSo ?? 10000,
+    // Cơ cấu nghề: không có dân phu, thợ đá, kỹ sư thì lãnh địa chẳng khởi công
+    // được gì — nhân lực là điều kiện cần ngang với vật tư (10.3).
+    "Dân Số Chi Tiết": defaultJobSplit(opts?.danSo ?? 10000),
     "Trung Thành": opts?.trungThanh ?? 60,
+    "Người Kiểm Soát": opts?.lord ?? "",
     "Thuộc Vùng": opts?.regionId ?? "",
     "Địa Hình": opts?.terrain,
     "Ven Biển": opts?.coastal ?? false,
+    "Hạt Giống Địa Hình": opts?.terrainSeed,
     "Tài Nguyên": opts?.taiNguyen ?? baseResources(),
     "Công Trình": {},
     "Khủng Hoảng": [],
   };
+}
+
+/**
+ * Hạt giống địa thế cho một lãnh địa vừa về tay ai đó. Dẫn xuất từ seed gốc của
+ * ván + ngày + id nên tái lập được (reroll/undo không đổi đất), nhưng mỗi lần
+ * chiếm/được phong ở thời điểm khác nhau là một địa thế khác nhau.
+ */
+export function newTerrainSeed(state: StatData, holdingId: string, day: number): number {
+  const root = state["_engineMeta"]?.["_Seed Gốc"] ?? 1;
+  return eventSeed(root, day, `terrain:${holdingId}`) >>> 0;
+}
+
+/**
+ * Gieo địa thế cho những lãnh địa chưa có hạt giống. CHỈ gọi lúc TẠO VÁN — gọi
+ * lúc nạp save sẽ làm đất đai của ván cũ biến dạng. MUTATE state.
+ */
+export function seedMissingTerrain(state: StatData, day = 0): number {
+  let n = 0;
+  for (const [id, holding] of Object.entries(state["Lãnh Địa"])) {
+    // Toà thành có trong tiểu thuyết thì địa thế đã ghim sẵn — không gieo.
+    if (loreSeatFor(id, holding["Mô Tả"])) continue;
+    if (holding["Hạt Giống Địa Hình"] === undefined) {
+      holding["Hạt Giống Địa Hình"] = newTerrainSeed(state, id, day);
+      n++;
+    }
+  }
+  return n;
 }
 
 /**
@@ -100,6 +187,8 @@ export function seedRegionControl(state: StatData, _eraId: string, opts?: { crea
         coastal: home.coastal,
         name: home.seat,
         danSo: seatMarker?.population ?? 20000,
+        lord: state["Thông Tin Nhân Vật"]["Họ Tên"],
+        terrainSeed: newTerrainSeed(state, seatId, 0),
       });
     }
   }
@@ -134,12 +223,15 @@ export function captureRegionOps(
   const seatId = seatMarker ? seatMarker.id : region.id + "-seat";
 
   if (isPlayer && !state["Lãnh Địa"][seatId]) {
-    // về tay người chơi → mở quản trị nội bộ thành trì trọng trấn
+    // về tay người chơi → mở quản trị nội bộ thành trì trọng trấn, GIEO địa thế mới
     ops.push({
       op: "replace", path: `stat_data.Lãnh Địa.${seatId}`,
-      value: makeHolding({ 
-        regionId: region.id, terrain: region.terrain, coastal: region.coastal, name: region.seat, 
-        danSo: seatMarker?.population ?? 20000, trungThanh: 35, moTa: `${region.seat} — vừa chiếm được, dân chưa quy phục` 
+      value: makeHolding({
+        regionId: region.id, terrain: region.terrain, coastal: region.coastal, name: region.seat,
+        danSo: seatMarker?.population ?? 20000, trungThanh: 35,
+        moTa: `${region.seat} — vừa chiếm được, dân chưa quy phục`,
+        lord: state["Thông Tin Nhân Vật"]["Họ Tên"],
+        terrainSeed: newTerrainSeed(state, seatId, capturedOnDay),
       }),
     });
   } else if (!isPlayer && wasPlayer && state["Lãnh Địa"][seatId]) {
@@ -238,137 +330,8 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
   };
 }
 
-// ── Tính toán Lãnh Địa (V9) ─────────────────────────────────────────────────
-
-export function calculateYield(territory: Record<string, any>, weatherFactor: number, month: number): { "Ngân Khố": number; "Lương Thực": number; Gỗ: number; Đá: number; "Quặng Sắt": number } {
-  // Mùa factor
-  let muaFactor = 1.0;
-  if (month >= 1 && month <= 3) muaFactor = 1.0;
-  else if (month >= 4 && month <= 6) muaFactor = 1.2;
-  else if (month >= 7 && month <= 9) muaFactor = 1.5;
-  else muaFactor = 0.2;
-
-  // Lòng dân factor
-  const loyalty = typeof territory["Lòng Dân"] === "number" ? territory["Lòng Dân"] : 60;
-  let ktFactor = 1.0;
-  if (loyalty < 30) ktFactor = 0.7;
-  else if (loyalty < 50) ktFactor = 0.9;
-  else if (loyalty < 70) ktFactor = 1.0;
-  else if (loyalty < 90) ktFactor = 1.15;
-  else ktFactor = 1.3;
-
-  // Tính sản lượng cơ bản (stub cho logic quy hoạch chi tiết)
-  const danSo = territory["Dân Số Chi Tiết"] || {};
-  const nongDan = danSo["Nông Dân"] || (territory["Dân Số"] * 0.5) || 500;
-  const thợMỏ = danSo["Thợ Mỏ"] || 50;
-  const tiềuPhu = danSo["Tiều Phu"] || 50;
-  
-  // Nông nghiệp: sl = Nông_dân * 3 * muaFactor * weatherFactor * ktFactor
-  const food = Math.floor(nongDan * 3 * muaFactor * weatherFactor * ktFactor);
-  
-  // Khai thác: giả sử điểm bình thường (10 cân/người)
-  const wood = Math.floor(tiềuPhu * 10 * ktFactor);
-  const stone = Math.floor(thợMỏ * 5 * ktFactor);
-  const iron = Math.floor(thợMỏ * 5 * ktFactor);
-  
-  // Thương mại (quy về Đồng Đỏ)
-  const thuongNhan = danSo["Thương Nhân"] || 100;
-  const gold = Math.floor(thuongNhan * 0.5 * ktFactor) * EXCHANGE_RATES.GOLD_TO_COPPER;
-  
-  return { "Ngân Khố": gold, "Lương Thực": food, Gỗ: wood, Đá: stone, "Quặng Sắt": iron };
-}
-
-export function monthlyTick(state: StatData): PatchOp[] {
-  const ops: PatchOp[] = [];
-  const month = state["Thế Giới"]["Tháng"];
-  const weatherFactor = 1.0; // Tạm thời 1.0
-  
-  const holdings = state["Lãnh Địa"] as Record<string, any>;
-  
-  for (const [id, holding] of Object.entries(holdings)) {
-    const yieldRes = calculateYield(holding, weatherFactor, month);
-    
-    // Nông nghiệp (Bước 2)
-    const currentFood = holding["Tài Nguyên"]["Lương Thực"] || 0;
-    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Lương Thực`, value: currentFood + yieldRes["Lương Thực"] });
-    
-    // Khai thác (Bước 3)
-    const currentWood = holding["Tài Nguyên"]["Gỗ"] || 0;
-    const currentStone = holding["Tài Nguyên"]["Đá"] || 0;
-    const currentIron = holding["Tài Nguyên"]["Quặng Sắt"] || 0;
-    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Gỗ`, value: currentWood + yieldRes.Gỗ });
-    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Đá`, value: currentStone + yieldRes.Đá });
-    ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Quặng Sắt`, value: currentIron + yieldRes["Quặng Sắt"] });
-    
-    // Tiêu hao lương quân (Bước 5) - Giả sử 2 bao/lính
-    // Tìm quân đồn trú
-    let troopsInHolding = 0;
-    const units = state["Biên Chế Quân Sự"] || {};
-    for (const unit of Object.values(units)) {
-        if (unit["Lãnh Địa Đồn Trú"] === id) {
-            troopsInHolding += (unit["Số Lượng"] || 0);
-        }
-    }
-    const foodConsumed = troopsInHolding * 2;
-    if (foodConsumed > 0) {
-        ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${id}.Tài Nguyên.Lương Thực`, value: -foodConsumed });
-        // TODO: Sĩ khí giảm nếu thiếu lương thực
-    }
-    
-    // Cập nhật Vàng cho Lãnh Chúa (Bước 8-10)
-    // Thực tế vàng đi vào ví nhân vật
-    if (holding["Người Kiểm Soát"] === state["Thông Tin Nhân Vật"]["Họ Tên"] || state["Chủ Quyền Lãnh Thổ"][holding["Thuộc Vùng"]]?.["Là Của Người Chơi"]) {
-        ops.push({ op: "delta", path: `stat_data.Thông Tin Nhân Vật.Ngân Khố`, value: yieldRes["Ngân Khố"] });
-    }
-  }
-  
-  return ops;
-}
-
-export function getBuildableRadius(castleLevel: number): number {
-    return 10 + castleLevel * 10; // Cấp 1 -> 20 ô, Cấp 5 -> 60 ô
-}
-
-export function placeBuilding(state: StatData, territoryId: string, buildingType: string, x: number, y: number): PatchOp[] {
-  const territory = state["Lãnh Địa"][territoryId] as any;
-  if (!territory) return [];
-  
-  // Find Castle level to determine bounds
-  let castleLevel = 1;
-  const buildings = territory["Công Trình"] || {};
-  for (const b of Object.values(buildings)) {
-      if ((b as any)["Loại"] === "Lâu Đài") {
-          castleLevel = (b as any)["Cấp Độ"] || 1;
-          break;
-      }
-  }
-
-  const radius = getBuildableRadius(castleLevel);
-  const centerX = 750;
-  const centerY = 750;
-
-  // Basic validation (e.g. check bounds)
-  if (Math.abs(x - centerX) > radius || Math.abs(y - centerY) > radius) {
-      throw new Error(`Vị trí (${x}, ${y}) vượt quá khu vực quy hoạch (Bán kính: ${radius} ô) của Thành Trì cấp ${castleLevel}.`);
-  }
-  
-  const bId = `${buildingType}_${x}_${y}`;
-  if (territory["Công Trình"] && territory["Công Trình"][bId]) {
-      throw new Error("Vị trí đã có công trình");
-  }
-  
-  // Create patch op
-  return [{
-      op: "insert",
-      path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${bId}`,
-      value: {
-          "Loại": buildingType,
-          "Cấp Độ": 1,
-          "Đang Xây": true,
-          "Ngày Xây Còn Lại": 90, // 3 tháng
-          "Tọa Độ X": x,
-          "Tọa Độ Y": y,
-          "Kích Thước": 1
-      }
-  }];
-}
+// ── Tính toán Lãnh Địa ──────────────────────────────────────────────────────
+// CHỐT SỔ THÁNG nằm ở construction.tickTerritoryIncome (listener "territory-income").
+// KHÔNG thêm vòng thu nhập thứ hai ở đây: trước kia monthlyTick() chạy song song
+// với listener đó nên mỗi tháng lãnh địa được cộng thu nhập HAI LẦN.
+// Quy hoạch/đặt công trình Tầng 1: xem territory/localMap.ts.

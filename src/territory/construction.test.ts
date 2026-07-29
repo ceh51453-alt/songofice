@@ -8,6 +8,7 @@ import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { applyPatch } from "../mvu/patchEngine";
 import { seedRegionControl, captureRegionOps } from "./territoryEngine";
 import { startConstruction, tickConstruction, tickTerritoryIncome, estimateTerritoryYield } from "./construction";
+import { monthlyBudget } from "../economy/budget";
 import { EXCHANGE_RATES } from "../economy/currency";
 
 /** Ngân Khố lưu dạng Đồng Đỏ (1 Rồng Vàng = 11,760 Đồng Đỏ). */
@@ -91,23 +92,42 @@ describe("tickConstruction — loop NGÀY (10.3)", () => {
     expect(s["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"] - foodBefore).toBeGreaterThanOrEqual(200);
   });
 
-  it("thu Vàng vào ngân khố thống nhất mỗi THÁNG (Chợ + thuế nền)", () => {
+  // M18: tick lãnh địa chỉ lo VẬT TƯ; mọi dòng TIỀN (thuế, thu công trình, phí
+  // bảo trì) chốt một lần duy nhất ở sổ thu chi — nếu không thì cộng hai lần.
+  it("tick lãnh địa KHÔNG tự cộng Vàng — tiền chốt ở sổ thu chi", () => {
     let s = lordState(500);
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Chợ").ops).state;
-    // ép Chợ xong ngay
     s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Chợ"]["Đang Xây"] = false;
     const goldBefore = s["Thông Tin Nhân Vật"]["Ngân Khố"];
     tickTerritoryIncome(s);
-    // Chợ +120*GOLD + thuế nền dương → ngân khố tăng
-    expect(s["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeGreaterThan(goldBefore + 120 * GOLD - 1);
+    expect(s["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(goldBefore);
+  });
+
+  it("Chợ đã xây xong hiện thành một dòng THU trong sổ thu chi", () => {
+    let s = lordState(500);
+    s["Thông Tin Nhân Vật"]["Họ Tên"] = "Robb Stark";
+    s["Lãnh Địa"]["the-north-seat"]["Người Kiểm Soát"] = "Robb Stark";
+    const before = monthlyBudget(s).lines.find((l) => l.id === "inc-holdings");
+
+    s = applyPatch(s, startConstruction(s, "the-north-seat", "Chợ").ops).state;
+    s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Chợ"]["Đang Xây"] = false;
+
+    const after = monthlyBudget(s);
+    const shops = after.lines.find((l) => l.id === "inc-holdings");
+    expect(shops).toBeTruthy();
+    expect(shops!.amount).toBeGreaterThan(before?.amount ?? 0);
+    // và thuế thân/địa tô luôn là một dòng thu riêng, đọc được từ sổ
+    expect(after.lines.some((l) => l.id === "tax-land" && l.amount > 0)).toBe(true);
   });
 
   it("estimateTerritoryYield: gộp base + công trình cho UI Tổng Quan", () => {
     let s = lordState(500);
     s = applyPatch(s, startConstruction(s, "the-north-seat", "Nông Trại").ops).state;
     s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"] = false;
-    const y = estimateTerritoryYield(s["Lãnh Địa"]["the-north-seat"]);
+    const y = estimateTerritoryYield(s["Lãnh Địa"]["the-north-seat"], "the-north-seat");
     expect(y["Lương Thực"]).toBeGreaterThanOrEqual(200);
+    // dòng Ngân Khố của một lãnh địa = thuế thu trên đất này + thu công trình
+    // − phí bảo trì. Đây là số HIỂN THỊ, không được cộng lại vào ngân khố.
     expect(y["Ngân Khố"]).toBeGreaterThan(0);
   });
 });

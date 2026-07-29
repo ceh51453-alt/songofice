@@ -14,6 +14,8 @@ import { useMvuStore } from "./mvuStore";
 import { useChatStore, type UiChatMessage } from "./chatStore";
 import { StatDataSchema, makeDefaultState, type StatData } from "../mvu/schema";
 import { normalizeCalendar } from "../mvu/calendar";
+import { normalizeHouseIds } from "../territory/territoryEngine";
+import { repairAllHoldings } from "../territory/localMap";
 import { genId } from "../lib/id";
 import { createLogger } from "../lib/log";
 
@@ -45,8 +47,17 @@ function extractMeta(stat: StatData): SaveSlotMeta {
 /**
  * Migration: merge save cũ thiếu field với default state (prefault), rồi chuẩn
  * hoá lịch — save cũ lưu Ngày = 1-360 trong năm và chưa có Tháng, normalizeCalendar
- * tách lại đúng (Ngày 250 → tháng 9 ngày 10).
+ * tách lại đúng (Ngày 250 → tháng 9 ngày 10) — và chuẩn hoá dữ liệu bản đồ.
  */
+function migrateMapData(state: StatData): void {
+  // khoá Nhà đúng định dạng (save cũ ghi "Lannister" thay vì "lannister")
+  normalizeHouseIds(state);
+  // bố cục Tầng 1: save cũ đặt công trình theo hệ lưới trước đây (mọi thứ dồn
+  // quanh ô 750, kích thước 1-2 ô) — dời về ô hợp lệ theo khuôn viên & địa hình
+  const moved = repairAllHoldings(state);
+  if (moved > 0) log.info(`Migration: bố trí lại ${moved} công trình theo lưới lãnh địa 5 m`);
+}
+
 function migrateState(raw: unknown): StatData {
   const defaults = makeDefaultState();
 
@@ -54,6 +65,7 @@ function migrateState(raw: unknown): StatData {
   const result = StatDataSchema.safeParse(raw);
   if (result.success) {
     normalizeCalendar(result.data["Thế Giới"]);
+    migrateMapData(result.data);
     return result.data;
   }
 
@@ -63,6 +75,7 @@ function migrateState(raw: unknown): StatData {
     const retry = StatDataSchema.safeParse(merged);
     if (retry.success) {
       normalizeCalendar(retry.data["Thế Giới"]);
+      migrateMapData(retry.data);
       log.info("Migration: merge thành công save cũ với default state");
       return retry.data;
     }

@@ -93,8 +93,43 @@ export const TROOP_TYPES_ALL = [
 // ── Lãnh địa & Công trình (mục 10) ──
 
 export const BUILDING_TYPES = [
-  "Lâu Đài", "Nông Trại", "Chợ", "Doanh Trại", "Tường Thành", "Bến Cảng", "Sept/Rừng Thần", "Học Viện Nhỏ",
+  // hành chính & phòng thủ
+  "Lâu Đài", "Tường Thành", "Tháp Canh", "Doanh Trại", "Học Viện Nhỏ", "Sept/Rừng Thần",
+  // lương thực
+  "Nông Trại", "Bến Cá", "Ruộng Muối", "Kho Lương",
+  // khai thác nguyên liệu thô
+  "Xưởng Cưa", "Mỏ Đá", "Mỏ Sắt", "Mỏ Than",
+  // chế tác
+  "Lò Rèn", "Xưởng Dệt", "Chuồng Ngựa", "Xưởng Đóng Tàu",
+  // thương mại
+  "Chợ", "Bến Cảng", "Quán Trọ",
+  // ── M18: dân cư (quyết định TRẦN dân số) ──
+  "Nhà Ở", "Khu Phố Thợ",
+  // ── M18: chế tác mở rộng (chuỗi hàng hoá dài hơn) ──
+  "Trại Chăn Nuôi", "Xưởng Thuộc Da", "Xưởng Gốm", "Vườn Nho", "Nhà Ủ Bia", "Xưởng Vũ Khí",
+  // ── M18: công trình ĐẶC BIỆT — dựng được lên địa hình vốn cấm xây ──
+  "Nhà Sàn", "Đê Chắn Sóng", "Pháo Đài Vách Đá", "Cầu Đá",
+  // ── M18: người chơi tự đặt tên và tự chọn công năng ──
+  "Công Trình Tuỳ Chỉnh",
 ] as const;
+
+/** Kho tài nguyên của một lãnh địa. Vàng (Ngân Khố) tính bằng Đồng Đỏ. */
+export const RESOURCE_KEYS = [
+  "Ngân Khố", "Lương Thực", "Gỗ", "Đá", "Quặng Sắt",
+  "Than Đá", "Thép", "Vải Vóc", "Ngựa", "Muối",
+] as const;
+
+/**
+ * Nghề nghiệp của dân trong lãnh địa. Nhóm SẢN XUẤT nuôi sản lượng hằng tháng;
+ * nhóm NHÂN LỰC (Dân Phu / Thợ Đá / Thợ Mộc / Thợ Rèn / Kỹ Sư) bị công trường
+ * CHIẾM DỤNG trong lúc thi công và được trả về khi công trình xong.
+ */
+export const JOB_KEYS = [
+  "Nông Dân", "Thợ Thủ Công", "Thợ Mỏ", "Tiều Phu", "Thương Nhân",
+  "Dân Phu", "Thợ Đá", "Thợ Mộc", "Thợ Rèn", "Kỹ Sư",
+  "Nghề Khác", "Thất Nghiệp",
+] as const;
+export type JobKey = (typeof JOB_KEYS)[number];
 
 /** Trạng thái chủ quyền 1 vùng trên bản đồ (9.5.1). */
 export const REGION_STATUS = ["Ổn Định", "Đang Tranh Chấp", "Bị Vây", "Mới Chiếm", "Nổi Loạn"] as const;
@@ -163,6 +198,44 @@ export const CrisisSchema = z
   })
   .prefault({});
 export type Crisis = z.infer<typeof CrisisSchema>;
+
+/**
+ * SỔ CHỢ của một mặt hàng tại một vùng (M18). Giá KHÔNG phải hằng số nhân hệ
+ * số nữa: nó hình thành từ tồn kho + cung + cầu, và mọi lệnh mua bán của người
+ * chơi đều để lại dấu trên đó (mua nhiều thì giá đội lên).
+ */
+export const MarketGoodSchema = z
+  .object({
+    "Giá": safeInt(0), // Đồng Đỏ / đơn vị
+    "Tồn Kho": safeInt(0),
+    "Cung/Tháng": safeInt(0),
+    "Cầu/Tháng": safeInt(0),
+    /** % đổi giá so với tháng trước (âm = rớt giá). */
+    "Biến Động": z.coerce.number().catch(0).prefault(0),
+    /** giá tháng trước — để vẽ mũi tên xu hướng. */
+    "Giá Trước": safeInt(0),
+  })
+  .prefault({});
+export type MarketGood = z.infer<typeof MarketGoodSchema>;
+
+/** Chợ của một vùng (15.1 mở rộng M18). */
+export const MarketSchema = z
+  .object({
+    "Hàng Hoá": z.record(safeString(), MarketGoodSchema).catch({}).prefault({}),
+    /**
+     * Thanh khoản 0.1–1: chợ lớn thì mua bán lô lớn cũng ít trượt giá, chợ làng
+     * thì mua vài trăm bao lúa là đội giá ngay.
+     */
+    "Thanh Khoản": z.coerce.number().min(0.05).max(1).catch(0.4).prefault(0.4),
+    /** chênh lệch mua/bán (0.08 = lái buôn ăn 8%). */
+    "Chênh Lệch": z.coerce.number().min(0).max(0.5).catch(0.12).prefault(0.12),
+    "Đang Có Thương Nhân": z.boolean().catch(false).prefault(false),
+    "Tin Đồn": safeString().prefault("Không có biến động lớn trên thị trường."),
+    /** ngày tuyệt đối lần chốt sổ gần nhất — chống tick trùng. */
+    "_Ngày Cập Nhật": safeInt(0),
+  })
+  .prefault({});
+export type Market = z.infer<typeof MarketSchema>;
 
 export const TerrainSchema = z.enum([
   "Đồng Bằng", "Rừng Rậm", "Đồi Núi", "Đầm Lầy", "Sông/Lối Vượt Sông",
@@ -254,6 +327,93 @@ export const EquipItemSchema = z
 
 export type EquipItem = z.infer<typeof EquipItemSchema>;
 
+/**
+ * ĐIỂM TÀI NGUYÊN trên lưới Tầng 1 (M18). Sinh bằng THUẬT TOÁN xác suất theo
+ * địa hình (territory/resourceNodes.ts) rồi GHI VÀO SAVE — nhờ vậy AI đọc được,
+ * kể được, và có thể tự thêm điểm mới khi lời kể nhắc tới ("mạch sắt lộ thiên
+ * phía đông"). Công trình khai thác phải dựng ĐÈ lên điểm mới ăn được trữ lượng.
+ *
+ * "Trữ Lượng" là BẬC 0–3: 0 = đã cạn, 1 = nghèo, 2 = khá, 3 = giàu. Khai thác
+ * lâu thì tụt bậc — mỏ nào cũng có ngày hết.
+ */
+export const RESOURCE_NODE_GRADES = [0, 1, 2, 3] as const;
+
+export const ResourceNodeSchema = z
+  .object({
+    "Mã": safeString().prefault(""),
+    /** khoá hàng hoá khai thác được (Quặng Sắt, Gỗ, Đá, Than Đá, Muối…). */
+    "Tài Nguyên": safeString().prefault("Gỗ"),
+    /** 0 = cạn kiệt · 1 = nghèo · 2 = khá · 3 = giàu. */
+    "Trữ Lượng": z.coerce.number().int().min(0).max(3).catch(2).prefault(2),
+    /** tổng sản lượng còn rút được ở BẬC hiện tại (tụt bậc khi về 0). */
+    "Còn Lại": safeInt(0),
+    "Tọa Độ X": safeInt(0),
+    "Tọa Độ Y": safeInt(0),
+    "Kích Thước": safeInt(8),
+    /** chưa khám phá thì không hiện trên bản đồ và không khai thác được. */
+    "Đã Khám Phá": z.boolean().catch(true).prefault(true),
+    /** tên công trình đang hút điểm này (rỗng = bỏ hoang). */
+    "Công Trình": safeString().prefault(""),
+    "Mô Tả": safeString().prefault(""),
+  })
+  .prefault({});
+export type ResourceNode = z.infer<typeof ResourceNodeSchema>;
+
+/**
+ * MỘT TUYẾN TƯỜNG THÀNH do người chơi tự vạch (M18) — chuỗi điểm nối nhau trên
+ * lưới, KHÔNG phải vành đai tự sinh quanh trọng trấn. Nhờ vậy nâng cấp Lâu Đài
+ * không còn xoá mất bức tường đã xây: tường là dữ liệu riêng, sống độc lập.
+ */
+export const WALL_MATERIALS = ["Gỗ", "Đá", "Đá Khối", "Đá Đen"] as const;
+export type WallMaterial = (typeof WALL_MATERIALS)[number];
+
+export const WallLineSchema = z
+  .object({
+    "Mã": safeString().prefault(""),
+    "Tên": safeString().prefault(""),
+    "Cấp": safeInt(1, 1),
+    "Vật Liệu": z.enum(WALL_MATERIALS).catch("Đá").prefault("Đá"),
+    /** các điểm gãy khúc theo Ô lưới, theo đúng thứ tự người chơi bấm. */
+    "Điểm": z.array(z.object({ x: safeInt(0), y: safeInt(0) })).catch([]).prefault([]),
+    /** chiều dài tổng (ô lưới) — engine tính, dùng cho chi phí & phòng thủ. */
+    "Chiều Dài": safeInt(0),
+    "Đang Xây": z.boolean().catch(false).prefault(false),
+    "Ngày Xây Còn Lại": safeInt(0),
+    /** 0–100, hư hại do vây thành; 0 = sập. */
+    "Nguyên Vẹn": clampedStat(0, 100, 100),
+  })
+  .prefault({});
+export type WallLine = z.infer<typeof WallLineSchema>;
+
+/**
+ * ĐẶC TẢ CÔNG TRÌNH TUỲ CHỈNH (M18) — người chơi tự đặt tên và tự chọn công
+ * năng. Engine đọc bảng này thay cho danh mục cứng, nên một "Vườn Thuốc Học Sĩ"
+ * hay "Xưởng Ủ Rượu Nhà Redwyne" chạy y như công trình có sẵn.
+ */
+const CustomBuildingBase = z
+  .object({
+    "Tên": safeString().prefault(""),
+    "Công Năng": safeString().prefault(""),
+    "Nhóm": safeString().prefault("Chế Tác"),
+    /** sản xuất mỗi tháng khi đủ nhân lực (khoá hàng hoá → số lượng). */
+    "Sản Xuất": z.record(safeString(), safeInt(0)).catch({}).prefault({}),
+    /** nguyên liệu ăn vào mỗi tháng. */
+    "Tiêu Thụ": z.record(safeString(), safeInt(0)).catch({}).prefault({}),
+    /** chỗ làm việc theo nghề (khoá nghề → số suất). */
+    "Nhân Lực": z.record(safeString(), safeInt(0)).catch({}).prefault({}),
+    /** sức chứa dân cư (nhà ở). */
+    "Sức Chứa Dân": safeInt(0),
+    "Phòng Thủ": safeInt(0),
+    "Lòng Dân/Tháng": z.coerce.number().catch(0).prefault(0),
+  });
+/**
+ * Bản có prefault để dùng độc lập. TUYỆT ĐỐI không dùng bản này bên trong
+ * BuildingSchema: `.prefault({}).optional()` vẫn dựng ra một đặc tả RỖNG cho
+ * MỌI công trình, và đặc tả rỗng đó ghi đè danh mục làm sản lượng về 0.
+ */
+export const CustomBuildingSchema = CustomBuildingBase.prefault({});
+export type CustomBuilding = z.infer<typeof CustomBuildingBase>;
+
 /** 1 công trình trong lãnh địa (10.1). */
 export const BuildingSchema = z
   .object({
@@ -264,6 +424,14 @@ export const BuildingSchema = z
     "Tọa Độ X": safeInt(0),
     "Tọa Độ Y": safeInt(0),
     "Kích Thước": safeInt(1),
+    /** mã điểm tài nguyên đang khai thác (rỗng = không bám điểm nào). */
+    "Điểm Tài Nguyên": safeString().prefault(""),
+    /** nhân lực THỰC SỰ đang làm việc — engine chốt lại mỗi tháng. */
+    "Nhân Lực": z.record(safeString(), safeInt(0)).catch({}).prefault({}),
+    /** 0–1: tỉ lệ lấp đầy chỗ làm. Sản lượng nhân thẳng với số này. */
+    "Vận Hành": z.coerce.number().min(0).max(1).catch(1).prefault(1),
+    /** chỉ có ở "Công Trình Tuỳ Chỉnh" — đặc tả do người chơi soạn. */
+    "Tuỳ Chỉnh": CustomBuildingBase.optional(),
   })
   .prefault({});
 export type Building = z.infer<typeof BuildingSchema>;
@@ -282,10 +450,17 @@ export const ExplorationPointSchema = z.object({
 }).prefault({});
 export type ExplorationPoint = z.infer<typeof ExplorationPointSchema>;
 
+export const DECREE_KINDS = [
+  "Thuế", "Luật", "Lao Dịch", "Phúc Lợi", "Chính sách kinh tế", "Chính sách quân sự", "Bất biến",
+] as const;
+
 export const DecreeSchema = z.object({
   "Trạng Thái": z.enum(["Đang hiệu lực", "Đình trệ", "Đã bãi bỏ"]).catch("Đang hiệu lực").prefault("Đang hiệu lực"),
   "Tên": safeString().prefault(""),
-  "Loại": z.enum(["Thuế", "Luật", "Chính sách kinh tế", "Chính sách quân sự", "Bất biến"]).catch("Luật").prefault("Luật"),
+  "Loại": z.enum(DECREE_KINDS).catch("Luật").prefault("Luật"),
+  // Mã tra trong DECREE_CATALOG — có mã thì engine áp hiệu ứng thật mỗi tháng,
+  // không có thì chỉ là tờ chiếu để AI kể (pháp lệnh do AI nghĩ ra).
+  "Mã": safeString().prefault(""),
   "Hiệu Ứng": safeString().optional(),
 }).prefault({});
 export type Decree = z.infer<typeof DecreeSchema>;
@@ -308,17 +483,44 @@ export const TerritorySchema = z
       "Thợ Mỏ": safeInt(0),
       "Tiều Phu": safeInt(0),
       "Thương Nhân": safeInt(0),
+      // ── nhân lực công trường (10.3) — bị chiếm dụng khi đang thi công ──
+      "Dân Phu": safeInt(0),
+      "Thợ Đá": safeInt(0),
+      "Thợ Mộc": safeInt(0),
+      "Thợ Rèn": safeInt(0),
+      "Kỹ Sư": safeInt(0),
       "Nghề Khác": safeInt(0),
       "Thất Nghiệp": safeInt(0),
     }).prefault({}),
+    // ── Sức chứa dân cư (M18) — engine chốt lại mỗi tháng, AI không ghi ──
+    /**
+     * NHÀ CỬA CÓ SẴN: nhà tranh, nhà trọ, gác xép đã mọc lên qua nhiều đời chứ
+     * không do người chơi xây. Ghim MỘT LẦN lúc lãnh địa xuất hiện (≈95% dân số
+     * lúc đó) rồi đứng yên — nên dân muốn ĐÔNG THÊM thì phải có nhà mới.
+     */
+    "Nhà Ở Sẵn Có": safeInt(0),
+    /** tổng chỗ ở = nhà có sẵn + công trình nhà ở. Dân vượt trần = vô gia cư. */
+    "Sức Chứa Dân Cư": safeInt(0),
+    /** số dân không có chỗ ở — kéo lòng dân xuống và mời dịch bệnh tới. */
+    "Vô Gia Cư": safeInt(0),
     "Lòng Dân": clampedStat(0, 100, 60),
     "Trung Thành": clampedStat(0, 100, 60), // kept for backwards compatibility
     "Dự Trữ Lương Thực": safeInt(0),
     "Thu Nhập Bình Quân": safeInt(0),
     "Sự Kiện Đặc Biệt": z.array(safeString()).catch([]).prefault([]),
     "Thuộc Vùng": safeString().prefault(""), // regionId mà thành trì này toạ lạc
+    // Neo px trên bản đồ THẾ GIỚI (bảo toàn toạ độ giữa 3 tầng — mapScale.ts).
+    // Bỏ trống = suy từ địa danh/trọng trấn của vùng (territory/localMap.ts).
+    "Neo Thế Giới": z.object({ X: safeInt(0), Y: safeInt(0) }).optional(),
+    // Hạt giống sinh địa thế Tầng 1 — gieo LÚC ĐƯỢC PHONG / CHIẾM ĐƯỢC, nên mỗi
+    // lần đổi chủ là một vùng đất mới nhưng vẫn đúng chất địa hình của vùng.
+    // Bỏ trống = suy từ id (ván cũ giữ nguyên địa thế). Engine giữ, AI không ghi.
+    "Hạt Giống Địa Hình": z.coerce.number().int().optional(),
     "Địa Hình": TerrainSchema.optional(),
     "Ven Biển": z.boolean().catch(false).prefault(false),
+    // KHO LÃNH ĐỊA. 10 khoá lõi luôn có mặt (mọi engine cũ dựa vào chúng);
+    // catchall cho phép chứa thêm bất kỳ hàng hoá nào trong content/goods.ts
+    // mà không phải sửa schema mỗi lần thêm một mặt hàng mới.
     "Tài Nguyên": z
       .object({
         "Ngân Khố": safeInt(0),
@@ -326,14 +528,40 @@ export const TerritorySchema = z
         "Gỗ": safeInt(0),
         "Đá": safeInt(0),
         "Quặng Sắt": safeInt(0),
+        // ── nguyên liệu chế tác (thêm ở M17) ──
+        "Than Đá": safeInt(0),
+        "Thép": safeInt(0),
+        "Vải Vóc": safeInt(0),
+        "Ngựa": safeInt(0),
+        "Muối": safeInt(0),
       })
+      .catchall(safeInt(0))
       .prefault({}),
     "Vật Phẩm": z.record(safeString(), safeInt(0)).catch({}).prefault({}),
     "Công Trình": z.record(safeString(), BuildingSchema).catch({}).prefault({}),
     "Điểm Khám Phá": z.array(ExplorationPointSchema).catch([]).prefault([]),
+    // Điểm tài nguyên sinh bằng thuật toán rồi GHI LẠI — AI đọc/ghi được (M18).
+    "Điểm Tài Nguyên": z.array(ResourceNodeSchema).catch([]).prefault([]),
     "Pháp Lệnh": z.record(safeString(), DecreeSchema).catch({}).prefault({}),
-    "Tường Thành": z.array(z.object({ x1: safeInt(0), y1: safeInt(0), x2: safeInt(0), y2: safeInt(0), material: safeString() })).catch([]).prefault([]),
+    // Tường thành do người chơi tự vạch — độc lập với cấp Lâu Đài (M18).
+    "Tường Thành": z.array(WallLineSchema).catch([]).prefault([]),
     "Đường Đi": z.array(z.object({ x1: safeInt(0), y1: safeInt(0), x2: safeInt(0), y2: safeInt(0) })).catch([]).prefault([]),
+    /**
+     * GỢI Ý ĐỊA THẾ do lời kể quyết định (M18). Khi input/output của AI nhắc
+     * "dựng thành bên sông" hay "vùng này lắm quặng sắt", engine ghi vào đây và
+     * bộ sinh địa hình BẮT BUỘC phải chiều theo — bản đồ và lời kể không bao
+     * giờ mâu thuẫn nữa.
+     */
+    "Gợi Ý Địa Thế": z
+      .object({
+        "Gần Sông": z.boolean().catch(false).prefault(false),
+        "Gần Biển": z.boolean().catch(false).prefault(false),
+        "Trên Núi": z.boolean().catch(false).prefault(false),
+        /** tên hàng hoá chắc chắn phải có điểm tài nguyên tương ứng. */
+        "Tài Nguyên Sẵn Có": z.array(safeString()).catch([]).prefault([]),
+        "Ghi Chú": safeString().prefault(""),
+      })
+      .prefault({}),
     // ── Khủng hoảng đang diễn ra (15.4 — M12) ──
     "Khủng Hoảng": z.array(CrisisSchema).catch([]).prefault([]),
   })
@@ -577,7 +805,8 @@ export const StatDataSchema = z
         "Đã Chết": z.boolean().catch(false).prefault(false),
         "Nguyên Nhân Cái Chết": safeString().optional(),
         "Các Loại Bệnh": z.array(CharacterDiseaseSchema).catch([]).prefault([]),
-        // Tài nguyên dùng cho rèn đúc và buôn bán
+        // Kho hàng riêng của gia tộc — dùng cho rèn đúc và buôn bán. Catchall
+        // để chứa được mọi mặt hàng trong content/westeros/goods.ts (M18).
         "Tài Nguyên Gia Tộc": z.object({
           "Gỗ": safeInt(0),
           "Đá": safeInt(0),
@@ -585,7 +814,7 @@ export const StatDataSchema = z
           "Lương Thực": safeInt(0),
           "Ngựa": safeInt(0),
           "Thép Valyria": safeInt(0)
-        }).prefault({})
+        }).catchall(safeInt(0)).prefault({})
       })
       .prefault({}),
 
@@ -1000,18 +1229,7 @@ export const StatDataSchema = z
       })
       .prefault({}),
 
-    "Thị Trường Khu Vực": z.record(safeString(), z.object({
-      "Hệ Số Giá": z.object({
-        "Gỗ": z.coerce.number().catch(1).prefault(1),
-        "Đá": z.coerce.number().catch(1).prefault(1),
-        "Quặng Sắt": z.coerce.number().catch(1).prefault(1),
-        "Lương Thực": z.coerce.number().catch(1).prefault(1),
-        "Ngựa": z.coerce.number().catch(1).prefault(1),
-        "Thép Valyria": z.coerce.number().catch(1).prefault(1)
-      }).prefault({}),
-      "Đang Có Thương Nhân": z.boolean().catch(false).prefault(false),
-      "Tin Đồn": safeString().prefault("Không có biến động lớn trên thị trường.")
-    })).catch({}).prefault({})
+    "Thị Trường Khu Vực": z.record(safeString(), MarketSchema).catch({}).prefault({}),
   })
   .prefault({});
 

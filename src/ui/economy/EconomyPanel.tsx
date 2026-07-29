@@ -19,7 +19,7 @@ import {
 } from "./EconomyIcons";
 import { IconX, IconCoins } from "../icons";
 import type { TaxLevel } from "../../mvu/schema";
-import { isBlockaded } from "../../economy/economyEngine";
+import { isBlockaded, currentBudget } from "../../economy/economyEngine";
 import { hasPrivilege, canManageDomain } from "../../character/roleplay";
 import { formatCurrencyShort, formatCurrencyFull } from "../../economy/currency";
 import { MarketTab } from "./MarketTab";
@@ -53,6 +53,8 @@ export function EconomyPanel() {
   const sparkData = useMemo(() => goldHistory.map((h) => h.gold), [goldHistory]);
   const stat = useMvuStore((s) => s.stat);
   const summary = economySummary(stat);
+  // sổ thu chi chi tiết — cùng nguồn với engine chốt sổ, không phải ước lượng riêng
+  const budget = useMemo(() => currentBudget(stat), [stat]);
   const playerName = stat["Thông Tin Nhân Vật"]["Họ Tên"];
   const playerHouse = stat["Thông Tin Nhân Vật"]["Nhà"];
   const holdings = Object.entries(stat["Lãnh Địa"]).filter(([_, t]) => 
@@ -142,44 +144,50 @@ export function EconomyPanel() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[12px]">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[var(--text-faint)]">Thuế Vi Mô</span>
-              <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(summary.microTaxIncome)}</span>
-            </div>
-            {summary.macroTaxIncome > 0 && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[var(--text-faint)]">Thuế Chư Hầu</span>
-                <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(summary.macroTaxIncome)}</span>
-              </div>
-            )}
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[var(--text-faint)]">Thương mại</span>
-              <span className="font-mono text-[var(--ok)]">+{formatCurrencyShort(summary.tradeIncome)}</span>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[var(--text-faint)]">Lương Quân Đội</span>
-              <span className={`font-mono ${summary.militaryUpkeep > 0 ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}`}>
-                {summary.militaryUpkeep > 0 ? `-${formatCurrencyShort(summary.militaryUpkeep)}` : "0 Đồng"}
-              </span>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[var(--text-faint)]">Iron Bank</span>
-              <span className={`font-mono ${summary.ironBankExpense > 0 ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}`}>
-                {summary.ironBankExpense > 0 ? `-${formatCurrencyShort(summary.ironBankExpense)}` : "0 Đồng"}
-              </span>
-            </div>
+          {/* ── SỔ THU CHI CHI TIẾT ── mỗi đồng vào ra đều có tên và lý do */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(["income", "expense"] as const).map((kind) => {
+              const lines = budget.lines.filter((l) => l.kind === kind);
+              const total = kind === "income" ? budget.income : budget.expense;
+              return (
+                <div key={kind}>
+                  <div className="mb-1 flex items-center justify-between border-b border-[var(--glass-border)] pb-1">
+                    <span className="text-[10.5px] uppercase tracking-widest text-[var(--text-faint)]">
+                      {kind === "income" ? "Các khoản thu" : "Các khoản chi"}
+                    </span>
+                    <span className={`font-mono text-[12px] ${kind === "income" ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>
+                      {kind === "income" ? "+" : "−"}{formatCurrencyShort(total)}
+                    </span>
+                  </div>
+                  {lines.length === 0 ? (
+                    <p className="py-1 text-[11.5px] italic text-[var(--text-faint)]">Chưa có khoản nào.</p>
+                  ) : (
+                    lines.map((l) => (
+                      <div key={l.id} className="py-0.5" title={l.detail}>
+                        <div className="flex items-baseline justify-between gap-2 text-[12px]">
+                          <span className="min-w-0 truncate text-[var(--text-soft)]">{l.label}</span>
+                          <span className={`shrink-0 font-mono ${kind === "income" ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>
+                            {kind === "income" ? "+" : "−"}{formatCurrencyShort(l.amount)}
+                          </span>
+                        </div>
+                        <p className="truncate text-[10.5px] text-[var(--text-faint)]">{l.detail}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Net income bar */}
           <div className="mt-3 flex items-center gap-2 border-t border-[var(--glass-border)] pt-3">
-            <IconTrend size={14} color={summary.net >= 0 ? "var(--ok)" : "var(--danger)"} />
-            <span className={`text-[13px] font-medium ${summary.net >= 0 ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>
-              Ròng: {summary.net >= 0 ? "+" : ""}{fmt(summary.net)}/tháng
+            <IconTrend size={14} color={budget.net >= 0 ? "var(--ok)" : "var(--danger)"} />
+            <span className={`text-[13px] font-medium ${budget.net >= 0 ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>
+              Ròng: {budget.net >= 0 ? "+" : "−"}{formatCurrencyShort(Math.abs(budget.net))}/tháng
             </span>
-            {summary.monthsLeft >= 0 && summary.monthsLeft < 12 && (
+            {budget.monthsLeft >= 0 && budget.monthsLeft < 24 && (
               <span className="ml-auto text-[11px] text-[var(--danger)]">
-                Cạn kho sau ~{summary.monthsLeft} tháng
+                Cạn kho sau ~{budget.monthsLeft} tháng
               </span>
             )}
           </div>

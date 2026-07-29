@@ -45,7 +45,11 @@ father: "lannister-father-loren",
     ],
     mother: "lannister-wife-loren",
     siblings: [],
-    rivals: ["aegon-the-conqueror"]
+    rivals: ["aegon-the-conqueror"],
+    relationshipDetails: {
+      "mern-ix-gardener": { type: "Đồng Minh", trust: 80, affinity: 60, detail: "Liên minh chống Aegon. Hai vị vua hợp lực tại Cánh Đồng Lửa, nhưng thất bại thảm khốc." },
+      "aegon-the-conqueror": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Loren quỳ gối trước Aegon sau Cánh Đồng Lửa. Lựa chọn giữa tôn nghiêm và sống còn." }
+    }
 },
   {
     id: "mern-ix-gardener",
@@ -81,6 +85,10 @@ father: "lannister-father-loren",
     children: ["edmund-gardener", "gawen-gardener"],
     allies: ["loren-lannister"],
     rivals: ["aegon-the-conqueror"],
+    relationshipDetails: {
+      "loren-lannister": { type: "Đồng Minh", trust: 80, affinity: 60, detail: "Mern liên minh với Loren để nghiền nát Aegon. Ông tự tin vào số lượng vượt trội." },
+      "aegon-the-conqueror": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Mern dẫn đầu khối kỵ binh xung phong vào đội hình Aegon. Ông chết trong ngọn lửa rồng cùng toàn bộ gia tộc." }
+    },
     personalHooks: [
       { id: "field-of-fire-mern", title: "Cánh Đồng Lửa", year: "2 BC", numericYear: -2, desc: "Ngươi dẫn đầu kỵ binh hùng hậu nhất Westeros, thề sẽ nghiền nát Aegon." }
     ],
@@ -132,6 +140,10 @@ father: "lannister-father-loren",
     mother: "",
     siblings: [],
     allies: [],
+    relationshipDetails: {
+      "ronnel-arryn": { type: "Con", trust: 100, affinity: 100, detail: "Sharra làm mọi thứ để bảo vệ ngai vàng cho Ronnel. Bà sẵn sàng cưới Aegon nếu cần." },
+      "aegon-the-conqueror": { type: "Đối Thủ", trust: 10, affinity: 30, detail: "Sharra cầu hôn Aegon nhưng bị từ chối. Visenya bay rồng lên Eyrie và Ronnel đòi cưỡi rồng để đổi lấy sự quỳ gối." }
+    },
     rivals: ["visenya-targaryen"],
       startRegions: ["the-vale"],
       startHoldings: ["the-vale-seat"],
@@ -270,6 +282,10 @@ children: ["tully-son-edmyn"],
     siblings: [],
     allies: ["aegon-the-conqueror"],
     rivals: [],
+    liege: "aegon-the-conqueror",
+    relationshipDetails: {
+      "aegon-the-conqueror": { type: "Chủ", trust: 80, affinity: 60, detail: "Vickon được Aegon cho phép cai trị Quần Đảo. Ông là lãnh chúa được bầu, trung thành với ngôi sắt." }
+    },
       startRegions: ["the-iron-islands"],
       startHoldings: ["the-iron-islands-seat"],
       holdingsLevel: {"the-iron-islands-seat":5},
@@ -316,6 +332,10 @@ children: ["tully-son-edmyn"],
     spouse: "",
     siblings: [],
     allies: [],
+    relationshipDetails: {
+      "aegon-the-conqueror": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Meria từ chối quỳ gối dù rồng thiêu đốt khắp Dorne. Bà là người duy nhất khẩu hiệu 'Unbowed, Unbent, Unbroken' đúng nghĩa." },
+      "nymor-martell": { type: "Con", trust: 100, affinity: 100, detail: "Nymor kế tục chí hướng của mẹ nhưng chọn đường hòa bình thay vì chiến tranh." }
+    },
       startRegions: ["dorne"],
       startHoldings: ["dorne-seat"],
       holdingsLevel: {"dorne-seat":5},
@@ -944,6 +964,9 @@ personalHooks: [
     siblings: [],
     allies: [],
     rivals: [],
+    relationshipDetails: {
+      "argilac-durrandon": { type: "Cha", trust: 100, affinity: 100, detail: "Argilac chết tại trận chiến. Argella mặc áo giáp và thề chiến đấu đến chết nhưng bị quân mình bắt nộp." }
+    },
     startArmies: [
           { name: "Bộ Binh Bão Tố", type: "Bộ Binh", size: 420, quality: "Mới Lập Đội" },
           { name: "Cung Thủ Rừng Marcher", type: "Cung Thủ", size: 180, quality: "Mới Lập Đội" }

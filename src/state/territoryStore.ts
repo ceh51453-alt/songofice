@@ -11,10 +11,18 @@ import { persist } from "zustand/middleware";
 import { useMvuStore, currentDay } from "./mvuStore";
 import { applyPatch, type PatchOp } from "../mvu/patchEngine";
 import { captureRegionOps, playerHouseId, type MapMode } from "../territory/territoryEngine";
-import { startConstruction, cancelConstruction } from "../territory/construction";
+import {
+  startConstruction, cancelConstruction,
+  issueDecree as issueDecreeOps, revokeDecree as revokeDecreeOps,
+} from "../territory/construction";
+import { placeBuilding, placeRing, terrainOf } from "../territory/localMap";
+import { buildWall, upgradeWall, demolishWall, type WallPoint } from "../territory/walls";
+import { executeOrder, type OrderSide } from "../economy/market";
+import type { CustomBuilding, WallMaterial } from "../mvu/schema";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
-import type { BuildingType } from "../content/westeros/buildings";
+import { BUILDING_CATALOG, type BuildingType } from "../content/westeros/buildings";
+import type { MapTier } from "../content/westeros/mapScale";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("territory");
@@ -46,6 +54,42 @@ interface TerritoryState {
   selectedRegionId: string | null;
   selectRegion: (id: string | null) => void;
 
+  // ── Hệ bản đồ đa tầng ──
+  /** tầng bản đồ đang xem. world/region chia theo zoom, local do người chơi chọn. */
+  tier: MapTier;
+  /** lãnh địa đang mở ở Tầng 1; null = chưa vào tầng lãnh địa. */
+  focusHoldingId: string | null;
+  setTier: (tier: MapTier) => void;
+  /** vào Tầng 1 của 1 lãnh địa (từ khu dân cư trên Tầng 2). */
+  enterLocal: (holdingId: string) => void;
+  /** rời Tầng 1 về Tầng 2. */
+  exitLocal: () => void;
+
+  /** Đặt công trình lên ô lưới Tầng 1 — kiểm quy hoạch rồi mới trừ tài nguyên. */
+  placeBuild: (
+    territoryId: string, type: BuildingType, x: number, y: number,
+    opts?: { name?: string; custom?: CustomBuilding },
+  ) => { ok: boolean; error?: string };
+
+  /**
+   * Dựng một TUYẾN TƯỜNG THÀNH do người chơi tự vạch điểm (M18). Chi phí và
+   * thời gian tính theo cấp + độ dài thật của tuyến.
+   */
+  drawWall: (
+    territoryId: string, points: WallPoint[],
+    opts?: { level?: number; material?: WallMaterial; name?: string },
+  ) => { ok: boolean; error?: string };
+  /** Nâng cấp một tuyến tường sẵn có — chỉ trả phần chênh, không xây lại. */
+  raiseWall: (territoryId: string, wallId: string) => { ok: boolean; error?: string };
+  /** Phá bỏ một tuyến tường (thu hồi 30% đá). */
+  razeWall: (territoryId: string, wallId: string) => void;
+
+  /** Đặt lệnh mua/bán trên sàn giao dịch của một vùng. */
+  tradeOrder: (
+    regionId: string, goodId: string, quantity: number, side: OrderSide,
+    destination?: { holdingId?: string },
+  ) => { ok: boolean; error?: string };
+
   /**
    * Đổi chủ 1 vùng (9.5.1) — engine giữ, bản đồ reactive đổi màu + toast.
    * Dùng bởi thẻ <territory_change> của AI (chatStore) + vây thành (M8/M12).
@@ -56,6 +100,11 @@ interface TerritoryState {
   startBuild: (territoryId: string, type: BuildingType, name?: string) => { ok: boolean; error?: string };
   /** Huỷ công trình đang xây (hoàn 50%). */
   cancelBuild: (territoryId: string, buildingName: string) => void;
+
+  /** Ban 1 pháp lệnh trong danh mục (10.4) — trả phí + engine áp hệ số mỗi tháng. */
+  issueDecree: (territoryId: string, decreeId: string) => { ok: boolean; error?: string };
+  /** Bãi bỏ pháp lệnh — hệ số ngưng áp. */
+  revokeDecree: (territoryId: string, decreeId: string) => void;
 
   /** Giải quyết 1 thỉnh nguyện Dân Tình (10.4) — áp delta Lòng Dân / Vàng. */
   resolvePetition: (territoryId: string, loyaltyDelta: number, goldDelta: number) => void;
@@ -75,6 +124,53 @@ export const useTerritoryStore = create<TerritoryState>()(
 
       selectedRegionId: null,
       selectRegion: (selectedRegionId) => set({ selectedRegionId }),
+
+      tier: "region",
+      focusHoldingId: null,
+      setTier: (tier) => set(tier === "local" ? { tier } : { tier, focusHoldingId: null }),
+      enterLocal: (focusHoldingId) => set({ tier: "local", focusHoldingId, selectedRegionId: null }),
+      exitLocal: () => set({ tier: "region", focusHoldingId: null }),
+
+      placeBuild: (territoryId, type, x, y, opts) => {
+        const stat = useMvuStore.getState().stat;
+        const r = BUILDING_CATALOG[type].ring
+          ? placeRing(stat, territoryId, type)
+          : placeBuilding(stat, territoryId, type, x, y, opts);
+        if (!r.ok) return { ok: false, error: r.error };
+        applyEngineOps(r.ops);
+        return { ok: true };
+      },
+
+      drawWall: (territoryId, points, opts) => {
+        const stat = useMvuStore.getState().stat;
+        const holding = stat["Lãnh Địa"][territoryId];
+        const r = buildWall(stat, territoryId, points, {
+          ...opts,
+          map: holding ? terrainOf(territoryId, holding) : undefined,
+        });
+        if (!r.ok) return { ok: false, error: r.error };
+        applyEngineOps(r.ops);
+        return { ok: true };
+      },
+
+      raiseWall: (territoryId, wallId) => {
+        const r = upgradeWall(useMvuStore.getState().stat, territoryId, wallId);
+        if (!r.ok) return { ok: false, error: r.error };
+        applyEngineOps(r.ops);
+        return { ok: true };
+      },
+
+      razeWall: (territoryId, wallId) => {
+        applyEngineOps(demolishWall(useMvuStore.getState().stat, territoryId, wallId));
+      },
+
+      tradeOrder: (regionId, goodId, quantity, side, destination) => {
+        const stat = useMvuStore.getState().stat;
+        const r = executeOrder(stat, regionId, goodId, quantity, side, destination);
+        if (!r.ok) return { ok: false, error: r.error };
+        applyEngineOps(r.ops);
+        return { ok: true };
+      },
 
       captureRegion: (regionId, newHouseId) => {
         const region = REGIONS_BY_ID[regionId];
@@ -111,6 +207,17 @@ export const useTerritoryStore = create<TerritoryState>()(
         applyEngineOps(cancelConstruction(useMvuStore.getState().stat, territoryId, buildingName));
       },
 
+      issueDecree: (territoryId, decreeId) => {
+        const r = issueDecreeOps(useMvuStore.getState().stat, territoryId, decreeId);
+        if (!r.ok) return { ok: false, error: r.error };
+        applyEngineOps(r.ops);
+        return { ok: true };
+      },
+
+      revokeDecree: (territoryId, decreeId) => {
+        applyEngineOps(revokeDecreeOps(useMvuStore.getState().stat, territoryId, decreeId));
+      },
+
       resolvePetition: (territoryId, loyaltyDelta, goldDelta) => {
         const ops: PatchOp[] = [];
         if (loyaltyDelta) ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Trung Thành`, value: loyaltyDelta });
@@ -121,7 +228,7 @@ export const useTerritoryStore = create<TerritoryState>()(
     {
       name: "asoiaf-territory",
       version: 1,
-      partialize: (s) => ({ mode: s.mode, showMarkers: s.showMarkers, showTerritory: s.showTerritory }),
+      partialize: (s) => ({ mode: s.mode, showMarkers: s.showMarkers, showTerritory: s.showTerritory, tier: s.tier }),
     },
   ),
 );

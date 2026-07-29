@@ -8,8 +8,7 @@
  */
 import { useState, useEffect } from "react";
 import { ChatScreen } from "../chat/ChatScreen";
-import { MapScreen } from "../map/MapScreen";
-import { InteractiveMap } from "../map/InteractiveMap";
+import { MapWorkspace } from "../map/MapWorkspace";
 import { DashboardLanhChua } from "../territory/DashboardLanhChua";
 import { TerritoryPanel } from "../territory/TerritoryPanel";
 import { MilitaryPanel } from "../military/MilitaryPanel";
@@ -28,6 +27,7 @@ import { useUiStore } from "../../state/uiStore";
 import { useMvuStore } from "../../state/mvuStore";
 import { useTerritoryStore } from "../../state/territoryStore";
 import { useEconomyStore } from "../../state/economyStore";
+import { playerHoldingIds } from "../../territory/mapAggregate";
 import { courtInvolved } from "../../strategy/court";
 import { intrigueAvailable } from "../../strategy/intrigue";
 import { useT } from "../../i18n";
@@ -70,9 +70,9 @@ export function GameScreen() {
   const gameView = useUiStore((s) => s.gameView);
   const setGameView = useUiStore((s) => s.setGameView);
   const selectRegion = useTerritoryStore((s) => s.selectRegion);
-  const sovereignty = useMvuStore((s) => s.stat["Chủ Quyền Lãnh Thổ"]);
-  const holdings = useMvuStore((s) => s.stat["Lãnh Địa"]);
   const stat = useMvuStore((s) => s.stat);
+  const myHoldings = playerHoldingIds(stat);
+  const [noHoldingNotice, setNoHoldingNotice] = useState(false);
   const userInteracted = useAudioStore((s) => s.userInteracted);
   const isDead = stat["Thông Tin Nhân Vật"]["Đã Chết"];
   const deathCause = stat["Thông Tin Nhân Vật"]["Nguyên Nhân Cái Chết"];
@@ -82,31 +82,19 @@ export function GameScreen() {
     if (userInteracted) updateMood(stat);
   }, [stat, userInteracted]);
 
-  /** Mở Lãnh Địa: vào bản đồ + chọn vùng người chơi quản lý (ưu tiên có holding). */
+  /** Mở bảng quản trị Lãnh Địa (hành chính). Bản đồ lãnh địa nằm ở Tầng 1 của Bản Đồ. */
   const openTerritory = () => {
-    // Tìm vùng do người chơi sở hữu
-    const owned = Object.entries(sovereignty).find(([, s]) => s["Là Của Người Chơi"])?.[0];
-    
-    // Tìm holding do người chơi kiểm soát
-    const playerHolding = Object.values(holdings).find((h: any) => h["Người Kiểm Soát"] === stat["Thông Tin Nhân Vật"]["Họ Tên"]);
-    const withHolding = playerHolding ? playerHolding["Thuộc Vùng"] : undefined;
-    
-    const target = owned ?? withHolding ?? null;
-    if (target) {
-        setTerritoryDashboardOpen(true);
-    } else {
-        if (playerHolding && !playerHolding["Thuộc Vùng"]) {
-            console.warn(`Lỗi: Nhân vật có sở hữu lãnh địa [${playerHolding["Mô Tả"]}] nhưng lãnh địa này không được khai báo Thuộc Vùng! Cần cập nhật dữ liệu cốt truyện.`);
-        }
-        alert("Ngài là kẻ lang thang, không tấc đất cắm dùi. Hãy chiếm lấy một vùng đất trước!");
+    if (myHoldings.length > 0) {
+      setTerritoryDashboardOpen(true);
+      return;
     }
+    setNoHoldingNotice(true);
   };
 
   const railItems: RailItem[] = [
     { key: "chat", label: t("game.navChat"), icon: <IconSend size={18} />, enabled: true, active: gameView === "chat", onClick: () => setGameView("chat") },
-    { key: "map", label: "Địa Phương", icon: <IconMap size={18} />, enabled: true, active: gameView === "map", onClick: () => { setGameView("map"); selectRegion(null); } },
-    { key: "worldmap", label: "Thế Giới", icon: <IconMap size={18} />, enabled: true, active: gameView === "worldmap", onClick: () => setGameView("worldmap") },
-    { key: "territory", label: t("game.navTerritory"), icon: <IconCastle size={18} />, enabled: true, active: territoryDashboardOpen, onClick: openTerritory },
+    { key: "map", label: "Bản Đồ (Thế Giới / Lãnh Thổ / Lãnh Địa)", icon: <IconMap size={18} />, enabled: true, active: gameView === "map", onClick: () => { setGameView("map"); selectRegion(null); } },
+    { key: "territory", label: t("game.navTerritory"), icon: <IconCastle size={18} />, enabled: myHoldings.length > 0, active: territoryDashboardOpen, onClick: openTerritory },
     { key: "military", label: t("game.navMilitary"), icon: <IconShield size={18} />, enabled: true, active: militaryOpen, onClick: () => setMilitaryOpen(true) },
     { key: "economy", label: "Kinh Tế", icon: <IconCoin size={18} />, enabled: hasHoldings, active: economyOpen, onClick: toggleEconomy },
     { key: "court", label: t("game.navCourt"), icon: <IconCrown size={18} />, enabled: courtActive, active: courtOpen, onClick: () => setCourtOpen(true) },
@@ -167,7 +155,7 @@ export function GameScreen() {
 
       {/* ---- CHAT / BẢN ĐỒ (giữa) ---- */}
       <main className="min-h-0 min-w-0 flex-1">
-        {gameView === "map" ? <MapScreen /> : gameView === "worldmap" ? <InteractiveMap /> : <ChatScreen />}
+        {gameView === "map" ? <MapWorkspace /> : <ChatScreen />}
       </main>
 
       {/* ---- STATUS PANEL (phải, PC — thu gọn được) ---- */}
@@ -194,9 +182,10 @@ export function GameScreen() {
       {/* ---- BOTTOM NAV (mobile) ---- */}
       <div className="glass-strong fixed bottom-20 left-1/2 z-30 flex -translate-x-1/2 gap-1 rounded-full px-1.5 py-1 lg:hidden">
         <MobileNavBtn label={t("game.navChat")} icon={<IconSend size={17} />} active={gameView === "chat"} onClick={() => setGameView("chat")} />
-        <MobileNavBtn label="Địa Phương" icon={<IconMap size={17} />} active={gameView === "map"} onClick={() => { setGameView("map"); selectRegion(null); }} />
-        <MobileNavBtn label="Thế Giới" icon={<IconMap size={17} />} active={gameView === "worldmap"} onClick={() => setGameView("worldmap")} />
-        <MobileNavBtn label={t("game.navTerritory")} icon={<IconCastle size={17} />} active={territoryDashboardOpen} onClick={openTerritory} />
+        <MobileNavBtn label="Bản Đồ" icon={<IconMap size={17} />} active={gameView === "map"} onClick={() => { setGameView("map"); selectRegion(null); }} />
+        {myHoldings.length > 0 && (
+          <MobileNavBtn label={t("game.navTerritory")} icon={<IconCastle size={17} />} active={territoryDashboardOpen} onClick={openTerritory} />
+        )}
         <MobileNavBtn label={t("game.navMilitary")} icon={<IconShield size={17} />} active={militaryOpen} onClick={() => setMilitaryOpen(true)} />
         {hasHoldings && <MobileNavBtn label="Kinh Tế" icon={<IconCoin size={17} />} active={economyOpen} onClick={toggleEconomy} />}
         {courtActive && <MobileNavBtn label={t("game.navCourt")} icon={<IconCrown size={17} />} active={courtOpen} onClick={() => setCourtOpen(true)} />}
@@ -234,6 +223,26 @@ export function GameScreen() {
           >
             Chấp Nhận Số Phận
           </button>
+        </div>
+      )}
+
+      {/* ---- chưa có lãnh địa nào để quản trị ---- */}
+      {noHoldingNotice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog">
+          <div className="absolute inset-0 bg-[rgba(5,7,10,0.6)]" onClick={() => setNoHoldingNotice(false)} />
+          <div className="glass-strong anim-in relative max-w-sm rounded-[var(--radius-md)] p-5">
+            <h3 className="font-display mb-2 text-[15px] tracking-wide text-[var(--accent-text)]">Chưa có tấc đất cắm dùi</h3>
+            <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">
+              Ngươi chưa quản trị lãnh địa nào. Hãy chiếm một vùng hoặc được ban đất trước —
+              khi đó Tầng Lãnh Địa trên bản đồ sẽ mở ra để quy hoạch.
+            </p>
+            <button
+              onClick={() => setNoHoldingNotice(false)}
+              className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--accent-soft)] px-3 py-2 text-[12.5px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
+            >
+              Đã rõ
+            </button>
+          </div>
         </div>
       )}
 

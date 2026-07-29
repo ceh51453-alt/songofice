@@ -88,7 +88,8 @@ export interface CanonCharacter {
     skills: Record<string, number>;
   };
   /** Chức vụ trong triều đình (nếu có). */
-  courtPosition?: CourtPosition;
+  /** ghế Tiểu Hội Đồng, hoặc một chức trong triều ngoài hội đồng ("Vệ Vương"…). */
+  courtPosition?: CourtPosition | (string & {});
   /** Lãnh chúa/Vua mà nhân vật này phục vụ (dùng id của CanonCharacter). */
   liege?: string;
   // ── LORE MỞ RỘNG (Gia phả, Kinh tế, Thành trì) ──

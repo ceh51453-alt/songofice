@@ -19,8 +19,6 @@ import { decayAllMemories } from "../npc/memoryEngine";
 import { humanAgeMod, dragonAgeMod } from "../character/ageSystem";
 import { processExperience } from "../character/experienceSystem";
 import { createLogger } from "../lib/log";
-import { monthlyTick } from "../territory/territoryEngine";
-import { applyPatch } from "./patchEngine";
 import { absoluteDay, absoluteMonth, normalizeCalendar, DAYS_PER_MONTH, DAYS_PER_YEAR } from "./calendar";
 
 const log = createLogger("mvu/effects");
@@ -231,17 +229,12 @@ export function runCascadeEffects(prev: StatData, next: StatData): CascadeResult
   const monthsPassed = Math.max(0, absoluteMonth(world) - absoluteMonth(prevWorld));
 
   if (monthsPassed > 0) {
+    // Việc chốt sổ do listener THÁNG "territory-income" (construction.ts) lo —
+    // ở đây chỉ báo sự kiện cho người chơi, KHÔNG cộng thu nhập lần thứ hai.
     events.push({
       kind: "territory",
       text: monthsPassed === 1 ? "Sang tháng mới — chốt sổ lãnh địa." : `Đã qua ${monthsPassed} tháng, chốt sổ lãnh địa.`,
     });
-
-    // Simulate multiple months if needed
-    for (let i = 0; i < monthsPassed; i++) {
-        const ops = monthlyTick(next);
-        const { state: updatedState } = applyPatch(next, ops);
-        Object.assign(next, updatedState);
-    }
   }
 
   // ---- 2. tuổi NPC theo Năm Sinh (5.1e) ----

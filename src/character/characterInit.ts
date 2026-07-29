@@ -5,11 +5,21 @@
  * trang bị/tài sản → engine tính phái sinh → HP/Thể Lực = trần.
  * Kèm: lore entry khởi tạo (constant) + tin nhắn mở đầu + tự trigger AI.
  */
-import { makeDefaultState, DRAGON_SIZE_HP, DRAGON_STATS, DRAGON_SKILLS, type StatData, type DragonStat, type DragonSkill, type DragonSize, PATRON_GODS, BLOODLINES } from "../mvu/schema";
+import { makeDefaultState, DRAGON_SIZE_HP, DRAGON_STATS, DRAGON_SKILLS, type StatData, type DragonStat, type DragonSkill, type DragonSize, type WallLine, PATRON_GODS, BLOODLINES } from "../mvu/schema";
 import { NpcSchema, lifeStage, type Npc } from "../mvu/npcSchema";
 import { parseEffect, recomputeDerived } from "../mvu/effects";
 import { clamp } from "../mvu/helpers";
 import { newRootSeed } from "../probability/rng";
+import { EXCHANGE_RATES } from "../economy/currency";
+
+/**
+ * Đơn vị tiền: MỌI bảng nội dung (origins.assets.vang, canon character.gold,
+ * giá trang bị) viết theo RỒNG VÀNG cho người đọc dễ hình dung, còn state lưu
+ * theo ĐỒNG ĐỎ. Quy đổi đúng MỘT LẦN ở chỗ ghi vào state — trước đây thiếu
+ * bước này nên một lãnh chúa "5000 Vàng" thật ra khởi đầu với 0.42 Rồng Vàng
+ * và không xây nổi bất cứ công trình nào.
+ */
+const G = EXCHANGE_RATES.GOLD_TO_COPPER;
 import { ORIGINS_BY_ID, type EquipGrant, type OriginDef } from "../content/westeros/origins";
 import { CULTURES_BY_ID } from "../content/westeros/cultures";
 import { TALENTS_BY_ID, type TalentDef } from "../content/westeros/talents";
@@ -21,7 +31,11 @@ import { STARTING_CRISES } from "../content/westeros/startingCrises";
 import { COMPANIONS_BY_ID } from "../content/westeros/companions";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 import { REGIONS } from "../content/westeros/regions";
-import { seedRegionControl } from "../territory/territoryEngine";
+import { seedRegionControl, toHouseId, normalizeHouseIds, seedMissingTerrain } from "../territory/territoryEngine";
+import { layoutHolding, repairAllHoldings, type BuildPlanItem } from "../territory/localMap";
+import { REGIONS_BY_ID } from "../content/westeros/regions";
+import { loreSeatFor } from "../content/westeros/loreSeats";
+import { defaultJobSplit } from "../content/westeros/buildings";
 import type { CoreStat } from "../content/westeros/skills";
 import type { LoreEntry } from "../lorebook/loreSchema";
 
@@ -116,63 +130,68 @@ export function validatePointBuy(
   return { ok: true, spent, budget };
 }
 
-export const autoBuildCity = (level: number) => {
-  const b: Record<string, any> = {};
-  const center = 750;
-  b[`Lâu Đài_${center}_${center}`] = { "Loại": "Lâu Đài", "Cấp Độ": level, "Đang Xây": false, "Ngày Xây Còn Lại": 0, "Tọa Độ X": center, "Tọa Độ Y": center, "Kích Thước": 2 };
-  
-  const tryPlace = (type: string, count: number, size: number = 1) => {
-      for (let i = 0; i < count; i++) {
-          let placedHere = false;
-          let radius = 3;
-          while (!placedHere && radius < 15 + level * 5) {
-              for (let attempt = 0; attempt < 10; attempt++) {
-                  const angle = Math.random() * Math.PI * 2;
-                  const x = Math.floor(center + Math.cos(angle) * radius);
-                  const y = Math.floor(center + Math.sin(angle) * radius);
-                  let collides = false;
-                  for (const existing of Object.values(b)) {
-                      const ex = existing["Tọa Độ X"];
-                      const ey = existing["Tọa Độ Y"];
-                      const es = existing["Kích Thước"];
-                      if (x < ex + es && x + size > ex && y < ey + es && y + size > ey) {
-                          collides = true;
-                          break;
-                      }
-                  }
-                  if (!collides) {
-                      b[`${type}_${x}_${y}`] = { "Loại": type, "Cấp Độ": Math.max(1, level - 1), "Đang Xây": false, "Ngày Xây Còn Lại": 0, "Tọa Độ X": x, "Tọa Độ Y": y, "Kích Thước": size };
-                      placedHere = true;
-                      break;
-                  }
-              }
-              radius += 2;
-          }
-      }
-  };
-  
-  tryPlace("Nông Trại", level * 2);
-  tryPlace("Chợ", level);
-  tryPlace("Doanh Trại", level);
-  if (level >= 2) tryPlace("Sept/Rừng Thần", 1, 2);
-  if (level >= 4) tryPlace("Học Viện Nhỏ", 1, 2);
-  
-  return b;
+/**
+ * Dựng sẵn thành trì trên LƯỚI TẦNG 1 thật (1 ô = 5 m). Bố cục đi qua
+ * localMap.layoutHolding nên tôn trọng địa hình của vùng, khuôn viên thật của
+ * từng loại công trình và không có hai công trình chồng lên nhau — thay cho
+ * cách rải ngẫu nhiên quanh ô 750 của hệ lưới cũ.
+ */
+export const autoBuildCity = (level: number, holdingId = "holding", regionId = "") => {
+  const region = REGIONS_BY_ID[regionId];
+  const lore = loreSeatFor(holdingId);
+  const plan: BuildPlanItem[] = [
+    { type: "Lâu Đài", count: 1, level },
+    { type: "Nông Trại", count: level * 2, level: Math.max(1, level - 1) },
+    { type: "Chợ", count: level, level: Math.max(1, level - 1) },
+    { type: "Doanh Trại", count: level, level: Math.max(1, level - 1) },
+  ];
+  // Tường thành: toà thành trong lore lấy đúng cấp tường của nó (Storm's End
+  // và Winterfell dày hơn hẳn, Castle Black thì không có tường bao); thành
+  // thường có tường từ cấp 2 trở lên.
+  const wallLevel = lore ? lore.wallLevel : level >= 2 ? Math.max(1, level - 1) : 0;
+  if (wallLevel > 0) plan.push({ type: "Tường Thành", count: 1, level: wallLevel });
+  if (level >= 2) plan.push({ type: "Sept/Rừng Thần", count: 1, level: Math.max(1, level - 1) });
+  if (level >= 4) plan.push({ type: "Học Viện Nhỏ", count: 1, level: Math.max(1, level - 1) });
+
+  return layoutHolding(
+    holdingId,
+    { terrain: region?.terrain, coastal: region?.coastal, region, lore },
+    plan,
+  );
 };
 
-export const autoBuildWalls = (level: number) => {
+/**
+ * Tường thành có sẵn của một thành trì lúc khởi tạo ván — dựng thành MỘT TUYẾN
+ * khép kín theo hệ tường vạch tay (M18). Đa giác 12 cạnh trông tự nhiên hơn hình
+ * vuông, và vì nó là dữ liệu riêng nên nâng cấp Lâu Đài về sau không xoá mất nó.
+ */
+export const autoBuildWalls = (level: number): WallLine[] => {
   if (level < 2) return [];
-  const center = 750;
-  // Bán kính tường thành phụ thuộc vào level, bao bọc Lâu Đài
-  const radius = 8 + level * 2;
-  const c = center;
-  const r = radius;
-  return [
-    { x1: c - r, y1: c - r, x2: c + r, y2: c - r, material: "Đá" }, // Top
-    { x1: c + r, y1: c - r, x2: c + r, y2: c + r, material: "Đá" }, // Right
-    { x1: c + r, y1: c + r, x2: c - r, y2: c + r, material: "Đá" }, // Bottom
-    { x1: c - r, y1: c + r, x2: c - r, y2: c - r, material: "Đá" }  // Left
-  ];
+  const c = 750; // tâm lưới Tầng 1
+  const r = 60 + level * 30;
+  const sides = 12;
+  const points: { x: number; y: number }[] = [];
+  for (let i = 0; i <= sides; i++) {
+    const th = (i / sides) * Math.PI * 2;
+    // bán kính nhấp nhô nhẹ để tường không tròn trịa như compa
+    const rr = r * (0.92 + 0.16 * Math.abs(Math.sin(th * 2.5)));
+    points.push({ x: Math.round(c + Math.cos(th) * rr), y: Math.round(c + Math.sin(th) * rr) });
+  }
+  let length = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    length += Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
+  }
+  return [{
+    "Mã": "wall-keep",
+    "Tên": "Tường Thành Cũ",
+    "Cấp": Math.max(1, Math.min(4, level - 1)),
+    "Vật Liệu": "Đá",
+    "Điểm": points,
+    "Chiều Dài": Math.round(length),
+    "Đang Xây": false,
+    "Ngày Xây Còn Lại": 0,
+    "Nguyên Vẹn": 100,
+  }];
 };
 
 
@@ -555,7 +574,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
     }
   }
 
-  info["Ngân Khố"] = startingGold;
+  info["Ngân Khố"] = startingGold * G; // bảng ghi Rồng Vàng → state giữ Đồng Đỏ
   
   if (d.hasCustomTerritory && d.customTerritoryName) {
     const lvl = d.customTerritoryLevel || 1;
@@ -563,23 +582,15 @@ export function buildStateFromWizard(d: WizardData): StatData {
     const pop = basePop * lvl;
     const factor = lvl;
     const cost = lvl === 3 ? 3000 : lvl === 2 ? 1000 : 0;
-    info["Ngân Khố"] = Math.max(0, (info["Ngân Khố"] as number) - cost);
+    info["Ngân Khố"] = Math.max(0, (info["Ngân Khố"] as number) - cost * G);
     
     (state["Lãnh Địa"] as Record<string, unknown>)[d.customTerritoryName] = {
-      "Nhà Kiểm Soát": d.houseId || d.customHouseName || "Vô Danh",
+      "Nhà Kiểm Soát": toHouseId(d.houseId || d.customHouseName || "Vô Danh"),
       "Người Kiểm Soát": d.name,
       "Tình Trạng": "Ổn Định",
       "Mô Tả": `Thành trì của ${d.name}`,
       "Dân Số": pop,
-      "Dân Số Chi Tiết": { 
-          "Nông Dân": Math.floor(pop * 0.5), 
-          "Thợ Thủ Công": Math.floor(pop * 0.1), 
-          "Thợ Mỏ": Math.floor(pop * 0.1), 
-          "Tiều Phu": Math.floor(pop * 0.1), 
-          "Thương Nhân": Math.floor(pop * 0.1), 
-          "Nghề Khác": Math.floor(pop * 0.05), 
-          "Thất Nghiệp": Math.floor(pop * 0.05) 
-      },
+      "Dân Số Chi Tiết": defaultJobSplit(pop),
       "Lòng Dân": 80,
       "Trung Thành": 80,
       "Dự Trữ Lương Thực": 1000 * factor,
@@ -599,8 +610,8 @@ export function buildStateFromWizard(d: WizardData): StatData {
       "Đường Đi": [],
       "Khủng Hoảng": [],
       "Thuộc Vùng": d.startingLocation || state["Thế Giới"]["Vị Trí"],
-      "Ven Biển": false,
-      "Công Trình": autoBuildCity(lvl),
+      "Ven Biển": REGIONS_BY_ID[d.startingLocation || state["Thế Giới"]["Vị Trí"]]?.coastal ?? false,
+      "Công Trình": autoBuildCity(lvl, d.customTerritoryName, d.startingLocation || state["Thế Giới"]["Vị Trí"]),
     };
     
     // Đăng ký vùng này thuộc về người chơi
@@ -609,7 +620,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
     if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
       state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0 };
     }
-    state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = d.houseId || d.customHouseName || "Vô Danh";
+    state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = toHouseId(d.houseId || d.customHouseName || "Vô Danh");
     state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
   } else if (origin.assets.lanhDia) {
     const regionId = d.startingLocation || state["Thế Giới"]["Vị Trí"];
@@ -620,16 +631,16 @@ export function buildStateFromWizard(d: WizardData): StatData {
       "Tài Nguyên": { "Ngân Khố": 0, "Lương Thực": origin.assets.luongThuc, "Gỗ": 300, "Đá": 300, "Quặng Sắt": 150 },
       "Khủng Hoảng": [],
       "Thuộc Vùng": regionId,
-      "Ven Biển": false,
+      "Ven Biển": REGIONS_BY_ID[regionId]?.coastal ?? false,
       "Người Kiểm Soát": d.name,
-      "Công Trình": autoBuildCity(3),
+      "Công Trình": autoBuildCity(3, origin.assets.lanhDia.ten, regionId),
     };
 
     if (!state["Chủ Quyền Lãnh Thổ"]) state["Chủ Quyền Lãnh Thổ"] = {};
     if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
       state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0 };
     }
-    state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = d.houseId || d.customHouseName || "Vô Danh";
+    state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = toHouseId(d.houseId || d.customHouseName || "Vô Danh");
     state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
     state["Chủ Quyền Lãnh Thổ"][regionId]["Người Kiểm Soát"] = d.name;
   }
@@ -769,6 +780,13 @@ export function buildStateFromWizard(d: WizardData): StatData {
   recomputeDerived(state);
   state["Chỉ Số Sinh Tồn"]["HP"] = state["Chỉ Số Phái Sinh"]["_HP Tối Đa"];
   state["Chỉ Số Sinh Tồn"]["Thể Lực"] = state["Chỉ Số Phái Sinh"]["_Thể Lực Tối Đa"];
+  // Chuẩn hoá dữ liệu bản đồ đa tầng: khoá Nhà đúng định dạng, GIEO địa thế cho
+  // từng lãnh địa (mỗi ván một vùng đất khác nhưng vẫn đúng chất của vùng), rồi
+  // bố trí lại công trình cho hợp địa hình và không chồng lấn.
+  normalizeHouseIds(state);
+  seedMissingTerrain(state);
+  repairAllHoldings(state);
+
   return state;
 }
 
@@ -917,7 +935,7 @@ export function buildStateFromCanon(
   if (info["Tôn Giáo"] && PATRON_GODS[info["Tôn Giáo"]]) {
     info["Thần Bảo Hộ"] = PATRON_GODS[info["Tôn Giáo"]][0]?.name || "";
   }
-  info["Ngân Khố"] = c.gold;
+  info["Ngân Khố"] = c.gold * G; // canon character.gold viết theo Rồng Vàng
   
   if (c.startResources) {
     info["Tài Nguyên Gia Tộc"] = { 
@@ -1076,7 +1094,7 @@ export function buildStateFromCanon(
     if (char.startRegions) {
       for (const rid of char.startRegions) {
         if (state["Chủ Quyền Lãnh Thổ"][rid]) {
-          state["Chủ Quyền Lãnh Thổ"][rid]["Nhà Kiểm Soát"] = char.house;
+          state["Chủ Quyền Lãnh Thổ"][rid]["Nhà Kiểm Soát"] = toHouseId(char.house);
           state["Chủ Quyền Lãnh Thổ"][rid]["Người Kiểm Soát"] = char.name;
           if (isPlayer) {
             state["Chủ Quyền Lãnh Thổ"][rid]["Là Của Người Chơi"] = true;
@@ -1087,6 +1105,11 @@ export function buildStateFromCanon(
 
     if (char.startHoldings) {
       for (const sid of char.startHoldings) {
+        // Thành trì đã được trao cho NGƯỜI CHƠI (seedRegionControl mở trọng trấn
+        // vùng quê) thì nhân vật canon khác không được giành lấy — nếu không,
+        // lãnh chúa do người chơi đóng lại thành kẻ không tấc đất trong chính
+        // toà thành của mình.
+        if (!isPlayer && state["Lãnh Địa"][sid]?.["Người Kiểm Soát"] === adjustedC.name) continue;
         const marker = MAP_MARKERS.find(m => m.id === sid);
         const regionSeat = REGIONS.find(r => r.id + "-seat" === sid || r.seat === marker?.name);
         
@@ -1126,40 +1149,48 @@ export function buildStateFromCanon(
         
         state["Lãnh Địa"][sid] = {
           "Thuộc Vùng": regionId,
-          "Nhà Kiểm Soát": char.house,
+          "Nhà Kiểm Soát": toHouseId(char.house),
           "Người Kiểm Soát": char.name,
           "Tình Trạng": "Ổn Định",
           "Mô Tả": marker?.name || (regionSeat?.seat) || sid,
           "Dân Số": pop,
-          "Dân Số Chi Tiết": { 
-              "Nông Dân": Math.floor(pop * 0.5), 
-              "Thợ Thủ Công": Math.floor(pop * 0.1), 
-              "Thợ Mỏ": Math.floor(pop * 0.1), 
-              "Tiều Phu": Math.floor(pop * 0.1), 
-              "Thương Nhân": Math.floor(pop * 0.1), 
-              "Nghề Khác": Math.floor(pop * 0.05), 
-              "Thất Nghiệp": Math.floor(pop * 0.05) 
-          },
+          "Dân Số Chi Tiết": defaultJobSplit(pop),
           "Lòng Dân": 80,
           "Trung Thành": 80,
           "Dự Trữ Lương Thực": Math.floor(1000 * popMulti * rMod.food),
           "Thu Nhập Bình Quân": 10 * factor,
           "Sự Kiện Đặc Biệt": [],
-          "Tài Nguyên": { 
-              "Ngân Khố": Math.floor(1000 * popMulti * rMod.gold), 
-              "Lương Thực": Math.floor(5000 * popMulti * rMod.food), 
-              "Gỗ": Math.floor(1000 * popMulti * rMod.wood), 
-              "Đá": Math.floor(1000 * popMulti * rMod.stone), 
-              "Quặng Sắt": Math.floor(500 * popMulti * rMod.iron) 
+          "Tài Nguyên": {
+              "Ngân Khố": Math.floor(1000 * popMulti * rMod.gold) * G,
+              "Lương Thực": Math.floor(5000 * popMulti * rMod.food),
+              "Gỗ": Math.floor(1000 * popMulti * rMod.wood),
+              "Đá": Math.floor(1000 * popMulti * rMod.stone),
+              "Quặng Sắt": Math.floor(500 * popMulti * rMod.iron),
+              "Than Đá": Math.floor(300 * popMulti * rMod.iron),
+              "Thép": Math.floor(120 * popMulti * rMod.iron),
+              "Vải Vóc": Math.floor(250 * popMulti),
+              "Ngựa": Math.floor(40 * popMulti),
+              "Muối": Math.floor(200 * popMulti * rMod.food),
           },
           "Vật Phẩm": {},
           "Điểm Khám Phá": [],
+          // điểm tài nguyên để rỗng: engine gieo bằng thuật toán theo địa hình
+          // ngay lần đầu mở lãnh địa, rồi ghi lại vào save (resourceNodes.ts)
+          "Điểm Tài Nguyên": [],
+          "Gợi Ý Địa Thế": {
+            "Gần Sông": false, "Gần Biển": REGIONS_BY_ID[regionId]?.coastal ?? false,
+            "Trên Núi": false, "Tài Nguyên Sẵn Có": [], "Ghi Chú": "",
+          },
+          "Nhà Ở Sẵn Có": 0, // engine ghim ≈95% dân số ở lần chốt sổ đầu tiên
+          "Sức Chứa Dân Cư": 0,
+          "Vô Gia Cư": 0,
           "Pháp Lệnh": {},
           "Tường Thành": autoBuildWalls(lvl),
           "Đường Đi": [],
           "Khủng Hoảng": [],
-          "Ven Biển": false,
-          "Công Trình": autoBuildCity(lvl),
+          "Ven Biển": REGIONS_BY_ID[regionId]?.coastal ?? false,
+          "Địa Hình": REGIONS_BY_ID[regionId]?.terrain,
+          "Công Trình": autoBuildCity(lvl, sid, regionId),
         };
       }
     }
@@ -1355,7 +1386,7 @@ export function buildStateFromCanon(
       "Loại Quan Hệ": ["Người Thân"],
       "Còn Sống": true,
       "Đánh Giá": relChar?.blurb || "Thành viên gia tộc.",
-      "Ngân Khố": relChar?.gold ?? 5000,
+      "Ngân Khố": relChar?.gold != null ? relChar.gold * G : 5000 * G,
       "Túi Đồ": {},
       "Huyết Thống Thật Sự": {
         "Cha/Mẹ": [relChar?.secretBiologicalFather, relChar?.secretBiologicalMother].filter(Boolean) as string[],
@@ -1395,7 +1426,7 @@ export function buildStateFromCanon(
         "Loại Quan Hệ": ["Đồng Minh", "Bằng Hữu"],
         "Còn Sống": true,
         "Đánh Giá": relChar?.blurb || "Đồng minh thân cận.",
-        "Ngân Khố": relChar?.gold ?? 5000,
+        "Ngân Khố": relChar?.gold != null ? relChar.gold * G : 5000 * G,
         "Túi Đồ": {},
         "Huyết Thống Thật Sự": {
           "Cha/Mẹ": [relChar?.secretBiologicalFather, relChar?.secretBiologicalMother].filter(Boolean) as string[],
@@ -1436,7 +1467,7 @@ export function buildStateFromCanon(
         "Loại Quan Hệ": ["Kẻ Thù", "Đối Thủ"],
         "Còn Sống": true,
         "Đánh Giá": relChar?.blurb || "Kẻ thù không đội trời chung.",
-        "Ngân Khố": relChar?.gold ?? 5000,
+        "Ngân Khố": relChar?.gold != null ? relChar.gold * G : 5000 * G,
         "Túi Đồ": {},
         "Huyết Thống Thật Sự": {
           "Cha/Mẹ": [relChar?.secretBiologicalFather, relChar?.secretBiologicalMother].filter(Boolean) as string[],
@@ -1460,6 +1491,13 @@ export function buildStateFromCanon(
   recomputeDerived(state);
   state["Chỉ Số Sinh Tồn"]["HP"] = state["Chỉ Số Phái Sinh"]["_HP Tối Đa"];
   state["Chỉ Số Sinh Tồn"]["Thể Lực"] = state["Chỉ Số Phái Sinh"]["_Thể Lực Tối Đa"];
+  // Chuẩn hoá dữ liệu bản đồ đa tầng: khoá Nhà đúng định dạng, GIEO địa thế cho
+  // từng lãnh địa (mỗi ván một vùng đất khác nhưng vẫn đúng chất của vùng), rồi
+  // bố trí lại công trình cho hợp địa hình và không chồng lấn.
+  normalizeHouseIds(state);
+  seedMissingTerrain(state);
+  repairAllHoldings(state);
+
   return state;
 }
 

@@ -198,6 +198,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     siblings: ["aegon-ii-targaryen", "aemond-targaryen", "daeron-targaryen"],
     allies: [],
     rivals: ["rhaenyra-targaryen"],
+    liege: "aegon-ii-targaryen",
+    relationshipDetails: {
+      "aegon-ii-targaryen": { type: "Chồng/Anh", trust: 40, affinity: 30, detail: "Aegon là chồng nhưng cũng là anh trai. Helaena không yêu Aegon nhưng làm bổn phận." },
+      "aemond-targaryen": { type: "Anh Trai", trust: 20, affinity: 10, detail: "Aemond lạnh lùng và tàn ác. Helaena sợ Aemond dù là chị em." },
+      "jaehaerys-targaryen": { type: "Con", trust: 100, affinity: 100, detail: "Con trai bị giết trước mắt. Sự kiện Máu và Phô Mai phá hủy tinh thần Helaena mãi mãi." }
+    },
     dragon: {
       name: "Dreamfyre", color: "Xanh Nhạt và Bạc", size: "Trưởng Thành", age: 97,
       description: "Con rồng già dặn, duyên dáng và hiền hòa.",
@@ -301,6 +307,13 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     children: ["alicent-hightower", "gwayne-hightower"],
     allies: ["aegon-ii-targaryen", "larys-strong"],
     rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
+    liege: "aegon-ii-targaryen",
+    courtPosition: "Bàn Tay Nhà Vua",
+    relationshipDetails: {
+      "aegon-ii-targaryen": { type: "Cháu Ngoại", trust: 80, affinity: 60, detail: "Otto đưa Aegon lên ngai nhưng Aegon không bao giờ thực sự nghe lời ông." },
+      "alicent-hightower": { type: "Con Gái", trust: 100, affinity: 100, detail: "Alicent là quân cờ quan trọng nhất của Otto — cô làm vợ vua Viserys theo ý ông." },
+      "rhaenyra-targaryen": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Otto nghi ngờ dòng máu của con Rhaenyra và muốn loại bỏ cô khỏi kế thừa." }
+    },
     personalHooks: [
       { id: "otto-council", title: "Cuộc Bỏ Phiếu Bí Mật", year: "129 AC", numericYear: 129, desc: "Viserys vừa tắt thở. Ngươi triệu tập Tiểu Hội Đồng để phong vương cho Aegon và nhốt kín mọi kẻ phản đối." }
     ],
@@ -347,6 +360,11 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     siblings: ["harwin-strong"],
     allies: ["otto-hightower", "alicent-hightower"],
     rivals: ["rhaenyra-targaryen"],
+    liege: "aegon-ii-targaryen",
+    relationshipDetails: {
+      "alicent-hightower": { type: "Chủ", trust: 80, affinity: 60, detail: "Larys phục vụ Alicent bằng tình báo và những vụ ám sát. Đổi lại, hắn có những yêu cầu kỳ quái." },
+      "otto-hightower": { type: "Đồng Minh", trust: 50, affinity: 30, detail: "Cả hai là kiến trúc sư của phe Xanh, nhưng Larys luôn có mục đích riêng." }
+    },
     personalHooks: [
       { id: "larys-schemes", title: "Những Lời Thì Thầm", year: "129 AC", numericYear: 129, desc: "Ngươi ở trong bóng tối, thao túng cuộc chiến bằng những lời nói dối và những cái chết bất ngờ." }
     ],
@@ -490,6 +508,10 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     children: ["cassandra-baratheon", "maris-baratheon", "elinor-baratheon", "floris-baratheon"],
     allies: ["aemond-targaryen", "aegon-ii"],
     rivals: ["rhaenyra-targaryen"],
+    relationshipDetails: {
+      "aemond-targaryen": { type: "Đồng Minh", trust: 70, affinity: 60, detail: "Aemond hứa cưới con gái Borros để đổi lấy liên minh. Borros đồng ý vì tham vọng." },
+      "lucerys-velaryon": { type: "Kẻ Yếu", trust: 0, affinity: 0, detail: "Luke đến Storm's End tay không. Borros khinh thường và đuổi cậu đi." }
+    },
     personalHooks: [
       { id: "borros-choice", title: "Sứ Giả Hai Mang", year: "129 AC", numericYear: 129, desc: "Hoàng tử Aemond và Lucerys đang gầm gừ nhau trong sảnh đường của ngươi. Ngươi sẽ chọn ai?" }
     ],

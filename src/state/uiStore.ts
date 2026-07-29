@@ -2,8 +2,12 @@
 import { create } from "zustand";
 
 export type AppScreen = "menu" | "newgame" | "game";
-/** khung nhìn trong game (6.1): chat trung tâm hoặc bản đồ (mục 9). */
-export type GameView = "chat" | "map" | "worldmap";
+/**
+ * Khung nhìn trong game (6.1): chat trung tâm hoặc BẢN ĐỒ. Bản đồ chỉ có MỘT
+ * khung nhìn duy nhất (MapWorkspace); chọn Thế Giới / Lãnh Thổ / Lãnh Địa là
+ * chuyện của tầng bản đồ (territoryStore.tier), không phải của điều hướng.
+ */
+export type GameView = "chat" | "map";
 
 interface UiState {
   /** màn hình hiện tại — Main Menu là màn đầu tiên (8.1). */

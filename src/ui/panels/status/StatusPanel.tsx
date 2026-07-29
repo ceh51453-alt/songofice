@@ -3,6 +3,7 @@
  * Nguyên tắc: panel chỉ hiện khi có dữ liệu liên quan; số đổi có hiệu ứng (6.4).
  */
 import { useMvuStore } from "../../../state/mvuStore";
+import { formatCurrencyShort, formatCurrencyFull } from "../../../economy/currency";
 import { affinityStage } from "../../../mvu/npcSchema";
 import {
   IconBackpack, IconCalendar, IconCoins, IconCrossedSwords, IconDragon, IconPin, IconSpark, IconUsers, IconAlert
@@ -112,7 +113,9 @@ export function StatusPanel() {
         )}
         <div className="mt-1.5 flex items-center gap-1.5 text-[13px] text-[var(--text-soft)]">
           <IconCoins size={14} color="var(--accent-text)" />
-          <AnimatedNumber value={info["Ngân Khố"]} /> vàng
+          {/* Ngân Khố lưu bằng ĐỒNG ĐỎ — hiện ra phải quy về Rồng/Bạc/Đồng,
+              không in số thô rồi gọi là "vàng". */}
+          <span title={formatCurrencyFull(info["Ngân Khố"])}>{formatCurrencyShort(info["Ngân Khố"])}</span>
         </div>
         <div className="mt-2">
           <Bar label="HP" value={vitals["HP"]} max={derived["_HP Tối Đa"]} color="var(--ok)" />

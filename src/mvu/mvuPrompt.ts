@@ -65,7 +65,18 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
     stat_data.Mối Quan Hệ.NPC Chính.<Tên NPC>.Độ Hảo Cảm
     stat_data.Túi Đồ.<Tên vật phẩm>.Số Lượng
 - Lãnh địa (nếu ngươi quản lý): stat_data.Lãnh Địa.<regionId>.Dân Số / .Trung Thành
-  (số dân, lòng dân). ĐỪNG tự chỉnh Tài Nguyên/Công Trình — cỗ máy giữ số xây dựng/thu chi.
+  (số dân, lòng dân). ĐỪNG tự chỉnh Tài Nguyên/Công Trình/Điểm Tài Nguyên/Tường Thành/
+  Dân Số Chi Tiết/Sức Chứa Dân Cư/Vô Gia Cư — cỗ máy giữ số xây dựng, sản lượng, thu chi.
+- ĐỊA THẾ THEO LỜI KỂ: khi lời kể (của ngươi hoặc của người chơi) khẳng định một
+  đặc điểm địa lý, hãy ghi vào stat_data.Lãnh Địa.<id>.Gợi Ý Địa Thế để BẢN ĐỒ
+  khớp với truyện — cỗ máy sẽ sinh lại địa hình và gieo điểm tài nguyên đúng như vậy:
+    .Gợi Ý Địa Thế.Gần Sông = true        (thành dựng bên sông → bản đồ chắc chắn có sông)
+    .Gợi Ý Địa Thế.Gần Biển = true        (giáp biển → mở được bến cảng, ruộng muối)
+    .Gợi Ý Địa Thế.Trên Núi = true        (dưới chân núi → có vách đá, mạch khoáng)
+    .Gợi Ý Địa Thế.Tài Nguyên Sẵn Có = ["Quặng Sắt","Gỗ"]  (bảo đảm có mạch loại đó)
+  Chỉ ghi khi lời kể THẬT SỰ nói tới. Ngược lại, khi tả cảnh hãy đọc mục "Tài nguyên
+  trong đất" và "Địa thế" trong bảng trạng thái mà tả cho khớp — đừng bịa ra một mỏ
+  vàng ở nơi bảng nói chỉ có rừng.
 - Triều đình (13): stat_data.Triều Đình.Có Liên Quan (đặt true khi nhân vật dính líu triều chính) ·
   Triều Đình.Quyền Bổ Nhiệm (true nếu nhân vật có quyền bổ nhiệm trực tiếp — vua/lãnh chúa cai trị) ·
   Triều Đình.Tiểu Hội Đồng.<Chức>.Người Giữ Chức (tên NPC khi lời kể có bổ nhiệm; các chức:

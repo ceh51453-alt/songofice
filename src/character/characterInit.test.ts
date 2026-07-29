@@ -4,6 +4,7 @@
  * phán định sau đó đọc đúng chỉ số vừa tạo.
  */
 import { describe, expect, it } from "vitest";
+import { EXCHANGE_RATES } from "../economy/currency";
 import {
   BUDGETS, CORE_STATS, STAT_BASE, buildStateFromCanon, buildStateFromWizard,
   buildInitLoreEntry, buildOpeningMessage, flawRefund, pointBuySpent, resolveCrisisDesc,
@@ -137,14 +138,15 @@ describe("buildStateFromWizard (8.6b)", () => {
 
   it("GÓI TÀI SẢN vào state: Lãnh Chúa mở lãnh địa + kinh tế; Thường Dân gần trắng tay", () => {
     const lord = buildStateFromWizard(makeWizard({ originId: "lord-heir" }));
-    expect(lord["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000);
+    // bảng xuất thân ghi 5000 RỒNG VÀNG; state giữ ĐỒNG ĐỎ nên phải quy đổi
+    expect(lord["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000 * EXCHANGE_RATES.GOLD_TO_COPPER);
     const lordLands = Object.values(lord["Lãnh Địa"]);
     expect(lordLands.length).toBe(1);
     expect(lordLands[0]["Tài Nguyên"]["Lương Thực"]).toBe(20000);
     expect(lord["Danh Vọng"]["Vinh Dự"]).toBe(10);
 
     const pauper = buildStateFromWizard(makeWizard({ originId: "commoner" }));
-    expect(pauper["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(10);
+    expect(pauper["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(10 * EXCHANGE_RATES.GOLD_TO_COPPER);
     expect(Object.keys(pauper["Lãnh Địa"])).toHaveLength(0);
   });
 

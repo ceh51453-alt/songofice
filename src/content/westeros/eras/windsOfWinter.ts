@@ -61,6 +61,11 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     spouse: "dalla",
     allies: ["tormund-giantsbane", "jon-snow"],
     rivals: ["stannis-baratheon", "others"],
+    relationshipDetails: {
+      "tormund-giantsbane": { type: "Bằng Hữu", trust: 100, affinity: 100, detail: "Tormund là chiến hữu trung thành nhất. Mance tin tưởng Tormund hơn bất kỳ ai." },
+      "jon-snow": { type: "Đồng Minh", trust: 70, affinity: 60, detail: "Mance kính trọng Jon dù là kẻ thù cũ. Cả hai đều muốn cứu dân Tự Do khỏi Others." },
+      "stannis-baratheon": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Stannis bắt Mance và định thiêu sống ông. Mance không bao giờ quỳ gối." }
+    },
     father: "",
     mother: "",
     children: ["aemon-steelsong"],
@@ -98,6 +103,12 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     children: [],
     siblings: [],
     rivals: ["davos-seaworth"],
+    liege: "stannis-baratheon",
+    relationshipDetails: {
+      "stannis-baratheon": { type: "Chủ", trust: 80, affinity: 60, detail: "Melisandre tin Stannis là Azor Ahai. Cô phục vụ ông vì lời tiên tri." },
+      "davos-seaworth": { type: "Đối Thủ", trust: 20, affinity: 10, detail: "Davos nghi ngờ mọi thứ Melisandre làm. Hai người tranh giành ảnh hưởng lên Stannis." },
+      "jon-snow": { type: "Dấu Hiệu", trust: 50, affinity: 50, detail: "Melisandre nhìn thấy Jon Snow trong ngọn lửa. Cậu là một phần quan trọng của lời tiên tri." }
+    },
     startArmies: [
           { name: "Bộ Binh Ánh Sáng", type: "Bộ Binh", size: 0, quality: "Mới Lập Đội" },
           { name: "Cung Thủ Lửa", type: "Cung Thủ", size: 0, quality: "Mới Lập Đội" }
@@ -261,6 +272,11 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     spouse: "lysa-tully",
     allies: ["sansa-stark"],
     rivals: ["varys", "cersei-lannister", "eddard-stark"],
+    relationshipDetails: {
+      "sansa-stark": { type: "Con Cờ", trust: 70, affinity: 60, detail: "Petyr cứu Sansa nhưng cũng lợi dụng cô. Hắn nhìn thấy bóng dáng Catelyn trong Sansa." },
+      "catelyn-tully": { type: "Người Tình (Một Phía)", trust: 100, affinity: 100, detail: "Petyr yêu Catelyn điên cuồng từ bé và sẵn sàng phá hủy cả vương quốc vì cô." },
+      "varys": { type: "Đối Thủ", trust: 0, affinity: 0, detail: "Hai bậc thầy thủ đoạn chơi trò chơi quyền lực. Petyr chơi bằng tiền, Varys chơi bằng tin." }
+    },
     father: "",
     mother: "",
     children: [],
@@ -293,6 +309,11 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     }, startingHookIds: [],
     allies: ["illyrio-mopatis"],
     rivals: ["petyr-baelish"],
+    relationshipDetails: {
+      "illyrio-mopatis": { type: "Bằng Hữu", trust: 100, affinity: 100, detail: "Illyrio và Varys là đồng minh từ nhỏ. Cả hai lên kế hoạch đưa Targaryen trở lại từ hàng chục năm." },
+      "petyr-baelish": { type: "Đối Thủ", trust: 0, affinity: 0, detail: "Ngón Út và Nhện Nhện — hai kẻ thao túng nguy hiểm nhất Westeros, luôn cảnh giác lẫn nhau." },
+      "aegon-targaryen": { type: "Bảo Vệ", trust: 100, affinity: 80, detail: "Varys tin Aegon là vị vua mà Westeros cần. Mọi mưu kế đều hướng về ngài vàng cho Aegon." }
+    },
     father: "",
     mother: "",
     spouse: "",
@@ -326,6 +347,11 @@ export const windsOfWinterCharacters: CanonCharacter[] = [
     siblings: ["gregor-clegane"],
     allies: ["arya-stark", "sansa-stark"],
     rivals: ["gregor-clegane"],
+    relationshipDetails: {
+      "gregor-clegane": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Gregor đã ấn mặt Sandor vào lửa khi còn nhỏ. Nỗi sợ và hận thù đã định hình cuộc đời Sandor." },
+      "arya-stark": { type: "Bảo Vệ", trust: 60, affinity: 70, detail: "Sandor miễn cưỡng bảo vệ Arya, và cô bé dần dần đánh thức nhân tính bị vùi dập của hắn." },
+      "joffrey-baratheon": { type: "Cựu Chủ", trust: 10, affinity: 0, detail: "Sandor phục vụ Joffrey nhưng kính thường thài độ tàn ác của hắn. Tại Blackwater, Sandor bỏ đi." }
+    },
     father: "",
     mother: "",
     spouse: "",
