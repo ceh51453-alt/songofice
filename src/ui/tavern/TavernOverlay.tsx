@@ -16,6 +16,7 @@ import { GameResultOverlay } from "./GameResultOverlay";
 import { IconCards, IconDice, IconCup, IconTavern, IconArm, IconLiar, IconCoin } from "./TavernIcons";
 import { IconX } from "../icons";
 import { useT } from "../../i18n";
+import { formatCurrencyShort } from "../../economy/currency";
 
 const GAME_ICONS: Record<TavernGameType, React.ReactNode> = {
   "kings-game": <IconCards size={20} />,
@@ -206,7 +207,7 @@ export function TavernOverlay() {
             {phase === "playing" && (
               <span className="text-[11px] text-[var(--text-faint)]">
                 
-                                              {t("ui.cuoc")} <span className="text-[var(--accent-text)]">{bet}</span>
+                                              {t("ui.cuoc")} <span className="text-[var(--accent-text)]">{formatCurrencyShort(bet)}</span>
               </span>
             )}
             <button

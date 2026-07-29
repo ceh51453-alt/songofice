@@ -1,5 +1,6 @@
 import type { StatData, EquipItem } from "../mvu/schema";
 import { recomputeDerived } from "../mvu/effects";
+import { EXCHANGE_RATES } from "../economy/currency";
 
 export interface EquipmentSetDef {
   id: string;
@@ -109,7 +110,8 @@ export function repairEquipment(
   if (currentDur >= 100) return { success: false, goldCost: 0, message: "Trang bị vẫn còn nguyên vẹn." };
 
   const missingDur = 100 - currentDur;
-  const goldCost = Math.max(5, Math.floor(missingDur * 0.5));
+  // giá sửa viết theo RỒNG VÀNG rồi quy ra ĐỒNG ĐỎ để trừ ngân khố
+  const goldCost = Math.max(5, Math.floor(missingDur * 0.5)) * EXCHANGE_RATES.GOLD_TO_COPPER;
 
   const currentGold = state["Thông Tin Nhân Vật"]["Ngân Khố"] || 0;
   if (currentGold < goldCost) {
@@ -139,7 +141,8 @@ export function getEnhanceRequirement(currentLevel: number, isValyrian: boolean)
   
   return {
     successRate: successRates[levelIndex],
-    goldCost: goldCosts[levelIndex],
+    // bảng viết theo RỒNG VÀNG; trả về ĐỒNG ĐỎ cho khớp ngân khố
+    goldCost: goldCosts[levelIndex] * EXCHANGE_RATES.GOLD_TO_COPPER,
     materialName: isValyrian ? "Thép Valyria" : "Quặng Sắt",
     materialCost: matCosts[levelIndex]
   };

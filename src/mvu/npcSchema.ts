@@ -45,7 +45,7 @@ export const NpcMemorySchema = z
   .prefault({});
 
 /** Schema quan hệ thân mật — chỉ áp dụng cho NPC nữ có quan hệ tình cảm/thân xác với người chơi. */
-export const NpcIntimacySchema = z
+const NpcIntimacyBase = z
   .object({
     "Vai Trò": z.enum(INTIMACY_ROLES).catch("Người Tình").prefault("Người Tình"),
 
@@ -58,8 +58,14 @@ export const NpcIntimacySchema = z
     "Đang Mang Thai": z.boolean().catch(false).prefault(false),
     "Tháng Thai Kỳ": clampedStat(0, 9, 0),
     "Số Con Đã Sinh": safeInt(0),
-  })
-  .prefault({});
+  });
+
+/**
+ * Bản có prefault để dùng độc lập. KHÔNG dùng cho field "Quan Hệ Thân Mật":
+ * `.prefault({}).optional()` gán quan hệ thân mật RỖNG cho MỌI NPC, khiến
+ * stateRenderer báo với AI rằng ai cũng là "Người Tình" của người chơi.
+ */
+export const NpcIntimacySchema = NpcIntimacyBase.prefault({});
 
 /** Chi tiết quan hệ giữa NPC này với một NPC khác */
 export const NpcRelationshipSchema = z
@@ -188,7 +194,7 @@ export const NpcSchema = z
     }).optional(),
 
     // ── QUAN HỆ THÂN MẬT (NPC nữ có quan hệ tình cảm với người chơi) ──
-    "Quan Hệ Thân Mật": NpcIntimacySchema.optional(),
+    "Quan Hệ Thân Mật": NpcIntimacyBase.optional(),
   })
   .prefault({});
 

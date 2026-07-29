@@ -3,6 +3,8 @@
  * 6 trò chơi: Kings Game, Dragon Dice, Shell Game, Arm Wrestle, Liar's Dice, Coin Flip.
  */
 
+import { EXCHANGE_RATES } from "../economy/currency";
+
 export type TavernGameType =
   | "kings-game"
   | "dragon-dice"
@@ -16,6 +18,10 @@ export interface TavernReward {
   item?: { name: string; desc: string };
 }
 
+/**
+ * Bảng mức cược viết theo RỒNG VÀNG cho dễ đọc rồi nhân GOLD_TO_COPPER — ngân
+ * khố giữ ĐỒNG ĐỎ, nếu để số thô thì cược tối đa 200 Đồng ≈ 3 Hươu Bạc.
+ */
 export const GAME_INFO: Record<TavernGameType, {
   name: string;
   desc: string;
@@ -30,54 +36,54 @@ export const GAME_INFO: Record<TavernGameType, {
   "kings-game": {
     name: "Cuộc Chiến Vương Giả",
     desc: "Đánh bài chiến thuật 5 lượt — 40 lá, combo Nhà, đặc tính đặc biệt.",
-    minBet: 20,
-    maxBet: 200,
-    defaultBet: 50,
+    minBet: 20 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    maxBet: 200 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    defaultBet: 50 * EXCHANGE_RATES.GOLD_TO_COPPER,
     complexity: "hard",
     mechanic: "Chiến thuật",
   },
   "dragon-dice": {
     name: "Xúc Xắc Rồng",
     desc: "Tung 3 xúc xắc, so tổng với đối thủ. Best of 3.",
-    minBet: 10,
-    maxBet: 100,
-    defaultBet: 20,
+    minBet: 10 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    maxBet: 100 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    defaultBet: 20 * EXCHANGE_RATES.GOLD_TO_COPPER,
     complexity: "easy",
     mechanic: "May rủi",
   },
   "shell-game": {
     name: "Đoán Cốc",
     desc: "Đoán vật phẩm giấu dưới cốc nào — đoán đúng 2/3 thì thắng.",
-    minBet: 10,
-    maxBet: 100,
-    defaultBet: 15,
+    minBet: 10 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    maxBet: 100 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    defaultBet: 15 * EXCHANGE_RATES.GOLD_TO_COPPER,
     complexity: "easy",
     mechanic: "Quan sát",
   },
   "arm-wrestle": {
     name: "Vật Tay",
     desc: "Nhấn nút nhanh nhất có thể trong 3 giây! Best of 3.",
-    minBet: 15,
-    maxBet: 150,
-    defaultBet: 30,
+    minBet: 15 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    maxBet: 150 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    defaultBet: 30 * EXCHANGE_RATES.GOLD_TO_COPPER,
     complexity: "medium",
     mechanic: "Phản xạ",
   },
   "liars-dice": {
     name: "Xúc Xắc Nói Dối",
     desc: "Đối thủ đặt cược — ngươi phải đoán xem hắn nói thật hay dối?",
-    minBet: 15,
-    maxBet: 150,
-    defaultBet: 25,
+    minBet: 15 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    maxBet: 150 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    defaultBet: 25 * EXCHANGE_RATES.GOLD_TO_COPPER,
     complexity: "medium",
     mechanic: "Tâm lý",
   },
   "coin-flip": {
     name: "Đồng Xu Vận Mệnh",
     desc: "5 vòng đoán xu, mỗi vòng khó hơn nhưng thưởng gấp đôi. Dừng sớm hoặc tất tay!",
-    minBet: 10,
-    maxBet: 100,
-    defaultBet: 15,
+    minBet: 10 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    maxBet: 100 * EXCHANGE_RATES.GOLD_TO_COPPER,
+    defaultBet: 15 * EXCHANGE_RATES.GOLD_TO_COPPER,
     complexity: "medium",
     mechanic: "Rủi ro",
   },

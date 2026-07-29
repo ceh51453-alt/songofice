@@ -12,10 +12,12 @@
 import { useMemo, useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { useTerritoryStore } from "../../state/territoryStore";
-import { formatCurrencyShort } from "../../economy/currency";
+import { formatCurrencyShort, EXCHANGE_RATES } from "../../economy/currency";
 import { marketOf, marketRows, quoteOrder, type MarketRow, type OrderSide } from "../../economy/market";
 import { GOOD_CATEGORIES, type GoodCategory } from "../../content/westeros/goods";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
+import { ITEM_CATALOG } from "../../content/westeros/items";
+import { applyPatch, type PatchOp } from "../../mvu/patchEngine";
 import { IconMap } from "../icons";
 import { IconCoin } from "./EconomyIcons";
 
@@ -73,6 +75,43 @@ export function MarketTab() {
   const affordable = selected
     ? Math.floor(treasury / Math.max(1, selected.buyPrice))
     : 0;
+
+  /**
+   * Mua cổ vật của thương đoàn: trừ ngân khố (+ Thép Valyria nếu món đó đòi)
+   * rồi cất vào Kho Vũ Khí. Giá trong ITEM_CATALOG viết theo RỒNG VÀNG.
+   */
+  const buyArtifact = (item: (typeof ITEM_CATALOG)[number]): string => {
+    const costCopper = item.costGold * EXCHANGE_RATES.GOLD_TO_COPPER;
+    if (treasury < costCopper) return "Ngân khố không đủ mua cổ vật này.";
+    if (item.costValyrian > 0 && (family["Thép Valyria"] ?? 0) < item.costValyrian) {
+      return `Thương nhân đòi thêm ${item.costValyrian} Thép Valyria cho món này.`;
+    }
+    const ops: PatchOp[] = [
+      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -costCopper },
+      {
+        op: "replace", path: "stat_data.Kho Vũ Khí",
+        value: [...(stat["Kho Vũ Khí"] ?? []), {
+          "Tên": item.name,
+          "Phẩm Chất": item.costValyrian > 0 ? "Thép Valyria" : "Vô Giá",
+          "Chất Liệu": item.costValyrian > 0 ? "Thép Valyria" : "Bí Ẩn",
+          "Người Rèn": "Cổ Vật",
+          "Thuộc Tính": item.stats,
+          "Đặc Tính": [],
+          "Mô Tả": item.description,
+          "Độ Bền": 100,
+        }],
+      },
+    ];
+    if (item.costValyrian > 0) {
+      ops.push({
+        op: "replace", path: "stat_data.Thông Tin Nhân Vật.Tài Nguyên Gia Tộc.Thép Valyria",
+        value: (family["Thép Valyria"] ?? 0) - item.costValyrian,
+      });
+    }
+    const { state } = applyPatch(stat, ops);
+    useMvuStore.setState({ stat: state });
+    return `Đã mua ${item.name}.`;
+  };
 
   const submit = () => {
     if (!selected || !quote?.ok) return;
@@ -292,6 +331,56 @@ export function MarketTab() {
           </div>
         )}
       </section>
+
+      {/* ── Thương đoàn Essos: cổ vật, chỉ có khi thương nhân đang neo ở đây ── */}
+      {market["Đang Có Thương Nhân"] && (
+        <section className="glass-panel rounded-xl border border-[var(--warn)] p-4 shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-[13px] font-semibold tracking-wide text-[var(--warn)]">
+              <IconCoin size={16} /> THƯƠNG NHÂN ĐẾN TỪ ESSOS
+            </h3>
+            <span className="text-[11px] italic text-[var(--text-faint)]">Cơ hội ngàn năm có một!</span>
+          </div>
+          <div className="space-y-2">
+            {ITEM_CATALOG.filter((w) => w.type === "Cổ Vật").map((item) => {
+              const costCopper = item.costGold * EXCHANGE_RATES.GOLD_TO_COPPER;
+              const shortGold = treasury < costCopper;
+              const shortValyrian = item.costValyrian > 0
+                && (family["Thép Valyria"] ?? 0) < item.costValyrian;
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[rgba(234,179,8,0.2)] bg-[rgba(234,179,8,0.05)] p-2"
+                >
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-[13px] font-medium text-[var(--warn)]">{item.name}</span>
+                    <span className="truncate text-[10px] text-[var(--text-muted)]">{item.description}</span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <div className="flex flex-col text-right text-[11px]">
+                      <span className={shortGold ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}>
+                        {formatCurrencyShort(costCopper)}
+                      </span>
+                      {item.costValyrian > 0 && (
+                        <span className={shortValyrian ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}>
+                          {item.costValyrian} Thép Valyria
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      disabled={shortGold || shortValyrian}
+                      onClick={() => setNotice(buyArtifact(item))}
+                      className="rounded border border-yellow-600/50 bg-yellow-600/20 px-3 py-1 text-[11px] font-medium text-yellow-500 transition-colors hover:bg-yellow-600/40 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Mua
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

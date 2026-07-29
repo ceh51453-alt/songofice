@@ -22,6 +22,7 @@ import {
   
 } from "../content/westeros/tourneyData";
 import { createLogger } from "../lib/log";
+import { EXCHANGE_RATES } from "../economy/currency";
 
 const log = createLogger("tourney");
 
@@ -150,7 +151,8 @@ export const useTourneyStore = create<TourneyStoreState>()(
 
         // Áp vàng
         if (tourneyState.totalGoldWon > 0) {
-          stat["Thông Tin Nhân Vật"]["Ngân Khố"] += tourneyState.totalGoldWon;
+          // goldPrize trong tourneyData viết theo RỒNG VÀNG
+          stat["Thông Tin Nhân Vật"]["Ngân Khố"] += tourneyState.totalGoldWon * EXCHANGE_RATES.GOLD_TO_COPPER;
         }
 
         // Áp Uy Dũng

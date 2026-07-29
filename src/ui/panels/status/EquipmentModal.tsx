@@ -7,6 +7,7 @@ import { recomputeDerived } from "../../../mvu/effects";
 import type { EquipItem, StatData } from "../../../mvu/schema";
 import { getActiveSetBonuses, repairEquipment, enhanceEquipment, getEnhanceRequirement, EQUIPMENT_SETS } from "../../../character/equipmentEngine";
 import { IconSpark, IconShield, IconHammer, IconSpark as IconStar, IconCrossedSwords, IconCrown, IconLayers } from "../../icons";
+import { formatCurrencyShort } from "../../../economy/currency";
 
 interface Props {
   open: boolean;
@@ -290,7 +291,7 @@ export function EquipmentModal({ open, onClose }: Props) {
                                          <div className="space-y-1.5 font-sans">
                                            <div className="text-amber-400 font-bold border-b border-white/10 pb-1 text-center text-[11px]">Cường Hóa Lên +{level + 1}</div>
                                            <div className="flex justify-between items-center"><span className="text-slate-400">Tỉ lệ thành công:</span> <span className="font-bold text-white">{Math.round(req.successRate * 100)}%</span></div>
-                                           <div className="flex justify-between items-center text-yellow-300"><span>Vàng yêu cầu:</span> <span>{req.goldCost}</span></div>
+                                           <div className="flex justify-between items-center text-yellow-300"><span>Vàng yêu cầu:</span> <span>{formatCurrencyShort(req.goldCost)}</span></div>
                                            <div className="flex justify-between items-center text-slate-300"><span>{req.materialName}:</span> <span>{req.materialCost}</span></div>
                                            <div className="mt-1 pt-1.5 border-t border-white/10 text-red-400 italic text-center">
                                              {level >= 3 ? "Thất bại: Có thể TỤT CẤP hoặc VỠ!" : level >= 2 ? "Thất bại: Có thể TỤT CẤP!" : "Thất bại: Chỉ mất nguyên liệu."}

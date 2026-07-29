@@ -11,11 +11,13 @@ import {
   recruitUnit, hasBarracks, moveArmy, tickArmy, armyMarkerPosition, calcMapDistance,
   distanceToDays, checkSellswordDefection, sellswordWage,
 } from "./army";
+import { EXCHANGE_RATES } from "../economy/currency";
 
+/** `gold` tính bằng RỒNG VÀNG cho dễ đọc; state giữ ĐỒNG ĐỎ. */
 function lordWithBarracks(gold = 5000): StatData {
   const s = makeDefaultState();
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
-  s["Thông Tin Nhân Vật"]["Ngân Khố"] = gold;
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = gold * EXCHANGE_RATES.GOLD_TO_COPPER;
   s["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa"; // cần quyền Quản Lý Vùng
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true }); // → holding the-north-seat
@@ -53,7 +55,8 @@ describe("Tuyển quân (11.3)", () => {
     const r = recruitUnit(s, "the-north-seat", "Bộ Binh", 500);
     expect(r.ok).toBe(true);
     const { state } = applyPatch(s, r.ops);
-    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(5000 - 500); // 100/100 quân
+    // 500 lính Bộ Binh = 500 Rồng Vàng (bảng costPer100 viết theo Rồng Vàng)
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe((5000 - 500) * EXCHANGE_RATES.GOLD_TO_COPPER);
     expect(state["Lãnh Địa"]["the-north-seat"]["Tài Nguyên"]["Lương Thực"]).toBe(foodBefore - 250);
     const unit = state["Biên Chế Quân Sự"][r.unitName!];
     expect(unit["Số Lượng"]).toBe(500);

@@ -15,6 +15,7 @@ import { recruitableTroopsForEra, type TroopTypeAll, troopMeta } from "../conten
 import { canControlHolding } from "../character/roleplay";
 import { MORALE_SCORE } from "../combat/scales";
 import { eventSeed, makeRng } from "../probability/rng";
+import { EXCHANGE_RATES } from "../economy/currency";
 
 export interface RecruitResult {
   ok: boolean;
@@ -63,7 +64,8 @@ export function recruitUnit(
   if (count > cap) return { ok: false, error: `Vượt sức tuyển/tháng (tối đa ${cap})`, ops: [] };
 
   const meta = troopMeta(troopType);
-  const goldCost = Math.round((meta.costPer100["Ngân Khố"] * count) / 100);
+  // costPer100 viết theo RỒNG VÀNG; ngân khố giữ ĐỒNG ĐỎ
+  const goldCost = Math.round((meta.costPer100["Ngân Khố"] * count) / 100) * EXCHANGE_RATES.GOLD_TO_COPPER;
   const foodCost = Math.round((meta.costPer100["Lương Thực"] * count) / 100);
   if (goldCost > state["Thông Tin Nhân Vật"]["Ngân Khố"]) return { ok: false, error: "Thiếu Vàng", ops: [] };
   if (foodCost > terr["Tài Nguyên"]["Lương Thực"]) return { ok: false, error: "Thiếu Lương Thực", ops: [] };

@@ -446,3 +446,61 @@ describe("M18 · Đơn vị tiền tệ nhất quán", () => {
     expect(s["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeGreaterThan(150 * GOLD); // đủ một Nông Trại
   });
 });
+
+/**
+ * Hai LỚP LỖI đã cắn nhiều lần trong dự án này. Bộ test dưới đây canh giữ cả
+ * hai ở mức nguyên tắc, không chỉ ở chỗ đã sửa — thêm bảng nội dung mới hay
+ * thêm field schema mới mà phạm lại là đỏ ngay.
+ */
+describe("M18 · Canh giữ hai lớp lỗi kinh niên", () => {
+  it("zod: schema có prefault KHÔNG được lồng vào .optional() — sinh giá trị ma", async () => {
+    const { makeDefaultState } = await import("../mvu/schema");
+    const { NpcSchema } = await import("../mvu/npcSchema");
+
+    // ô trang bị trống phải là UNDEFINED, không phải một món đồ vô danh
+    const s = makeDefaultState();
+    expect(Object.keys(s["Trang Bị Đang Mặc"])).toHaveLength(0);
+    expect(s["Trang Bị Đang Mặc"]["Vũ Khí Chính"]).toBeUndefined();
+
+    // NPC bình thường KHÔNG có quan hệ thân mật — trước đây ai cũng bị gán
+    // "Người Tình", và stateRenderer bê nguyên điều đó vào prompt của AI
+    const ned = NpcSchema.parse({ "Họ Tên": "Ned Stark", "Giới Tính": "Nam" });
+    expect(ned["Quan Hệ Thân Mật"]).toBeUndefined();
+
+    // công trình thường KHÔNG có đặc tả tuỳ chỉnh (đặc tả rỗng từng ghi đè
+    // danh mục làm sản lượng của MỌI công trình về 0)
+    const holding = StatDataSchema.parse({
+      "Lãnh Địa": { x: { "Công Trình": { "Chợ": { "Loại": "Chợ" } } } },
+    })["Lãnh Địa"]["x"];
+    expect(holding["Công Trình"]["Chợ"]["Tuỳ Chỉnh"]).toBeUndefined();
+  });
+
+  it("tiền: mọi bảng nội dung viết Rồng Vàng đều phải quy đổi trước khi trừ ngân khố", async () => {
+    const { TROOP_META } = await import("../content/westeros/troopTypes");
+    const { getEnhanceRequirement } = await import("../character/equipmentEngine");
+    const { GAME_INFO } = await import("../minigame/tavernGameEngine");
+    const { recruitUnit } = await import("../strategy/army");
+
+    // giá cường hoá: bảng ghi 200 Vàng → engine phải trả về 200 × 11 760
+    expect(getEnhanceRequirement(0, false).goldCost).toBe(200 * GOLD);
+
+    // mức cược quán trọ cũng vậy — 200 Đồng Đỏ thì không ai cược nổi
+    for (const info of Object.values(GAME_INFO)) {
+      expect(info.minBet).toBeGreaterThanOrEqual(GOLD);
+      expect(info.maxBet).toBeGreaterThanOrEqual(GOLD);
+    }
+
+    // tuyển quân: 100 Bộ Binh = đúng costPer100 Rồng Vàng
+    const s = lordState(20000);
+    s["Lãnh Địa"][ID]["Công Trình"]["Doanh Trại"] = {
+      "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Ngày Xây Còn Lại": 0,
+      "Tọa Độ X": 700, "Tọa Độ Y": 700, "Kích Thước": 16,
+      "Điểm Tài Nguyên": "", "Nhân Lực": {}, "Vận Hành": 1,
+    };
+    const before = s["Thông Tin Nhân Vật"]["Ngân Khố"];
+    const r = recruitUnit(s, ID, "Bộ Binh", 100);
+    expect(r.ok).toBe(true);
+    const after = applyPatch(s, r.ops).state["Thông Tin Nhân Vật"]["Ngân Khố"];
+    expect(before - after).toBe(TROOP_META["Bộ Binh"].costPer100["Ngân Khố"] * GOLD);
+  });
+});

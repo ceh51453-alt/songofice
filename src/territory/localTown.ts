@@ -49,8 +49,6 @@ export interface TownLayout {
   /** đa giác khép kín của tường thành (ô lưới). */
   wall: Pt[];
   gates: TownGate[];
-  /** trục lộ chính: cổng → trung tâm. */
-  mainRoads: Pt[][];
   /**
    * QUAN LỘ — con đường không dừng ở cổng thành mà CHẠY HẾT BẢN ĐỒ, từ mép lưới
    * bên này sang mép lưới bên kia, đúng như Vương Lộ hay Hoa Lộ trong nguyên
@@ -215,28 +213,6 @@ export function townLayout(
     }
   }
 
-  // ── trục lộ chính: cổng → trung tâm, hơi cong chứ không kẻ thẳng ──
-  const mainRoads: Pt[][] = gates.map((gate, gi) => {
-    const pts: Pt[] = [];
-    const gateRadius = Math.hypot(gate.at[0] - C, gate.at[1] - C);
-    const bow = (hash1(gi, map.seed + 1200) - 0.5) * 0.22; // độ vồng
-    const steps = 16;
-    for (let i = 0; i <= steps; i++) {
-      const f = i / steps;
-      const x = gate.at[0] + (C - gate.at[0]) * f;
-      const y = gate.at[1] + (C - gate.at[1]) * f;
-      // đẩy ngang theo hình sin → cung mềm, hai đầu vẫn khớp cổng và trung tâm
-      const push = Math.sin(f * Math.PI) * bow * gateRadius;
-      pts.push([x - Math.sin(gate.angle) * push, y + Math.cos(gate.angle) * push]);
-    }
-    // kéo dài ra ngoài cổng thành đường cái
-    const ext: Pt = [
-      gate.at[0] + Math.cos(gate.angle) * 130,
-      gate.at[1] + Math.sin(gate.angle) * 130,
-    ];
-    return [ext, ...pts];
-  });
-
   // ── ngõ: cung vòng đứt đoạn + nhánh nối từng khu nhà ra trục chính ──
   const lanes: Pt[][] = [];
   for (const frac of [0.5, 0.78]) {
@@ -282,14 +258,41 @@ export function townLayout(
     return pts;
   };
 
-  const throughRoads: TownLayout["throughRoads"] = gates.map((gate, gi) => ({
-    name: gate.name,
-    main: gate.main,
-    // từ trung tâm ra cổng rồi chạy thẳng tới mép lưới — một mạch liền
-    points: [[C, C] as Pt, ...spanOut(gate.at, gate.angle, 300 + gi * 37)],
-  }));
+  /** Tên mặc định cho thành không có trong tiểu thuyết — gọi theo hướng đi. */
+  const compassName = (angle: number): string => {
+    const dirs = ["Đông", "Đông Nam", "Nam", "Tây Nam", "Tây", "Tây Bắc", "Bắc", "Đông Bắc"];
+    const idx = Math.round(((angle % (Math.PI * 2)) + Math.PI * 2) / (Math.PI / 4)) % 8;
+    return `Đường ${dirs[idx]}`;
+  };
 
-  const roadPts: Pt[] = mainRoads.flat().concat(...lanes);
+  /**
+   * QUAN LỘ — MỘT đường liền mạch: trung tâm thành → (hơi vồng) → cổng →
+   * (uốn theo địa thế) → mép lưới. Trước đây đoạn trong thành và đoạn ngoài
+   * thành là hai polyline riêng, vẽ lệch nhau nên nhìn như con đường cụt nằm
+   * chồng lên quan lộ.
+   */
+  const throughRoads: TownLayout["throughRoads"] = gates.map((gate, gi) => {
+    const gateRadius = Math.hypot(gate.at[0] - C, gate.at[1] - C);
+    const bow = (hash1(gi, map.seed + 1200) - 0.5) * 0.22; // độ vồng trong thành
+    const inner: Pt[] = [];
+    const steps = 16;
+    for (let i = steps; i >= 0; i--) {
+      const f = i / steps; // 1 = trung tâm, 0 = cổng
+      const x = gate.at[0] + (C - gate.at[0]) * f;
+      const y = gate.at[1] + (C - gate.at[1]) * f;
+      // đẩy ngang theo hình sin → cung mềm, hai đầu vẫn khớp trung tâm và cổng
+      const push = Math.sin(f * Math.PI) * bow * gateRadius;
+      inner.push([x - Math.sin(gate.angle) * push, y + Math.cos(gate.angle) * push]);
+    }
+    return {
+      name: gate.name || (gate.main ? compassName(gate.angle) : undefined),
+      main: gate.main,
+      // spanOut trả về [cổng, …] nên bỏ điểm đầu để không nhân đôi
+      points: [...inner, ...spanOut(gate.at, gate.angle, 300 + gi * 37).slice(1)],
+    };
+  });
+
+  const roadPts: Pt[] = throughRoads.flatMap((r) => r.points).concat(...lanes);
   for (const b of buildings) {
     if (b.ring) continue;
     const bx = b.x + b.size / 2;
@@ -310,7 +313,7 @@ export function townLayout(
   // ── cầu: đúng chỗ đường cắt qua dòng nước ──
   const bridges: TownBridge[] = [];
   const seen: Pt[] = [];
-  for (const road of [...throughRoads.map((r) => r.points), ...mainRoads, ...lanes]) {
+  for (const road of [...throughRoads.map((r) => r.points), ...lanes]) {
     for (let i = 0; i < road.length - 1; i++) {
       const [ax, ay] = road[i];
       const [bx, by] = road[i + 1];
@@ -341,7 +344,7 @@ export function townLayout(
     // tường vạch tay thắng: đã có tuyến của người chơi thì không vẽ vành đai tự sinh
     hasWall: opts.hasWall && !opts.playerWalls,
     fromLore: !!opts.loreRoads?.length,
-    wall, gates, mainRoads, throughRoads, lanes, bridges,
+    wall, gates, throughRoads, lanes, bridges,
   };
   cache.set(key, layout);
   if (cache.size > 12) cache.delete(cache.keys().next().value as string);

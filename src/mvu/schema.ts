@@ -305,7 +305,7 @@ export const GeneralSchema = z
 export type General = z.infer<typeof GeneralSchema>;
 
 /** Trang bị 1 món (5.1f-E). */
-export const EquipItemSchema = z
+const EquipItemBase = z
   .object({
     "Tên": safeString().prefault(""),
     "Phẩm Chất": z
@@ -322,10 +322,16 @@ export const EquipItemSchema = z
     "Bộ Trang Bị": safeString().optional(),
     "VisualClass": safeString().optional(),
     "VisualColor": safeString().optional(),
-  })
-  .prefault({});
+  });
 
-export type EquipItem = z.infer<typeof EquipItemSchema>;
+/**
+ * Bản có prefault để dùng độc lập. KHÔNG dùng bản này cho ô trang bị:
+ * `.prefault({}).optional()` dựng ra một món đồ RỖNG cho mọi ô, nên nhân vật
+ * tay không vẫn "đang mặc" bảy món vô danh — dùng `EquipItemBase.optional()`.
+ */
+export const EquipItemSchema = EquipItemBase.prefault({});
+
+export type EquipItem = z.infer<typeof EquipItemBase>;
 
 /**
  * ĐIỂM TÀI NGUYÊN trên lưới Tầng 1 (M18). Sinh bằng THUẬT TOÁN xác suất theo
@@ -968,13 +974,13 @@ export const StatDataSchema = z
     // ── TRANG BỊ THEO SLOT (5.1f-E) ──
     "Trang Bị Đang Mặc": z
       .object({
-        "Vũ Khí Chính": EquipItemSchema.optional(),
-        "Vũ Khí Phụ": EquipItemSchema.optional(),
-        "Giáp Thân": EquipItemSchema.optional(),
-        "Mũ/Nón": EquipItemSchema.optional(),
-        "Khiên": EquipItemSchema.optional(),
-        "Trang Sức": EquipItemSchema.optional(),
-        "Vật Phẩm Đặc Biệt": EquipItemSchema.optional(),
+        "Vũ Khí Chính": EquipItemBase.optional(),
+        "Vũ Khí Phụ": EquipItemBase.optional(),
+        "Giáp Thân": EquipItemBase.optional(),
+        "Mũ/Nón": EquipItemBase.optional(),
+        "Khiên": EquipItemBase.optional(),
+        "Trang Sức": EquipItemBase.optional(),
+        "Vật Phẩm Đặc Biệt": EquipItemBase.optional(),
       })
       .prefault({}),
 

@@ -30,7 +30,8 @@ beforeEach(() => {
   s["Thông Tin Nhân Vật"]["Họ Tên"] = "Robb Stark";
   s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
   s["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa";
-  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 500 * 11760; // 500 Rồng Vàng
+  // tuyển 1000 Bộ Binh tốn đúng 1000 Rồng Vàng (costPer100 = 100 Vàng/100 quân)
+  s["Thông Tin Nhân Vật"]["Ngân Khố"] = 5000 * 11760; // 5000 Rồng Vàng
   s["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
   seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
   s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"] = { "Loại": "Doanh Trại", "Cấp Độ": 1, "Đang Xây": false, "Ngày Xây Còn Lại": 0, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Kích Thước": 1 };

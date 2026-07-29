@@ -25,7 +25,7 @@ import {
 } from "../../content/westeros/buildings";
 import { availableLabour, buildingLedgers, type BuildingLedger } from "../../territory/construction";
 import { analysePopulation } from "../../territory/population";
-import { NODE_GRADE_LABEL } from "../../territory/resourceNodes";
+import { NODE_GRADE_LABEL, NODE_GRADE_MULT } from "../../territory/resourceNodes";
 import { planWall, WALL_MATERIALS_DEF, wallDefense, type WallPoint } from "../../territory/walls";
 import { TERRAIN_TRAITS } from "../../content/westeros/terrain";
 import {
@@ -126,6 +126,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   const [size, setSize] = useState({ w: 900, h: 600 });
   const [view, setView] = useState<View>({ scale: 0.4, tx: 0, ty: 0 });
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [placing, setPlacing] = useState<BuildingType | null>(null);
   const [custom, setCustom] = useState<CustomBuilding | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
@@ -287,10 +288,8 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 5. ngõ và trục lộ trong thành
+    // 5. ngõ nhỏ trong thành (quan lộ đã vẽ liền mạch ở bước 3)
     drawPath(ctx, town.lanes, scale, "rgba(150,136,110,0.5)", Math.max(0.7, 4 * scale));
-    drawPath(ctx, town.mainRoads, scale, "rgba(24,20,16,0.35)", Math.max(1.4, 15 * scale));
-    drawPath(ctx, town.mainRoads, scale, "rgba(186,168,132,0.72)", Math.max(1, 11 * scale));
 
     // 6. cầu — chỉ ở chỗ đường thật sự vượt sông
     for (const br of town.bridges) {
@@ -364,24 +363,27 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       }
     }
 
-    // 9. tên con đường trong lore, đặt dọc trục lộ phía ngoài cổng
-    if (scale > 0.12) {
-      for (const gate of town.gates) {
-        if (!gate.name) continue;
-        const lx = (gate.at[0] + Math.cos(gate.angle) * 150) * scale;
-        const ly = (gate.at[1] + Math.sin(gate.angle) * 150) * scale;
+    // 9. TÊN QUAN LỘ — đặt NẰM DỌC trên chính con đường, ngoài tường thành,
+    //    xoay theo hướng đường tại chỗ đó. Trước đây nhãn ghim ở cổng nên nó
+    //    trôi lơ lửng cạnh một con đường khác.
+    if (scale > 0.1) {
+      for (const road of town.throughRoads) {
+        if (!road.name) continue;
+        const spot = pointAlong(road.points, radius * 1.25);
+        if (!spot) continue;
+        const [px, py, ang] = spot;
         ctx.save();
-        ctx.translate(lx, ly);
-        let a = gate.angle;
+        ctx.translate(px * scale, py * scale);
+        let a = ang;
         if (a > Math.PI / 2 || a < -Math.PI / 2) a += Math.PI; // giữ chữ không lộn ngược
         ctx.rotate(a);
-        ctx.font = `${gate.main ? 14 : 12}px sans-serif`;
+        ctx.font = `${road.main ? 14 : 12}px sans-serif`;
         ctx.textAlign = "center";
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = "rgba(8,10,14,0.85)";
-        ctx.strokeText(gate.name, 0, -6);
-        ctx.fillStyle = gate.main ? "#e8d9a8" : "rgba(220,210,186,0.85)";
-        ctx.fillText(gate.name, 0, -6);
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = "rgba(8,10,14,0.9)";
+        ctx.strokeText(road.name, 0, -Math.max(7, 9 * scale));
+        ctx.fillStyle = road.main ? "#e8d9a8" : "rgba(220,210,186,0.85)";
+        ctx.fillText(road.name, 0, -Math.max(7, 9 * scale));
         ctx.restore();
       }
       ctx.textAlign = "left";
@@ -403,8 +405,11 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       ctx.arc(nx, ny, r, 0, Math.PI * 2);
       ctx.fill();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = n["Công Trình"] ? "rgba(255,215,106,0.9)" : "rgba(0,0,0,0.55)";
-      ctx.lineWidth = n["Công Trình"] ? 2 : 1;
+      const picked = selectedNode === n["Mã"];
+      ctx.strokeStyle = picked
+        ? "#ffd76a"
+        : n["Công Trình"] ? "rgba(255,215,106,0.9)" : "rgba(0,0,0,0.55)";
+      ctx.lineWidth = picked ? 3 : n["Công Trình"] ? 2 : 1;
       ctx.stroke();
       // vòng ngoài đếm bậc: giàu 3 vòng, khá 2, nghèo 1, cạn không vòng nào
       for (let g = 1; g <= grade; g++) {
@@ -472,8 +477,8 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
 
     ctx.restore();
   }, [
-    size, view, terrain, backdrop, town, buildings, walls, nodes, selected, placing, hover,
-    hoverCheck, radius, wallMode, wallPoints, wallLevel, ledgerByName,
+    size, view, terrain, backdrop, town, buildings, walls, nodes, selected, selectedNode,
+    placing, hover, hoverCheck, radius, wallMode, wallPoints, wallLevel, ledgerByName,
   ]);
 
   // ── tương tác ──
@@ -559,10 +564,27 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       return;
     }
     const found = buildingAt(holding, cell.x, cell.y);
-    setSelected(found ? found[0] : null);
+    if (found) {
+      setSelected(found[0]);
+      setSelectedNode(null);
+      return;
+    }
+    // không trúng công trình thì thử tới ĐIỂM TÀI NGUYÊN — vùng bấm nới rộng
+    // theo mức zoom để ở tỉ lệ nhỏ vẫn chạm được cái chấm
+    const grab = Math.max(10, 14 / Math.max(0.05, view.scale));
+    let best: string | null = null;
+    let bestD = Infinity;
+    for (const n of nodes) {
+      if (!n["Đã Khám Phá"]) continue;
+      const d = Math.hypot(n["Tọa Độ X"] - cell.x, n["Tọa Độ Y"] - cell.y);
+      if (d <= n["Kích Thước"] + grab && d < bestD) { bestD = d; best = n["Mã"]; }
+    }
+    setSelected(null);
+    setSelectedNode(best);
   };
 
   const resetTools = () => {
+    setSelectedNode(null);
     setPlacing(null);
     setCustom(null);
     setWallMode(false);
@@ -592,6 +614,14 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
 
   const selBuilding = selected ? buildings[selected] : null;
   const selLedger = selected ? ledgerByName[selected] : null;
+  const selNode = selectedNode ? nodes.find((n) => n["Mã"] === selectedNode) ?? null : null;
+  /** công trình nào khai thác được loại tài nguyên đang chọn. */
+  const nodeUsers = selNode
+    ? BUILDABLE_LIST.filter((d) => d.requiresNode?.includes(selNode["Tài Nguyên"]))
+    : [];
+  const nodeWorker = selNode?.["Công Trình"]
+    ? ledgerByName[selNode["Công Trình"]] ?? null
+    : null;
   const hoverTerrain = hover ? terrainAtCell(terrain, hover.x, hover.y) : null;
   const presentTerrains = Object.entries(TERRAIN_TRAITS).filter(([t]) => terrain.grid.includes(t as never));
   const totalWallDefense = wallDefense(holding);
@@ -959,7 +989,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
         )}
 
         {/* ── SỔ CỦA MỘT CÔNG TRÌNH: tên · sản xuất · nhân lực · sản lượng ── */}
-        {selBuilding && !placing && !wallMode && (
+        {selBuilding && !selNode && !placing && !wallMode && (
           <div className="glass-strong anim-in absolute left-3 top-3 w-[268px] rounded-[var(--radius-md)] p-3.5 text-[12.5px]">
             <div className="mb-2 flex items-start justify-between border-b border-[var(--glass-border)] pb-2">
               <span className="font-display text-[14px] text-[var(--accent-text)]">
@@ -1054,8 +1084,99 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
           </div>
         )}
 
+        {/* ── SỔ MỘT ĐIỂM TÀI NGUYÊN ── */}
+        {selNode && !placing && !wallMode && (
+          <div className="glass-strong anim-in absolute left-3 top-3 w-[252px] rounded-[var(--radius-md)] p-3.5 text-[12.5px]">
+            <div className="mb-2 flex items-start justify-between border-b border-[var(--glass-border)] pb-2">
+              <span className="font-display text-[14px] text-[var(--accent-text)]">
+                Mạch {selNode["Tài Nguyên"]}
+              </span>
+              <button onClick={() => setSelectedNode(null)} className="text-[var(--text-faint)] hover:text-[var(--text-soft)]">
+                <IconX size={14} />
+              </button>
+            </div>
+
+            <div className="mb-2 flex items-center gap-2">
+              <span
+                className="h-3 w-3 shrink-0 rounded-full"
+                style={{ background: NODE_COLOR[selNode["Tài Nguyên"]] ?? NODE_FALLBACK }}
+              />
+              <span className={selNode["Trữ Lượng"] > 0 ? "text-[var(--ok)]" : "text-[var(--danger)]"}>
+                {NODE_GRADE_LABEL[selNode["Trữ Lượng"]]}
+              </span>
+              <span className="text-[var(--text-faint)]">bậc {selNode["Trữ Lượng"]}/3</span>
+            </div>
+
+            {/* thanh trữ lượng — nhìn là biết mỏ còn dùng được bao lâu */}
+            <div className="mb-2 flex gap-1">
+              {[1, 2, 3].map((g) => (
+                <div
+                  key={g}
+                  className="h-1.5 flex-1 rounded-full"
+                  style={{
+                    background: g <= selNode["Trữ Lượng"]
+                      ? (NODE_COLOR[selNode["Tài Nguyên"]] ?? NODE_FALLBACK)
+                      : "rgba(255,255,255,0.09)",
+                  }}
+                />
+              ))}
+            </div>
+
+            <Row label="Còn lại ở bậc này" value={selNode["Còn Lại"].toLocaleString("vi-VN")} />
+            <Row label="Hệ số sản lượng" value={`×${(NODE_GRADE_MULT[selNode["Trữ Lượng"]] ?? 0).toFixed(2)}`} />
+            <Row label="Toạ độ ô" value={`(${selNode["Tọa Độ X"]}, ${selNode["Tọa Độ Y"]})`} />
+            <Row label="Bán kính mạch" value={`${selNode["Kích Thước"] * LOCAL_CELL_M} m`} />
+            <Row label="Địa hình" value={TERRAIN_TRAITS[terrainAtCell(terrain, selNode["Tọa Độ X"], selNode["Tọa Độ Y"])].label} />
+
+            <div className="mt-2 border-t border-[var(--glass-border)] pt-2">
+              {selNode["Công Trình"] ? (
+                <>
+                  <div className="text-[11.5px] text-[var(--text-soft)]">
+                    Đang khai thác bởi <span className="text-[var(--accent-text)]">{selNode["Công Trình"]}</span>
+                  </div>
+                  {nodeWorker && (
+                    <div className="mt-0.5 text-[11px] text-[var(--text-faint)]">
+                      Nhân lực {nodeWorker.haveTotal}/{nodeWorker.needTotal}
+                      {Object.entries(nodeWorker.produce).map(([k, v]) => (
+                        <span key={k} className="ml-1.5 text-[var(--ok)]">+{v} {k}/tháng</span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : selNode["Trữ Lượng"] <= 0 ? (
+                <p className="text-[11.5px] italic text-[var(--danger)]">
+                  Mạch đã cạn — không còn gì để đào lên nữa.
+                </p>
+              ) : nodeUsers.length > 0 ? (
+                <p className="text-[11.5px] italic text-[var(--text-faint)]">
+                  Chưa ai động tới. Dựng {nodeUsers.map((d) => d.type).join(" hoặc ")} đè lên đây
+                  để khai thác.
+                </p>
+              ) : (
+                <p className="text-[11.5px] italic text-[var(--text-faint)]">
+                  Chưa có công trình nào khai thác được loại này.
+                </p>
+              )}
+            </div>
+
+            {isOwner && nodeUsers.length > 0 && selNode["Trữ Lượng"] > 0 && !selNode["Công Trình"] && (
+              <button
+                onClick={() => {
+                  setSelectedNode(null);
+                  setMenuOpen(false);
+                  setPlacing(nodeUsers[0].type);
+                  setNotice(`Đặt ${nodeUsers[0].type} đè lên mạch ${selNode["Tài Nguyên"]}.`);
+                }}
+                className="mt-2 w-full rounded bg-[var(--accent-soft)] px-2 py-1.5 text-[12px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
+              >
+                Dựng {nodeUsers[0].type} ở đây
+              </button>
+            )}
+          </div>
+        )}
+
         {/* ── TÓM TẮT DÂN CƯ ── */}
-        {population && !selBuilding && !menuOpen && !wallPanel && !customOpen && (
+        {population && !selBuilding && !selNode && !menuOpen && !wallPanel && !customOpen && (
           <div className="glass-strong absolute left-3 top-3 w-[240px] rounded-[var(--radius-md)] p-3 text-[12px]">
             <div className="mb-1.5 text-[10.5px] uppercase tracking-widest text-[var(--text-faint)]">Dân cư</div>
             <Row label="Dân số" value={population.population.toLocaleString("vi-VN")} />
@@ -1237,6 +1358,25 @@ function CustomBuildingEditor({
 }
 
 // ── vẽ phụ trợ ──────────────────────────────────────────────────────────────
+
+/**
+ * Điểm nằm cách đầu polyline `dist` ô, kèm góc của đoạn chứa nó. Dùng để đặt
+ * nhãn NẰM TRÊN con đường thay vì thả nổi bên cạnh.
+ */
+function pointAlong(pts: [number, number][], dist: number): [number, number, number] | null {
+  let run = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i];
+    const [bx, by] = pts[i + 1];
+    const len = Math.hypot(bx - ax, by - ay);
+    if (run + len >= dist) {
+      const f = len > 0 ? (dist - run) / len : 0;
+      return [ax + (bx - ax) * f, ay + (by - ay) * f, Math.atan2(by - ay, bx - ax)];
+    }
+    run += len;
+  }
+  return null;
+}
 
 function drawPath(ctx: CanvasRenderingContext2D, paths: [number, number][][], scale: number, color: string, width: number): void {
   ctx.strokeStyle = color;

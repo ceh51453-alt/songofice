@@ -72,14 +72,19 @@ export const TAX_TABLE: Record<TaxLevel, { goldMultiplier: number; loyaltyPerMon
 
 /**
  * Phần tổng sản phẩm của một VÙNG mà Đại Lãnh Chúa nhận được từ bannerman.
- * Chỉ 2.5%: bannerman thu thuế của dân mình, giữ gần hết để nuôi quân và thành
+ *
+ * Chỉ 1.2%: bannerman thu thuế của dân mình, giữ gần hết để nuôi quân và thành
  * của họ, phần nộp lên là tượng trưng cho nghĩa vụ phong kiến chứ không phải
  * một cái vòi hút của cải. Đây là chỗ bảng cũ sai nặng nhất (nó thu 200 Rồng
  * Vàng trên mỗi ĐẦU DÂN của cả vùng, tức 800 triệu Vàng/tháng cho Phương Bắc).
+ *
+ * Con số này cố tình để THẤP: nếu ngồi không mà tô chư hầu vẫn đổ về gấp mấy
+ * lần cả nền sản xuất, thì mọi việc xây dựng ở Tầng 1 đều trở nên vô nghĩa.
+ * Muốn giàu thì phải khai mỏ, dựng chợ, mở cảng — chứ không phải chỉ có tước vị.
  */
-export const GREAT_LORD_LEVY = 0.025;
+export const GREAT_LORD_LEVY = 0.012;
 /** Phần Vua nhận từ mỗi vùng — qua tay Đại Lãnh Chúa nên mỏng hơn nữa. */
-export const CROWN_LEVY = 0.018;
+export const CROWN_LEVY = 0.008;
 /** Phần TỔNG THU của ngươi phải nộp lên cho lãnh chúa bề trên. */
 export const LIEGE_DUE = 0.12;
 

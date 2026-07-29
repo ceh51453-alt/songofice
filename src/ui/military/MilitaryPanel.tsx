@@ -14,7 +14,7 @@ import { formatDuration } from "../../mvu/calendar";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { playerHouseId } from "../../territory/territoryEngine";
 import { lendMoney } from "../../economy/ironBank";
-import { EXCHANGE_RATES } from "../../economy/currency";
+import { EXCHANGE_RATES, formatCurrencyShort } from "../../economy/currency";
 import { canControlHolding } from "../../character/roleplay";
 import { recruitableTroopsForEra, troopMeta, type TroopTypeAll } from "../../content/westeros/troopTypes";
 import { hasBarracks, maxRecruitPerMonth } from "../../strategy/army";
@@ -177,7 +177,8 @@ function RecruitTab({ stat }: { stat: Stat }) {
   }
 
   const meta = troopMeta(type);
-  const goldCost = Math.round((meta.costPer100["Ngân Khố"] * count) / 100);
+  // costPer100 viết theo Rồng Vàng — quy ra Đồng Đỏ cho khớp ngân khố
+  const goldCost = Math.round((meta.costPer100["Ngân Khố"] * count) / 100) * EXCHANGE_RATES.GOLD_TO_COPPER;
   const foodCost = Math.round((meta.costPer100["Lương Thực"] * count) / 100);
   const cap = terr ? maxRecruitPerMonth(stat, terr) : 0;
 
@@ -203,7 +204,7 @@ function RecruitTab({ stat }: { stat: Stat }) {
       <div className="glass flex items-center justify-between rounded-[var(--radius-sm)] px-3 py-2 text-[12.5px]">
         <span className="text-[var(--text-faint)]">{t("mil.cost")}</span>
         <span className="flex items-center gap-2.5">
-          <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconCoins size={13} /> {fmt(goldCost)}</span>
+          <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconCoins size={13} /> {formatCurrencyShort(goldCost)}</span>
           <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconWheat size={13} /> {fmt(foodCost)}</span>
           <span className="flex items-center gap-1 text-[var(--text-muted)]"><IconUsers size={13} /> {fmt(count)}</span>
           <span className="text-[var(--text-faint)]">· {meta.trainMonths} tháng</span>

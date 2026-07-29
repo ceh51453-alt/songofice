@@ -549,18 +549,35 @@ describe("Hình hài thành trì", () => {
     }
   });
 
-  it("có vài trục lộ chính dẫn từ cổng vào trung tâm", () => {
+  it("mỗi cổng có MỘT quan lộ liền mạch: trung tâm → cổng → mép lưới", () => {
     expect(town.gates.length).toBeGreaterThanOrEqual(3);
-    expect(town.mainRoads).toHaveLength(town.gates.length);
+    expect(town.throughRoads).toHaveLength(town.gates.length);
     expect(town.gates.filter((g) => g.main)).toHaveLength(1); // một cổng chính
-    for (const road of town.mainRoads) {
-      const end = road[road.length - 1];
-      expect(Math.hypot(end[0] - C, end[1] - C)).toBeLessThan(6); // đổ về trung tâm
+
+    for (const road of town.throughRoads) {
+      // bắt đầu từ trung tâm thành
+      const start = road.points[0];
+      expect(Math.hypot(start[0] - C, start[1] - C)).toBeLessThan(6);
+      // và chạy tới tận mép lưới, không dừng ở cổng
+      const end = road.points[road.points.length - 1];
+      const outside = end[0] < 0 || end[1] < 0
+        || end[0] > LOCAL_GRID_CELLS || end[1] > LOCAL_GRID_CELLS;
+      expect(outside).toBe(true);
+      // đường liền: không có bước nhảy đột ngột giữa hai điểm kề nhau
+      for (let i = 0; i < road.points.length - 1; i++) {
+        const d = Math.hypot(
+          road.points[i + 1][0] - road.points[i][0],
+          road.points[i + 1][1] - road.points[i][1],
+        );
+        expect(d).toBeLessThan(60);
+      }
     }
+    // trục chính luôn có TÊN để vẽ nhãn dọc đường
+    expect(town.throughRoads.find((r) => r.main)?.name).toBeTruthy();
   });
 
   it("trục lộ cong chứ không kẻ thẳng tắp từ cổng vào tâm", () => {
-    const road = town.mainRoads[0];
+    const road = town.throughRoads[0].points.slice(0, 17);
     const a = road[1];
     const b = road[road.length - 1];
     let maxOff = 0;
@@ -644,7 +661,9 @@ describe("Toà thành trong tiểu thuyết — địa thế cố định + đư
     const south = town.gates.find((g) => g.name?.includes("phương Nam"))!;
     expect(north.at[1]).toBeLessThan(C); // cổng bắc ở phía trên tâm
     expect(south.at[1]).toBeGreaterThan(C); // cổng nam ở phía dưới
-    expect(town.mainRoads).toHaveLength(town.gates.length);
+    // tên trong tiểu thuyết đi theo QUAN LỘ chứ không nằm lại ở cổng
+    expect(town.throughRoads).toHaveLength(town.gates.length);
+    expect(town.throughRoads.map((r) => r.name)).toEqual(lore.roads.map((r) => r.name));
   });
 
   it("thành THƯỜNG: cổng rải đều quanh tường, trục lộ không chồng lên nhau", () => {
