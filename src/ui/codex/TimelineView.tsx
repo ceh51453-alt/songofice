@@ -18,10 +18,8 @@ export function TimelineView({ summaries }: TimelineViewProps) {
             <path d="M12 6v6l4 2" />
           </svg>
         </div>
-        <p className="text-sm text-[var(--text-muted)]">Chua co su kien nao duoc ghi lai</p>
-        <p className="mt-1 text-[11px] text-[var(--text-faint)]">
-          Bien nien su se tu dong cap nhat khi truyen tien trien
-        </p>
+        <p className="text-sm text-[var(--text-muted)]">Chưa có sự kiện nào được ghi lại</p>
+        <p className="mt-1 text-[11px] text-[var(--text-faint)]">Biên niên sử sẽ tự động cập nhật khi truyện tiến triển</p>
       </div>
     );
   }
