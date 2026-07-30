@@ -132,10 +132,22 @@ describe("Siege Minigame", () => {
   it("should allow dragon to instantly breach", () => {
     const pDragonAttacker = { ...pAttacker, dragon: { name: "Balerion", isRidden: true, power: 100, loyalty: 20 } };
     let state = initSiegeBattle(pDragonAttacker, eDefender, "Thành Trì (thủ)", "Trời Quang", 1, 5000);
-    
+
     state = playArmyRound(state, "siege_dracarys", "defend_hold");
-    
-    expect(state.wallHp).toBe(0);
+
+    // M22: tường không còn là MỘT thanh máu mà chia thành cổng / mặt tường /
+    // tháp. Lửa rồng thiêu rụi cổng gỗ và tháp canh ngay lập tức (đó là chỗ vỡ
+    // để tràn vào), còn tường đá thì cháy sém chứ không sập — Harrenhal vẫn
+    // đứng sau khi Balerion đi qua.
     expect(state.wallBreached).toBe(true);
+    expect(state.wallHp!).toBeLessThan(5000);
+    const gate = state.siege!.sections.find((s) => s.kind === "Cổng")!;
+    const tower = state.siege!.sections.find((s) => s.kind === "Tháp")!;
+    expect(gate.breached).toBe(true);
+    expect(gate.hp).toBe(0);
+    expect(tower.breached).toBe(true);
+    // quân giữ tường bị thiêu và sĩ khí sụp
+    expect(state.enemy.currentTroops).toBeLessThan(500);
+    expect(state.enemy.currentMorale).toBeLessThan(80);
   });
 });

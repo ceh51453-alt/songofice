@@ -28,7 +28,7 @@ import {
 } from "./localTerrain";
 import { townLayout } from "./localTown";
 import {
-  generateNodes, ensureResourceNodes, NODE_TABLE, NODE_GRADE_MULT, depleteNode,
+  generateNodes, ensureResourceNodes, overlapsWallReserve, NODE_TABLE, NODE_GRADE_MULT, depleteNode,
 } from "./resourceNodes";
 import { planWall, buildWall, upgradeWall, wallDefense, WALL_MATERIAL_BY_ID } from "./walls";
 import { LOCAL_BLOCK_CELLS } from "../content/westeros/mapScale";
@@ -558,11 +558,12 @@ describe("Hình hài thành trì", () => {
       // bắt đầu từ trung tâm thành
       const start = road.points[0];
       expect(Math.hypot(start[0] - C, start[1] - C)).toBeLessThan(6);
-      // và chạy tới tận mép lưới, không dừng ở cổng
+      // Chạy tới mép lưới, trừ khi gặp biển: đường bộ phải dừng ở bờ thay vì
+      // tiếp tục xuyên qua mặt nước.
       const end = road.points[road.points.length - 1];
       const outside = end[0] < 0 || end[1] < 0
         || end[0] > LOCAL_GRID_CELLS || end[1] > LOCAL_GRID_CELLS;
-      expect(outside).toBe(true);
+      if (!outside) expect(terrainAtCell(map, end[0], end[1])).not.toBe("Biển");
       // đường liền: không có bước nhảy đột ngột giữa hai điểm kề nhau
       for (let i = 0; i < road.points.length - 1; i++) {
         const d = Math.hypot(
@@ -785,6 +786,28 @@ describe("Tường thành vạch tay (M18)", () => {
     expect(wallDefense(s["Lãnh Địa"]["the-north-seat"])).toBe(0);
     lines[0]["Đang Xây"] = false;
     expect(wallDefense(s["Lãnh Địa"]["the-north-seat"])).toBeGreaterThan(0);
+  });
+
+  it("dựng tường dời ngay mạch tài nguyên đang nằm trên tuyến", () => {
+    let s = lordState();
+    const holding = s["Lãnh Địa"]["the-north-seat"];
+    holding["Tường Thành"] = [];
+    holding["Điểm Tài Nguyên"] = [{
+      "Mã": "mạch-bị-cắt", "Tài Nguyên": "Đá", "Trữ Lượng": 2, "Còn Lại": 12_000,
+      "Tọa Độ X": C, "Tọa Độ Y": C - 130, "Kích Thước": 12,
+      "Đã Khám Phá": true, "Công Trình": "", "Mô Tả": "Mạch trên tuyến tường mới",
+    }];
+
+    const r = buildWall(s, "the-north-seat", ring(130), {
+      level: 1, material: "Đá", map: terrainOf("the-north-seat", holding),
+    });
+    expect(r.ok).toBe(true);
+    s = applyPatch(s, r.ops).state;
+
+    const node = s["Lãnh Địa"]["the-north-seat"]["Điểm Tài Nguyên"][0];
+    const walls = s["Lãnh Địa"]["the-north-seat"]["Tường Thành"];
+    expect(overlapsWallReserve(walls, node["Tọa Độ X"], node["Tọa Độ Y"], node["Kích Thước"])).toBe(false);
+    expect([node["Tọa Độ X"], node["Tọa Độ Y"]]).not.toEqual([C, C - 130]);
   });
 
   it("NÂNG CẤP tuyến chỉ trả phần chênh — tường cũ không bao giờ biến mất", () => {

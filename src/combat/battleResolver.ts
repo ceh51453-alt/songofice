@@ -18,6 +18,21 @@ export type WeatherCondition = "Trời Quang" | "Mưa Lớn" | "Bão Tuyết" | 
 
 const OUTCOME_ORDER: BattleOutcome[] = ["Đại Bại", "Bại", "Tiểu Bại", "Giằng Co", "Tiểu Thắng", "Thắng", "Đại Thắng"];
 
+/**
+ * `Thế Giới["Thời Tiết"]` là CHUỖI TỰ DO do AI ghi ("Quang đãng", "mưa phùn",
+ * "tuyết rơi dày"...), không phải enum. Trước M22 mọi nơi đều ép kiểu thẳng
+ * `as WeatherCondition`, nên bảng tra hệ số thời tiết nhận về `undefined` và
+ * engine vỡ ngay khi đọc thuộc tính. Hàm này là cửa DUY NHẤT để đưa chuỗi đó
+ * vào hệ chiến đấu.
+ */
+export function normalizeWeather(raw: unknown): WeatherCondition {
+  const s = String(raw ?? "").toLowerCase();
+  if (/bão tuyết|blizzard|tuyết/.test(s)) return "Bão Tuyết";
+  if (/sương mù|mù|fog/.test(s)) return "Sương Mù";
+  if (/mưa|bão|storm|rain/.test(s)) return "Mưa Lớn";
+  return "Trời Quang";
+}
+
 export interface BattleDragonInfo {
   name: string;
   isRidden: boolean;
@@ -38,6 +53,22 @@ export interface BattleSideInput extends AggregatedSide {
   siegeRole?: "attacker" | "defender";
   supplyLine?: "Đầy Đủ" | "Tạm Được" | "Thiếu Hụt" | "Bị Cắt Đứt";
   matchupFactor?: number;
+  /**
+   * M22 — thành phần binh chủng {loại: tỷ trọng}. Engine đại chiến dùng để dàn
+   * quân ra ba cánh (kỵ ra cánh, bộ giữ giữa) và để tính năng lực công thành.
+   */
+  composition?: Record<string, number>;
+  /**
+   * M23 — số ụ NỎ BẮN RỒNG phe này có. Mỗi ụ là một cơ hội mỗi vòng bắn trúng
+   * rồng đối phương. Không có ụ nào thì rồng địch bay qua mà không ai chạm nổi.
+   */
+  scorpions?: number;
+  /**
+   * M23 — đàn rồng THẬT ra trận (khoá trong bảng "Rồng" + dữ liệu đầy đủ). Khác
+   * với `dragon` bên trên vốn chỉ là một hệ số nhân: mỗi con ở đây có máu riêng
+   * và có thể bị nỏ bắn rơi.
+   */
+  dragons?: { key: string; dragon: import("../mvu/schema").Dragon }[];
   dragon?: BattleDragonInfo;
   /** Extra casualties (e.g. dragon rampage). */
   casualtiesPlayer?: number;

@@ -40,6 +40,7 @@ import { seedSellswordMarket } from "../strategy/sellswords";
 import { layoutHolding, repairAllHoldings, type BuildPlanItem } from "../territory/localMap";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { loreSeatFor } from "../content/westeros/loreSeats";
+import { seatConstructionPlan, seatProfileFor, seatWallsFor } from "../content/westeros/seatProfiles";
 import { defaultJobSplit } from "../content/westeros/buildings";
 import type { CoreStat } from "../content/westeros/skills";
 import type { LoreEntry } from "../lorebook/loreSchema";
@@ -141,22 +142,29 @@ export function validatePointBuy(
  * từng loại công trình và không có hai công trình chồng lên nhau — thay cho
  * cách rải ngẫu nhiên quanh ô 750 của hệ lưới cũ.
  */
-export const autoBuildCity = (level: number, holdingId = "holding", regionId = "") => {
+export const autoBuildCity = (level: number, holdingId = "holding", regionId = "", eraId?: string) => {
   const region = REGIONS_BY_ID[regionId];
   const lore = loreSeatFor(holdingId);
-  const plan: BuildPlanItem[] = [
-    { type: "Lâu Đài", count: 1, level },
-    { type: "Nông Trại", count: level * 2, level: Math.max(1, level - 1) },
-    { type: "Chợ", count: level, level: Math.max(1, level - 1) },
-    { type: "Doanh Trại", count: level, level: Math.max(1, level - 1) },
+  const profile = seatProfileFor(holdingId, eraId);
+  // Thành trì canon có cấp tối thiểu riêng: không thể dựng Winterfell như một
+  // tháp biên nhỏ chỉ vì luồng khởi tạo truyền vào cấp mặc định 3.
+  const loreLevel = Math.max(level, lore?.level ?? 1, profile?.level ?? 1);
+  const genericPlan: BuildPlanItem[] = [
+    { type: "Lâu Đài", count: 1, level: loreLevel },
+    { type: "Nông Trại", count: loreLevel * 2, level: Math.max(1, loreLevel - 1) },
+    { type: "Chợ", count: loreLevel, level: Math.max(1, loreLevel - 1) },
+    { type: "Doanh Trại", count: loreLevel, level: Math.max(1, loreLevel - 1) },
   ];
   // Tường thành: toà thành trong lore lấy đúng cấp tường của nó (Storm's End
   // và Winterfell dày hơn hẳn, Castle Black thì không có tường bao); thành
   // thường có tường từ cấp 2 trở lên.
-  const wallLevel = lore ? lore.wallLevel : level >= 2 ? Math.max(1, level - 1) : 0;
-  if (wallLevel > 0) plan.push({ type: "Tường Thành", count: 1, level: wallLevel });
-  if (level >= 2) plan.push({ type: "Sept/Rừng Thần", count: 1, level: Math.max(1, level - 1) });
-  if (level >= 4) plan.push({ type: "Học Viện Nhỏ", count: 1, level: Math.max(1, level - 1) });
+  const wallLevel = profile?.wallLevel ?? (lore ? lore.wallLevel : loreLevel >= 2 ? Math.max(1, loreLevel - 1) : 0);
+  if (wallLevel > 0) genericPlan.push({ type: "Tường Thành", count: 1, level: wallLevel });
+  if (loreLevel >= 2) genericPlan.push({ type: "Sept/Rừng Thần", count: 1, level: Math.max(1, loreLevel - 1) });
+  if (loreLevel >= 4) genericPlan.push({ type: "Học Viện Nhỏ", count: 1, level: Math.max(1, loreLevel - 1) });
+  const plan: BuildPlanItem[] = profile
+    ? seatConstructionPlan({ ...profile, level: loreLevel, wallLevel: profile.wallLevel }, lore?.coastal ?? region?.coastal ?? false)
+    : genericPlan;
 
   return layoutHolding(
     holdingId,
@@ -170,34 +178,8 @@ export const autoBuildCity = (level: number, holdingId = "holding", regionId = "
  * khép kín theo hệ tường vạch tay (M18). Đa giác 12 cạnh trông tự nhiên hơn hình
  * vuông, và vì nó là dữ liệu riêng nên nâng cấp Lâu Đài về sau không xoá mất nó.
  */
-export const autoBuildWalls = (level: number): WallLine[] => {
-  if (level < 2) return [];
-  const c = 750; // tâm lưới Tầng 1
-  const r = 60 + level * 30;
-  const sides = 12;
-  const points: { x: number; y: number }[] = [];
-  for (let i = 0; i <= sides; i++) {
-    const th = (i / sides) * Math.PI * 2;
-    // bán kính nhấp nhô nhẹ để tường không tròn trịa như compa
-    const rr = r * (0.92 + 0.16 * Math.abs(Math.sin(th * 2.5)));
-    points.push({ x: Math.round(c + Math.cos(th) * rr), y: Math.round(c + Math.sin(th) * rr) });
-  }
-  let length = 0;
-  for (let i = 0; i < points.length - 1; i++) {
-    length += Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
-  }
-  return [{
-    "Mã": "wall-keep",
-    "Tên": "Tường Thành Cũ",
-    "Cấp": Math.max(1, Math.min(4, level - 1)),
-    "Vật Liệu": "Đá",
-    "Điểm": points,
-    "Chiều Dài": Math.round(length),
-    "Đang Xây": false,
-    "Ngày Xây Còn Lại": 0,
-    "Nguyên Vẹn": 100,
-  }];
-};
+export const autoBuildWalls = (level: number, holdingId = "", eraId?: string): WallLine[] =>
+  seatWallsFor(holdingId, eraId, level);
 
 
 /** Số slot thiên phú tích cực: cơ bản theo Độ Khó + 1 slot mỗi khiếm khuyết nhận (8.5 Bước 3). */
@@ -1051,14 +1033,39 @@ function canonLabel(era: EraData, id: string): string {
 }
 
 function canonRelationshipNetwork(character: CanonCharacter, era: EraData): NonNullable<Npc["Mạng Lưới Quan Hệ"]> {
+  const relations = new Map<string, { type: string; affinity: number; trust: number; detail?: string }>();
+  const add = (targetId: string | undefined, type: string, detail?: string, affinity?: number, trust?: number) => {
+    if (!targetId) return;
+    const defaults = type === "Kẻ Thù"
+      ? { affinity: -65, trust: -60 }
+      : type === "Chư Hầu"
+        ? { affinity: 35, trust: 55 }
+        : { affinity: 60, trust: 60 };
+    relations.set(targetId, {
+      type,
+      detail,
+      affinity: affinity ?? defaults.affinity,
+      trust: trust ?? defaults.trust,
+    });
+  };
+
+  // Những trường này từng chỉ dùng để dựng nhân vật. Ghi chúng vào hồ sơ NPC
+  // để mạng lưới và Sổ tay đều thấy liên minh, đối thủ và quan hệ chư hầu.
+  for (const targetId of character.allies ?? []) add(targetId, "Đồng Minh");
+  for (const targetId of character.rivals ?? []) add(targetId, "Kẻ Thù");
+  add(character.liege, "Chư Hầu");
+  for (const [targetId, relation] of Object.entries(character.relationshipDetails ?? {})) {
+    add(targetId, relation.type || "Khác", relation.detail, relation.affinity, relation.trust);
+  }
+
   return Object.fromEntries(
-    Object.entries(character.relationshipDetails ?? {}).map(([targetId, relation]) => [
+    [...relations.entries()].map(([targetId, relation]) => [
       canonLabel(era, targetId),
       {
-        "Loại Quan Hệ": relation.type || "Khác",
-        "Độ Hảo Cảm": relation.affinity ?? 0,
-        "Độ Tin Cậy": relation.trust ?? 0,
-        "Công Khai": !relation.type?.includes("(Bí mật)"),
+        "Loại Quan Hệ": relation.type,
+        "Độ Hảo Cảm": relation.affinity,
+        "Độ Tin Cậy": relation.trust,
+        "Công Khai": !relation.type.includes("(Bí mật)"),
         "Chi Tiết": relation.detail,
       },
     ]),
@@ -1330,8 +1337,9 @@ export function buildStateFromCanon(
              basePop = marker.population;
         }
         
-        const lvl = char.holdingsLevel?.[sid] || 1;
-        const pop = basePop * lvl;
+        const seatProfile = seatProfileFor(sid, era.id);
+        const lvl = Math.max(char.holdingsLevel?.[sid] || 1, seatProfile?.level ?? 1);
+        const pop = seatProfile?.population ?? basePop * lvl;
         const factor = lvl;
         const popMulti = Math.max(1, Math.floor(pop / 5000));
         
@@ -1395,12 +1403,12 @@ export function buildStateFromCanon(
           "Sức Chứa Dân Cư": 0,
           "Vô Gia Cư": 0,
           "Pháp Lệnh": {},
-          "Tường Thành": autoBuildWalls(lvl),
+          "Tường Thành": autoBuildWalls(lvl, sid, era.id),
           "Đường Đi": [],
           "Khủng Hoảng": [],
           "Ven Biển": REGIONS_BY_ID[regionId]?.coastal ?? false,
           "Địa Hình": REGIONS_BY_ID[regionId]?.terrain,
-          "Công Trình": autoBuildCity(lvl, sid, regionId),
+          "Công Trình": autoBuildCity(lvl, sid, regionId, era.id),
         };
       }
     }

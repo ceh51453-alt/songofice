@@ -12,13 +12,14 @@
  */
 import type { StatData } from "../mvu/schema";
 import type { BuildResult } from "./construction";
-import { startConstruction, castleLevel } from "./construction";
+import { startConstruction, castleLevel, planningRadiusCells } from "./construction";
 import { BUILDING_CATALOG, type BuildingType } from "../content/westeros/buildings";
 import { isBuildable, isWater, type LocalTerrain } from "../content/westeros/terrain";
 import { ensureResourceNodes, generateNodes, bestNodeFor, NODE_GRADE_LABEL } from "./resourceNodes";
 import type { ResourceNode, CustomBuilding } from "../mvu/schema";
 import { REGIONS_BY_ID, type MapRegion } from "../content/westeros/regions";
 import { loreSeatFor, type LoreSeat } from "../content/westeros/loreSeats";
+import { seatConstructionPlan, seatProfileFor, seatWallsFor } from "../content/westeros/seatProfiles";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 import {
   LOCAL_CENTER_CELL, LOCAL_GRID_CELLS, LOCAL_CELL_M, buildableRadiusCells,
@@ -29,7 +30,7 @@ import {
 
 type Holding = StatData["Lãnh Địa"][string];
 
-export { buildableRadiusCells, castleLevel };
+export { buildableRadiusCells, castleLevel, planningRadiusCells };
 
 // ── Neo toạ độ: Tầng 1 ↔ Tầng 2/3 ───────────────────────────────────────────
 
@@ -111,10 +112,39 @@ export interface PlacedRect {
   x: number;
   y: number;
   size: number;
+  /** Vùng đệm quy hoạch giữa hai khuôn viên, tính theo ô 5 m. */
+  clearance: number;
 }
 
 function overlaps(ax: number, ay: number, aSize: number, bx: number, by: number, bSize: number): boolean {
   return ax < bx + bSize && bx < ax + aSize && ay < by + bSize && by < ay + aSize;
+}
+
+const BUILDING_CLEARANCE_CELLS = 8;
+const LANDMARK_CLEARANCE_CELLS = 10;
+
+/**
+ * Kỳ quan dùng silhouette lớn hơn footprint logic trên canvas. Khuôn quy hoạch
+ * phải tính cả phần vẽ đó và khoảng thở, nếu không hai công trình "không chạm
+ * ô" vẫn nhìn như đang đè lên nhau.
+ */
+function planningRect(type: BuildingType, x: number, y: number, landmark = type === "Công Trình Tuỳ Chỉnh"): Omit<PlacedRect, "name"> {
+  const footprint = BUILDING_CATALOG[type].footprint;
+  if (!landmark) return { x, y, size: footprint, clearance: BUILDING_CLEARANCE_CELLS };
+  const rendered = Math.ceil(footprint * 2.45 * 1.12);
+  const offset = Math.floor((rendered - footprint) / 2);
+  return { x: x - offset, y: y - offset, size: rendered, clearance: LANDMARK_CLEARANCE_CELLS };
+}
+
+function rectsTooClose(candidate: Omit<PlacedRect, "name">, taken: PlacedRect): boolean {
+  return overlaps(
+    candidate.x - candidate.clearance,
+    candidate.y - candidate.clearance,
+    candidate.size + candidate.clearance * 2,
+    taken.x - taken.clearance,
+    taken.y - taken.clearance,
+    taken.size + taken.clearance * 2,
+  );
 }
 
 /** Các khuôn viên đang chiếm chỗ của 1 lãnh địa (bỏ qua công trình vành đai). */
@@ -124,7 +154,8 @@ export function occupiedRects(holding: Holding | undefined, exclude?: string): P
     if (name === exclude) continue;
     const def = BUILDING_CATALOG[b["Loại"]];
     if (def?.ring) continue;
-    out.push({ name, x: b["Tọa Độ X"], y: b["Tọa Độ Y"], size: def?.footprint ?? b["Kích Thước"] ?? 1 });
+    const rect = planningRect(b["Loại"], b["Tọa Độ X"], b["Tọa Độ Y"], !!b["Tuỳ Chỉnh"]?.["Tên"]);
+    out.push({ name, ...rect });
   }
   return out;
 }
@@ -142,6 +173,7 @@ export function checkSpot(
   taken: PlacedRect[],
   radius: number,
   nodes: ResourceNode[] = [],
+  landmark = type === "Công Trình Tuỳ Chỉnh",
 ): PlacementCheck {
   const def = BUILDING_CATALOG[type];
   if (def.ring) return { ok: false, error: `${type} là vành đai quanh trọng trấn — không đặt lên lưới` };
@@ -158,8 +190,9 @@ export function checkSpot(
   }
 
   // 2. chồng lấn công trình sẵn có
+  const candidate = planningRect(type, x, y, landmark);
   for (const r of taken) {
-    if (overlaps(x, y, size, r.x, r.y, r.size)) return { ok: false, error: `Chồng lên ${r.name}` };
+    if (rectsTooClose(candidate, r)) return { ok: false, error: `Chồng lên hoặc quá gần ${r.name} — cần chừa lối và khoảng trống` };
   }
 
   // 3. thềm địa hình bên dưới. CÔNG TRÌNH ĐẶC BIỆT (nhà sàn, đê chắn sóng,
@@ -220,7 +253,7 @@ export function canPlace(
     terrainOf(territoryId, holding),
     type, x, y,
     occupiedRects(holding),
-    buildableRadiusCells(castleLevel(holding)),
+    planningRadiusCells(holding),
     nodesOf(territoryId, holding),
   );
 }
@@ -237,6 +270,7 @@ export function findSpot(
   radius: number,
   seed = 0,
   nodes: ResourceNode[] = [],
+  landmark = type === "Công Trình Tuỳ Chỉnh",
 ): [number, number] | null {
   const def = BUILDING_CATALOG[type];
   const size = def.footprint;
@@ -250,7 +284,7 @@ export function findSpot(
     for (const n of candidates) {
       const x = Math.round(n["Tọa Độ X"] - size / 2);
       const y = Math.round(n["Tọa Độ Y"] - size / 2);
-      if (checkSpot(map, type, x, y, taken, radius, nodes).ok) return [x, y];
+      if (checkSpot(map, type, x, y, taken, radius, nodes, landmark).ok) return [x, y];
     }
     return null;
   }
@@ -262,7 +296,7 @@ export function findSpot(
       const ang = ((i + (seed % slots)) / slots) * Math.PI * 2;
       const x = Math.round(LOCAL_CENTER_CELL + Math.cos(ang) * r - size / 2);
       const y = Math.round(LOCAL_CENTER_CELL + Math.sin(ang) * r - size / 2);
-      if (checkSpot(map, type, x, y, taken, radius, nodes).ok) return [x, y];
+      if (checkSpot(map, type, x, y, taken, radius, nodes, landmark).ok) return [x, y];
     }
   }
   return null;
@@ -340,6 +374,14 @@ export interface BuildPlanItem {
   type: BuildingType;
   count: number;
   level?: number;
+  /** Tên lore (Red Keep, Hightower...) thay cho nhãn loại công trình chung. */
+  name?: string;
+  /** Đặc tả cho kỳ quan/khu dân cư/công trình không có trong catalogue gốc. */
+  custom?: CustomBuilding;
+  /** Vị trí quy hoạch cố định cho công trình trọng yếu, tính theo góc trên-trái. */
+  at?: [number, number];
+  /** Công trình tên riêng theo lore; dùng để bổ sung an toàn vào save cũ. */
+  lore?: boolean;
 }
 
 /**
@@ -359,18 +401,22 @@ export function layoutHolding(
   const taken: PlacedRect[] = [];
   let seed = 0;
 
-  const put = (type: BuildingType, level: number, x: number, y: number, index: number) => {
+  const put = (item: BuildPlanItem, level: number, x: number, y: number, index: number) => {
+    const { type } = item;
     const def = BUILDING_CATALOG[type];
-    const name = index === 0 ? type : `${type} ${index + 1}`;
+    const baseName = item.name ?? type;
+    const name = index === 0 ? baseName : `${baseName} ${index + 1}`;
     // mỏ dựng sẵn thì bám luôn vào mạch nằm dưới nó
     const node = def.requiresNode ? bestNodeFor(nodes, def.requiresNode, x, y, def.footprint) : null;
     if (node) node["Công Trình"] = name;
     out[name] = {
       "Loại": type, "Cấp Độ": Math.max(1, level), "Đang Xây": false, "Ngày Xây Còn Lại": 0,
+      "Đang Phá": false, "Ngày Phá Còn Lại": 0,
       "Tọa Độ X": x, "Tọa Độ Y": y, "Kích Thước": def.footprint,
       "Điểm Tài Nguyên": node?.["Mã"] ?? "", "Nhân Lực": {}, "Vận Hành": 1,
     };
-    if (!def.ring) taken.push({ name, x, y, size: def.footprint });
+    if (item.custom) out[name]["Tuỳ Chỉnh"] = item.custom;
+    if (!def.ring) taken.push({ name, ...planningRect(type, x, y, !!item.custom?.["Tên"]) });
   };
 
   for (const item of plan) {
@@ -378,18 +424,25 @@ export function layoutHolding(
     const level = item.level ?? 1;
     for (let i = 0; i < item.count; i++) {
       if (def.ring) {
-        put(item.type, level, LOCAL_CENTER_CELL, LOCAL_CENTER_CELL, i);
+        put(item, level, LOCAL_CENTER_CELL, LOCAL_CENTER_CELL, i);
         continue;
+      }
+      if (item.at) {
+        const [x, y] = item.at;
+        if (checkSpot(map, item.type, x, y, taken, buildableRadiusCells(Math.max(level, 5)), nodes, !!item.custom?.["Tên"]).ok) {
+          put(item, level, x, y, i);
+          continue;
+        }
       }
       if (item.type === "Lâu Đài") {
         // toà thành chính luôn ngự giữa nền thành
         const half = Math.floor(def.footprint / 2);
-        put(item.type, level, LOCAL_CENTER_CELL - half, LOCAL_CENTER_CELL - half, i);
+        put(item, level, LOCAL_CENTER_CELL - half, LOCAL_CENTER_CELL - half, i);
         continue;
       }
       const radius = buildableRadiusCells(level);
-      const spot = findSpot(map, item.type, taken, radius, (seed += 7), nodes);
-      if (spot) put(item.type, level, spot[0], spot[1], i);
+      const spot = findSpot(map, item.type, taken, radius, (seed += 7), nodes, !!item.custom?.["Tên"]);
+      if (spot) put(item, level, spot[0], spot[1], i);
     }
   }
   return out;
@@ -407,15 +460,18 @@ export function repairHoldingLayout(holding: Holding, holdingId: string): number
 
   const map = terrainOf(holdingId, holding);
   const nodes = ensureResourceNodes(holding, map);
-  const radius = buildableRadiusCells(castleLevel(holding));
+  const radius = planningRadiusCells(holding);
   const taken: PlacedRect[] = [];
   let moved = 0;
 
-  // Lâu Đài trước (giữ tâm), rồi tới các công trình lớn — chỗ tốt cho cái quan trọng
+  // Lâu Đài trước (giữ tâm), tiếp đó là kỳ quan/tên riêng đã ghim theo lore;
+  // phần công trình sinh tự động sẽ tự tìm chỗ còn lại, không đẩy landmark đi.
   const ordered = entries.sort((a, b) => {
-    const rank = (t: string) => (t === "Lâu Đài" ? 0 : 1);
-    const ra = rank(a[1]["Loại"]);
-    const rb = rank(b[1]["Loại"]);
+    const rank = (building: Holding["Công Trình"][string]) => (
+      building["Loại"] === "Lâu Đài" ? 0 : building["Tuỳ Chỉnh"]?.["Tên"] ? 1 : 2
+    );
+    const ra = rank(a[1]);
+    const rb = rank(b[1]);
     if (ra !== rb) return ra - rb;
     return (BUILDING_CATALOG[b[1]["Loại"]]?.footprint ?? 0) - (BUILDING_CATALOG[a[1]["Loại"]]?.footprint ?? 0);
   });
@@ -435,19 +491,36 @@ export function repairHoldingLayout(holding: Holding, holdingId: string): number
       if (b["Tọa Độ X"] !== LOCAL_CENTER_CELL - half) moved++;
       b["Tọa Độ X"] = LOCAL_CENTER_CELL - half;
       b["Tọa Độ Y"] = LOCAL_CENTER_CELL - half;
-      taken.push({ name, x: b["Tọa Độ X"], y: b["Tọa Độ Y"], size: def.footprint });
+      taken.push({ name, ...planningRect(b["Loại"], b["Tọa Độ X"], b["Tọa Độ Y"], !!b["Tuỳ Chỉnh"]?.["Tên"]) });
       continue;
     }
-    if (checkSpot(map, b["Loại"], b["Tọa Độ X"], b["Tọa Độ Y"], taken, radius, nodes).ok) {
-      taken.push({ name, x: b["Tọa Độ X"], y: b["Tọa Độ Y"], size: def.footprint });
+    const landmark = !!b["Tuỳ Chỉnh"]?.["Tên"];
+    if (checkSpot(map, b["Loại"], b["Tọa Độ X"], b["Tọa Độ Y"], taken, radius, nodes, landmark).ok) {
+      taken.push({ name, ...planningRect(b["Loại"], b["Tọa Độ X"], b["Tọa Độ Y"], landmark) });
       continue;
     }
-    const spot = findSpot(map, b["Loại"], taken, radius, (seed += 11), nodes);
+    const spot = findSpot(map, b["Loại"], taken, radius, (seed += 11), nodes, landmark);
     if (!spot) continue; // không còn chỗ hợp lệ → để nguyên, UI vẫn vẽ được
     b["Tọa Độ X"] = spot[0];
     b["Tọa Độ Y"] = spot[1];
-    taken.push({ name, x: spot[0], y: spot[1], size: def.footprint });
+    taken.push({ name, ...planningRect(b["Loại"], spot[0], spot[1], landmark) });
     moved++;
+  }
+
+  // Điểm tài nguyên có thể đã bị đẩy ra khỏi sân thành khi nâng cấp dữ liệu cũ.
+  // Ràng buộc mỏ ↔ công trình phải được dựng lại từ vị trí thực tế, nếu không UI
+  // sẽ chỉ vào một mạch đã không còn nằm dưới khu khai thác.
+  for (const node of nodes) node["Công Trình"] = "";
+  for (const [name, b] of Object.entries(buildings)) {
+    const def = BUILDING_CATALOG[b["Loại"]];
+    if (!def?.requiresNode) continue;
+    const node = bestNodeFor(nodes, def.requiresNode, b["Tọa Độ X"], b["Tọa Độ Y"], def.footprint);
+    const nextId = node?.["Mã"] ?? "";
+    if (b["Điểm Tài Nguyên"] !== nextId) {
+      b["Điểm Tài Nguyên"] = nextId;
+      moved++;
+    }
+    if (node) node["Công Trình"] = name;
   }
   return moved;
 }
@@ -458,15 +531,89 @@ export function repairHoldingLayout(holding: Holding, holdingId: string): number
  */
 export function repairAllHoldings(state: StatData): number {
   let moved = 0;
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"];
   for (const [id, holding] of Object.entries(state["Lãnh Địa"])) {
     const lore = loreSeatFor(id, holding["Mô Tả"]);
     const region = REGIONS_BY_ID[holding["Thuộc Vùng"] ?? ""];
     if (lore) {
+      const profile = seatProfileFor(id, eraId);
       // Toà thành trong tiểu thuyết: lấy đúng mô tả gốc. Winterfell nằm sâu
       // trong đất liền dù Phương Bắc là vùng ven biển — cờ trong state phải
       // khớp bản đồ, không thì bảng xây dựng lại mời dựng Bến Cảng.
       holding["Địa Hình"] = lore.terrain;
       holding["Ven Biển"] = lore.coastal;
+      // Cấp lore là sàn cho các save cũ. Không hạ cấp thành mà người chơi đã
+      // tự nâng cao hơn, nhưng mọi đại thành canon sẽ không còn bị sinh ở cấp 3
+      // giống hệt một lâu đài địa phương.
+      const keep = Object.values(holding["Công Trình"] ?? {}).find((b) => b["Loại"] === "Lâu Đài");
+      const minimumKeepLevel = profile?.level ?? lore.level;
+      if (keep && keep["Cấp Độ"] < minimumKeepLevel) {
+        keep["Cấp Độ"] = minimumKeepLevel;
+        moved++;
+      }
+      const legacyWall = Object.values(holding["Công Trình"] ?? {}).find((b) => b["Loại"] === "Tường Thành");
+      const wallLevel = profile?.wallLevel ?? lore.wallLevel;
+      if (legacyWall && legacyWall["Cấp Độ"] !== wallLevel) {
+        legacyWall["Cấp Độ"] = wallLevel;
+        moved++;
+      }
+      // Chỉ thay vòng tường "wall-keep" do phiên bản cũ sinh tự động. Mọi tuyến
+      // người chơi đã vạch tay đều được giữ nguyên.
+      const walls = holding["Tường Thành"] ?? [];
+      if (profile && walls.length === 1 && walls[0]["Mã"] === "wall-keep") {
+        holding["Tường Thành"] = seatWallsFor(id, eraId, Math.max(minimumKeepLevel, keep?.["Cấp Độ"] ?? 1));
+        moved++;
+      }
+      // Save cũ được thêm các công trình lore còn thiếu, nhưng tuyệt đối không
+      // đụng vào công trình có tên sẵn của người chơi.
+      if (profile) {
+        const allLoreSites = seatConstructionPlan(profile, lore.coastal)
+          .filter((item) => !!item.lore && !!item.name);
+        // Red Keep, Dragonstone, Storm's End... là chính toà thành trung tâm.
+        // Bản cũ từng tạo một marker tuỳ chỉnh thứ hai cạnh Lâu Đài, vừa chồng
+        // hình vừa cộng hiệu ứng hai lần. Gộp marker đó vào Lâu Đài thật.
+        const corePlan = allLoreSites.find((item) => item.type === "Lâu Đài" && !!item.name && !!item.custom);
+        if (corePlan?.name && corePlan.custom) {
+          const legacyMarker = holding["Công Trình"][corePlan.name];
+          if (legacyMarker?.["Loại"] === "Công Trình Tuỳ Chỉnh") {
+            delete holding["Công Trình"][corePlan.name];
+            moved++;
+          }
+          const currentKeep = Object.entries(holding["Công Trình"])
+            .find(([, building]) => building["Loại"] === "Lâu Đài");
+          if (currentKeep) {
+            const [oldName, building] = currentKeep;
+            const next = { ...building, "Tuỳ Chỉnh": corePlan.custom };
+            if (oldName !== corePlan.name) {
+              delete holding["Công Trình"][oldName];
+              holding["Công Trình"][corePlan.name] = next;
+              moved++;
+            } else if (JSON.stringify(building["Tuỳ Chỉnh"]) !== JSON.stringify(corePlan.custom)) {
+              building["Tuỳ Chỉnh"] = corePlan.custom;
+              moved++;
+            }
+          }
+        }
+        // Các tên này là kỳ quan hay vệ tinh canon, không phải công trình tuỳ
+        // chỉnh do người chơi đặt. Save cũ được đồng bộ hiệu ứng mới nhưng
+        // không đụng các công trình vô danh/tự xây của người chơi.
+        for (const item of allLoreSites) {
+          const existing = item.name ? holding["Công Trình"][item.name] : undefined;
+          if (!existing || existing["Loại"] !== item.type || !item.custom) continue;
+          const current = existing["Tuỳ Chỉnh"];
+          const next = { ...current, ...item.custom };
+          if (JSON.stringify(current) !== JSON.stringify(next)) {
+            existing["Tuỳ Chỉnh"] = next;
+            moved++;
+          }
+        }
+        const specialPlan = allLoreSites.filter((item) => !!item.name && !holding["Công Trình"][item.name]);
+        if (specialPlan.length > 0) {
+          const additions = layoutHolding(id, { terrain: lore.terrain, coastal: lore.coastal, region, lore }, specialPlan);
+          Object.assign(holding["Công Trình"], additions);
+          moved += Object.keys(additions).length;
+        }
+      }
     } else if (region) {
       if (!holding["Địa Hình"]) holding["Địa Hình"] = region.terrain;
       // ven biển là dữ kiện ĐỊA LÝ của vùng, không phải cờ đặt tay: lãnh địa

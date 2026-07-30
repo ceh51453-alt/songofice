@@ -29,8 +29,19 @@ export const INJURY_SEVERITY: Record<string, { multiplier: number, fatalThreshol
   "Bàn Chân Phải": { multiplier: 0.5, fatalThreshold: -150, symptoms: ["Tàn Phế", "Gãy Xương"] },
 };
 
-export function applyDamage(body: BodyData, partName: string, rawAmount: number, forceSymptom?: WoundType): { 
-  died: boolean, 
+/**
+ * Gây sát thương lên MỘT bộ phận. `rng` là bắt buộc với mọi đường gọi từ engine
+ * chiến đấu — dùng Math.random() ở đây thì cùng seed ra hai kết quả khác nhau,
+ * phá vỡ giao kèo "reroll lời kể không đổi số" của cả hệ (5bis.1).
+ */
+export function applyDamage(
+  body: BodyData,
+  partName: string,
+  rawAmount: number,
+  forceSymptom?: WoundType,
+  rng: () => number = Math.random,
+): {
+  died: boolean,
   actualDamage: number,
   newSymptoms: WoundType[]
 } {
@@ -53,8 +64,8 @@ export function applyDamage(body: BodyData, partName: string, rawAmount: number,
     newSymptoms.push(forceSymptom);
   }
 
-  if (part["Tình Trạng"] < 50 && Math.random() < 0.5) {
-    const randomSymptom = severity.symptoms[Math.floor(Math.random() * severity.symptoms.length)];
+  if (part["Tình Trạng"] < 50 && rng() < 0.5) {
+    const randomSymptom = severity.symptoms[Math.floor(rng() * severity.symptoms.length)];
     if (!part["Triệu Chứng"].includes(randomSymptom)) {
       newSymptoms.push(randomSymptom);
     }

@@ -19,6 +19,7 @@
 import type { Terrain } from "../mvu/schema";
 import type { MapRegion } from "../content/westeros/regions";
 import type { LoreSeat } from "../content/westeros/loreSeats";
+import { seatProfileFor, type SeatShape } from "../content/westeros/seatProfiles";
 import {
   ARABLE_SHARE, TERRAIN_TRAITS, TERRAIN_PROFILE, isWater,
   type LocalTerrain, type TerrainProfile,
@@ -134,6 +135,8 @@ export interface LocalTerrainMap {
   seaF: Float32Array;
   /** tim sông theo toạ độ ô lưới (vẽ cầu, kiểm tra đường cắt sông). */
   river: RiverPoint[];
+  /** Nhánh sông lore bổ sung; không nối giả với tim sông chính. */
+  extraRivers?: RiverPoint[][];
 }
 
 // ── Sinh bản đồ ─────────────────────────────────────────────────────────────
@@ -184,7 +187,8 @@ export function localTerrainMap(holdingId: string, opts: TerrainOpts): LocalTerr
   const hit = cache.get(key);
   if (hit) return hit;
 
-  const map = generate(seed, dominant, coastal, override);
+  const shape = seatProfileFor(holdingId)?.shape;
+  const map = generate(seed, dominant, coastal, override, shape);
   cache.set(key, map);
   if (cache.size > 24) cache.delete(cache.keys().next().value as string);
   return map;
@@ -193,7 +197,32 @@ export function localTerrainMap(holdingId: string, opts: TerrainOpts): LocalTerr
 const R = FIELD_RES;
 const CELLS_PER_SAMPLE = LOCAL_GRID_CELLS / R;
 
-function generate(seed: number, dominant: Terrain, coastal: boolean, profileOverride: Partial<TerrainProfile> = {}): LocalTerrainMap {
+/** Dòng nước định hình các thành nổi tiếng: không để Riverrun hay Song Sinh đổi sông theo seed. */
+function loreRiversFor(shape: SeatShape | undefined): RiverPoint[][] | null {
+  const path = (points: Array<[number, number, number]>): RiverPoint[] => points.map(([x, y, w]) => ({ x, y, w }));
+  if (shape === "capital-three-hills") return [path([
+    [640, 1500, 88], [760, 1390, 94], [900, 1260, 104], [1030, 1100, 120], [1150, 900, 138], [1240, 720, 160],
+  ])];
+  if (shape === "river-triangle") return [
+    path([[1040, 0, 100], [1020, 280, 108], [1000, 580, 120], [980, 900, 132], [940, 1220, 144], [900, 1500, 158]]),
+    path([[80, 250, 92], [270, 450, 102], [470, 650, 114], [650, 880, 126], [820, 1160, 140], [900, 1500, 158]]),
+  ];
+  if (shape === "river-twins") return [path([
+    [760, 0, 120], [750, 260, 130], [758, 540, 146], [748, 820, 154], [755, 1110, 164], [750, 1500, 174],
+  ])];
+  if (shape === "harbor-city") return [path([
+    [400, 0, 70], [520, 270, 82], [650, 510, 96], [790, 720, 112], [950, 900, 130], [1130, 1050, 150],
+  ])];
+  return null;
+}
+
+function generate(
+  seed: number,
+  dominant: Terrain,
+  coastal: boolean,
+  profileOverride: Partial<TerrainProfile> = {},
+  shape?: SeatShape,
+): LocalTerrainMap {
   const prof: TerrainProfile = { ...(TERRAIN_PROFILE[dominant] ?? TERRAIN_PROFILE["Đồng Bằng"]), ...profileOverride };
   const rnd = mulberry32(seed);
 
@@ -204,7 +233,11 @@ function generate(seed: number, dominant: Terrain, coastal: boolean, profileOver
   const kind = new Uint8Array(R * R);
 
   // ---- bờ biển: một nửa mặt phẳng có mép lượn sóng, không phải cạnh thẳng ----
-  const coastAngle = rnd() * Math.PI * 2;
+  // Thành cảng có tên phải giữ hướng nước ổn định; King's Landing nhìn ra Vịnh
+  // Blackwater ở phía đông, thay vì đổi bờ theo một hạt ngẫu nhiên.
+  const coastAngle = shape === "capital-three-hills" || shape === "harbor-city" || shape === "cliff-rock"
+    ? 0
+    : rnd() * Math.PI * 2;
   const cdx = Math.cos(coastAngle);
   const cdy = Math.sin(coastAngle);
   const coastOffset = 0.30 + rnd() * 0.14; // biển ăn vào bao nhiêu phần lưới
@@ -250,9 +283,60 @@ function generate(seed: number, dominant: Terrain, coastal: boolean, profileOver
     elev[k] = e;
   }
 
+  // Ba đồi Aegon, Visenya và Rhaenys là cấu trúc địa hình, không phải ba biểu
+  // tượng công trình. Chúng được dập vào height field trước khi phân loại ô đất.
+  if (shape === "capital-three-hills") {
+    const hills: Array<[number, number, number]> = [
+      [0.66, 0.59, 0.34], // Aegon's High Hill, sát vịnh
+      [0.39, 0.61, 0.28], // Visenya's Hill
+      [0.40, 0.32, 0.25], // Rhaenys's Hill
+    ];
+    for (let j = 0; j < R; j++) for (let i = 0; i < R; i++) {
+      const k = j * R + i;
+      if (coastal && seaF[k] > 0) continue;
+      const u = i / R;
+      const v = j / R;
+      for (const [hx, hy, height] of hills) {
+        const d2 = (u - hx) ** 2 + (v - hy) ** 2;
+        elev[k] += height * Math.exp(-d2 / 0.008);
+      }
+    }
+  }
+
+  // Các địa hình còn lại cũng có "xương sống" riêng để silhouette thành và đất
+  // đỡ nó không còn là một bản đồ ngẫu nhiên cùng màu.
+  const addMound = (hx: number, hy: number, height: number, spread: number) => {
+    for (let j = 0; j < R; j++) for (let i = 0; i < R; i++) {
+      const k = j * R + i;
+      if (coastal && seaF[k] > 0) continue;
+      const d2 = (i / R - hx) ** 2 + (j / R - hy) ** 2;
+      elev[k] += height * Math.exp(-d2 / spread);
+    }
+  };
+  if (shape === "cliff-rock") addMound(0.63, 0.55, 0.62, 0.018);
+  if (shape === "mountain-terrace") {
+    addMound(0.52, 0.48, 0.55, 0.020);
+    addMound(0.38, 0.66, 0.24, 0.013);
+  }
+  if (shape === "hill-garden") addMound(0.52, 0.53, 0.24, 0.055);
+  if (shape === "cliff-crescent") addMound(0.50, 0.42, 0.42, 0.036);
+  if (shape === "volcanic-keep") addMound(0.52, 0.51, 0.68, 0.025);
+  if (shape === "sea-stacks") {
+    addMound(0.35, 0.52, 0.62, 0.009);
+    addMound(0.58, 0.43, 0.58, 0.010);
+    addMound(0.70, 0.65, 0.48, 0.009);
+  }
+
   // ---- sông: đường uốn khúc chảy về chỗ trũng, bề rộng đổi dọc dòng ----
-  const river = prof.riverChance > rnd() ? carveRiver(seed, elev, seaF, coastal, rnd) : [];
-  if (river.length > 0) stampRiver(riverF, river);
+  let river = prof.riverChance > rnd() ? carveRiver(seed, elev, seaF, coastal, rnd) : [];
+  let extraRivers: RiverPoint[][] | undefined;
+  const prescribedRivers = loreRiversFor(shape);
+  if (prescribedRivers) {
+    river = prescribedRivers[0] ?? [];
+    extraRivers = prescribedRivers.slice(1);
+    riverF.fill(0);
+    for (const branch of prescribedRivers) stampRiver(riverF, branch);
+  } else if (river.length > 0) stampRiver(riverF, river);
 
   // ---- mảng ruộng quanh trọng trấn: đĩa tròn bị bóp méo, không phải hình tròn ----
   const arableShare = ARABLE_SHARE[dominant] ?? 0.3;
@@ -289,7 +373,7 @@ function generate(seed: number, dominant: Terrain, coastal: boolean, profileOver
     seed, dominant, coastal,
     blocks: LOCAL_BLOCKS, blockCells: LOCAL_BLOCK_CELLS,
     grid: [],
-    res: R, kind, elev, moist, riverF, seaF, river,
+    res: R, kind, elev, moist, riverF, seaF, river, extraRivers,
   };
   map.grid = coarseGrid(map);
   return map;

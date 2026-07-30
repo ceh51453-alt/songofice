@@ -12,8 +12,9 @@
 import type { StatData } from "../mvu/schema";
 import { REGIONS, REGIONS_BY_ID } from "../content/westeros/regions";
 import { MAP_MARKERS, markersForEra } from "../content/westeros/mapMarkers";
-import { BUILDING_CATALOG, RESOURCE_LIST, type ResourceKey } from "../content/westeros/buildings";
+import { RESOURCE_LIST, type ResourceKey } from "../content/westeros/buildings";
 import { estimateTerritoryYield } from "./construction";
+import { buildingDefense } from "./population";
 import { TAX_BRACKETS } from "../economy/taxation";
 import { holdingAnchor } from "./localMap";
 import { playerHoldingIds, holdingOwnedByPlayer } from "./territoryEngine";
@@ -89,7 +90,7 @@ export interface RealmSummary {
 // ── Tầng 1 → 1 khu dân cư ───────────────────────────────────────────────────
 
 function kindFor(holding: Holding, seat: boolean): SettlementKind {
-  const hasCastle = Object.values(holding["Công Trình"] ?? {}).some((b) => b["Loại"] === "Lâu Đài" && !b["Đang Xây"]);
+  const hasCastle = Object.values(holding["Công Trình"] ?? {}).some((b) => b["Loại"] === "Lâu Đài" && !b["Đang Xây"] && !b["Đang Phá"]);
   if (hasCastle || seat) return "Thành Trì";
   const pop = holding["Dân Số"] ?? 0;
   if (pop >= 100000) return "Thành Phố";
@@ -100,8 +101,8 @@ function kindFor(holding: Holding, seat: boolean): SettlementKind {
 function defenseOf(holding: Holding): number {
   let total = 0;
   for (const b of Object.values(holding["Công Trình"] ?? {})) {
-    if (b["Đang Xây"]) continue;
-    total += (BUILDING_CATALOG[b["Loại"]]?.flags?.defense ?? 0) * (b["Cấp Độ"] || 1);
+    if (b["Đang Xây"] || b["Đang Phá"]) continue;
+    total += buildingDefense(b);
   }
   return total;
 }
@@ -142,8 +143,8 @@ export function summarizeHolding(state: StatData, holdingId: string): Settlement
     isPlayer: !!state["Chủ Quyền Lãnh Thổ"][regionId]?.["Là Của Người Chơi"]
       || holding?.["Người Kiểm Soát"] === state["Thông Tin Nhân Vật"]["Họ Tên"],
     seat,
-    buildings: buildings.filter((b) => !b["Đang Xây"]).length,
-    underConstruction: buildings.filter((b) => b["Đang Xây"]).length,
+    buildings: buildings.filter((b) => !b["Đang Xây"] && !b["Đang Phá"]).length,
+    underConstruction: buildings.filter((b) => b["Đang Xây"] || b["Đang Phá"]).length,
     defense: defenseOf(holding),
     garrison: garrisonOf(state, [holdingId, regionId]),
     loyalty: holding?.["Lòng Dân"] ?? holding?.["Trung Thành"] ?? 0,

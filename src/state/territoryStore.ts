@@ -12,7 +12,7 @@ import { useMvuStore, currentDay } from "./mvuStore";
 import { applyPatch, type PatchOp } from "../mvu/patchEngine";
 import { captureRegionOps, playerHouseId, type MapMode } from "../territory/territoryEngine";
 import {
-  startConstruction, cancelConstruction,
+  startConstruction, cancelConstruction, startDemolition, cancelDemolition,
   issueDecree as issueDecreeOps, revokeDecree as revokeDecreeOps,
 } from "../territory/construction";
 import { placeBuilding, placeRing, terrainOf } from "../territory/localMap";
@@ -100,6 +100,10 @@ interface TerritoryState {
   startBuild: (territoryId: string, type: BuildingType, name?: string) => { ok: boolean; error?: string };
   /** Huỷ công trình đang xây (hoàn 50%). */
   cancelBuild: (territoryId: string, buildingName: string) => void;
+  /** Bắt đầu phá dỡ công trình đã hoàn thiện; đất chỉ trống lại sau vài ngày. */
+  demolishBuild: (territoryId: string, buildingName: string) => { ok: boolean; error?: string };
+  /** Dừng một lệnh phá dỡ khi công trình chưa bị xoá. */
+  cancelDemolish: (territoryId: string, buildingName: string) => void;
 
   /** Ban 1 pháp lệnh trong danh mục (10.4) — trả phí + engine áp hệ số mỗi tháng. */
   issueDecree: (territoryId: string, decreeId: string) => { ok: boolean; error?: string };
@@ -154,7 +158,9 @@ export const useTerritoryStore = create<TerritoryState>()(
       },
 
       raiseWall: (territoryId, wallId) => {
-        const r = upgradeWall(useMvuStore.getState().stat, territoryId, wallId);
+        const stat = useMvuStore.getState().stat;
+        const holding = stat["Lãnh Địa"][territoryId];
+        const r = upgradeWall(stat, territoryId, wallId, holding ? terrainOf(territoryId, holding) : undefined);
         if (!r.ok) return { ok: false, error: r.error };
         applyEngineOps(r.ops);
         return { ok: true };
@@ -205,6 +211,17 @@ export const useTerritoryStore = create<TerritoryState>()(
 
       cancelBuild: (territoryId, buildingName) => {
         applyEngineOps(cancelConstruction(useMvuStore.getState().stat, territoryId, buildingName));
+      },
+
+      demolishBuild: (territoryId, buildingName) => {
+        const r = startDemolition(useMvuStore.getState().stat, territoryId, buildingName);
+        if (!r.ok) return { ok: false, error: r.error };
+        applyEngineOps(r.ops);
+        return { ok: true };
+      },
+
+      cancelDemolish: (territoryId, buildingName) => {
+        applyEngineOps(cancelDemolition(useMvuStore.getState().stat, territoryId, buildingName));
       },
 
       issueDecree: (territoryId, decreeId) => {

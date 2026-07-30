@@ -36,4 +36,20 @@ describe("relationshipData", () => {
       expect.objectContaining({ sourceName: "Sansa Stark", targetName: "Arya Stark", label: "Anh Chị Em", detail: "Hai chị em thường bất đồng nhưng vẫn che chở nhau." }),
     ]));
   });
+
+  it("bổ sung quan hệ canon cho save cũ khi người chơi thuộc roster lịch sử", () => {
+    const state = makeDefaultState();
+    state["Thông Tin Nhân Vật"]["Họ Tên"] = "Rhaenys Targaryen";
+    state["Mối Quan Hệ"]["NPC Chính"]["loren-lannister"] = NpcSchema.parse({ "Họ Tên": "Loren Lannister" });
+    state["Mối Quan Hệ"]["NPC Chính"]["mern-ix-gardener"] = NpcSchema.parse({ "Họ Tên": "Mern IX Gardener" });
+    state["Mối Quan Hệ"]["NPC Chính"]["aegon-targaryen"] = NpcSchema.parse({ "Họ Tên": "Aegon Targaryen" });
+
+    const edges = getRelationshipEdges(getRelationshipPeople(state), "Rhaenys Targaryen");
+
+    expect(edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourceId: "player", targetName: "Loren Lannister", label: "Kẻ Thù", affinity: -65 }),
+      expect.objectContaining({ sourceId: "player", targetName: "Mern IX Gardener", label: "Kẻ Thù", affinity: -65 }),
+      expect.objectContaining({ sourceName: "Loren Lannister", targetName: "Mern IX Gardener", label: "Đồng Minh" }),
+    ]));
+  });
 });

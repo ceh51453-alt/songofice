@@ -105,9 +105,9 @@ export type ArmyBranch = (typeof ARMY_BRANCHES)[number];
 
 export const BUILDING_TYPES = [
   // hành chính & phòng thủ
-  "Lâu Đài", "Tường Thành", "Tháp Canh", "Doanh Trại", "Học Viện Nhỏ", "Sept/Rừng Thần",
+  "Lâu Đài", "Tường Thành", "Tháp Canh", "Doanh Trại", "Học Viện Nhỏ", "Sept/Rừng Thần", "Trạm Khai Hoang", "Cột Mốc Biên Cương",
   // lương thực
-  "Nông Trại", "Bến Cá", "Ruộng Muối", "Kho Lương",
+  "Nông Trại", "Bến Cá", "Ruộng Muối", "Kho Lương", "Ruộng Bậc Thang",
   // khai thác nguyên liệu thô
   "Xưởng Cưa", "Mỏ Đá", "Mỏ Sắt", "Mỏ Than",
   // chế tác
@@ -120,6 +120,8 @@ export const BUILDING_TYPES = [
   "Trại Chăn Nuôi", "Xưởng Thuộc Da", "Xưởng Gốm", "Vườn Nho", "Nhà Ủ Bia", "Xưởng Vũ Khí",
   // ── M18: công trình ĐẶC BIỆT — dựng được lên địa hình vốn cấm xây ──
   "Nhà Sàn", "Đê Chắn Sóng", "Pháo Đài Vách Đá", "Cầu Đá",
+  // ── M23: phòng không — thứ duy nhất bắn rơi được rồng từ mặt đất ──
+  "Ụ Nỏ Bắn Rồng",
   // ── M18: người chơi tự đặt tên và tự chọn công năng ──
   "Công Trình Tuỳ Chỉnh",
 ] as const;
@@ -255,7 +257,8 @@ export const TerrainSchema = z.enum([
 export type Terrain = z.infer<typeof TerrainSchema>;
 
 export const CombatScaleSchema = z
-  .enum(["Đấu Tay Đôi", "Giao Tranh", "Đại Chiến", "Vây Thành", "Hải Chiến"])
+  // M23: "Không Chiến" — kỵ sĩ cưỡi rồng đánh nhau trên trời, có thể nhiều phe
+  .enum(["Đấu Tay Đôi", "Giao Tranh", "Đại Chiến", "Vây Thành", "Hải Chiến", "Không Chiến"])
   .catch("Đấu Tay Đôi")
   .prefault("Đấu Tay Đôi");
 export type CombatScale = z.infer<typeof CombatScaleSchema>;
@@ -444,6 +447,8 @@ const CustomBuildingBase = z
     /** sức chứa dân cư (nhà ở). */
     "Sức Chứa Dân": safeInt(0),
     "Phòng Thủ": safeInt(0),
+    /** false = số liệu lore đã là tổng cuối, không nhân thêm theo cấp công trình. */
+    "Nhân Theo Cấp": z.boolean().catch(true).prefault(true),
     "Lòng Dân/Tháng": z.coerce.number().catch(0).prefault(0),
   });
 /**
@@ -461,6 +466,9 @@ export const BuildingSchema = z
     "Cấp Độ": safeInt(1, 1),
     "Đang Xây": z.boolean().catch(false).prefault(false),
     "Ngày Xây Còn Lại": safeInt(0),
+    /** Phá dỡ là một công việc theo ngày, không xoá công trình ngay lập tức. */
+    "Đang Phá": z.boolean().catch(false).optional(),
+    "Ngày Phá Còn Lại": safeInt(0).optional(),
     "Tọa Độ X": safeInt(0),
     "Tọa Độ Y": safeInt(0),
     "Kích Thước": safeInt(1),
@@ -506,6 +514,26 @@ export const DecreeSchema = z.object({
 export type Decree = z.infer<typeof DecreeSchema>;
 
 /**
+ * Sổ hộ tịch theo THÁNG. Các tỷ lệ được lưu dưới dạng phần dân số/tháng
+ * (0.0015 = 0.15%), để UI vừa trình bày được xu hướng vừa cho AI đọc được
+ * nguyên nhân một lãnh địa đang phình ra hay suy kiệt.
+ */
+export const DemographySchema = z
+  .object({
+    "Tỷ Lệ Sinh": z.coerce.number().min(0).max(0.05).catch(0).prefault(0),
+    "Tỷ Lệ Chết": z.coerce.number().min(0).max(0.05).catch(0).prefault(0),
+    "Tỷ Lệ Nhập Cư": z.coerce.number().min(0).max(0.05).catch(0).prefault(0),
+    "Tỷ Lệ Xuất Cư": z.coerce.number().min(0).max(0.05).catch(0).prefault(0),
+    "Sinh": safeInt(0),
+    "Chết": safeInt(0),
+    "Gia Nhập": safeInt(0),
+    "Rời Đi": safeInt(0),
+    "Biến Động Ròng": safeInt(0),
+  })
+  .prefault({});
+export type Demography = z.infer<typeof DemographySchema>;
+
+/**
  * Chi tiết NỘI BỘ 1 vùng người chơi quản lý (10.1). KHÔNG lưu "Nhà Kiểm Soát" —
  * ai nắm vùng là nguồn chân lý DUY NHẤT ở "Chủ Quyền Lãnh Thổ" (9.5.1).
  * Giữ 3 field tối thiểu cũ (Mô Tả/Dân Số/Trung Thành) cho gói tài sản 8.5.
@@ -543,6 +571,8 @@ export const TerritorySchema = z
     "Sức Chứa Dân Cư": safeInt(0),
     /** số dân không có chỗ ở — kéo lòng dân xuống và mời dịch bệnh tới. */
     "Vô Gia Cư": safeInt(0),
+    /** Số sinh–chết–di cư của lần chốt sổ gần nhất (M21). */
+    "Nhân Khẩu": DemographySchema.optional(),
     "Lòng Dân": clampedStat(0, 100, 60),
     "Trung Thành": clampedStat(0, 100, 60), // kept for backwards compatibility
     "Dự Trữ Lương Thực": safeInt(0),

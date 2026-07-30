@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { BodyPartSchema } from "../../../mvu/schema";
 import { z } from "zod";
+import { symptomDef } from "../../../character/bodyEngine";
+import type { AimZone } from "../../../content/westeros/combatArts";
 
 type BodyPart = z.infer<typeof BodyPartSchema>;
 
@@ -8,9 +10,25 @@ interface Props {
   body: Record<string, BodyPart>;
   onClick?: () => void;
   className?: string;
+  /** M23 — giáp che theo vùng; truyền vào thì hình nộm hiện số giáp trên từng phần. */
+  zones?: Record<AimZone, number>;
 }
 
-export function BodyVisualizer({ body, onClick, className = "" }: Props) {
+/** Bộ phận nào thuộc vùng giáp nào (khớp AIM_ZONES của combatArts). */
+const PART_ZONE: Record<string, AimZone> = {
+  "Đầu": "Đầu", "Cổ": "Đầu",
+  "Ngực": "Thân", "Bụng": "Thân", "Sườn Trái": "Thân", "Sườn Phải": "Thân",
+  "Vai Trái": "Tay", "Vai Phải": "Tay",
+  "Bắp Tay Trái": "Tay", "Bắp Tay Phải": "Tay",
+  "Cẳng Tay Trái": "Tay", "Cẳng Tay Phải": "Tay",
+  "Bàn Tay Trái": "Tay", "Bàn Tay Phải": "Tay",
+  "Đùi Trái": "Chân", "Đùi Phải": "Chân",
+  "Đầu Gối Trái": "Chân", "Đầu Gối Phải": "Chân",
+  "Bắp Chân Trái": "Chân", "Bắp Chân Phải": "Chân",
+  "Bàn Chân Trái": "Chân", "Bàn Chân Phải": "Chân",
+};
+
+export function BodyVisualizer({ body, onClick, className = "", zones }: Props) {
   const [selectedPart, setSelectedPart] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
@@ -69,15 +87,17 @@ export function BodyVisualizer({ body, onClick, className = "" }: Props) {
   };
 
   return (
-    <div 
-      className={`relative ${className}`} 
+    <div
+      className={`relative mx-auto w-full ${className}`}
       onClick={() => {
         setSelectedPart(null);
         if (onClick) onClick();
       }}
-      style={{ width: "200px", height: "400px", margin: "0 auto" }}
+      // Khung CO GIÃN theo bề ngang chỗ chứa. Bản trước ghim cứng 200×400 px nên
+      // trong bảng trạng thái hẹp, hình nộm tràn ra ngoài và đè lên các ô trang bị.
+      style={{ aspectRatio: "1 / 2" }}
     >
-      <svg viewBox="0 0 200 400" className="w-full h-full overflow-visible">
+      <svg viewBox="0 0 200 400" preserveAspectRatio="xMidYMid meet" className="h-full w-full">
         <defs>
           <radialGradient id="glow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="rgba(148, 163, 184, 0.1)" />
@@ -166,6 +186,26 @@ export function BodyVisualizer({ body, onClick, className = "" }: Props) {
               <span className="text-[var(--text-muted)]">Triệu Chứng:</span>
               <span className="text-[var(--text-soft)]">{selectedData["Triệu Chứng"].join(", ")}</span>
             </div>
+
+            {/* M23 — nói rõ triệu chứng LÀM GÌ, không chỉ nêu tên */}
+            {selectedData["Triệu Chứng"].filter((x) => x !== "Bình Thường").map((sym) => {
+              const def = symptomDef(sym);
+              return (
+                <p key={sym} className="mt-1 border-t border-white/10 pt-1 text-[11px] leading-snug text-[var(--text-faint)]">
+                  <b className="text-[var(--danger)]">{sym}</b> — {def.desc}
+                  {def.functionMult < 1 && ` (bộ phận này chỉ còn ${Math.round(def.functionMult * 100)}% tác dụng)`}
+                  {def.bleedPerDay > 0 && ` · mất ${def.bleedPerDay} máu/ngày`}
+                  {def.worsensTo && ` · sẽ chuyển thành ${def.worsensTo} nếu không chữa`}
+                </p>
+              );
+            })}
+
+            {zones && PART_ZONE[selectedPart] && (
+              <div className="flex justify-between gap-4 border-t border-white/10 pt-1">
+                <span className="text-[var(--text-muted)]">Giáp che:</span>
+                <span className="font-mono text-[var(--accent-text)]">{zones[PART_ZONE[selectedPart]] ?? 0}</span>
+              </div>
+            )}
 
             {(selectedData["Thời Gian Lành Còn (giây)"] || 0) > 0 && (
               <div className="flex justify-between gap-4 mt-2 pt-2 border-t border-white/10">

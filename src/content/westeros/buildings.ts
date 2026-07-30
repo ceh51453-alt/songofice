@@ -89,6 +89,29 @@ export interface BuildingDef {
     trade?: number;
     /** +% sức chứa dân cư toàn lãnh địa (hạ tầng đô thị). */
     housingBonus?: number;
+    /** Mở rộng bán kính quy hoạch Tầng 1 (ô lưới 5 m), mỗi cấp công trình. */
+    planningRadiusCells?: number;
+
+    // ── M23: công trình ĐÓNG GÓP THẬT vào quân đội đóng ở lãnh địa ──
+    // Trước M23 mấy toà nhà này chỉ sinh tài nguyên; xây Doanh Trại hay không
+    // thì quân ra trận vẫn y hệt nhau. Giờ mỗi cấp công trình cộng thẳng vào
+    // thang 0-100 của đơn vị đồn trú tại đây (combat/mobilization.ts).
+    /** + điểm Huấn Luyện cho quân đồn trú, MỖI CẤP. */
+    trainingPerLevel?: number;
+    /** + điểm Trang Bị cho quân đồn trú, MỖI CẤP. */
+    equipPerLevel?: number;
+    /** + điểm Hậu Cần cho quân đồn trú, MỖI CẤP. */
+    supplyPerLevel?: number;
+    /** + điểm Sĩ Khí cho quân đồn trú, MỖI CẤP. */
+    moralePerLevel?: number;
+    /** + hệ số chất lượng kỵ binh (ngựa chiến), MỖI CẤP. */
+    cavalryPerLevel?: number;
+    /** số thương binh cứu lại được sau mỗi trận, MỖI CẤP. */
+    medicPerLevel?: number;
+    /** số ụ NỎ BẮN RỒNG (scorpion) — vũ khí duy nhất hạ được rồng từ mặt đất. */
+    scorpionsPerLevel?: number;
+    /** giảm % nguy cơ bị phục kích nhờ cảnh giới sớm, MỖI CẤP. */
+    watchPerLevel?: number;
   };
 
   // ── Quy hoạch Tầng 1 (lưới 5 m) ──
@@ -131,7 +154,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     labour: { "Dân Phu": 400, "Thợ Đá": 120, "Thợ Mộc": 60, "Kỹ Sư": 8 },
     jobs: { "Nghề Khác": 90 }, housing: 600,
     upkeep: { "Ngân Khố": 28 * G },
-    flags: { defense: 20 },
+    flags: { defense: 20, supplyPerLevel: 3, moralePerLevel: 3, scorpionsPerLevel: 1 },
     footprint: 24, unique: true, // 120 m
   },
   "Tường Thành": {
@@ -152,7 +175,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     labour: { "Dân Phu": 60, "Thợ Đá": 20 },
     jobs: { "Nghề Khác": 8 },
     upkeep: { "Ngân Khố": 3 * G },
-    flags: { defense: 4 },
+    flags: { defense: 4, watchPerLevel: 12, scorpionsPerLevel: 1 },
     footprint: 6,
   },
   "Doanh Trại": {
@@ -163,7 +186,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     labour: { "Dân Phu": 180, "Thợ Mộc": 40, "Thợ Đá": 30 },
     jobs: { "Nghề Khác": 40 }, housing: 200,
     upkeep: { "Ngân Khố": 14 * G },
-    flags: { recruit: true },
+    flags: { recruit: true, trainingPerLevel: 6, moralePerLevel: 2 },
     footprint: 16,
   },
   "Học Viện Nhỏ": {
@@ -175,7 +198,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Nghề Khác": 14, "Kỹ Sư": 5 }, housing: 60,
     consume: { "Giấy Da": 6 },
     upkeep: { "Ngân Khố": 20 * G },
-    flags: { adminSpeedup: 0.2 },
+    flags: { adminSpeedup: 0.2, medicPerLevel: 0.06, supplyPerLevel: 2 },
     footprint: 10, unique: true,
   },
   "Sept/Rừng Thần": {
@@ -187,8 +210,30 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Nghề Khác": 12 },
     consume: { "Sáp Ong": 4 },
     upkeep: { "Ngân Khố": 6 * G },
-    flags: { loyaltyPerMonth: 2 },
+    flags: { loyaltyPerMonth: 2, moralePerLevel: 4 },
     footprint: 10,
+  },
+  "Trạm Khai Hoang": {
+    type: "Trạm Khai Hoang", category: "Hành Chính",
+    desc: "Tiền đồn của người đo đạc, đội mở đường và kho vật tư — biến vùng đất hoang quanh trọng trấn thành đất có thể quy hoạch.",
+    effectSummary: "+375 m vùng quy hoạch mỗi cấp",
+    cost: { "Ngân Khố": 260 * G, "Gỗ": 220, "Đá": 90 }, buildMonths: 4,
+    labour: { "Dân Phu": 130, "Thợ Mộc": 45, "Thợ Đá": 25, "Kỹ Sư": 3 },
+    jobs: { "Nghề Khác": 18, "Kỹ Sư": 2 }, housing: 40,
+    upkeep: { "Ngân Khố": 7 * G },
+    flags: { planningRadiusCells: 75 },
+    footprint: 12, unique: true,
+  },
+  "Cột Mốc Biên Cương": {
+    type: "Cột Mốc Biên Cương", category: "Hành Chính",
+    desc: "Cột mốc, đường mòn và trạm gác nhỏ ở rìa đất khai phá. Nhiều cột mốc giúp vùng quy hoạch lan dần ra bên ngoài.",
+    effectSummary: "+125 m vùng quy hoạch mỗi cấp",
+    cost: { "Ngân Khố": 70 * G, "Gỗ": 70, "Đá": 55 }, buildMonths: 2,
+    labour: { "Dân Phu": 45, "Thợ Mộc": 12, "Thợ Đá": 12 },
+    jobs: { "Nghề Khác": 4 },
+    upkeep: { "Ngân Khố": G },
+    flags: { planningRadiusCells: 25, watchPerLevel: 2 },
+    footprint: 5,
   },
 
   // ── DÂN CƯ (M18) ──────────────────────────────────────────────────────────
@@ -283,7 +328,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Nghề Khác": 18 },
     yield: { "Lương Thực": 30 },
     upkeep: { "Ngân Khố": 4 * G },
-    flags: { storage: 0.4 },
+    flags: { storage: 0.4, supplyPerLevel: 7 },
     footprint: 12, unique: true,
   },
 
@@ -309,7 +354,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Thợ Mỏ": 70, "Thợ Đá": 20 }, housing: 30,
     yield: { "Đá": 110 },
     upkeep: { "Ngân Khố": 4 * G },
-    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], requiresNode: ["Đá"],
+    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], overrideTerrain: ["Hẻm Núi"], requiresNode: ["Đá"],
   },
   "Mỏ Sắt": {
     type: "Mỏ Sắt", category: "Khai Thác",
@@ -320,7 +365,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Thợ Mỏ": 80, "Kỹ Sư": 2 }, housing: 40,
     yield: { "Quặng Sắt": 80 },
     upkeep: { "Ngân Khố": 6 * G, "Gỗ": 10 },
-    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], requiresNode: ["Quặng Sắt"],
+    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], overrideTerrain: ["Hẻm Núi"], requiresNode: ["Quặng Sắt"],
   },
   "Mỏ Than": {
     type: "Mỏ Than", category: "Khai Thác",
@@ -331,7 +376,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Thợ Mỏ": 85, "Kỹ Sư": 2 }, housing: 40,
     yield: { "Than Đá": 100 },
     upkeep: { "Ngân Khố": 6 * G, "Gỗ": 10 },
-    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], requiresNode: ["Than Đá"],
+    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], overrideTerrain: ["Hẻm Núi"], requiresNode: ["Than Đá"],
   },
 
   // ── CHẾ TÁC ───────────────────────────────────────────────────────────────
@@ -345,6 +390,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     consume: { "Quặng Sắt": 60, "Than Đá": 40 },
     yield: { "Thép": 45 },
     upkeep: { "Ngân Khố": 8 * G },
+    flags: { equipPerLevel: 5 },
     footprint: 12,
   },
   "Xưởng Vũ Khí": {
@@ -357,6 +403,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     consume: { "Thép": 30, "Gỗ": 20, "Da Thuộc": 8 },
     yield: { "Vũ Khí": 14, "Giáp Trụ": 5, "Cung Tên": 10 },
     upkeep: { "Ngân Khố": 12 * G },
+    flags: { equipPerLevel: 8, trainingPerLevel: 2 },
     footprint: 14,
   },
   "Xưởng Dệt": {
@@ -419,6 +466,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     consume: { "Lương Thực": 40 },
     yield: { "Ngựa": 12 },
     upkeep: { "Ngân Khố": 7 * G },
+    flags: { cavalryPerLevel: 0.05 },
     footprint: 20, terrain: ["Đồng Bằng", "Thành Trì (thủ)", "Sa Mạc"],
   },
   "Xưởng Đóng Tàu": {
@@ -524,6 +572,31 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     flags: { trade: 0.08 },
     footprint: 10,
     overrideTerrain: ["Sông/Lối Vượt Sông"], terrain: ["Sông/Lối Vượt Sông"],
+  },
+  "Ruộng Bậc Thang": {
+    type: "Ruộng Bậc Thang", category: "Lương Thực",
+    desc: "Các bậc đất kè đá bám sườn núi, giữ nước và phù sa để canh tác ở nơi đồng bằng không vươn tới.",
+    effectSummary: "Xây ĐƯỢC trên Đồi Núi & Hẻm Núi · +135 Lương Thực/tháng",
+    cost: { "Ngân Khố": 180 * G, "Đá": 210, "Gỗ": 70 }, buildMonths: 4,
+    labour: { "Dân Phu": 150, "Thợ Đá": 55, "Kỹ Sư": 2 },
+    jobs: { "Nông Dân": 85, "Thợ Đá": 10 }, housing: 20,
+    yield: { "Lương Thực": 135, "Rau Củ": 35 },
+    upkeep: { "Ngân Khố": 4 * G },
+    footprint: 20, terrain: ["Đồi Núi", "Hẻm Núi"], overrideTerrain: ["Hẻm Núi"],
+  },
+
+  // ── M23: PHÒNG KHÔNG ──────────────────────────────────────────────────────
+  "Ụ Nỏ Bắn Rồng": {
+    type: "Ụ Nỏ Bắn Rồng", category: "Đặc Biệt",
+    desc: "Bệ nỏ khổng lồ trên nóc tháp, bắn lao sắt dài bằng thân người. Cực đắt, gần như vô dụng trước bộ binh — nhưng là thứ DUY NHẤT trên mặt đất có thể hạ một con rồng. Meraxes ngã xuống Hellholt vì đúng một mũi lao như thế.",
+    effectSummary: "3 ụ nỏ mỗi cấp · bắn rồng · +6 phòng thủ",
+    cost: { "Ngân Khố": 600 * G, "Thép": 120, "Gỗ": 220, "Đá": 160 }, buildMonths: 6,
+    labour: { "Dân Phu": 120, "Thợ Rèn": 40, "Thợ Mộc": 50, "Kỹ Sư": 12 },
+    jobs: { "Nghề Khác": 20, "Thợ Rèn": 8 },
+    consume: { "Thép": 10 },
+    upkeep: { "Ngân Khố": 18 * G },
+    flags: { defense: 6, scorpionsPerLevel: 3, watchPerLevel: 6 },
+    footprint: 8,
   },
 
   // ── CÔNG TRÌNH TUỲ CHỈNH ──────────────────────────────────────────────────

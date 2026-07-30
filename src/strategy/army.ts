@@ -41,7 +41,7 @@ export const MAX_SUPPLY_DAYS = 30;
 /** Có Doanh Trại đã xây xong không (11.3). */
 export function hasBarracks(state: StatData, territoryId: string): boolean {
   const terr = state["Lãnh Địa"][territoryId];
-  return !!terr && Object.values(terr["Công Trình"]).some((b) => b["Loại"] === "Doanh Trại" && !b["Đang Xây"]);
+  return !!terr && Object.values(terr["Công Trình"]).some((b) => b["Loại"] === "Doanh Trại" && !b["Đang Xây"] && !b["Đang Phá"]);
 }
 
 /** Người chơi có thẩm quyền lập quân ở lãnh địa này không. */
@@ -107,7 +107,7 @@ export function maxRecruitPerMonth(state: StatData, territoryId: string): number
   const terr = state["Lãnh Địa"][territoryId];
   if (!terr) return 0;
   const barracks = terr["Công Trình"]["Doanh Trại"];
-  if (!barracks || barracks["Đang Xây"]) return 0;
+  if (!barracks || barracks["Đang Xây"] || barracks["Đang Phá"]) return 0;
   return barracks["Cấp Độ"] * 800 + Math.floor(terr["Dân Số"] / 25);
 }
 

@@ -97,6 +97,18 @@ export function playerDragons(state: StatData): [string, Dragon][] {
   });
 }
 
+/** Rồng ra trận được KÈM KHOÁ trong bảng "Rồng" — để ghi thương tích ngược sau trận (M23). */
+export function battleReadyDragonEntries(state: StatData): [string, Dragon][] {
+  return playerDragons(state).filter(
+    ([, d]) =>
+      d["_HP"] > 0 &&
+      d["Sẵn Sàng Chiến Đấu"] !== false &&
+      !d["Đang Bị Xích"] &&
+      d["Ngày Hồi Phục Còn Lại"] <= 0 &&
+      d["Tình Trạng"] !== "Đang Hồi Phục",
+  );
+}
+
 /** Rồng ra trận được: còn sống, khoẻ, không xích, không nằm ổ dưỡng thương. */
 export function battleReadyDragons(state: StatData): Dragon[] {
   return playerDragons(state)

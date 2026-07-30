@@ -5,8 +5,8 @@
  */
 import { useWorkflowStore, type WorkflowTask, type WorkflowRunResult } from "../../state/workflowStore";
 
-function TaskRow({ task }: { task: WorkflowTask }) {
-  const { toggleTask, removeTask } = useWorkflowStore();
+function TaskRow({ task, first, last }: { task: WorkflowTask; first: boolean; last: boolean }) {
+  const { toggleTask, removeTask, moveTask } = useWorkflowStore();
 
   return (
     <div
@@ -23,8 +23,36 @@ function TaskRow({ task }: { task: WorkflowTask }) {
 
       {/* Info */}
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-medium text-[var(--text)]">{task.name}</div>
+        <div className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--text)]">
+          <span>{task.name}</span>
+          <span className="rounded bg-[var(--glass-bg-hover)] px-1.5 py-0.5 text-[9px] font-normal uppercase tracking-wide text-[var(--text-faint)]">
+            {task.mode === "engine" ? "Engine" : "AI phụ"}
+          </span>
+          <span className="rounded bg-[var(--glass-bg-hover)] px-1.5 py-0.5 text-[9px] font-normal uppercase tracking-wide text-[var(--text-faint)]">
+            {task.trigger === "daily" ? "Mỗi ngày truyện" : "Sau lượt chat"}
+          </span>
+        </div>
         <div className="truncate text-[11px] text-[var(--text-faint)]">{task.description}</div>
+      </div>
+
+      {/* Order */}
+      <div className="flex flex-col text-[10px] text-[var(--text-faint)]">
+        <button
+          onClick={() => moveTask(task.id, -1)}
+          disabled={first}
+          aria-label={`Đưa ${task.name} lên trước`}
+          className="rounded px-1 hover:bg-[var(--glass-bg-hover)] disabled:cursor-not-allowed disabled:opacity-25"
+        >
+          ▲
+        </button>
+        <button
+          onClick={() => moveTask(task.id, 1)}
+          disabled={last}
+          aria-label={`Đưa ${task.name} xuống sau`}
+          className="rounded px-1 hover:bg-[var(--glass-bg-hover)] disabled:cursor-not-allowed disabled:opacity-25"
+        >
+          ▼
+        </button>
       </div>
 
       {/* Toggle */}
@@ -61,14 +89,15 @@ function ResultRow({ result }: { result: WorkflowRunResult }) {
         className="h-2 w-2 rounded-full"
         style={{ background: result.status === "success" ? "#4ade80" : "#f87171" }}
       />
-      <span className="flex-1 text-[var(--text-soft)]">{result.taskName}</span>
+      <span className="flex-1 text-[var(--text-soft)]" title={result.message}>{result.taskName}</span>
+      <span className="max-w-24 truncate text-[10.5px] text-[var(--text-faint)]">{result.message}</span>
       <span className="text-[var(--text-faint)]">{result.durationMs}ms</span>
     </div>
   );
 }
 
 export function WorkflowSettings() {
-  const { enabled, toggleEnabled, tasks, lastRunResults, status, currentTaskId, error, clearResults } =
+  const { enabled, toggleEnabled, tasks, lastRunResults, status, currentTaskId, error, clearResults, restoreDefaults } =
     useWorkflowStore();
 
   const sortedTasks = [...tasks].sort((a, b) => a.stage - b.stage);
@@ -80,7 +109,7 @@ export function WorkflowSettings() {
         <div>
           <div className="text-[14px] font-medium text-[var(--text)]">Workflow Pipeline</div>
           <div className="text-[12px] text-[var(--text-faint)]">
-            Chạy AI tasks phụ sau mỗi lượt (dùng Extra Model)
+            Engine có thể chạy theo ngày truyện, còn AI phụ chạy sau lượt chat. NPC nền vẫn hoạt động ngay cả khi không xuất hiện trong phản hồi.
           </div>
         </div>
         <button
@@ -100,11 +129,19 @@ export function WorkflowSettings() {
       {/* Task list */}
       {enabled && (
         <div className="space-y-2">
-          <div className="text-[12px] font-medium uppercase tracking-wider text-[var(--text-faint)]">
-            Tasks (theo thứ tự)
+          <div className="flex items-center justify-between">
+            <div className="text-[12px] font-medium uppercase tracking-wider text-[var(--text-faint)]">
+              Tasks (theo thứ tự trong từng nhịp)
+            </div>
+            <button
+              onClick={restoreDefaults}
+              className="text-[11px] text-[var(--text-faint)] hover:text-[var(--text-soft)]"
+            >
+              Khôi phục mặc định
+            </button>
           </div>
-          {sortedTasks.map((task) => (
-            <TaskRow key={task.id} task={task} />
+          {sortedTasks.map((task, index) => (
+            <TaskRow key={task.id} task={task} first={index === 0} last={index === sortedTasks.length - 1} />
           ))}
         </div>
       )}
@@ -114,6 +151,12 @@ export function WorkflowSettings() {
         <div className="flex items-center gap-2 rounded-lg bg-[var(--accent-soft)] px-3 py-2 text-[13px] text-[var(--accent)]">
           <span className="animate-spin">*</span>
           Đang chạy: {tasks.find((t) => t.id === currentTaskId)?.name ?? "..."}
+        </div>
+      )}
+
+      {status === "success" && !error && (
+        <div className="rounded-lg bg-emerald-500/10 px-3 py-2 text-[12px] text-emerald-400">
+          Workflow đã hoàn tất.
         </div>
       )}
 

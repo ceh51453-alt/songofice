@@ -171,7 +171,7 @@ export function commonerTax(state: StatData): TaxLine[] {
     let tradeFlag = 0;
     let bridges = 0;
     for (const b of Object.values(h["Công Trình"] ?? {})) {
-      if (b["Đang Xây"]) continue;
+      if (b["Đang Xây"] || b["Đang Phá"]) continue;
       const def = BUILDING_CATALOG[b["Loại"]];
       tradeFlag += (def?.flags?.trade ?? 0) * (b["Cấp Độ"] || 1);
       if (b["Loại"] === "Cầu Đá") bridges += b["Cấp Độ"] || 1;

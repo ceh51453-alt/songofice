@@ -23,8 +23,8 @@ import {
   BUILDING_CATALOG, BUILDABLE_LIST, BUILDING_CATEGORIES, LABOUR_LIST,
   buildingDays, buildingLabour, type BuildingType,
 } from "../../content/westeros/buildings";
-import { availableLabour, buildingLedgers, type BuildingLedger } from "../../territory/construction";
-import { analysePopulation } from "../../territory/population";
+import { availableLabour, buildingLedgers, demolitionDays, planningRadiusCells, type BuildingLedger } from "../../territory/construction";
+import { analysePopulation, buildingDefense } from "../../territory/population";
 import { NODE_GRADE_LABEL, NODE_GRADE_MULT } from "../../territory/resourceNodes";
 import { planWall, WALL_MATERIALS_DEF, wallDefense, type WallPoint } from "../../territory/walls";
 import { TERRAIN_TRAITS } from "../../content/westeros/terrain";
@@ -33,6 +33,7 @@ import {
 } from "../../content/westeros/mapScale";
 import { canPlace, castleLevel, buildingAt, terrainOf, loreOf, nodesOf } from "../../territory/localMap";
 import { compassToAngle } from "../../content/westeros/loreSeats";
+import { seatGatesFor, seatProfileFor } from "../../content/westeros/seatProfiles";
 import { terrainAtCell, terrainRasterRGBA, RASTER_RES } from "../../territory/localTerrain";
 import { townLayout, type TownLayout } from "../../territory/localTown";
 import { holdingOwnedByPlayer } from "../../territory/territoryEngine";
@@ -65,9 +66,12 @@ const BUILDING_SKIN: Record<BuildingType, { wall: string; roof: string }> = {
   "Lâu Đài": { wall: "#8d8778", roof: "#5c5f6b" },
   "Tường Thành": { wall: "#8f8a7e", roof: "#6f6a60" },
   "Tháp Canh": { wall: "#8a8578", roof: "#5f6167" },
+  "Ụ Nỏ Bắn Rồng": { wall: "#7a7060", roof: "#4a4e58" },
   "Doanh Trại": { wall: "#7d7565", roof: "#5a534a" },
   "Học Viện Nhỏ": { wall: "#93897a", roof: "#5f6360" },
   "Sept/Rừng Thần": { wall: "#9c968a", roof: "#6c6a74" },
+  "Trạm Khai Hoang": { wall: "#887b61", roof: "#5d5142" },
+  "Cột Mốc Biên Cương": { wall: "#82775f", roof: "#4f4b43" },
   // lương thực — nâu vàng của rơm rạ và ruộng đồng
   "Nông Trại": { wall: "#8a7a4e", roof: "#6f5f38" },
   "Bến Cá": { wall: "#7d7360", roof: "#4f6068" },
@@ -102,6 +106,7 @@ const BUILDING_SKIN: Record<BuildingType, { wall: string; roof: string }> = {
   "Đê Chắn Sóng": { wall: "#7e8288", roof: "#5c6167" },
   "Pháo Đài Vách Đá": { wall: "#79736c", roof: "#4e4a45" },
   "Cầu Đá": { wall: "#8c8780", roof: "#6a655f" },
+  "Ruộng Bậc Thang": { wall: "#857a5d", roof: "#6e6544" },
   // tuỳ chỉnh — sắc trung tính để tên người chơi đặt là thứ nổi bật
   "Công Trình Tuỳ Chỉnh": { wall: "#8a8a86", roof: "#5f5f5c" },
 };
@@ -116,6 +121,9 @@ interface View {
 export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: () => void }) {
   const stat = useMvuStore((s) => s.stat);
   const placeBuild = useTerritoryStore((s) => s.placeBuild);
+  const startBuild = useTerritoryStore((s) => s.startBuild);
+  const demolishBuild = useTerritoryStore((s) => s.demolishBuild);
+  const cancelDemolish = useTerritoryStore((s) => s.cancelDemolish);
   const drawWall = useTerritoryStore((s) => s.drawWall);
   const raiseWall = useTerritoryStore((s) => s.raiseWall);
   const razeWall = useTerritoryStore((s) => s.razeWall);
@@ -147,12 +155,16 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   const terrain = useMemo(() => terrainOf(holdingId, holding), [holdingId, holding]);
   const nodes = useMemo(() => nodesOf(holdingId, holding), [holdingId, holding]);
   const level = castleLevel(holding);
-  const radius = buildableRadiusCells(level);
+  const radius = planningRadiusCells(holding);
+  const expansionRadius = Math.max(0, radius - buildableRadiusCells(level));
   const buildings = holding?.["Công Trình"] ?? {};
   const walls = holding?.["Tường Thành"] ?? [];
   const stock = holding?.["Tài Nguyên"] ?? ({} as Record<string, number>);
+  const demography = holding?.["Nhân Khẩu"];
   const region = REGIONS_BY_ID[holding?.["Thuộc Vùng"] ?? ""];
   const lore = loreOf(holdingId, holding);
+  const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"];
+  const seatProfile = seatProfileFor(holdingId, eraId);
 
   /** sổ dân cư + sổ sản xuất — cùng nguồn với engine chốt sổ tháng. */
   const population = useMemo(() => (holding ? analysePopulation(holding) : null), [holding]);
@@ -194,9 +206,10 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
         hasWall: false,
         playerWalls: walls.length > 0,
         loreRoads: lore?.roads.map((r) => ({ name: r.name, angle: compassToAngle(r.dir), main: r.main })),
+        fixedGates: seatGatesFor(holdingId),
       },
     ),
-    [terrain, buildings, radius, walls.length, lore],
+    [terrain, buildings, radius, walls.length, lore, holdingId],
   );
 
   /** nhân công còn rảnh — quyết định có khởi công được không, ngang với vật tư. */
@@ -251,7 +264,8 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
     }
 
     // 2. mặt nước lấp lánh dọc tim sông — gợi dòng chảy chứ không phải vệt tô
-    if (terrain.river.length > 1) {
+    for (const river of [terrain.river, ...(terrain.extraRivers ?? [])]) {
+      if (river.length < 2) continue;
       ctx.strokeStyle = "rgba(150, 200, 230, 0.16)";
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -344,6 +358,13 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       }
     }
 
+    // Cổng canon là một phần của hình thành, không chỉ là tên đặt trên đường.
+    // Với King's Landing, bảy cổng bám đúng tường thành và không bị suy ra từ
+    // một vòng tròn bán kính chung.
+    if (seatProfile && town.gates.length > 0) {
+      for (const gate of town.gates) drawCityGate(ctx, gate.at[0] * scale, gate.at[1] * scale, gate.angle, scale, gate.main);
+    }
+
     // 8. tuyến đang vạch dở — nét vàng bám theo con trỏ
     if (wallMode && wallPoints.length > 0) {
       const pts = hover ? [...wallPoints, { x: hover.x, y: hover.y }] : wallPoints;
@@ -432,12 +453,22 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       const by = b["Tọa Độ Y"] * scale;
       if (bx + bs < -tx || by + bs < -ty || bx > w - tx || by > h - ty) continue;
 
+      const landmarkName = b["Tuỳ Chỉnh"]?.["Tên"] || "";
+      const landmarkGroup = b["Tuỳ Chỉnh"]?.["Nhóm"] || "";
+      const visualSize = landmarkName ? bs * 2.45 : bs;
+      const visualX = bx - (visualSize - bs) / 2;
+      const visualY = by - (visualSize - bs) / 2;
       if (b["Đang Xây"]) {
         const total = Math.max(1, buildingDays(b["Loại"], b["Cấp Độ"] || 1));
         const progress = Math.max(0, Math.min(1, 1 - b["Ngày Xây Còn Lại"] / total));
         drawSite(ctx, bx, by, bs, def.footprint, progress, b["Loại"], scale);
+      } else if (b["Đang Phá"]) {
+        const total = Math.max(1, demolitionDays(b["Loại"], b["Cấp Độ"] || 1));
+        const progress = Math.max(0, Math.min(1, (b["Ngày Phá Còn Lại"] ?? 0) / total));
+        drawSite(ctx, bx, by, bs, def.footprint, progress, b["Loại"], scale);
       } else {
-        drawBuilding(ctx, bx, by, bs, b["Loại"], b["Tọa Độ X"] + b["Tọa Độ Y"]);
+        if (landmarkName) drawLandmark(ctx, landmarkName, visualX, visualY, visualSize, landmarkGroup);
+        else drawBuilding(ctx, bx, by, bs, b["Loại"], b["Tọa Độ X"] + b["Tọa Độ Y"]);
         // thiếu người thì công trình mờ đi và có gạch chéo — nhìn là biết ngay
         const ratio = ledgerByName[name]?.staffing ?? 1;
         if (ratio < 0.95) {
@@ -454,12 +485,12 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
         ctx.lineWidth = Math.max(1.5, 2.5);
         ctx.strokeRect(bx - 2, by - 2, bs + 4, bs + 4);
       }
-      if (bs > 40) {
+      if (visualSize > 40) {
         ctx.fillStyle = "rgba(10,12,16,0.75)";
         ctx.font = `${Math.min(14, Math.max(9, bs * 0.14))}px sans-serif`;
         ctx.fillText(
           b["Tuỳ Chỉnh"]?.["Tên"] || name,
-          bx + 3, by + Math.min(14, Math.max(9, bs * 0.14)) + 2,
+          visualX + 3, visualY + Math.min(14, Math.max(9, visualSize * 0.14)) + 2,
         );
       }
     }
@@ -625,6 +656,9 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   const hoverTerrain = hover ? terrainAtCell(terrain, hover.x, hover.y) : null;
   const presentTerrains = Object.entries(TERRAIN_TRAITS).filter(([t]) => terrain.grid.includes(t as never));
   const totalWallDefense = wallDefense(holding);
+  const specialBuildingDefense = Object.values(buildings)
+    .filter((building) => !building["Đang Xây"] && !building["Đang Phá"] && !!building["Tuỳ Chỉnh"])
+    .reduce((total, building) => total + buildingDefense(building), 0);
 
   return (
     <div className="relative flex h-full min-h-0 w-full flex-col">
@@ -637,6 +671,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
           <p className="mt-0.5 text-[11.5px] text-[var(--text-faint)]">
             {region ? `${region.name} · ` : ""}1 ô = {LOCAL_CELL_M} m · quy hoạch bán kính{" "}
             {((radius * LOCAL_CELL_M) / 1000).toFixed(2)} km (Lâu Đài cấp {level})
+            {expansionRadius > 0 ? ` · khai hoang +${((expansionRadius * LOCAL_CELL_M) / 1000).toFixed(2)} km` : ""}
             {population ? ` · dân ${population.population.toLocaleString("vi-VN")}/${population.housingCapacity.toLocaleString("vi-VN")} chỗ ở` : ""}
           </p>
           {lore && (
@@ -821,7 +856,9 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
               <div className="mt-3 border-t border-[var(--glass-border)] pt-2">
                 <div className="mb-1 flex items-center justify-between text-[10.5px] uppercase tracking-widest text-[var(--text-faint)]">
                   <span>Tuyến đã có</span>
-                  <span className="text-[var(--accent-text)]">Phòng thủ +{totalWallDefense}</span>
+                  <span className="text-[var(--accent-text)]">
+                    Tường +{totalWallDefense}{specialBuildingDefense > 0 ? ` · kỳ quan +${specialBuildingDefense}` : ""}
+                  </span>
                 </div>
                 {walls.map((w) => (
                   <div key={w["Mã"]} className="mb-1 flex items-center gap-1.5 text-[11px]">
@@ -1000,9 +1037,28 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
 
             <Row label="Loại" value={selBuilding["Loại"]} />
             <Row label="Cấp Độ" value={String(selBuilding["Cấp Độ"])} />
+            {selBuilding["Tuỳ Chỉnh"] && (
+              <div className="mt-1 rounded bg-[rgba(0,0,0,0.24)] p-1.5">
+                <Row label="Nhóm" value={selBuilding["Tuỳ Chỉnh"]["Nhóm"] || "Đặc biệt"} />
+                {(selBuilding["Tuỳ Chỉnh"]["Phòng Thủ"] ?? 0) > 0 && (
+                  <Row label="Phòng thủ bản đồ" value={`+${buildingDefense(selBuilding)}`} />
+                )}
+                {(selBuilding["Tuỳ Chỉnh"]["Sức Chứa Dân"] ?? 0) > 0 && (
+                  <Row label="Chỗ ở" value={`+${(selBuilding["Tuỳ Chỉnh"]["Sức Chứa Dân"] ?? 0).toLocaleString("vi-VN")}`} />
+                )}
+                {(selBuilding["Tuỳ Chỉnh"]["Lòng Dân/Tháng"] ?? 0) !== 0 && (
+                  <Row
+                    label="Lòng dân / tháng"
+                    value={`${(selBuilding["Tuỳ Chỉnh"]["Lòng Dân/Tháng"] ?? 0) > 0 ? "+" : ""}${selBuilding["Tuỳ Chỉnh"]["Lòng Dân/Tháng"]}`}
+                  />
+                )}
+              </div>
+            )}
 
             {selBuilding["Đang Xây"] ? (
               <Row label="Tình trạng" value={`Đang xây — còn ${formatDuration(selBuilding["Ngày Xây Còn Lại"])}`} />
+            ) : selBuilding["Đang Phá"] ? (
+              <Row label="Tình trạng" value={`Đang phá dỡ — còn ${formatDuration(selBuilding["Ngày Phá Còn Lại"] ?? 0)}`} />
             ) : selLedger ? (
               <>
                 {/* SẢN XUẤT: cái gì */}
@@ -1081,6 +1137,44 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
             <p className="mt-2 text-[11.5px] italic text-[var(--text-faint)]">
               {selBuilding["Tuỳ Chỉnh"]?.["Công Năng"] || BUILDING_CATALOG[selBuilding["Loại"]]?.effectSummary}
             </p>
+            {isOwner && selected && (
+              <div className="mt-3 flex gap-2 border-t border-[var(--glass-border)] pt-2.5">
+                {selBuilding["Đang Phá"] ? (
+                  <button
+                    onClick={() => {
+                      cancelDemolish(holdingId, selected);
+                      setNotice(`Đã dừng phá dỡ ${selected}.`);
+                    }}
+                    className="flex-1 rounded-[var(--radius-sm)] bg-[var(--accent-soft)] px-2 py-1.5 text-[11.5px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
+                  >
+                    Dừng phá dỡ
+                  </button>
+                ) : !selBuilding["Đang Xây"] ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        const r = startBuild(holdingId, selBuilding["Loại"], selected);
+                        setNotice(r.ok ? `Đã nâng cấp ${selected}.` : (r.error ?? "Không thể nâng cấp công trình này"));
+                      }}
+                      className="flex-1 rounded-[var(--radius-sm)] bg-[var(--accent-soft)] px-2 py-1.5 text-[11.5px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
+                    >
+                      Nâng cấp
+                    </button>
+                    <button
+                      onClick={() => {
+                        const r = demolishBuild(holdingId, selected);
+                        setNotice(r.ok
+                          ? `Đã bắt đầu phá dỡ ${selected} (${formatDuration(demolitionDays(selBuilding["Loại"], selBuilding["Cấp Độ"] || 1))}).`
+                          : (r.error ?? "Không thể phá dỡ công trình này"));
+                      }}
+                      className="flex-1 rounded-[var(--radius-sm)] border border-[rgba(176,106,95,0.45)] px-2 py-1.5 text-[11.5px] text-[var(--danger)] hover:bg-[rgba(176,106,95,0.12)]"
+                    >
+                      Phá dỡ
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            )}
           </div>
         )}
 
@@ -1190,6 +1284,26 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
               label="Thất nghiệp"
               value={`${population.unemployed.toLocaleString("vi-VN")} (${Math.round(population.unemploymentRate * 100)}%)`}
             />
+            {demography && (
+              <>
+                <div className="my-2 border-t border-[rgba(255,255,255,0.10)]" />
+                <Row
+                  label="Sinh / chết"
+                  value={`+${demography["Sinh"].toLocaleString("vi-VN")} / −${demography["Chết"].toLocaleString("vi-VN")}`}
+                />
+                <Row
+                  label="Nhập / xuất cư"
+                  value={`+${demography["Gia Nhập"].toLocaleString("vi-VN")} / −${demography["Rời Đi"].toLocaleString("vi-VN")}`}
+                />
+                <Row
+                  label="Biến động tháng"
+                  value={`${demography["Biến Động Ròng"] >= 0 ? "+" : ""}${demography["Biến Động Ròng"].toLocaleString("vi-VN")}`}
+                />
+                <p className="mt-1 text-[10.5px] text-[var(--text-faint)]">
+                  Tỷ lệ: sinh {(demography["Tỷ Lệ Sinh"] * 100).toFixed(2)}% · chết {(demography["Tỷ Lệ Chết"] * 100).toFixed(2)}% / tháng
+                </p>
+              </>
+            )}
             {population.unemployed > 0 && (
               <p className="mt-1.5 text-[11px] italic text-[var(--text-faint)]">
                 Dân thừa mà chỗ làm đã kín — xây thêm công trình sản xuất để họ có việc.
@@ -1343,6 +1457,7 @@ function CustomBuildingEditor({
             "Nhân Lực": jobQty > 0 ? { [job]: jobQty } : {},
             "Sức Chứa Dân": housing,
             "Phòng Thủ": defense,
+            "Nhân Theo Cấp": true,
             "Lòng Dân/Tháng": 0,
           })}
           className="flex-1 rounded bg-[var(--accent-soft)] px-2 py-1.5 text-[12px] text-[var(--accent-text)] disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[var(--glass-bg-hover)]"
@@ -1396,6 +1511,125 @@ function drawPath(ctx: CanvasRenderingContext2D, paths: [number, number][][], sc
     ctx.lineTo(last[0] * scale, last[1] * scale);
     ctx.stroke();
   }
+}
+
+/** Cổng thành dạng nhà cổng + hai tháp, xoay theo hướng đường ra ngoài. */
+function drawCityGate(
+  ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, scale: number, main: boolean,
+): void {
+  const s = Math.max(5, (main ? 17 : 13) * scale);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.fillStyle = "rgba(22,20,17,0.78)";
+  ctx.fillRect(-s * 0.75, -s * 0.56, s * 1.5, s * 1.12);
+  ctx.fillStyle = main ? "#d6c9a5" : "#aaa193";
+  ctx.fillRect(-s * 0.68, -s * 0.5, s * 0.42, s);
+  ctx.fillRect(s * 0.26, -s * 0.5, s * 0.42, s);
+  ctx.fillStyle = "#443d33";
+  ctx.fillRect(-s * 0.18, -s * 0.48, s * 0.36, s * 0.96);
+  ctx.restore();
+}
+
+/**
+ * Các kỳ quan không được vẽ như một ô nhà xám. Đây là silhouette bản đồ,
+ * không ảnh hưởng hit-box/quy tắc xây dựng của công trình bên dưới.
+ */
+function drawLandmark(ctx: CanvasRenderingContext2D, name: string, x: number, y: number, s: number, group = ""): void {
+  const key = name.toLowerCase();
+  ctx.save();
+  ctx.fillStyle = "rgba(8,10,14,0.38)";
+  ctx.fillRect(x + s * 0.06, y + s * 0.08, s, s);
+
+  if (group === "Thị trấn phụ") {
+    // Một cụm mái nhà, chợ và kho: khác hẳn silhouette của pháo đài/kỳ quan.
+    ctx.fillStyle = "#9a835c";
+    ctx.fillRect(x + s * 0.14, y + s * 0.51, s * 0.68, s * 0.25);
+    ctx.fillStyle = "#75503e";
+    for (const [ox, oy] of [[0.11, 0.39], [0.35, 0.30], [0.59, 0.40]]) {
+      ctx.beginPath();
+      ctx.moveTo(x + s * ox, y + s * (oy + 0.16));
+      ctx.lineTo(x + s * (ox + 0.13), y + s * oy);
+      ctx.lineTo(x + s * (ox + 0.26), y + s * (oy + 0.16));
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = "#c8a551";
+    ctx.fillRect(x + s * 0.42, y + s * 0.57, s * 0.16, s * 0.20);
+  } else if (group === "Thành trì phụ") {
+    // Cứ điểm chư hầu: thành thấp, tháp góc và cổng chính.
+    ctx.fillStyle = "#a69e90";
+    ctx.fillRect(x + s * 0.16, y + s * 0.38, s * 0.68, s * 0.42);
+    ctx.fillStyle = "#5c5a58";
+    for (const [ox, oy] of [[0.10, 0.20], [0.68, 0.20]]) ctx.fillRect(x + s * ox, y + s * oy, s * 0.22, s * 0.42);
+    ctx.fillStyle = "#322f2c";
+    ctx.fillRect(x + s * 0.43, y + s * 0.60, s * 0.14, s * 0.20);
+  } else if (key.includes("red keep") || key.includes("aegonfort")) {
+    ctx.fillStyle = key.includes("aegonfort") ? "#8b6d44" : "#a35a4e";
+    ctx.fillRect(x + s * 0.12, y + s * 0.30, s * 0.76, s * 0.56);
+    ctx.fillStyle = "#4b3030";
+    for (const [ox, oy] of [[0.08, 0.12], [0.68, 0.10], [0.12, 0.62], [0.68, 0.62]]) {
+      ctx.fillRect(x + s * ox, y + s * oy, s * 0.23, s * 0.31);
+    }
+    ctx.fillStyle = "#291f1d";
+    ctx.fillRect(x + s * 0.42, y + s * 0.58, s * 0.16, s * 0.28);
+  } else if (key.includes("baelor") || key.includes("visenya")) {
+    ctx.fillStyle = "#ddd4c3";
+    ctx.fillRect(x + s * 0.20, y + s * 0.46, s * 0.60, s * 0.35);
+    ctx.beginPath();
+    ctx.arc(x + s * 0.50, y + s * 0.46, s * 0.23, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = "#b8d4da";
+    for (let i = 0; i < 7; i++) {
+      const px = x + s * (0.12 + i * 0.125);
+      const h = s * (0.18 + (i % 2) * 0.08);
+      ctx.fillRect(px, y + s * 0.46 - h, s * 0.055, h + s * 0.18);
+    }
+  } else if (key.includes("dragonpit")) {
+    ctx.fillStyle = key.includes("tàn tích") ? "#696b67" : "#796c5d";
+    ctx.beginPath();
+    ctx.arc(x + s * 0.50, y + s * 0.59, s * 0.37, Math.PI, 0);
+    ctx.lineTo(x + s * 0.87, y + s * 0.78);
+    ctx.lineTo(x + s * 0.13, y + s * 0.78);
+    ctx.closePath();
+    ctx.fill();
+    if (key.includes("tàn tích")) {
+      ctx.strokeStyle = "#302f2d";
+      ctx.lineWidth = Math.max(1, s * 0.05);
+      ctx.beginPath();
+      ctx.moveTo(x + s * 0.38, y + s * 0.25);
+      ctx.lineTo(x + s * 0.55, y + s * 0.58);
+      ctx.lineTo(x + s * 0.48, y + s * 0.74);
+      ctx.stroke();
+    }
+  } else if (key.includes("hightower")) {
+    ctx.fillStyle = "#d2c8af";
+    ctx.fillRect(x + s * 0.37, y + s * 0.16, s * 0.26, s * 0.66);
+    ctx.fillStyle = "#e6d58c";
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.32, y + s * 0.16);
+    ctx.lineTo(x + s * 0.50, y + s * 0.02);
+    ctx.lineTo(x + s * 0.68, y + s * 0.16);
+    ctx.closePath();
+    ctx.fill();
+  } else if (key.includes("cầu") || key.includes("bức tường")) {
+    ctx.strokeStyle = "#9a958c";
+    ctx.lineWidth = Math.max(2, s * 0.16);
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.08, y + s * 0.62);
+    ctx.quadraticCurveTo(x + s * 0.50, y + s * 0.22, x + s * 0.92, y + s * 0.62);
+    ctx.stroke();
+  } else {
+    // Kỳ quan/pháo đài khác: tháp trung tâm và các tháp góc để không lẫn với nhà dân.
+    ctx.fillStyle = "#a69e90";
+    ctx.fillRect(x + s * 0.16, y + s * 0.34, s * 0.68, s * 0.48);
+    ctx.fillStyle = "#5c5a58";
+    for (const [ox, oy] of [[0.10, 0.18], [0.68, 0.18], [0.39, 0.05]]) ctx.fillRect(x + s * ox, y + s * oy, s * 0.22, s * 0.36);
+  }
+  ctx.strokeStyle = "rgba(25,24,22,0.78)";
+  ctx.lineWidth = Math.max(0.8, s * 0.025);
+  ctx.strokeRect(x + s * 0.08, y + s * 0.08, s * 0.84, s * 0.76);
+  ctx.restore();
 }
 
 /** Công trình đã xong — phác dáng theo công năng, không phải ô vuông tô màu. */

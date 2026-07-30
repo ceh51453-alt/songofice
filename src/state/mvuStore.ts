@@ -138,7 +138,7 @@ export const useMvuStore = create<MvuState>()(
     }),
     {
       name: "asoiaf-mvu",
-      version: 4,
+      version: 10,
       partialize: (s) => ({ stat: s.stat }),
       /**
        * v1 → v2: ván cũ dùng lịch 1 field (Ngày = 1-360 trong năm, chưa có
@@ -147,6 +147,17 @@ export const useMvuStore = create<MvuState>()(
        * lưới cũ về ô hợp lệ trên lưới lãnh địa 5 m.
        * v3 → v4: bù toàn bộ bảng mặc định thiếu trong state đã lưu, gồm Ngoại
        * Giao. Tránh UI đọc `Lời Đề Nghị` từ một state của build cũ.
+       * v4 → v5: dời các mạch tài nguyên cũ ra khỏi hành lang của tường thành.
+       * v5 → v6: áp hồ sơ thành trì theo era; chỉ thay tường hệ thống cũ và
+       * thêm kỳ quan/công trình lore còn thiếu, không đụng tường tự vạch.
+       * v6 → v7: khôi phục mật độ tài nguyên nền và đồng bộ hiệu ứng kỳ quan
+       * (sản lượng, việc làm, nhà ở, lòng dân, phòng thủ) vào save cũ.
+       * v7 → v8: tăng lên 200 mạch và lấy mẫu đều quanh thành thay vì ưu tiên
+       * các ô đầu tiên ở phía bắc của lưới.
+       * v8 → v9: bổ sung cụm thị trấn/pháo đài phụ theo lore (tối đa ba điểm
+       * cho mỗi trọng trấn), gồm marker, nhà ở, kinh tế hoặc hạ tầng phòng thủ.
+       * v9 → v10: chừa khoảng trống thật cho khuôn viên/silhouette, gộp các
+       * kỳ quan là chính toà thành vào Lâu Đài và chuẩn hoá hiệu ứng canon.
        */
       migrate: (persisted, version) => {
         const s = persisted as { stat?: unknown } | undefined;
@@ -162,6 +173,30 @@ export const useMvuStore = create<MvuState>()(
           log.info(`Migrate save v${version} → v3: bản đồ đa tầng (dời ${moved} công trình)`);
         }
         if (version < 4) log.info(`Migrate save v${version} → v4: bù bảng state mới`);
+        if (version < 5) {
+          repairAllHoldings(stat);
+          log.info(`Migrate save v${version} → v5: dời mạch tài nguyên khỏi tường thành`);
+        }
+        if (version < 6) {
+          repairAllHoldings(stat);
+          log.info(`Migrate save v${version} → v6: cập nhật thành trì theo lore và era`);
+        }
+        if (version < 7) {
+          repairAllHoldings(stat);
+          log.info(`Migrate save v${version} → v7: tăng mạch tài nguyên và hiệu ứng kỳ quan`);
+        }
+        if (version < 8) {
+          repairAllHoldings(stat);
+          log.info(`Migrate save v${version} → v8: 200 mạch tài nguyên phân bố đều quanh thành`);
+        }
+        if (version < 9) {
+          repairAllHoldings(stat);
+          log.info(`Migrate save v${version} → v9: thêm thị trấn và thành trì phụ theo lore`);
+        }
+        if (version < 10) {
+          repairAllHoldings(stat);
+          log.info(`Migrate save v${version} → v10: dời công trình giãn cách và gộp kỳ quan trùng Lâu Đài`);
+        }
         return { stat };
       },
     },

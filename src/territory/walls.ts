@@ -22,12 +22,32 @@ import { LABOUR_LIST, type LabourKey, type ResourceKey } from "../content/wester
 import { LOCAL_GRID_CELLS, LOCAL_CELL_M } from "../content/westeros/mapScale";
 import { isWater } from "../content/westeros/terrain";
 import { terrainAtCell, type LocalTerrainMap } from "./localTerrain";
+import { ensureResourceNodes } from "./resourceNodes";
 import { holdingOwnedByPlayer } from "./territoryEngine";
 import { EXCHANGE_RATES } from "../economy/currency";
 
 type Holding = StatData["Lãnh Địa"][string];
 
 const G = EXCHANGE_RATES.GOLD_TO_COPPER;
+
+/**
+ * Tường mới/được nâng cấp có thể cắt qua một mạch đã tồn tại trong save. Sửa
+ * bảng mỏ trên bản sao trước khi trả PatchOp để thay đổi được lưu ngay, không
+ * phải đợi lần sau người chơi mở lại bản đồ lãnh địa.
+ */
+function nodesAfterWallChange(
+  territory: Holding,
+  walls: WallLine[],
+  map?: LocalTerrainMap,
+) {
+  if (!map) return null;
+  const preview: Holding = {
+    ...territory,
+    "Tường Thành": walls,
+    "Điểm Tài Nguyên": (territory["Điểm Tài Nguyên"] ?? []).map((node) => ({ ...node })),
+  };
+  return ensureResourceNodes(preview, map);
+}
 
 /** Chiều dài tối đa một tuyến (ô) — 4000 ô = 20 km, quá đủ cho một lãnh địa. */
 export const MAX_WALL_CELLS = 4000;
@@ -255,6 +275,13 @@ export function buildWall(
     op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Tường Thành`,
     value: [...existing, line],
   });
+  const repairedNodes = nodesAfterWallChange(territory, [...existing, line], opts.map);
+  if (repairedNodes) {
+    ops.push({
+      op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Điểm Tài Nguyên`,
+      value: repairedNodes,
+    });
+  }
   return { ok: true, ops };
 }
 
@@ -262,7 +289,12 @@ export function buildWall(
  * NÂNG CẤP một tuyến sẵn có — chỉ trả phần chênh vật liệu, không phải xây lại
  * từ đầu. Đây là lý do bức tường cũ không bao giờ "biến mất" nữa.
  */
-export function upgradeWall(state: StatData, territoryId: string, wallId: string): BuildResult {
+export function upgradeWall(
+  state: StatData,
+  territoryId: string,
+  wallId: string,
+  map?: LocalTerrainMap,
+): BuildResult {
   const territory = state["Lãnh Địa"][territoryId];
   const lines = territory?.["Tường Thành"] ?? [];
   const idx = lines.findIndex((w) => w["Mã"] === wallId);
@@ -304,6 +336,13 @@ export function upgradeWall(state: StatData, territoryId: string, wallId: string
     ? { ...w, "Cấp": w["Cấp"] + 1, "Đang Xây": true, "Ngày Xây Còn Lại": Math.max(3, next.days - now.days) }
     : w);
   ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Tường Thành`, value: updated });
+  const repairedNodes = nodesAfterWallChange(territory, updated, map);
+  if (repairedNodes) {
+    ops.push({
+      op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Điểm Tài Nguyên`,
+      value: repairedNodes,
+    });
+  }
   return { ok: true, ops };
 }
 

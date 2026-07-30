@@ -29,6 +29,7 @@ import {
   canRecruitAt, recruitableHoldings, recruitCapFor, recruitCost, availableCompanies,
 } from "../../strategy/army";
 import { canCallBanners, musteredStrength } from "../../strategy/muster";
+import { mobilizeAt, homeSupportAt, battleLocation, unitAvailability } from "../../combat/mobilization";
 import { playerDragons, dragonSummary } from "../../strategy/dragons";
 import { GlassButton } from "../components/GlassButton";
 import { GlassSelect } from "../components/GlassSelect";
@@ -171,8 +172,45 @@ function ForcesTab({ stat }: { stat: Stat }) {
 
       {msg && <p className="text-[12px] text-[var(--accent-text)]">{msg}</p>}
 
+      {/* M23 — bảng huy động: ai ra trận được NGAY tại nơi lãnh chúa đang đứng */}
+      {(() => {
+        const here = battleLocation(stat);
+        const report = mobilizeAt(stat, here);
+        const support = homeSupportAt(stat, here);
+        if (report.fielded.length === 0 && report.absent.length === 0) return null;
+        return (
+          <div className="glass rounded-[var(--radius-md)] p-3">
+            <p className="text-[11px] uppercase tracking-widest text-[var(--text-faint)]">
+              Sẵn sàng giao chiến tại {here || "vị trí hiện tại"}
+            </p>
+            <p className="mt-1 text-[13px] text-[var(--text-soft)]">
+              <b className="text-[var(--ok)]">{fmt(report.fieldedTroops)}</b> quân có mặt
+              {report.absentTroops > 0 && (
+                <> · <b className="text-[var(--warn)]">{fmt(report.absentTroops)}</b> chưa tới kịp</>
+              )}
+            </p>
+            {report.absent.slice(0, 3).map((a) => (
+              <p key={a.name} className="mt-0.5 text-[11px] text-[var(--text-faint)]">
+                • {a.name} ({fmt(a.troops)}) — {a.detail}
+              </p>
+            ))}
+            {support.lines.length > 0 && (
+              <>
+                <p className="mt-1.5 text-[11px] uppercase tracking-widest text-[var(--text-faint)]">
+                  Công trình hậu thuẫn
+                </p>
+                {support.lines.slice(0, 4).map((l, i) => (
+                  <p key={i} className="text-[11px] text-[var(--ok)]">• {l}</p>
+                ))}
+              </>
+            )}
+          </div>
+        );
+      })()}
+
       {units.map(([name, u]) => {
         const loc = REGIONS_BY_ID[u["Lãnh Địa Đồn Trú"]]?.name ?? u["Lãnh Địa Đồn Trú"] ?? "—";
+        const availability = unitAvailability(name, u, battleLocation(stat));
         const movingTo = u["Đang Di Chuyển Đến"] ? REGIONS_BY_ID[u["Đang Di Chuyển Đến"]]?.name : null;
         const mustering = u["Ngày Tập Hợp Còn Lại"] > 0;
         const training = u["Ngày Huấn Luyện"] > 0;
@@ -189,6 +227,12 @@ function ForcesTab({ stat }: { stat: Stat }) {
                 </div>
                 <p className="mt-0.5 text-[11.5px] text-[var(--text-faint)]">
                   {u["Loại Quân"]} · {u["Tướng Chỉ Huy"]}
+                </p>
+                <p
+                  className={`mt-0.5 text-[11px] ${availability.ok ? "text-[var(--ok)]" : "text-[var(--warn)]"}`}
+                  title={availability.ok ? "Đơn vị này ra trận được ngay" : availability.absent.detail}
+                >
+                  {availability.ok ? "✓ Ra trận được ngay" : `✕ ${availability.absent.reason} — ${availability.absent.detail}`}
                 </p>
               </div>
               <div className="shrink-0 text-right">

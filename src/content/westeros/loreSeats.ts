@@ -55,6 +55,8 @@ export interface LoreSeat {
   roads: LoreRoad[];
   /** cấp tường thành dựng sẵn (0 = trần trụi, 2+ = tường đá kiên cố). */
   wallLevel: number;
+  /** cấp Lâu Đài tối thiểu theo tầm vóc canon (không hạ cấp người chơi đã nâng). */
+  level: number;
   /** một câu nhắc vì sao nơi này ra dáng như vậy — hiện trên bản đồ Tầng 1. */
   note: string;
 }
@@ -70,7 +72,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Vương Lộ (về phương Nam)", dir: "S" },
       { name: "Đường Bến Trắng", dir: "SE" },
     ],
-    wallLevel: 3, // hai lớp tường đá với hào ở giữa
+    wallLevel: 3, level: 4, // hai lớp tường đá với hào ở giữa
     note: "Hai lớp tường đá, suối nước nóng dưới nền, Rừng Sói phía tây.",
   },
   {
@@ -83,7 +85,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Hoa Lộ", dir: "SW" },
       { name: "Kim Lộ", dir: "W" },
     ],
-    wallLevel: 3, // tường thành bảy cổng
+    wallLevel: 3, level: 5, // tường thành bảy cổng
     note: "Ba ngọn đồi bên sông Nước Đen, tường thành bảy cổng, mở ra vịnh.",
   },
   {
@@ -96,7 +98,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Hải Lộ", dir: "S" },
       { name: "Giang Lộ", dir: "NE" },
     ],
-    wallLevel: 2,
+    wallLevel: 2, level: 5,
     note: "Khối đá khổng lồ đục rỗng, chân đá cắm thẳng xuống Biển Hoàng Hôn.",
   },
   {
@@ -105,7 +107,7 @@ export const LORE_SEATS: LoreSeat[] = [
     // treo trên vai Mũi Giáo Khổng Lồ, đường lên là bậc đá hiểm
     profile: { relief: 1.6, elevBias: 0.3, cliffs: true, forest: 0.05, riverChance: 0.3 },
     roads: [{ name: "Sơn Lộ (xuống Cổng Máu)", dir: "SW", main: true }],
-    wallLevel: 2,
+    wallLevel: 2, level: 4,
     note: "Treo trên vách Mũi Giáo Khổng Lồ — chỉ một lối lên qua Cổng Máu.",
   },
   {
@@ -118,7 +120,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Đường Song Sinh", dir: "NE" },
       { name: "Đường Ngã Ba Sông", dir: "SE" },
     ],
-    wallLevel: 2,
+    wallLevel: 2, level: 3,
     note: "Kẹp giữa hai dòng sông — mở cống là hào nước bao kín ba mặt.",
   },
   {
@@ -131,7 +133,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Hoa Lộ (về Oldtown)", dir: "SW" },
       { name: "Hải Lộ", dir: "NW" },
     ],
-    wallLevel: 2,
+    wallLevel: 2, level: 4,
     note: "Ba lớp tường bao quanh đồi bên sông Mander, vườn tược khắp nơi.",
   },
   {
@@ -143,7 +145,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Đường Vũ Bão (về Vương Đô)", dir: "NW", main: true },
       { name: "Cốt Đạo (xuống Dorne)", dir: "SW" },
     ],
-    wallLevel: 3, // tường dày nhất Westeros
+    wallLevel: 3, level: 5, // tường dày nhất Westeros
     note: "Tường cong liền khối trên vách Vịnh Đắm Thuyền, lưng tựa Rừng Mưa.",
   },
   {
@@ -155,7 +157,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Đường Lục Huyết Hà", dir: "W", main: true },
       { name: "Cốt Đạo (lên Vùng Bão)", dir: "NW" },
     ],
-    wallLevel: 2,
+    wallLevel: 2, level: 4,
     note: "Ba tháp bên cửa Lục Huyết Hà, phố Bóng Râm bám ngoài tường.",
   },
   {
@@ -164,7 +166,7 @@ export const LORE_SEATS: LoreSeat[] = [
     // các tháp đứng trên trụ đá giữa biển, cầu dây nối nhau
     profile: { relief: 1.5, elevBias: 0.18, cliffs: true, forest: -0.2, riverChance: 0 },
     roads: [{ name: "Đường Bến Chúa", dir: "E", main: true }],
-    wallLevel: 1,
+    wallLevel: 1, level: 3,
     note: "Tháp dựng trên trụ đá giữa sóng, nối nhau bằng cầu dây.",
   },
   {
@@ -173,7 +175,7 @@ export const LORE_SEATS: LoreSeat[] = [
     // dưới chân Tường Thành, không có tường bao — chỉ có Tường
     profile: { relief: 0.9, elevBias: 0.05, cliffs: false, forest: 0.3, riverChance: 0.2 },
     roads: [{ name: "Vương Lộ (xuống phương Nam)", dir: "S", main: true }],
-    wallLevel: 0,
+    wallLevel: 0, level: 2,
     note: "Không tường bao — chỗ dựa duy nhất là Tường Thành phía bắc.",
   },
   {
@@ -185,7 +187,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Vương Lộ (bờ bắc)", dir: "N", main: true },
       { name: "Vương Lộ (bờ nam)", dir: "S" },
     ],
-    wallLevel: 2,
+    wallLevel: 2, level: 3,
     note: "Hai toà thành hai bờ Sông Xanh, chiếc cầu là lối vượt sông duy nhất.",
   },
   {
@@ -194,7 +196,7 @@ export const LORE_SEATS: LoreSeat[] = [
     // ba tháp đổ nát giữa Đầm Lầy — cổ họng của phương Bắc
     profile: { wet: 0.5, relief: 0.4, elevBias: -0.2, forest: 0.1, riverChance: 1 },
     roads: [{ name: "Vương Lộ (qua Ải Eo Đất)", dir: "N", main: true }],
-    wallLevel: 1,
+    wallLevel: 1, level: 2,
     note: "Ba tháp đổ giữa đầm lầy — đạo quân nào lên Bắc cũng phải qua đây.",
   },
   {
@@ -206,7 +208,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Hoa Lộ (lên Highgarden)", dir: "NE", main: true },
       { name: "Đường Ven Biển", dir: "W" },
     ],
-    wallLevel: 2,
+    wallLevel: 2, level: 5,
     note: "Thành phố cổ nhất Westeros bên cửa sông Mật, Tháp Cao soi biển.",
   },
   {
@@ -217,7 +219,7 @@ export const LORE_SEATS: LoreSeat[] = [
       { name: "Kim Lộ", dir: "E" },
     ],
     profile: { relief: 0.8, forest: 0.08 },
-    wallLevel: 2,
+    wallLevel: 2, level: 4,
     note: "Hải cảng sầm uất dưới bóng Casterly Rock.",
   },
   {
@@ -225,7 +227,7 @@ export const LORE_SEATS: LoreSeat[] = [
     terrain: "Đồng Bằng", coastal: true, seed: 0x57484252,
     profile: { relief: 0.8, forest: 0.18, riverChance: 1 },
     roads: [{ name: "Đường Bến Trắng (lên Winterfell)", dir: "NW", main: true }],
-    wallLevel: 2,
+    wallLevel: 2, level: 4,
     note: "Cảng lớn duy nhất của phương Bắc, bên cửa Sông Trắng.",
   },
   {
@@ -234,7 +236,7 @@ export const LORE_SEATS: LoreSeat[] = [
     // đảo núi lửa, thành đá đen tạc hình rồng
     profile: { relief: 1.4, elevBias: 0.2, cliffs: true, forest: -0.15, riverChance: 0 },
     roads: [{ name: "Đường Bến Cảng", dir: "SE", main: true }],
-    wallLevel: 2,
+    wallLevel: 2, level: 4,
     note: "Đảo núi lửa, tường đá đen tạc hình rồng, quanh năm mù khói.",
   },
   {
@@ -242,8 +244,88 @@ export const LORE_SEATS: LoreSeat[] = [
     terrain: "Tuyết/Băng Giá", coastal: false, seed: 0x44524541,
     profile: { relief: 0.95, forest: 0.3, riverChance: 1, cliffs: false },
     roads: [{ name: "Đường Sông Khóc", dir: "SW", main: true }],
-    wallLevel: 2,
+    wallLevel: 2, level: 3,
     note: "Thành đá xám bên Sông Khóc, tường dày và ngục sâu.",
+  },
+  {
+    ids: ["karhold"], name: "Karhold",
+    terrain: "Tuyết/Băng Giá", coastal: false, seed: 0x4b415248,
+    profile: { relief: 0.95, forest: 0.22, riverChance: 0.5, cliffs: false },
+    roads: [{ name: "Đường Karhold", dir: "SW", main: true }],
+    wallLevel: 2, level: 3,
+    note: "Pháo đài Karstark ở đông bắc Phương Bắc, giữa đất lạnh và rừng thưa.",
+  },
+  {
+    ids: ["deepwood-motte"], name: "Deepwood Motte",
+    terrain: "Rừng Rậm", coastal: false, seed: 0x44455057,
+    profile: { forest: 0.58, relief: 0.78, wet: 0.08, riverChance: 0.4 },
+    roads: [{ name: "Đường Rừng Sâu", dir: "SE", main: true }],
+    wallLevel: 2, level: 3,
+    note: "Thành lũy nhà Glover, chìm trong rừng sâu phía tây Phương Bắc.",
+  },
+  {
+    ids: ["harrenhal"], name: "Harrenhal",
+    terrain: "Đồng Bằng", coastal: false, seed: 0x48415252,
+    profile: { relief: 0.88, elevBias: 0.02, forest: 0.12, riverChance: 1, wet: 0.12 },
+    roads: [{ name: "Giang Lộ", dir: "W", main: true }],
+    wallLevel: 2, level: 4,
+    note: "Lâu đài khổng lồ cháy đen bên Hồ Mắt Thần, quá rộng để một nhà nhỏ giữ kín.",
+  },
+  {
+    ids: ["seagard"], name: "Seagard",
+    terrain: "Đồng Bằng", coastal: true, seed: 0x53454752,
+    profile: { relief: 0.7, forest: 0.1, riverChance: 0.45, wet: 0.1 },
+    roads: [{ name: "Giang Lộ (về Riverrun)", dir: "SE", main: true }],
+    wallLevel: 2, level: 3,
+    note: "Pháo đài Mallister ở bờ Hoàng Hôn, tháp canh hướng ra biển để báo động Người Sắt.",
+  },
+  {
+    ids: ["golden-tooth"], name: "Golden Tooth",
+    terrain: "Hẻm Núi", coastal: false, seed: 0x474f4c44,
+    profile: { relief: 1.45, elevBias: 0.18, cliffs: true, forest: 0.16, riverChance: 0.25 },
+    roads: [{ name: "Giang Lộ", dir: "E", main: true }],
+    wallLevel: 2, level: 3,
+    note: "Cửa ngõ núi hiểm của Vùng Tây, giữ Giang Lộ khi nó vượt biên Riverlands.",
+  },
+  {
+    ids: ["gulltown"], name: "Gulltown",
+    terrain: "Đồng Bằng", coastal: true, seed: 0x47554c4c,
+    profile: { relief: 0.72, forest: 0.12, riverChance: 0.55, wet: 0.08 },
+    roads: [{ name: "Đường Gulltown", dir: "NW", main: true }],
+    wallLevel: 2, level: 4,
+    note: "Hải cảng có tường bao lớn nhất Vale, cửa ngõ thương mại trên Biển Hẹp.",
+  },
+  {
+    ids: ["horn-hill"], name: "Horn Hill",
+    terrain: "Đồi Núi", coastal: false, seed: 0x484f524e,
+    profile: { relief: 1.15, elevBias: 0.1, forest: 0.3, riverChance: 0.35 },
+    roads: [{ name: "Đường Marches", dir: "NE", main: true }],
+    wallLevel: 2, level: 3,
+    note: "Cứ địa Tarly trên các gò đồi Reach, hướng về những con đèo Dornish Marches.",
+  },
+  {
+    ids: ["evenfall-hall"], name: "Evenfall Hall",
+    terrain: "Đồi Núi", coastal: true, seed: 0x4556454e,
+    profile: { relief: 1.1, elevBias: 0.12, cliffs: true, forest: 0.25, riverChance: 0.15 },
+    roads: [{ name: "Đường Tarth", dir: "NW", main: true }],
+    wallLevel: 2, level: 3,
+    note: "Thành Tarth trên vách đá đảo, trông xuống vịnh và đường biển về Vùng Bão.",
+  },
+  {
+    ids: ["yronwood"], name: "Yronwood",
+    terrain: "Hẻm Núi", coastal: false, seed: 0x59524f4e,
+    profile: { relief: 1.35, elevBias: 0.16, cliffs: true, forest: -0.08, riverChance: 0.42 },
+    roads: [{ name: "Đường Đá", dir: "NW", main: true }],
+    wallLevel: 2, level: 3,
+    note: "Pháo đài cổ nhà Yronwood ở chân Dãy Núi Đỏ, trấn lối vào đông Dorne.",
+  },
+  {
+    ids: ["starfall"], name: "Starfall",
+    terrain: "Đồi Núi", coastal: true, seed: 0x53544152,
+    profile: { relief: 1.05, elevBias: 0.08, cliffs: true, forest: -0.1, riverChance: 1 },
+    roads: [{ name: "Đường Torentine", dir: "NE", main: true }],
+    wallLevel: 2, level: 3,
+    note: "Ghế nhà Dayne bên cửa sông Torentine, nơi núi đá Dorne gặp biển mùa hạ.",
   },
 ];
 

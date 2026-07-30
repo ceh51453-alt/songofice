@@ -7,9 +7,15 @@ import { describe, expect, it } from "vitest";
 import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { applyPatch } from "../mvu/patchEngine";
 import { seedRegionControl, captureRegionOps } from "./territoryEngine";
-import { startConstruction, tickConstruction, tickTerritoryIncome, estimateTerritoryYield } from "./construction";
+import {
+  startConstruction, startDemolition, tickConstruction, tickTerritoryIncome,
+  estimateTerritoryYield, demolitionDays, planningRadiusCells,
+} from "./construction";
 import { monthlyBudget } from "../economy/budget";
 import { EXCHANGE_RATES } from "../economy/currency";
+import { checkSpot } from "./localMap";
+import type { LocalTerrainMap } from "./localTerrain";
+import type { ResourceNode } from "../mvu/schema";
 
 /** Ngân Khố lưu dạng Đồng Đỏ (1 Rồng Vàng = 11,760 Đồng Đỏ). */
 const GOLD = EXCHANGE_RATES.GOLD_TO_COPPER;
@@ -79,6 +85,46 @@ describe("tickConstruction — loop NGÀY (10.3)", () => {
     expect(s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Ngày Xây Còn Lại"]).toBe(89);
     for (let i = 0; i < 89; i++) tickConstruction(s);
     expect(s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"]).toBe(false);
+  });
+
+  it("phá dỡ là tiến độ theo ngày và chỉ xoá công trình khi hoàn tất", () => {
+    let s = lordState(500);
+    s = applyPatch(s, startConstruction(s, "the-north-seat", "Nông Trại").ops).state;
+    s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Đang Xây"] = false;
+
+    const order = startDemolition(s, "the-north-seat", "Nông Trại");
+    expect(order.ok).toBe(true);
+    s = applyPatch(s, order.ops).state;
+    const days = demolitionDays("Nông Trại", 1);
+    expect(s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]["Ngày Phá Còn Lại"]).toBe(days);
+
+    for (let i = 0; i < days - 1; i++) tickConstruction(s);
+    expect(s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]).toBeTruthy();
+    tickConstruction(s);
+    expect(s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Nông Trại"]).toBeUndefined();
+  });
+
+  it("trạm khai hoang mở rộng bán kính quy hoạch khi đã hoàn tất", () => {
+    let s = lordState(500);
+    const before = planningRadiusCells(s["Lãnh Địa"]["the-north-seat"]);
+    s = applyPatch(s, startConstruction(s, "the-north-seat", "Trạm Khai Hoang").ops).state;
+    s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Trạm Khai Hoang"]["Đang Xây"] = false;
+    expect(planningRadiusCells(s["Lãnh Địa"]["the-north-seat"])).toBe(before + 75);
+  });
+
+  it("mỏ có thể bám mạch tài nguyên trên vách núi vốn không thể xây bình thường", () => {
+    const cliffMap = {
+      res: 192,
+      kind: new Uint8Array(192 * 192).fill(7), // TERRAIN_ORDER[7] = Hẻm Núi
+      dominant: "Hẻm Núi",
+    } as LocalTerrainMap;
+    const ironNode: ResourceNode = {
+      "Mã": "cliff-iron", "Tài Nguyên": "Quặng Sắt", "Trữ Lượng": 2, "Còn Lại": 12_000,
+      "Tọa Độ X": 700, "Tọa Độ Y": 700, "Kích Thước": 10, "Đã Khám Phá": true,
+      "Công Trình": "", "Mô Tả": "Mạch sắt trong vách núi",
+    };
+
+    expect(checkSpot(cliffMap, "Mỏ Sắt", 692, 692, [], 700, [ironNode]).ok).toBe(true);
   });
 
   it("tickTerritoryIncome: tài nguyên tăng mỗi THÁNG (base + Nông Trại xong)", () => {

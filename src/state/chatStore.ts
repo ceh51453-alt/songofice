@@ -29,6 +29,7 @@ import { useExtraModelStore } from "../state/extraModelStore";
 import { runOffscreenSimAI } from "../npc/offscreenSim";
 import { getActiveWorkflowTasks, useWorkflowStore } from "../state/workflowStore";
 import { useWorldNewsStore } from "../state/worldNewsStore";
+import { marketHeadlines } from "../economy/market";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("chat");
@@ -244,11 +245,13 @@ export const useChatStore = create<ChatState>()(
         const wfStore = useWorkflowStore.getState();
         const collectedPaths: string[] = [];
         const collectedNews: import("../npc/offscreenSim").OffscreenAction[] = [];
+        let lastError: string | null = null;
 
         for (const task of tasks) {
           wfStore.setStatus("running", task.id);
           const start = Date.now();
           try {
+            let message = "Hoàn tất";
             if (task.handlerKey === "offscreen-sim") {
               const stat = useMvuStore.getState().stat;
               const result = await runOffscreenSimAI(stat, callOffscreenModel);
@@ -279,14 +282,35 @@ export const useChatStore = create<ChatState>()(
                   });
                 }
               }
+              message = result.aiResult ? `${result.aiResult.actions.length} hành động NPC` : `${result.fallbackActions.length} hành động theo luật`;
+            } else if (task.handlerKey === "world-news") {
+              const stat = useMvuStore.getState().stat;
+              const newsStore = useWorldNewsStore.getState();
+              const day = currentDay();
+              let published = 0;
+              for (const [region, market] of Object.entries(stat["Thị Trường Khu Vực"] ?? {})) {
+                for (const summary of marketHeadlines(market, 2)) {
+                  const text = `Chợ ${region}: ${summary}.`;
+                  const alreadyPublished = newsStore.headlines.some((headline) =>
+                    headline.day === day && headline.region === region && headline.text === text,
+                  );
+                  if (alreadyPublished) continue;
+                  newsStore.addHeadline({ day, text, region, source: "event" });
+                  published++;
+                }
+              }
+              message = published > 0 ? `${published} bản tin thị trường` : "Thị trường không có biến động đáng kể";
+            } else {
+              throw new Error(`Workflow chưa có handler: ${task.handlerKey}`);
             }
 
             wfStore.recordResult({
               taskId: task.id, taskName: task.name,
-              status: "success", message: "OK", durationMs: Date.now() - start,
+              status: "success", message, durationMs: Date.now() - start,
             });
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
+            lastError = msg;
             log.warn(`Workflow task ${task.name} lỗi:`, msg);
             wfStore.recordResult({
               taskId: task.id, taskName: task.name,
@@ -295,7 +319,7 @@ export const useChatStore = create<ChatState>()(
           }
         }
 
-        wfStore.setStatus("idle");
+        wfStore.setStatus(lastError ? "error" : "success", undefined, lastError ?? undefined);
         return { changedPaths: collectedPaths, offscreenNews: collectedNews };
       }
 

@@ -10,29 +10,47 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useMvuStore, currentSeedInfo, currentDay } from "./mvuStore";
 import { eventSeed, makeRng } from "../probability/rng";
-import { resolveBattle, battlePower, type BattleResult, type BattleSideInput, type WeatherCondition } from "../combat/battleResolver";
+import { resolveBattle, battlePower, normalizeWeather, type BattleResult, type BattleSideInput } from "../combat/battleResolver";
 import { troopMatchup, compositionFromUnits, type MatchupSide } from "../combat/troopMatchup";
 import { adjustWarScore, warScoreForOutcome, setWarStatus } from "../strategy/war";
 import { captiveOpsFromGeneral } from "../strategy/betrayal";
 import { dragonSideFactor, dragonBurnsGate } from "../combat/dragon";
-import { newDragon, battleReadyDragons } from "../strategy/dragons";
+import { newDragon, battleReadyDragons, battleReadyDragonEntries } from "../strategy/dragons";
 import { awardBattleExperience } from "../strategy/army";
 import { playerHouseId } from "../territory/territoryEngine";
 import type { Dragon } from "../mvu/schema";
-import { startDuel, runDuelRound, autoDuel, type DuelState, type DuelAction } from "../combat/duel";
-import { initInteractiveBattle, initSiegeBattle, playArmyRound, autoPickArmyTactic, type InteractiveBattleState, type TacticId } from "../combat/battleEngine";
+import {
+  startDuel, runDuelRound, autoDuel, pickDuelAction, DUEL_GROUNDS,
+  type DuelState, type DuelAction, type DuelGround, type DuelLight, type DuelBand,
+} from "../combat/duel";
+import {
+  initInteractiveBattle, initSiegeBattle, playArmyRound, autoPickArmyTactic,
+  sectionsFromHolding, supplyDaysFromHolding, describeBattle, describeSiege,
+  type InteractiveBattleState, type TacticId, type RoundOptions,
+} from "../combat/battleEngine";
 import { resolveSkirmish, type SkirmishDirective, type SkirmishSide } from "../combat/skirmish";
 import { resolveNaval, playerFleetSide, enemyFleetFromAttrs, seaConditionFromAttrs, fleetMatchup } from "../combat/naval";
-import { playerBattleSide, playerDuelist, enemyBattleSideFromAttrs, enemyDuelistFromAttrs } from "../combat/playerForces";
+import { playerBattleSideDetailed, playerDuelist, enemyBattleSideFromAttrs, enemyDuelistFromAttrs } from "../combat/playerForces";
+import {
+  mobilizeAt, homeSupportAt, battleLocation, describeMobilization,
+  type MobilizationReport, type HomeSupport,
+} from "../combat/mobilization";
+import {
+  initAerialDuel, playAerialRound, autoAerialDuel, pickAerialAction, makeAerialUnit,
+  unitAlive, describeAerial,
+  type AerialDuelState, type AerialAction, type AerialSide, type AerialUnit,
+} from "../combat/aerialDuel";
 import { formatBattleReport, formatDuelReport, formatSkirmishReport, formatNavalReport } from "../combat/reportFormat";
 import { applyPatch, type PatchOp } from "../mvu/patchEngine";
+import { clamp } from "../mvu/helpers";
+import { moraleEnumFromScore } from "../combat/scales";
 import type { CombatScale, Terrain, StatData } from "../mvu/schema";
 import { TerrainSchema } from "../mvu/schema";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("combat");
 
-export type CombatPhase = "idle" | "awaiting-choice" | "duel" | "army_battle" | "done";
+export type CombatPhase = "idle" | "awaiting-choice" | "duel" | "army_battle" | "aerial" | "done";
 
 /** So sánh lực lượng 2 phe (11.5-11.6) — ước lượng, không phải kết quả đã chốt. */
 export interface ForcePreview {
@@ -47,6 +65,10 @@ export interface ForcePreview {
   playerStrength: number;
   enemyStrength: number;
   matchup: number;
+  /** M23 — ai có mặt, ai vắng và vì sao. */
+  mobilization?: MobilizationReport;
+  /** M23 — công trình + lãnh địa đóng góp gì cho quân tại chỗ. */
+  support?: HomeSupport;
 }
 
 interface CombatState {
@@ -56,10 +78,14 @@ interface CombatState {
   description: string;
   attrs: Record<string, string>;
   battleSeed: number;
+  /** M23 — địa điểm giao chiến; quyết định đơn vị nào có mặt và lãnh địa nào hậu thuẫn. */
+  location: string;
   /** duel tương tác đang chạy. */
   duelState: DuelState | null;
   /** army battle tương tác đang chạy. */
   armyBattleState: InteractiveBattleState | null;
+  /** M23 — không chiến rồng nhiều phe đang chạy. */
+  aerialState: AerialDuelState | null;
   /** log kết quả hiển thị ở panel sau khi phân giải. */
   resultLog: string[];
   resultOutcome: string | null;
@@ -78,10 +104,14 @@ interface CombatState {
   /** Đấu tay đôi: chọn kỹ năng/item mỗi vòng / hoặc auto. */
   duelRound: (action: DuelAction) => void;
   autoResolveDuel: () => void;
-  /** Đại chiến tương tác: chọn chiến thuật mỗi vòng. */
-  armyBattleRound: (tactic: TacticId) => void;
+  /** Đại chiến tương tác: chọn chiến thuật + mũi nhọn (hoặc đoạn tường) mỗi vòng. */
+  armyBattleRound: (tactic: TacticId, opts?: RoundOptions) => void;
   /** Kết thúc đại chiến tương tác và áp dụng kết quả. */
   endArmyBattle: () => void;
+  /** M23 — không chiến: chọn nước đi cho từng con rồng của ta mỗi vòng. */
+  aerialRound: (actions: AerialAction[]) => void;
+  autoResolveAerial: () => void;
+  endAerialDuel: () => void;
   /** người chơi gửi tin mới → report đã dùng xong. */
   clearReport: () => void;
   /** đóng panel (giữ reportBlock cho lượt tường thuật). */
@@ -97,6 +127,7 @@ function scaleFromAttrs(attrs: Record<string, string>): CombatScale {
     if (s === "vây thành") return "Vây Thành";
     return "Hải Chiến";
   }
+  if (s === "không chiến" || s === "đấu rồng") return "Không Chiến";
   if (s === "đấu tay đôi") return "Đấu Tay Đôi";
   // suy từ enemy_size nếu AI quên scale
   const size = Number(attrs.enemy_size);
@@ -107,41 +138,128 @@ function scaleFromAttrs(attrs: Record<string, string>): CombatScale {
   return "Giao Tranh"; // default fallback
 }
 
-function getSiegeWallHp(stat: any, attrs: Record<string, string>, playerRole: "attacker" | "defender" | undefined): number {
-  let level = 1;
+/**
+ * Cấp toà thành đang bị vây. Bản trước đọc `t["Các Công Trình"]` như một MẢNG —
+ * field thật tên "Công Trình" và là RECORD, nên nhánh phòng thủ luôn rơi về cấp
+ * 1 dù người chơi đã nâng lâu đài lên cấp 5.
+ */
+function siegeCastleLevel(stat: StatData, attrs: Record<string, string>, playerRole: "attacker" | "defender" | undefined): number {
   if (playerRole === "defender") {
-    // Tìm cấp lâu đài cao nhất của người chơi
-    const territories = Object.values(stat["Lãnh Địa"] || {}) as any[];
-    for (const t of territories) {
-      const buildings = t["Các Công Trình"] || [];
-      const castle = buildings.find((b: any) => b["Loại"] === "Lâu Đài");
-      if (castle && castle["Cấp Độ"] > level) {
-        level = castle["Cấp Độ"];
+    let level = 1;
+    for (const t of Object.values(stat["Lãnh Địa"] ?? {})) {
+      for (const b of Object.values(t["Công Trình"] ?? {})) {
+        if (b["Loại"] === "Lâu Đài" && (b["Cấp Độ"] ?? 1) > level) level = b["Cấp Độ"];
       }
     }
-  } else {
-    // Người chơi đi công thành, lấy cấp độ từ AI (hoặc random/dựa vào size)
-    if (attrs.enemy_castle_level) {
-      level = parseInt(attrs.enemy_castle_level, 10);
-      if (isNaN(level)) level = 1;
-    } else {
-      // Suy ra từ enemy_size
-      const size = Number(attrs.enemy_size) || 10;
-      if (size >= 30) level = 3;
-      else if (size >= 15) level = 2;
-      else level = 1;
-    }
+    return level;
   }
+  const declared = parseInt(attrs.enemy_castle_level ?? "", 10);
+  if (Number.isFinite(declared) && declared > 0) return declared;
+  const size = Number(attrs.enemy_size) || 10;
+  return size >= 30 ? 3 : size >= 15 ? 2 : 1;
+}
 
-  // Chuyển level thành HP
-  if (level === 3) return 10000;
-  if (level === 2) return 6000;
-  return 3000; // level 1
+function getSiegeWallHp(stat: StatData, attrs: Record<string, string>, playerRole: "attacker" | "defender" | undefined): number {
+  const level = siegeCastleLevel(stat, attrs, playerRole);
+  return clamp(2000 + level * 2200, 3000, 16000);
+}
+
+/** Lãnh địa nào của người chơi đang bị vây (ưu tiên cái AI chỉ đích danh). */
+function besiegedHoldingId(stat: StatData, attrs: Record<string, string>): string | undefined {
+  const holdings = stat["Lãnh Địa"] ?? {};
+  const named = attrs.territory ?? attrs.holding ?? attrs.siege_target;
+  if (named && holdings[named]) return named;
+  const underSiege = Object.entries(holdings).find(([, h]) => h["Tình Trạng"] === "Bị Vây");
+  return underSiege?.[0] ?? Object.keys(holdings)[0];
+}
+
+/**
+ * Dựng trận không chiến từ rồng THẬT của người chơi + các phe địch AI khai.
+ *
+ * AI mô tả phe địch bằng `enemy_dragons` — chuỗi `"tên:kỵ sĩ:cỡ|tên:kỵ sĩ:cỡ"`,
+ * và `enemy_sides` nếu muốn nhiều hơn hai phe (`"Đen|Xanh|Trung Lập"`). Nhờ vậy
+ * một trận 1v2v3 chỉ là một thẻ combat_trigger, không cần UI dựng phe.
+ */
+function buildAerialSetup(stat: StatData, attrs: Record<string, string>, seed: number) {
+  const mine = battleReadyDragonEntries(stat).filter(([, d]) => d["_HP"] > 0);
+  if (mine.length === 0) return null;
+
+  const playerName = stat["Thông Tin Nhân Vật"]["Họ Tên"];
+  const sides: AerialSide[] = [{ id: "ta", name: attrs.player_side || `Phe ${stat["Thông Tin Nhân Vật"]["Nhà"] || playerName}` }];
+  const units: AerialUnit[] = mine.map(([key, d], i) =>
+    makeAerialUnit({
+      id: `ta-${i}`, side: "ta", dragon: d, dragonKey: key,
+      riderName: d["Kỵ Sĩ"] || (i === 0 ? playerName : undefined),
+      riderHp: d["Kỵ Sĩ"] === playerName || (i === 0 && !d["Kỵ Sĩ"]) ? stat["Chỉ Số Sinh Tồn"]["HP"] : undefined,
+    }),
+  );
+
+  // các phe địch: mặc định một phe, AI khai thêm thì tách ra
+  const sideNames = (attrs.enemy_sides || attrs.enemy || "Phe địch").split("|").map((x) => x.trim()).filter(Boolean);
+  const specs = (attrs.enemy_dragons || "").split("|").map((x) => x.trim()).filter(Boolean);
+  const perSide = Math.max(1, Math.ceil(Math.max(specs.length, 1) / sideNames.length));
+
+  sideNames.forEach((name, si) => {
+    const sideId = `dich-${si}`;
+    sides.push({ id: sideId, name });
+    const slice = specs.length > 0 ? specs.slice(si * perSide, (si + 1) * perSide) : [""];
+    slice.forEach((spec, i) => {
+      const [dname, rider, size] = spec.split(":").map((x) => x.trim());
+      units.push(makeAerialUnit({
+        id: `${sideId}-${i}`,
+        side: sideId,
+        riderName: rider || `Kỵ sĩ ${name}`,
+        dragon: newDragon({
+          "Tên": dname || `Rồng ${name}`,
+          "Kích Cỡ": size?.includes("Khổng Lồ") ? "Khổng Lồ (Balerion-class)" : size === "Non" ? "Non" : "Trưởng Thành",
+          "Kỵ Sĩ": rider || `Kỵ sĩ ${name}`,
+          "_HP": 1000, "_HP Tối Đa": 1000, "Tình Trạng": "Khỏe",
+          "Chỉ Số": { "Sức Lửa": 14, "Sức Bay": 13, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
+          "Trạng Thái Thu Phục": "Đã Có Chủ", "Mức Độ Thuần Hóa": 85,
+        }),
+      }));
+    });
+  });
+
+  return { seed, weather: normalizeWeather(stat["Thế Giới"]["Thời Tiết"]), sides, units };
 }
 
 function terrainFromAttrs(attrs: Record<string, string>): Terrain | undefined {
   const parsed = TerrainSchema.safeParse(attrs.terrain);
   return parsed.success ? parsed.data : undefined;
+}
+
+/** Địa hình chiến trường → mặt sân của trận đấu tay đôi (M22). */
+function duelGround(terrain: Terrain | undefined, attrs: Record<string, string>): DuelGround {
+  const declared = attrs.ground as DuelGround | undefined;
+  if (declared && declared in DUEL_GROUNDS) return declared;
+  switch (terrain) {
+    case "Đầm Lầy":
+    case "Sông/Lối Vượt Sông": return "Bùn Lầy";
+    case "Đồi Núi":
+    case "Hẻm Núi": return "Dốc Đá";
+    case "Tuyết/Băng Giá": return "Tuyết Dày";
+    case "Sa Mạc": return "Cát Lún";
+    case "Thành Trì (thủ)": return "Sàn Hẹp";
+    default: return "Bằng Phẳng";
+  }
+}
+
+/** Ánh sáng: AI khai giờ trong ngày, không thì mặc định ban ngày. */
+function duelLight(attrs: Record<string, string>): DuelLight {
+  const t = (attrs.time_of_day ?? attrs.light ?? "").toLowerCase();
+  if (/đêm|night|khuya/.test(t)) return "Đêm Tối";
+  if (/chạng vạng|hoàng hôn|rạng|dusk|dawn/.test(t)) return "Chạng Vạng";
+  return "Ban Ngày";
+}
+
+/** Cự ly mở màn: bị bắn tỉa từ xa khác hẳn bị vồ trong hành lang hẹp. */
+function duelStartBand(attrs: Record<string, string>): DuelBand {
+  const d = (attrs.distance ?? attrs.start_distance ?? "").toLowerCase();
+  if (/xa|ranged|tầm xa/.test(d)) return "Tầm Xa";
+  if (/áp sát|vật|grapple|ôm/.test(d)) return "Áp Sát";
+  if (attrs.enemy_class === "cung_thu") return "Tầm Xa";
+  return "Cận Chiến";
 }
 
 /** Hệ số rồng ĐỊCH từ attrs combat_trigger (AI khai enemy_dragon="Trưởng Thành"/"true"/số). */
@@ -213,17 +331,30 @@ function shipCasualtyOps(stat: StatData, totalLoss: number): PatchOp[] {
  * M19: không phải ai ngã xuống cũng chết — một phần ba là THƯƠNG BINH, nằm trại
  * và quay lại hàng ngũ dần nếu hậu cần còn tử tế (strategy/army.tickArmy).
  */
-function casualtyOps(stat: StatData, totalLoss: number, newMorale: string): PatchOp[] {
-  const units = Object.entries(stat["Biên Chế Quân Sự"]).filter(([, u]) => u["Số Lượng"] > 0);
+function casualtyOps(
+  stat: StatData,
+  totalLoss: number,
+  newMorale: string,
+  opts: { location?: string; medic?: number } = {},
+): PatchOp[] {
+  // M23: máu chỉ đổ trên đầu đơn vị THẬT SỰ RA TRẬN. Trước đây thương vong chia
+  // đều cho cả biên chế, nên một đạo quân đóng cách đó nghìn dặm vẫn chết lính
+  // trong một trận nó không hề tham gia.
+  const fielded = opts.location !== undefined
+    ? mobilizeAt(stat, opts.location).fielded
+    : Object.entries(stat["Biên Chế Quân Sự"]);
+  const units = fielded.filter(([, u]) => u["Số Lượng"] > 0);
   const total = units.reduce((s, [, u]) => s + u["Số Lượng"], 0);
   if (total === 0) return [];
+  // học sĩ trong lãnh địa kéo thêm được một phần người ngã xuống về trại thương
+  const woundedShare = clamp(1 / 3 + (opts.medic ?? 0), 0.2, 0.7);
   const ops: PatchOp[] = [];
   for (const [name, u] of units) {
     const loss = Math.min(u["Số Lượng"], Math.round((totalLoss * u["Số Lượng"]) / total));
     if (u["Số Lượng"] - loss <= 0) {
       ops.push({ op: "remove", path: `stat_data.Biên Chế Quân Sự.${name}` }); // quân chết là chết
     } else {
-      const wounded = Math.round(loss / 3);
+      const wounded = Math.round(loss * woundedShare);
       ops.push({ op: "replace", path: `stat_data.Biên Chế Quân Sự.${name}.Số Lượng`, value: u["Số Lượng"] - loss });
       ops.push({ op: "replace", path: `stat_data.Biên Chế Quân Sự.${name}.Sĩ Khí`, value: newMorale });
       if (wounded > 0) {
@@ -234,10 +365,10 @@ function casualtyOps(stat: StatData, totalLoss: number, newMorale: string): Patc
   return ops;
 }
 
-/** Đơn vị còn sống tham chiến — dùng để cộng kinh nghiệm sau trận (M19). */
-function engagedUnitNames(stat: StatData): string[] {
-  return Object.entries(stat["Biên Chế Quân Sự"])
-    .filter(([, u]) => u["Số Lượng"] > 0 && u["Ngày Tập Hợp Còn Lại"] <= 0 && u["Ngày Huấn Luyện"] <= 0)
+/** Đơn vị CÓ MẶT ở chiến trường — dùng để cộng kinh nghiệm sau trận (M19+M23). */
+function engagedUnitNames(stat: StatData, location?: string): string[] {
+  return mobilizeAt(stat, location ?? "")
+    .fielded.filter(([, u]) => u["Số Lượng"] > 0)
     .map(([name]) => name);
 }
 
@@ -250,8 +381,10 @@ export const useCombatStore = create<CombatState>()(
       description: "",
       attrs: {},
       battleSeed: 0,
+      location: "",
       duelState: null,
       armyBattleState: null,
+      aerialState: null,
       resultLog: [],
       resultOutcome: null,
       reportBlock: null,
@@ -264,6 +397,7 @@ export const useCombatStore = create<CombatState>()(
         const battleSeed = eventSeed(rootSeed, tick, "combat");
         const scale = scaleFromAttrs(attrs);
         const terrain = terrainFromAttrs(attrs);
+        const battleAt = battleLocation(useMvuStore.getState().stat, attrs);
         log.info(`Trận mới: ${scale} seed=${battleSeed}`, attrs);
 
         // dựng "Trận Đang Diễn" (7.12) — engine ghi field _
@@ -277,12 +411,34 @@ export const useCombatStore = create<CombatState>()(
           { op: "replace", path: "stat_data.Trận Đang Diễn._Log", value: [] },
         ]);
 
+        if (scale === "Không Chiến") {
+          const stat = useMvuStore.getState().stat;
+          const setup = buildAerialSetup(stat, attrs, battleSeed);
+          if (!setup) {
+            applyEngineOps([{ op: "replace", path: "stat_data.Trận Đang Diễn._Đang Chiến Đấu", value: false }]);
+            set({ phase: "done", scale, resultOutcome: "Rút Lui", resultLog: ["Ngươi không có con rồng nào bay được để lên trời."], reportBlock: null });
+            return;
+          }
+          set({
+            phase: "aerial", scale, terrain, description, attrs, battleSeed, location: battleAt,
+            aerialState: initAerialDuel(setup), duelState: null, armyBattleState: null,
+            resultLog: [], resultOutcome: null,
+          });
+          return;
+        }
+
         if (scale === "Đấu Tay Đôi") {
           const stat = useMvuStore.getState().stat;
-          const duel = startDuel(playerDuelist(stat), enemyDuelistFromAttrs(attrs), battleSeed);
-          set({ phase: "duel", scale, terrain, description, attrs, battleSeed, duelState: duel, armyBattleState: null, resultLog: [], resultOutcome: null });
+          const mounted = attrs.mounted === "true" || attrs.player_mounted === "true";
+          const duel = startDuel(
+            playerDuelist(stat, { mounted }),
+            enemyDuelistFromAttrs(attrs),
+            battleSeed,
+            { ground: duelGround(terrain, attrs), light: duelLight(attrs), distance: duelStartBand(attrs) },
+          );
+          set({ phase: "duel", scale, terrain, description, attrs, battleSeed, location: battleAt, duelState: duel, armyBattleState: null, resultLog: [], resultOutcome: null });
         } else {
-          set({ phase: "awaiting-choice", scale, terrain, description, attrs, battleSeed, duelState: null, armyBattleState: null, resultLog: [], resultOutcome: null });
+          set({ phase: "awaiting-choice", scale, terrain, description, attrs, battleSeed, location: battleAt, duelState: null, armyBattleState: null, resultLog: [], resultOutcome: null });
         }
       },
 
@@ -359,7 +515,11 @@ export const useCombatStore = create<CombatState>()(
         }
 
         // ---- Đại Chiến / Vây Thành qua Battle Resolver (7.9) ----
-        const player: BattleSideInput = { ...playerBattleSide(stat) };
+        // M23: chỉ quân ĐANG Ở chiến trường mới ra trận, và lãnh địa đứng sau
+        // lưng (công trình, kho lương, lòng dân) cộng thẳng vào chất lượng quân.
+        const location = battleLocation(stat, attrs);
+        const detailed = playerBattleSideDetailed(stat, { location });
+        const player: BattleSideInput = { ...detailed.side };
         const enemy = enemyBattleSideFromAttrs(attrs);
         if (scale === "Vây Thành") {
           const defending = attrs.siege_role !== "attacker";
@@ -379,7 +539,7 @@ export const useCombatStore = create<CombatState>()(
           training: enemy.training,
           house: enemy.house,
         };
-        const weather = stat["Thế Giới"]["Thời Tiết"] as import("../combat/battleResolver").WeatherCondition;
+        const weather = normalizeWeather(stat["Thế Giới"]["Thời Tiết"]);
         player.matchupFactor = troopMatchup(taSide, dichSide, { terrain, weather, siege });
         enemy.matchupFactor = troopMatchup(dichSide, taSide, { terrain, weather, siege });
 
@@ -391,6 +551,23 @@ export const useCombatStore = create<CombatState>()(
         if (playerDragonFactor > 1 && playerDragons.length > 0) {
           const avgDragonPower = (playerDragonFactor - 1) * 2 + 1.5;
           player.dragon = { name: playerDragons[0]["Đang Bị Xích"] ? "Rồng (xích)" : playerDragons[0]["Tên"], isRidden: !!playerDragons[0]["Kỵ Sĩ"], power: avgDragonPower, loyalty: playerDragons[0]["Chỉ Số"]["Trung Thành"] };
+        }
+        // M23 — đàn rồng THẬT: mỗi con một thực thể có máu, ra trận và có thể chết
+        player.dragons = battleReadyDragonEntries(stat).map(([key, dragon]) => ({ key, dragon }));
+        // ụ nỏ bắn rồng: ta lấy từ công trình lãnh địa, địch do AI khai
+        enemy.scorpions = Number(attrs.enemy_scorpions) || 0;
+        if (enemyDragonFactor > 1) {
+          enemy.dragons = [{
+            key: "enemy-dragon",
+            dragon: newDragon({
+              "Tên": attrs.enemy_dragon_name || "Rồng địch",
+              "Kích Cỡ": attrs.enemy_dragon?.includes("Khổng Lồ") ? "Khổng Lồ (Balerion-class)" : attrs.enemy_dragon === "Non" ? "Non" : "Trưởng Thành",
+              "Kỵ Sĩ": attrs.enemy_dragonrider || undefined,
+              "_HP": 1000, "_HP Tối Đa": 1000, "Tình Trạng": "Khỏe",
+              "Chỉ Số": { "Sức Lửa": 14, "Sức Bay": 13, "Giáp Vảy": 12, "Hung Dữ": 14, "Trung Thành": 15 },
+              "Trạng Thái Thu Phục": "Đã Có Chủ", "Mức Độ Thuần Hóa": 80,
+            }),
+          }];
         }
         if (enemyDragonFactor > 1) {
           enemy.dragon = { name: "Rồng địch", isRidden: true, power: (enemyDragonFactor - 1) * 2 + 1.5, loyalty: 15 };
@@ -411,12 +588,31 @@ export const useCombatStore = create<CombatState>()(
           };
         }
         if (mode === "self" && (scale === "Đại Chiến" || scale === "Vây Thành")) {
-          // Đối với Giao Tranh, tạm thời ép kiểu sang BattleSideInput cho tương thích minigame
-          const p = player as any;
-          const e = enemy as any;
-          const ibState = scale === "Vây Thành" 
-            ? initSiegeBattle(p, e, terrain, weather, battleSeed, getSiegeWallHp(stat, attrs, p.siegeRole)) 
-            : initInteractiveBattle(p, e, terrain, weather, battleSeed);
+          player.composition = taSide.composition;
+          enemy.composition = dichSide.composition;
+          let ibState: InteractiveBattleState;
+          if (scale === "Vây Thành") {
+            // M22: nếu người chơi là phe THỦ thì tường thật mà họ đã xây trong
+            // lãnh địa (territory/walls.ts) chính là tường phải giữ, và kho lương
+            // của lãnh địa chính là đồng hồ đếm ngược của cuộc vây.
+            const defending = player.siegeRole === "defender";
+            const holdingId = defending ? besiegedHoldingId(stat, attrs) : undefined;
+            const sections = defending ? sectionsFromHolding(stat, holdingId) ?? undefined : undefined;
+            const garrison = defending ? player.totalTroops : enemy.totalTroops;
+            const civilians = defending
+              ? (holdingId ? (stat["Lãnh Địa"][holdingId]?.["Dân Số"] ?? 0) : 0)
+              : Number(attrs.enemy_civilians) || 0;
+            const supplyDays = defending
+              ? supplyDaysFromHolding(stat, garrison + civilians * 0.35, holdingId)
+              : Number(attrs.enemy_supply_days) || 120;
+            ibState = initSiegeBattle(
+              player, enemy, terrain, weather, battleSeed,
+              getSiegeWallHp(stat, attrs, player.siegeRole),
+              { sections, supplyDays, civilians },
+            );
+          } else {
+            ibState = initInteractiveBattle(player, enemy, terrain, weather, battleSeed);
+          }
           set({ phase: "army_battle", armyBattleState: ibState });
           return;
         }
@@ -426,9 +622,9 @@ export const useCombatStore = create<CombatState>()(
 
         const wonBattle = result.outcome.includes("Thắng");
         const ops: PatchOp[] = [
-          ...casualtyOps(stat, result.casualtiesPlayer, result.newMoralePlayer),
+          ...casualtyOps(stat, result.casualtiesPlayer, result.newMoralePlayer, { location, medic: detailed.support.medic }),
           // lính sống sót lên tay: kinh nghiệm đẩy bậc Huấn Luyện (M19)
-          ...awardBattleExperience(stat, engagedUnitNames(stat), wonBattle),
+          ...awardBattleExperience(stat, engagedUnitNames(stat, location), wonBattle),
           { op: "replace", path: "stat_data.Trận Đang Diễn._Đang Chiến Đấu", value: false },
           { op: "replace", path: "stat_data.Trận Đang Diễn._Log", value: result.log },
         ];
@@ -481,13 +677,15 @@ export const useCombatStore = create<CombatState>()(
           return { scale, terrain, playerLabel: "Phe ta", enemyLabel: attrs.enemy ?? "Địch", playerTroops: pt, enemyTroops: et, playerStrength: pt, enemyStrength: et, matchup: 1 };
         }
         // Đại Chiến / Vây Thành
-        const player: BattleSideInput = { ...playerBattleSide(stat) };
+        const loc = get().location || battleLocation(stat, attrs);
+        const detail = playerBattleSideDetailed(stat, { location: loc });
+        const player: BattleSideInput = { ...detail.side };
         const enemy = enemyBattleSideFromAttrs(attrs);
         const playerUnits = Object.values(stat["Biên Chế Quân Sự"]).filter((u) => u["Số Lượng"] > 0);
         const taSide: MatchupSide = { composition: playerUnits.length > 0 ? compositionFromUnits(playerUnits) : { [player.troopType]: 1 }, training: player.training, house: player.house };
         const dichSide: MatchupSide = { composition: attrs.enemy_composition ? safeComposition(attrs.enemy_composition) : { [enemy.troopType]: 1 }, training: enemy.training, house: enemy.house };
         const siegeCtx = scale === "Vây Thành";
-        const weather = (stat["Thế Giới"]["Thời Tiết"] ?? "Trời Quang") as import("../combat/battleResolver").WeatherCondition;
+        const weather = normalizeWeather(stat["Thế Giới"]["Thời Tiết"]);
         player.matchupFactor = troopMatchup(taSide, dichSide, { terrain, weather, siege: siegeCtx });
         enemy.matchupFactor = troopMatchup(dichSide, taSide, { terrain, weather, siege: siegeCtx });
         const playerDragonsP = battleReadyDragons(stat);
@@ -505,25 +703,21 @@ export const useCombatStore = create<CombatState>()(
           playerTroops: player.totalTroops, enemyTroops: enemy.totalTroops,
           playerStrength: battlePower(player, enemy, terrain, weather), enemyStrength: battlePower(enemy, player, terrain, weather),
           matchup: player.matchupFactor ?? 1,
+          mobilization: detail.mobilization,
+          support: detail.support,
         };
       },
 
-      duelRound: (action: import("../combat/duel").DuelAction) => {
+      duelRound: (action: DuelAction) => {
         const { duelState, battleSeed } = get();
         if (!duelState || duelState.finished) return;
-        
-        // AI địch tự chọn action đơn giản
-        const enemy = duelState.b;
-        let enemyAction: import("../combat/duel").DuelAction = { type: "skill", skillId: "tan_cong_thuong" };
-        if (enemy.hp < enemy.maxHp * 0.3 && enemy.inventory.includes("Bình Máu")) {
-          enemyAction = { type: "item", itemId: "Bình Máu" };
-        } else {
-          const availableSkills = enemy.skills.filter(s => s.staminaCost <= enemy.stamina);
-          if (availableSkills.length > 0) {
-            enemyAction = { type: "skill", skillId: availableSkills[Math.floor(Math.random() * availableSkills.length)].id };
-          }
-        }
-        
+
+        // AI địch: chấm điểm theo tình thế và gieo bằng RNG CÓ HẠT GIỐNG. Bản
+        // trước dùng Math.random() nên cùng một seed cho hai diễn biến khác nhau,
+        // phá vỡ giao kèo "reroll không đổi kết quả" của cả hệ (5bis.1).
+        const rng = makeRng((battleSeed ^ ((duelState.round + 1) * 0x85ebca6b)) >>> 0);
+        const enemyAction = pickDuelAction(duelState.b, duelState.a, duelState.distance, rng);
+
         const { state: next } = runDuelRound(duelState, action, enemyAction, battleSeed);
         if (next.finished) {
           finishDuel(next, set);
@@ -540,47 +734,219 @@ export const useCombatStore = create<CombatState>()(
         finishDuel(synthetic, set);
       },
 
-      armyBattleRound: (tactic: TacticId) => {
+      armyBattleRound: (tactic: TacticId, opts: RoundOptions = {}) => {
         const { armyBattleState, battleSeed } = get();
         if (!armyBattleState || armyBattleState.finished) return;
 
         const stat = useMvuStore.getState().stat;
-        const weather = stat["Thế Giới"]["Thời Tiết"] as WeatherCondition;
+        const weather = normalizeWeather(stat["Thế Giới"]["Thời Tiết"]);
         const rng = makeRng(battleSeed + armyBattleState.round * 77);
-        const enemyTactic = autoPickArmyTactic(armyBattleState.enemy, weather, rng, armyBattleState.isSiege);
+        const enemyTactic = autoPickArmyTactic(
+          armyBattleState.enemy, weather, rng, armyBattleState.isSiege, armyBattleState,
+        );
 
-        const nextState = playArmyRound(armyBattleState, tactic, enemyTactic);
+        const nextState = playArmyRound(armyBattleState, tactic, enemyTactic, opts);
         set({ armyBattleState: nextState });
       },
 
       endArmyBattle: () => {
-        const { armyBattleState, attrs } = get();
+        const { armyBattleState, attrs, scale, location } = get();
         if (!armyBattleState || !armyBattleState.finished) return;
 
         const stat = useMvuStore.getState().stat;
-        const pLoss = armyBattleState.player.totalTroops - armyBattleState.player.currentTroops;
+        const pLoss = Math.max(0, armyBattleState.player.totalTroops - armyBattleState.player.currentTroops);
+        const eLoss = Math.max(0, armyBattleState.enemy.totalTroops - armyBattleState.enemy.currentTroops);
 
         const pWin = armyBattleState.winner === "player";
         const eWin = armyBattleState.winner === "enemy";
-        const outcome = pWin ? "Thắng" : eWin ? "Bại" : "Giằng Co";
+        // thang 7 bậc: thắng mà mất quá nửa quân thì không gọi là đại thắng được
+        const lossPct = armyBattleState.player.totalTroops > 0 ? pLoss / armyBattleState.player.totalTroops : 0;
+        const outcome: BattleResult["outcome"] = pWin
+          ? (lossPct < 0.1 ? "Đại Thắng" : lossPct < 0.3 ? "Thắng" : "Tiểu Thắng")
+          : eWin
+            ? (lossPct > 0.6 ? "Đại Bại" : lossPct > 0.35 ? "Bại" : "Tiểu Bại")
+            : "Giằng Co";
+
+        // M22: sĩ khí sau trận lấy từ sĩ khí THẬT còn lại trên chiến trường
+        const newMorale = moraleEnumFromScore(clamp(armyBattleState.player.currentMorale, 0, 100));
 
         const ops: PatchOp[] = [
-          ...casualtyOps(stat, pLoss, pWin ? "Cao" : "Thấp"),
+          ...casualtyOps(stat, pLoss, newMorale, { location, medic: homeSupportAt(stat, location).medic }),
+          ...awardBattleExperience(stat, engagedUnitNames(stat, location), pWin),
           { op: "replace", path: "stat_data.Trận Đang Diễn._Đang Chiến Đấu", value: false },
           { op: "replace", path: "stat_data.Trận Đang Diễn._Log", value: armyBattleState.log },
         ];
 
+        // ── vây thành: hậu quả ghi ngược vào lãnh địa ──
+        const siege = armyBattleState.siege;
+        if (siege && armyBattleState.player.siegeRole === "defender") {
+          const holdingId = besiegedHoldingId(stat, attrs);
+          const holding = holdingId ? stat["Lãnh Địa"][holdingId] : undefined;
+          if (holdingId && holding) {
+            // tường thật bị bắn phá bao nhiêu thì Nguyên Vẹn tụt bấy nhiêu
+            const lines = (holding["Tường Thành"] ?? []).map((w) => {
+              const sec = siege.sections.find((s) => s.id === w["Mã"]);
+              if (!sec) return w;
+              const intact = sec.breached ? 0 : Math.round((sec.hp / Math.max(1, sec.maxHp)) * 100);
+              return { ...w, "Nguyên Vẹn": clamp(intact, 0, 100) };
+            });
+            ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${holdingId}.Tường Thành`, value: lines });
+            // lương thực đã ăn hết trong những ngày bị vây
+            const eaten = Math.round((holding["Tài Nguyên"]?.["Lương Thực"] ?? 0) * clamp(siege.days / 180, 0, 0.9));
+            if (eaten > 0) {
+              ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${holdingId}.Tài Nguyên.Lương Thực`, value: -eaten });
+            }
+            // đói và dịch bệnh giết dân, không chỉ giết lính
+            if (siege.diseaseInside > 30 || siege.supplyDays <= 0) {
+              const dead = Math.round((holding["Dân Số"] ?? 0) * clamp(siege.diseaseInside / 400 + (siege.supplyDays <= 0 ? 0.05 : 0), 0, 0.2));
+              if (dead > 0) ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${holdingId}.Dân Số`, value: -dead });
+            }
+            ops.push({
+              op: "replace", path: `stat_data.Lãnh Địa.${holdingId}.Tình Trạng`,
+              value: eWin ? "Mới Chiếm" : "Ổn Định",
+            });
+          }
+        }
+
+        // ── M23: rồng ra trận thì rồng cũng chảy máu ──
+        const myDragons = armyBattleState.siege
+          ? (armyBattleState.player.siegeRole === "attacker" ? armyBattleState.siege.air.attacker : armyBattleState.siege.air.defender)
+          : armyBattleState.air.player;
+        for (const d of myDragons) {
+          if (!stat["Rồng"]?.[d.key]) continue;
+          const base = `stat_data.Rồng.${d.key}`;
+          ops.push({ op: "replace", path: `${base}._HP`, value: Math.max(0, d.hp) });
+          if (d.downed) {
+            // rơi khỏi bầu trời không phải lúc nào cũng là chết — nhưng gần như thế
+            ops.push({ op: "replace", path: `${base}.Tình Trạng`, value: "Đang Hồi Phục" });
+            ops.push({ op: "replace", path: `${base}.Ngày Hồi Phục Còn Lại`, value: 180 });
+            ops.push({ op: "replace", path: `${base}.Sẵn Sàng Chiến Đấu`, value: false });
+          } else if (d.wounded) {
+            ops.push({ op: "replace", path: `${base}.Tình Trạng`, value: "Bị Thương" });
+            ops.push({ op: "replace", path: `${base}.Ngày Hồi Phục Còn Lại`, value: 30 });
+          } else if (d.fled) {
+            ops.push({ op: "replace", path: `${base}.Tình Trạng`, value: "Kiệt Sức" });
+          }
+        }
+        // kỵ sĩ rơi theo rồng: nếu là tướng của ta thì tướng ấy chết
+        const lostRiders = armyBattleState.siege ? armyBattleState.siege.ridersLost : armyBattleState.ridersLost;
+        for (const rider of lostRiders) {
+          if (stat["Tướng Lĩnh"]?.[rider]) {
+            ops.push({ op: "replace", path: `stat_data.Tướng Lĩnh.${rider}.Còn Sống`, value: false });
+          }
+          if (rider === stat["Thông Tin Nhân Vật"]["Họ Tên"]) {
+            ops.push({ op: "replace", path: "stat_data.Chỉ Số Sinh Tồn.HP", value: 1 });
+          }
+        }
+
         const enemyHouse = attrs.enemy_house;
         if (enemyHouse) {
           ops.push(...setWarStatus(enemyHouse, "Chiến Tranh"));
-          ops.push(...adjustWarScore(enemyHouse, warScoreForOutcome(outcome as any)));
+          ops.push(...adjustWarScore(enemyHouse, warScoreForOutcome(outcome)));
+        }
+        if (pWin) {
+          ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Kinh Nghiệm", value: 80 });
         }
 
         applyEngineOps(ops);
-        set({ phase: "done", resultLog: armyBattleState.log, resultOutcome: outcome, reportBlock: "Trận chiến kết thúc.", armyBattleState: null });
+
+        const report = [
+          "<battle_report>",
+          `Quy mô: ${scale} · Kết quả: ${outcome}`,
+          location ? `Chiến trường: ${location} — ${describeMobilization(mobilizeAt(stat, location))}` : "",
+          describeBattle(armyBattleState),
+          `Thương vong: ta ${pLoss} · địch ${eLoss}`,
+          siege ? describeSiege(siege) : "",
+          "Diễn biến then chốt:",
+          ...armyBattleState.log.filter((l) => /\[|VỠ|💀|⚠️|🔥/.test(l)).slice(-8),
+          "</battle_report>",
+        ].filter(Boolean).join("\n");
+
+        set({ phase: "done", resultLog: armyBattleState.log, resultOutcome: outcome, reportBlock: report, armyBattleState: null });
       },
 
-      clearReport: () => set({ reportBlock: null, reportNarrated: false, phase: "idle", resultLog: [], resultOutcome: null, duelState: null }),
+      aerialRound: (actions) => {
+        const { aerialState, battleSeed } = get();
+        if (!aerialState || aerialState.finished) return;
+        // phe địch tự chọn nước đi bằng RNG có hạt giống
+        const rng = makeRng((battleSeed ^ (aerialState.round * 0x27d4eb2f)) >>> 0);
+        const mine = new Set(actions.map((a) => a.unitId));
+        const enemyActions = aerialState.units
+          .filter((u) => unitAlive(u) && !mine.has(u.id) && u.side !== "ta")
+          .map((u) => pickAerialAction(aerialState, u, rng));
+        set({ aerialState: playAerialRound(aerialState, [...actions, ...enemyActions]) });
+      },
+
+      autoResolveAerial: () => {
+        const { aerialState, battleSeed } = get();
+        if (!aerialState) return;
+        set({
+          aerialState: autoAerialDuel({
+            seed: battleSeed, weather: aerialState.weather,
+            sides: aerialState.sides, units: aerialState.units,
+          }),
+        });
+      },
+
+      endAerialDuel: () => {
+        const { aerialState } = get();
+        if (!aerialState || !aerialState.finished) return;
+        const stat = useMvuStore.getState().stat;
+        const won = aerialState.winner === "ta";
+        const ops: PatchOp[] = [
+          { op: "replace", path: "stat_data.Trận Đang Diễn._Đang Chiến Đấu", value: false },
+          { op: "replace", path: "stat_data.Trận Đang Diễn._Log", value: aerialState.log },
+        ];
+
+        // ghi thương tích rồng ngược vào bảng "Rồng"
+        for (const u of aerialState.units.filter((x) => x.side === "ta" && x.dragonKey)) {
+          if (!stat["Rồng"]?.[u.dragonKey!]) continue;
+          const base = `stat_data.Rồng.${u.dragonKey}`;
+          ops.push({ op: "replace", path: `${base}._HP`, value: Math.max(0, u.dragonHp) });
+          if (u.downed) {
+            ops.push({ op: "replace", path: `${base}.Tình Trạng`, value: "Đang Hồi Phục" });
+            ops.push({ op: "replace", path: `${base}.Ngày Hồi Phục Còn Lại`, value: 240 });
+            ops.push({ op: "replace", path: `${base}.Sẵn Sàng Chiến Đấu`, value: false });
+          } else if (u.dragonHp < u.dragonMaxHp * 0.6) {
+            ops.push({ op: "replace", path: `${base}.Tình Trạng`, value: "Bị Thương" });
+            ops.push({ op: "replace", path: `${base}.Ngày Hồi Phục Còn Lại`, value: 45 });
+          }
+          // mất kỵ sĩ thì con rồng hoang trở lại
+          if (u.unhorsed) {
+            ops.push({ op: "replace", path: `${base}.Mức Độ Thuần Hóa`, value: Math.max(0, u.bond) });
+          }
+        }
+
+        // kỵ sĩ chết: chính người chơi hoặc tướng của ta
+        const playerName = stat["Thông Tin Nhân Vật"]["Họ Tên"];
+        for (const rider of aerialState.ridersDead) {
+          if (rider === playerName) {
+            ops.push({ op: "replace", path: "stat_data.Chỉ Số Sinh Tồn.HP", value: 0 });
+          } else if (stat["Tướng Lĩnh"]?.[rider]) {
+            ops.push({ op: "replace", path: `stat_data.Tướng Lĩnh.${rider}.Còn Sống`, value: false });
+          }
+        }
+        // kỵ sĩ ta còn sống: đồng bộ máu về Sinh Tồn
+        const me = aerialState.units.find((u) => u.riderName === playerName);
+        if (me && !aerialState.ridersDead.includes(playerName)) {
+          ops.push({ op: "replace", path: "stat_data.Chỉ Số Sinh Tồn.HP", value: Math.max(1, me.riderHp) });
+        }
+        if (won) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Kinh Nghiệm", value: 120 });
+
+        applyEngineOps(ops);
+        const report = [
+          "<battle_report>",
+          `Quy mô: Không Chiến · Kết quả: ${won ? "Thắng" : "Bại"}`,
+          describeAerial(aerialState),
+          aerialState.ridersDead.length > 0 ? `Kỵ sĩ tử nạn: ${aerialState.ridersDead.join(", ")}` : "",
+          "Diễn biến then chốt:",
+          ...aerialState.log.filter((l) => /💀|ĐÃ RƠI|rơi|hất khỏi yên/.test(l)).slice(-8),
+          "</battle_report>",
+        ].filter(Boolean).join("\n");
+        set({ phase: "done", resultLog: aerialState.log, resultOutcome: won ? "Thắng" : "Bại", reportBlock: report, aerialState: null });
+      },
+
+      clearReport: () => set({ reportBlock: null, reportNarrated: false, phase: "idle", resultLog: [], resultOutcome: null, duelState: null, aerialState: null }),
 
       closePanel: () => set({ phase: "idle", duelState: null }),
 

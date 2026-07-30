@@ -497,7 +497,8 @@ export function renderStateForAI(state: StatData): string {
     for (const [name, terr] of holdings.slice(0, 6)) {
       const building = Object.entries(terr["Công Trình"]);
       const inProgress = building.filter(([, b]) => b["Đang Xây"]).map(([bn, b]) => `${bn} (còn ${formatDuration(b["Ngày Xây Còn Lại"])})`);
-      const done = building.filter(([, b]) => !b["Đang Xây"]).map(([bn, b]) => `${bn} c${b["Cấp Độ"]}`);
+      const demolishing = building.filter(([, b]) => !b["Đang Xây"] && b["Đang Phá"]).map(([bn, b]) => `${bn} (còn ${formatDuration(b["Ngày Phá Còn Lại"] ?? 0)} để phá dỡ)`);
+      const done = building.filter(([, b]) => !b["Đang Xây"] && !b["Đang Phá"]).map(([bn, b]) => `${bn} c${b["Cấp Độ"]}`);
       const parts = [`• ${name}: Dân ${terr["Dân Số"].toLocaleString("vi-VN")}, Lòng Dân ${terr["Trung Thành"]}`];
 
       // DÂN CƯ & VIỆC LÀM — để AI kể đúng cảnh phố xá: thất nghiệp thì có
@@ -512,6 +513,7 @@ export function renderStateForAI(state: StatData): string {
       }
       if (done.length > 0) parts.push(`Công trình: ${done.join(", ")}`);
       if (inProgress.length > 0) parts.push(`Đang xây: ${inProgress.join(", ")}`);
+      if (demolishing.length > 0) parts.push(`Đang phá dỡ: ${demolishing.join(", ")}`);
 
       // ĐỊA THẾ & TÀI NGUYÊN — bản đồ và lời kể phải khớp nhau. Nếu bảng dưới
       // nói nơi này có mạch sắt giàu thì lời kể được phép nhắc tới nó; nếu lời
@@ -575,7 +577,10 @@ export function renderStateForAI(state: StatData): string {
     const npcLoc = npc["Vị Trí Hiện Tại"]?.toLowerCase().trim();
     if (!npcLoc || npcLoc === playerLoc) continue; // cùng scene hoặc không rõ → bỏ qua
     const lastMemory = npc["Ký Ức"].length > 0 ? npc["Ký Ức"][npc["Ký Ức"].length - 1] : null;
-    const activity = lastMemory ? `, gần nhất: ${lastMemory["Sự Việc"]}` : "";
+    const engineActivity = npc["_Hoạt Động Ngoài Cảnh"]?.["Mô Tả"];
+    const activity = engineActivity
+      ? `, gần nhất: ${engineActivity}`
+      : lastMemory ? `, gần nhất: ${lastMemory["Sự Việc"]}` : "";
     absentNpcs.push(`${name}: ${npc["Vị Trí Hiện Tại"]}${npc["Tình Trạng"] !== "Bình Thường" ? ` [${npc["Tình Trạng"]}]` : ""}${activity}`);
   }
   if (absentNpcs.length > 0) {

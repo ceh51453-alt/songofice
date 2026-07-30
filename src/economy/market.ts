@@ -73,7 +73,7 @@ export function marketDepthParams(state: StatData, regionId: string): { liquidit
   for (const h of Object.values(state["Lãnh Địa"])) {
     if (h["Thuộc Vùng"] !== regionId) continue;
     for (const b of Object.values(h["Công Trình"] ?? {})) {
-      if (b["Đang Xây"]) continue;
+      if (b["Đang Xây"] || b["Đang Phá"]) continue;
       tradeFlags += (TRADE_FLAG[b["Loại"]] ?? 0) * (b["Cấp Độ"] || 1);
     }
   }

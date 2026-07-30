@@ -31,7 +31,7 @@ import { buildableRadiusCells } from "../content/westeros/mapScale";
 import { localTerrainMap } from "./localTerrain";
 import { holdingOwnedByPlayer } from "./territoryEngine";
 import {
-  analysePopulation, applyPopulation, socialMood, populationGrowth, buildingLabel,
+  analysePopulation, applyPopulation, applyDemography, socialMood, buildingLabel,
   type PopulationReport,
 } from "./population";
 import {
@@ -94,7 +94,7 @@ export function availableLabour(territory: Holding): Record<LabourKey, number> {
 function adminSpeedup(territory: Holding): number {
   let best = 0;
   for (const b of Object.values(territory["Công Trình"])) {
-    if (b["Đang Xây"]) continue;
+    if (b["Đang Xây"] || b["Đang Phá"]) continue;
     const flag = BUILDING_CATALOG[b["Loại"]].flags?.adminSpeedup;
     if (flag && flag > best) best = flag;
   }
@@ -142,6 +142,9 @@ export function startConstruction(
   if (existing?.["Đang Xây"]) {
     return { ok: false, error: `${buildingName} đang được xây dựng`, ops: [] };
   }
+  if (existing?.["Đang Phá"]) {
+    return { ok: false, error: `${buildingName} đang được phá dỡ`, ops: [] };
+  }
   const nextLevel = existing ? existing["Cấp Độ"] + 1 : 1;
 
   const cost = customAwareCost(type, nextLevel, at?.custom ?? existing?.["Tuỳ Chỉnh"]);
@@ -184,6 +187,7 @@ export function startConstruction(
   const y = existing?.["Tọa Độ Y"] ?? at?.y ?? 0;
   const value: Record<string, unknown> = {
     "Loại": type, "Cấp Độ": nextLevel, "Đang Xây": true, "Ngày Xây Còn Lại": days,
+    "Đang Phá": false, "Ngày Phá Còn Lại": 0,
     "Tọa Độ X": x, "Tọa Độ Y": y, "Kích Thước": def.footprint,
     "Điểm Tài Nguyên": at?.nodeId ?? existing?.["Điểm Tài Nguyên"] ?? "",
     "Nhân Lực": {}, "Vận Hành": 0,
@@ -250,6 +254,46 @@ export function cancelConstruction(state: StatData, territoryId: string, buildin
   return ops;
 }
 
+/**
+ * Số ngày phá dỡ. Phá nhanh hơn xây rất nhiều, nhưng vẫn đủ lâu để người chơi
+ * thấy rõ công trình đang được tháo dỡ và có thể đổi ý trước khi đất được trả lại.
+ */
+export function demolitionDays(type: BuildingType, level: number): number {
+  return Math.max(2, Math.min(14, Math.ceil(buildingDays(type, level) * 0.12)));
+}
+
+/** Bắt đầu phá dỡ một công trình hoàn thiện. Không hoàn tài nguyên: phần vật liệu
+ * được tháo dỡ đã được tính là hao hụt/thu hồi bởi dân cư trong thời gian phá. */
+export function startDemolition(state: StatData, territoryId: string, buildingName: string): BuildResult {
+  const territory = state["Lãnh Địa"][territoryId];
+  if (!territory) return { ok: false, error: "Lãnh địa không tồn tại", ops: [] };
+  if (!holdingOwnedByPlayer(state, territoryId)) {
+    return { ok: false, error: "Ngươi không có quyền phá công trình ở đây", ops: [] };
+  }
+  const building = territory["Công Trình"]?.[buildingName];
+  if (!building) return { ok: false, error: "Không tìm thấy công trình", ops: [] };
+  if (building["Đang Xây"]) return { ok: false, error: `${buildingName} đang thi công — hãy huỷ công trường trước`, ops: [] };
+  if (building["Đang Phá"]) return { ok: false, error: `${buildingName} đang được phá dỡ`, ops: [] };
+
+  return {
+    ok: true,
+    ops: [
+      { op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}.Đang Phá`, value: true },
+      { op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}.Ngày Phá Còn Lại`, value: demolitionDays(building["Loại"], building["Cấp Độ"] || 1) },
+    ],
+  };
+}
+
+/** Dừng phá dỡ trước khi hoàn tất; công trình giữ nguyên cấp và vị trí. */
+export function cancelDemolition(state: StatData, territoryId: string, buildingName: string): PatchOp[] {
+  const building = state["Lãnh Địa"][territoryId]?.["Công Trình"]?.[buildingName];
+  if (!building?.["Đang Phá"]) return [];
+  return [
+    { op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}.Đang Phá`, value: false },
+    { op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}.Ngày Phá Còn Lại`, value: 0 },
+  ];
+}
+
 /** Cấp Lâu Đài của lãnh địa (quyết định bán kính quy hoạch Tầng 1). */
 export function castleLevel(territory: Holding | undefined): number {
   if (!territory) return 0;
@@ -257,6 +301,17 @@ export function castleLevel(territory: Holding | undefined): number {
     if (b["Loại"] === "Lâu Đài") return b["Cấp Độ"] || 1;
   }
   return 1; // trọng trấn mặc định coi như thành cấp 1
+}
+
+/** Bán kính quy hoạch thực tế = lâu đài + các công trình khai hoang đang hoạt động. */
+export function planningRadiusCells(territory: Holding | undefined): number {
+  if (!territory) return buildableRadiusCells(0);
+  const bonus = Object.values(territory["Công Trình"] ?? {}).reduce((sum, building) => {
+    if (building["Đang Xây"] || building["Đang Phá"]) return sum;
+    const perLevel = BUILDING_CATALOG[building["Loại"]]?.flags?.planningRadiusCells ?? 0;
+    return sum + perLevel * Math.max(1, building["Cấp Độ"] || 1);
+  }, 0);
+  return Math.min(buildableRadiusCells(999), buildableRadiusCells(castleLevel(territory)) + bonus);
 }
 
 // ── Sản lượng ───────────────────────────────────────────────────────────────
@@ -278,7 +333,7 @@ function landYield(territoryId: string, territory: Holding): Record<ResourceKey,
     region,
     hints: hint ? { river: hint["Gần Sông"], sea: hint["Gần Biển"], mountain: hint["Trên Núi"] } : undefined,
   });
-  const radiusBlocks = Math.max(1, Math.round(buildableRadiusCells(castleLevel(territory)) / map.blockCells));
+  const radiusBlocks = Math.max(1, Math.round(planningRadiusCells(territory) / map.blockCells));
   const mid = Math.floor(map.blocks / 2);
   for (let by = mid - radiusBlocks; by <= mid + radiusBlocks; by++) {
     for (let bx = mid - radiusBlocks; bx <= mid + radiusBlocks; bx++) {
@@ -333,7 +388,7 @@ function baseProduction(territoryId: string, territory: Holding, month = 1): Rec
 function tradeFlagBonus(territory: Holding): number {
   let bonus = 0;
   for (const b of Object.values(territory["Công Trình"] ?? {})) {
-    if (b["Đang Xây"]) continue;
+    if (b["Đang Xây"] || b["Đang Phá"]) continue;
     bonus += (BUILDING_CATALOG[b["Loại"]]?.flags?.trade ?? 0) * (b["Cấp Độ"] || 1);
   }
   return bonus;
@@ -343,7 +398,7 @@ function tradeFlagBonus(territory: Holding): number {
 function spoilRate(territory: Holding): number {
   let reduce = 0;
   for (const b of Object.values(territory["Công Trình"] ?? {})) {
-    if (b["Đang Xây"]) continue;
+    if (b["Đang Xây"] || b["Đang Phá"]) continue;
     reduce = Math.max(reduce, BUILDING_CATALOG[b["Loại"]]?.flags?.storage ?? 0);
   }
   return 0.015 * (1 - reduce);
@@ -436,13 +491,14 @@ export function buildingLedgers(
   const out: BuildingLedger[] = [];
 
   for (const [name, b] of Object.entries(territory["Công Trình"] ?? {})) {
-    if (b["Đang Xây"]) continue;
+    if (b["Đang Xây"] || b["Đang Phá"]) continue;
     const def = BUILDING_CATALOG[b["Loại"]];
     if (!def) continue;
     const lvl = b["Cấp Độ"] || 1;
     const spec = outputSpec(b);
     const staff = pop.staffingByName[name];
     const staffing = staff ? staff.ratio : 1;
+    const levelFactor = b["Tuỳ Chỉnh"]?.["Nhân Theo Cấp"] === false ? 1 : lvl;
     const node = nodeById(nodes, b["Điểm Tài Nguyên"]);
     const nMult = def.requiresNode ? nodeMultiplier(node) : 1;
 
@@ -450,7 +506,7 @@ export function buildingLedgers(
     const scale = staffing * nMult;
     const consume: Record<string, number> = {};
     for (const [k, v] of Object.entries(spec.consume)) {
-      consume[k] = Math.round((v ?? 0) * lvl * Math.min(1, Math.max(0, scale)));
+      consume[k] = Math.round((v ?? 0) * levelFactor * Math.min(1, Math.max(0, scale)));
     }
     const fed = Object.entries(consume).every(([k, v]) =>
       k === "Ngân Khố" ? true : (stock[k] ?? 0) >= v);
@@ -459,7 +515,7 @@ export function buildingLedgers(
     if (fed && scale > 0) {
       const mining = def.requiresNode ? eff.miningMult : 1;
       for (const [k, v] of Object.entries(spec.produce)) {
-        const amount = (v ?? 0) * lvl * scale * mining;
+        const amount = (v ?? 0) * levelFactor * scale * mining;
         produce[k] = Math.round(k === "Ngân Khố" ? amount * tradeMult : amount);
       }
     }
@@ -471,7 +527,7 @@ export function buildingLedgers(
       name, label: buildingLabel(name, b), type: b["Loại"], level: lvl,
       staffing, nodeMult: nMult, node, fed,
       produce, consume: fed ? consume : {}, upkeep,
-      loyalty: spec.loyalty * lvl,
+      loyalty: spec.loyalty * levelFactor,
       needTotal: staff?.needTotal ?? 0,
       haveTotal: staff?.haveTotal ?? 0,
       needByJob: staff?.need ?? {},
@@ -524,10 +580,18 @@ export function estimateTerritoryYield(
  */
 export function tickConstruction(state: StatData): void {
   for (const territory of Object.values(state["Lãnh Địa"])) {
-    for (const b of Object.values(territory["Công Trình"])) {
+    for (const [name, b] of Object.entries(territory["Công Trình"])) {
       if (b["Đang Xây"]) {
         b["Ngày Xây Còn Lại"] = Math.max(0, b["Ngày Xây Còn Lại"] - 1);
         if (b["Ngày Xây Còn Lại"] <= 0) b["Đang Xây"] = false;
+      }
+      if (b["Đang Phá"]) {
+        b["Ngày Phá Còn Lại"] = Math.max(0, (b["Ngày Phá Còn Lại"] ?? 0) - 1);
+        if ((b["Ngày Phá Còn Lại"] ?? 0) <= 0) {
+          const node = (territory["Điểm Tài Nguyên"] ?? []).find((n) => n["Mã"] === b["Điểm Tài Nguyên"]);
+          if (node?.["Công Trình"] === name) node["Công Trình"] = "";
+          delete territory["Công Trình"][name];
+        }
       }
     }
     for (const w of territory["Tường Thành"] ?? []) {
@@ -618,11 +682,12 @@ export function tickTerritoryIncome(state: StatData): void {
     // 5. chốt lòng dân rồi mới tính tăng trưởng dân số theo tình hình mới
     territory["Trung Thành"] = clamp(territory["Trung Thành"] + loyaltyGain, 0, 100);
     territory["Lòng Dân"] = clamp(territory["Lòng Dân"] + loyaltyGain, 0, 100);
-    territory["Dân Số"] = Math.max(50, territory["Dân Số"] + populationGrowth(territory, {
+    const demography = applyDemography(territory, {
       foodStock: stock["Lương Thực"],
       foodNeed,
       loyalty: territory["Lòng Dân"],
-    }));
+    });
+    territory["Dân Số"] = Math.max(50, territory["Dân Số"] + demography.netChange);
   }
 }
 

@@ -20,7 +20,7 @@
  * Công trình khai thác phải dựng ĐÈ lên điểm — sản lượng nhân theo BẬC trữ
  * lượng, và mỗi tháng khai thác lại rút bớt đi. Mỏ nào cũng có ngày cạn.
  */
-import type { StatData, ResourceNode } from "../mvu/schema";
+import type { StatData, ResourceNode, WallLine } from "../mvu/schema";
 import type { LocalTerrain } from "../content/westeros/terrain";
 import { isWater } from "../content/westeros/terrain";
 import { LOCAL_GRID_CELLS, LOCAL_BLOCK_CELLS, LOCAL_CENTER_CELL } from "../content/westeros/mapScale";
@@ -38,6 +38,60 @@ export const NODE_GRADE_LABEL: Record<number, string> = {
 
 /** Hệ số sản lượng theo bậc — bậc 0 thì công trình đứng không. */
 export const NODE_GRADE_MULT: Record<number, number> = { 0: 0, 1: 0.55, 2: 1, 3: 1.5 };
+
+/**
+ * Lõi thành: Lâu Đài nằm ở ô 750,750. Không được gieo mỏ/ruộng/điểm cá vào
+ * sân thành hoặc ngay sát tường trong; công trình khai thác có thể phủ lên
+ * điểm tài nguyên của nó, nhưng bản thân điểm tài nguyên không bao giờ được
+ * chồng lên thành trì.
+ */
+export const KEEP_RESOURCE_CLEARANCE = 72;
+
+/**
+ * Hành lang trống hai bên một tuyến tường (ô lưới).  Điểm tài nguyên được vẽ
+ * bằng một vòng tròn có bán kính riêng, nên chỉ tránh đúng nét tường là chưa
+ * đủ: tâm mỏ vẫn có thể nằm trên góc/đỉnh tường.  Khoảng này là phần đệm từ
+ * mép tường tới mép biểu tượng tài nguyên.
+ */
+export const WALL_RESOURCE_CLEARANCE = 18;
+
+/**
+ * Mật độ nền của một lãnh địa. Các điểm được lấy mẫu trải đều quanh thành,
+ * không cắt theo thứ tự quét từ bắc xuống nam.
+ */
+export const RESOURCE_NODE_LIMIT = 200;
+
+export function overlapsKeepReserve(x: number, y: number, size = 0): boolean {
+  return Math.hypot(x - LOCAL_CENTER_CELL, y - LOCAL_CENTER_CELL) <= KEEP_RESOURCE_CLEARANCE + size;
+}
+
+function distanceToSegment(x: number, y: number, a: { x: number; y: number }, b: { x: number; y: number }): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const lengthSquared = dx * dx + dy * dy;
+  if (lengthSquared === 0) return Math.hypot(x - a.x, y - a.y);
+  const t = Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / lengthSquared));
+  return Math.hypot(x - (a.x + dx * t), y - (a.y + dy * t));
+}
+
+/** Một nút không được chạm thân, góc hay đỉnh của bất kỳ tường thành nào. */
+export function overlapsWallReserve(walls: WallLine[] | undefined, x: number, y: number, size = 0): boolean {
+  for (const wall of walls ?? []) {
+    const points = wall["Điểm"];
+    // Khớp với độ dày khi canvas vẽ tường, rồi cộng hành lang an toàn và bán
+    // kính của chính điểm tài nguyên.
+    const wallHalfWidth = 1.5 + wall["Cấp"] * 0.7;
+    const clearance = WALL_RESOURCE_CLEARANCE + wallHalfWidth + size;
+    for (let i = 0; i < points.length - 1; i++) {
+      if (distanceToSegment(x, y, points[i], points[i + 1]) <= clearance) return true;
+    }
+  }
+  return false;
+}
+
+function overlapsReservedGround(walls: WallLine[] | undefined, x: number, y: number, size = 0): boolean {
+  return overlapsKeepReserve(x, y, size) || overlapsWallReserve(walls, x, y, size);
+}
 
 /** Trữ lượng còn lại (đơn vị sản phẩm) khi một điểm đang ở bậc `grade`. */
 export function gradeReserve(grade: number): number {
@@ -129,6 +183,29 @@ function makeNode(id: string, res: string, x: number, y: number, grade: number, 
   };
 }
 
+/** Chọn loại tài nguyên theo trọng số địa hình; mỗi ô đất có một điểm tiềm năng. */
+function pickResource(table: NodeChance[], rnd: () => number): string {
+  const total = table.reduce((sum, row) => sum + row.p, 0);
+  let roll = rnd() * total;
+  for (const row of table) {
+    if (roll < row.p) return row.res;
+    roll -= row.p;
+  }
+  return table[table.length - 1].res;
+}
+
+/**
+ * Chọn cố định theo seed từ toàn bộ ứng viên thay vì lấy `slice` đầu danh sách.
+ * Nhờ vậy 200 điểm còn lại rải khắp bốn phía thành, không dồn vào các hàng bắc.
+ */
+function spreadAcrossMap(nodes: ResourceNode[], limit: number, seed: number): ResourceNode[] {
+  if (nodes.length <= limit) return nodes;
+  const rnd = mulberry32(seed ^ 0x6a09e667);
+  const ranked = nodes.map((node) => ({ node, rank: rnd() })).sort((a, b) => a.rank - b.rank);
+  const selected = new Set(ranked.slice(0, limit).map(({ node }) => node["Mã"]));
+  return nodes.filter((node) => selected.has(node["Mã"]));
+}
+
 /**
  * SINH toàn bộ điểm tài nguyên của một lãnh địa từ bản đồ địa hình. Tất định
  * theo hạt giống: cùng lãnh địa → cùng bản đồ mỏ, ván nào cũng vậy.
@@ -144,6 +221,7 @@ export function generateNodes(map: LocalTerrainMap): ResourceNode[] {
       // rải kiểu jitter grid → phân bố đều mà không thành hàng lối
       const x = Math.floor((sx + 0.18 + rnd() * 0.64) * step);
       const y = Math.floor((sy + 0.18 + rnd() * 0.64) * step);
+      if (overlapsKeepReserve(x, y, 16)) continue;
       const t = terrainAtCell(map, x, y);
       if (isWater(t)) continue;
 
@@ -151,16 +229,9 @@ export function generateNodes(map: LocalTerrainMap): ResourceNode[] {
       if (!table || table.length === 0) continue;
 
       // một lần gieo, chọn theo dải xác suất cộng dồn
-      let roll = rnd();
-      let picked: string | null = null;
-      for (const row of table) {
-        if (roll < row.p) { picked = row.res; break; }
-        roll -= row.p;
-      }
-      if (!picked) continue;
-
+      const picked = pickResource(table, rnd);
       const grade = rollGrade(rnd());
-      const size = 8 + Math.floor(rnd() * 6) + grade * 2;
+      const size = 6 + Math.floor(rnd() * 5) + grade * 2;
       out.push(makeNode(`nd-${sx}-${sy}`, picked, x, y, grade, size));
     }
   }
@@ -179,6 +250,7 @@ export function generateNodes(map: LocalTerrainMap): ResourceNode[] {
         const bx = LOCAL_CENTER_CELL + Math.cos(ang) * (d - 26);
         const by = LOCAL_CENTER_CELL + Math.sin(ang) * (d - 26);
         if (isWater(terrainAtCell(map, bx, by))) break;
+        if (overlapsKeepReserve(bx, by, 10)) continue;
         out.push(makeNode(`nd-sea-${a}`, placed === 0 ? "Muối" : "Cá Khô", bx, by, 2, 10));
         placed++;
         break;
@@ -195,17 +267,47 @@ export function generateNodes(map: LocalTerrainMap): ResourceNode[] {
       const y = Math.round(p.y + Math.sin(ang) * off * side);
       if (x < 0 || y < 0 || x >= LOCAL_GRID_CELLS || y >= LOCAL_GRID_CELLS) continue;
       if (isWater(terrainAtCell(map, x, y))) continue;
+      if (overlapsKeepReserve(x, y, 9)) continue;
       out.push(makeNode(`nd-river-${i}`, "Cá Khô", x, y, 2, 9));
       break;
     }
   }
 
-  return out;
+  return spreadAcrossMap(out, RESOURCE_NODE_LIMIT, map.seed);
 }
 
 /** Có chỗ trống cho một điểm mới quanh đây không (không đè lên điểm sẵn có). */
-function farEnough(nodes: ResourceNode[], x: number, y: number, gap = 45): boolean {
-  return !nodes.some((n) => Math.hypot(n["Tọa Độ X"] - x, n["Tọa Độ Y"] - y) < gap);
+function farEnough(nodes: ResourceNode[], x: number, y: number, gap = 45, walls?: WallLine[]): boolean {
+  return !overlapsReservedGround(walls, x, y, 10)
+    && !nodes.some((n) => Math.hypot(n["Tọa Độ X"] - x, n["Tọa Độ Y"] - y) < gap);
+}
+
+/** Đẩy một điểm mỏ cũ ra khỏi sân thành hoặc hành lang tường, giữ nguyên mã và trữ lượng của nó. */
+function relocateOutsideReserve(
+  node: ResourceNode,
+  map: LocalTerrainMap,
+  occupied: ResourceNode[],
+  walls?: WallLine[],
+): ResourceNode {
+  if (!overlapsReservedGround(walls, node["Tọa Độ X"], node["Tọa Độ Y"], node["Kích Thước"])) return node;
+
+  let hash = 0;
+  for (let i = 0; i < node["Mã"].length; i++) hash = (hash * 31 + node["Mã"].charCodeAt(i)) >>> 0;
+  const baseAngle = ((hash % 360) * Math.PI) / 180;
+  // Bắt đầu từ vị trí cũ để một mỏ bị tuyến tường mới cắt qua chỉ lùi ra cạnh
+  // gần nhất, thay vì nhảy vô cớ sang nửa kia lãnh địa.
+  for (let radius = 24; radius < LOCAL_CENTER_CELL * 0.8; radius += 24) {
+    for (let turn = 0; turn < 16; turn++) {
+      const angle = baseAngle + (turn / 16) * Math.PI * 2;
+      const x = Math.round(node["Tọa Độ X"] + Math.cos(angle) * radius);
+      const y = Math.round(node["Tọa Độ Y"] + Math.sin(angle) * radius);
+      if (x < 20 || y < 20 || x >= LOCAL_GRID_CELLS - 20 || y >= LOCAL_GRID_CELLS - 20) continue;
+      if (isWater(terrainAtCell(map, x, y)) || !farEnough(occupied, x, y, 36, walls)) continue;
+      return { ...node, "Tọa Độ X": x, "Tọa Độ Y": y };
+    }
+  }
+  // Không có chỗ an toàn thì bỏ điểm khỏi tâm thành thay vì để hai thực thể đè nhau.
+  return { ...node, "Tọa Độ X": 0, "Tọa Độ Y": 0, "Trữ Lượng": 0, "Còn Lại": 0, "Mô Tả": "Cạn kiệt — vị trí cũ nằm trong sân thành" };
 }
 
 /**
@@ -217,6 +319,7 @@ export function honourTerrainHints(
   nodes: ResourceNode[],
   map: LocalTerrainMap,
   wanted: string[],
+  walls?: WallLine[],
 ): ResourceNode[] {
   if (wanted.length === 0) return nodes;
   const out = [...nodes];
@@ -236,9 +339,10 @@ export function honourTerrainHints(
       const x = LOCAL_CENTER_CELL + Math.cos(ang) * dist;
       const y = LOCAL_CENTER_CELL + Math.sin(ang) * dist;
       if (x < 20 || y < 20 || x >= LOCAL_GRID_CELLS - 20 || y >= LOCAL_GRID_CELLS - 20) continue;
+      if (overlapsReservedGround(walls, x, y, 10)) continue;
       const t = terrainAtCell(map, x, y);
       if (isWater(t)) continue;
-      if (!farEnough(out, x, y)) continue;
+      if (!farEnough(out, x, y, 45, walls)) continue;
       if (!fallback) fallback = [x, y];
       if (NODE_TABLE[t]?.some((row) => row.res === res)) best = [x, y];
     }
@@ -254,12 +358,59 @@ export function honourTerrainHints(
  * không sinh trùng. Gọi lúc tạo ván, lúc nạp save cũ, và mỗi khi mở Tầng 1.
  * MUTATE holding.
  */
+/** Giữ mạch đang được khai thác, rồi giữ tối đa số điểm đại diện còn lại. */
+function capResourceNodes(nodes: ResourceNode[]): ResourceNode[] {
+  if (nodes.length <= RESOURCE_NODE_LIMIT) return nodes;
+  // Mạch do lore/AI yêu cầu cũng quan trọng như mạch đã khai thác: nếu cắt nó
+  // ngay sau honourTerrainHints thì lời kể vừa được chấp nhận sẽ không bao giờ
+  // xuất hiện trên bản đồ. Giữ toàn bộ các mạch có trạng thái thật trước rồi
+  // mới lấy mẫu nền còn lại.
+  const preserved = nodes.filter(mustPreserveNode);
+  const dormant = nodes.filter((node) => !mustPreserveNode(node));
+  return [...preserved, ...dormant].slice(0, Math.max(RESOURCE_NODE_LIMIT, preserved.length));
+}
+
+/** Mạch đã xây, đã khai thác, hoặc do lore bổ sung phải giữ nguyên khi tái cân bằng. */
+function mustPreserveNode(node: ResourceNode): boolean {
+  return node["Trữ Lượng"] <= 0
+    || !!node["Công Trình"]
+    || node["Còn Lại"] < gradeReserve(node["Trữ Lượng"])
+    || node["Mã"].startsWith("nd-lore-");
+}
+
 export function ensureResourceNodes(holding: Holding, map: LocalTerrainMap): ResourceNode[] {
   const existing = holding["Điểm Tài Nguyên"] ?? [];
   const hints = holding["Gợi Ý Địa Thế"]?.["Tài Nguyên Sẵn Có"] ?? [];
+  const walls = holding["Tường Thành"];
+  const baseline = generateNodes(map);
 
-  let nodes = existing.length > 0 ? existing : generateNodes(map);
-  nodes = honourTerrainHints(nodes, map, hints);
+  // Những save có ít hơn mật độ mới thường chứa các điểm nguyên vẹn bị cắt ở
+  // các hàng phía bắc. Thay chúng bằng mẫu toàn bản đồ; chỉ giữ mạch đã có
+  // trạng thái chơi thật để không mất công trình hay trữ lượng đã khai thác.
+  let nodes = existing.length > 0 && existing.length < RESOURCE_NODE_LIMIT
+    ? existing.filter(mustPreserveNode)
+    : (existing.length > 0 ? existing : baseline);
+  const repaired: ResourceNode[] = [];
+  for (const node of nodes) repaired.push(relocateOutsideReserve(node, map, repaired, walls));
+  nodes = repaired;
+
+  // Save cũ từng bị giới hạn ít mạch. Bổ sung lại các điểm nền cố định theo
+  // seed, nhưng không thay/khôi phục một mạch người chơi đã khai thác cạn.
+  // Kiểm tra khoảng cách sau khi đã dời mạch cũ để điểm mới cũng không đè tường.
+  if (nodes.length < RESOURCE_NODE_LIMIT) {
+    const known = new Set(nodes.map((node) => node["Mã"]));
+    for (const candidate of baseline) {
+      if (nodes.length >= RESOURCE_NODE_LIMIT) break;
+      if (known.has(candidate["Mã"])) continue;
+      // 200 điểm cần khoảng cách nhỏ hơn lưới cũ, nhưng vẫn lớn hơn đường kính
+      // biểu tượng và luôn giữ nguyên vùng cấm của thành/tường.
+      if (!farEnough(nodes, candidate["Tọa Độ X"], candidate["Tọa Độ Y"], 22, walls)) continue;
+      nodes.push(candidate);
+      known.add(candidate["Mã"]);
+    }
+  }
+  nodes = honourTerrainHints(nodes, map, hints, walls);
+  nodes = capResourceNodes(nodes);
 
   // vá dữ liệu cũ / do AI ghi thiếu
   for (let i = 0; i < nodes.length; i++) {

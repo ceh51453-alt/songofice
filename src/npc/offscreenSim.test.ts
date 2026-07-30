@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { selectKeyNpcs, generateOffscreenAction, runOffscreenSim } from "./offscreenSim";
+import { selectKeyNpcs, generateOffscreenAction, runOffscreenSim, tickOffscreenNpcEngine, registerOffscreenLoop } from "./offscreenSim";
 import { makeDefaultState } from "../mvu/schema";
 import type { Npc } from "../mvu/npcSchema";
+import { runCascadeEffects } from "../mvu/effects";
+import { DEFAULT_WORKFLOW_TASKS, useWorkflowStore } from "../state/workflowStore";
 
 function makeNpc(goal?: string, affinity = 0): Npc {
   return {
@@ -90,6 +92,71 @@ describe("offscreenSim (16.3)", () => {
       stat["Mối Quan Hệ"]["NPC Chính"]["Tywin"] = makeNpc("Chiếm quyền lực", 70);
       const actions = runOffscreenSim(stat);
       expect(actions.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe("tickOffscreenNpcEngine", () => {
+    it("ghi hoạt động bền vững cho cả NPC có mục tiêu lẫn NPC không được chọn vào output", () => {
+      const stat = makeDefaultState();
+      stat["Thế Giới"]["Ngày"] = 2;
+      stat["Mối Quan Hệ"]["NPC Chính"]["Cersei"] = makeNpc("Chiếm quyền lực", 70);
+      stat["Mối Quan Hệ"]["NPC Chính"]["Viên Quản Gia"] = makeNpc(undefined, 0);
+
+      const result = tickOffscreenNpcEngine(stat);
+
+      expect(result.actions.map((action) => action.npcName)).toEqual(expect.arrayContaining(["Cersei", "Viên Quản Gia"]));
+      expect(stat["Mối Quan Hệ"]["NPC Chính"]["Cersei"]["_Hoạt Động Ngoài Cảnh"]?.["Số Lần"]).toBe(1);
+      expect(stat["Mối Quan Hệ"]["NPC Chính"]["Viên Quản Gia"]["_Hoạt Động Ngoài Cảnh"]?.["Mô Tả"]).toContain("Viên Quản Gia");
+      expect(stat["Mối Quan Hệ"]["NPC Chính"]["Cersei"]["Ký Ức"]).toHaveLength(1);
+    });
+
+    it("không chạy lặp một NPC hai lần trong cùng ngày và tôn trọng NPC đang cùng scene", () => {
+      const stat = makeDefaultState();
+      stat["Mối Quan Hệ"]["NPC Chính"]["Vắng Mặt"] = makeNpc("Bảo vệ lãnh địa", 50);
+      stat["Mối Quan Hệ"]["NPC Chính"]["Có Mặt"] = makeNpc("Bảo vệ lãnh địa", 50);
+      stat["Mối Quan Hệ"]["NPC Chính"]["Có Mặt"]["Vị Trí Hiện Tại"] = stat["Thế Giới"]["Vị Trí"];
+
+      const first = tickOffscreenNpcEngine(stat);
+      const second = tickOffscreenNpcEngine(stat);
+
+      expect(first.actions.map((action) => action.npcName)).toContain("Vắng Mặt");
+      expect(first.actions.map((action) => action.npcName)).not.toContain("Có Mặt");
+      expect(second.actions).toHaveLength(0);
+    });
+
+    it("chạy qua daily workflow khi thời gian trôi, không cần NPC xuất hiện trong phản hồi AI", () => {
+      useWorkflowStore.setState({
+        enabled: true,
+        tasks: DEFAULT_WORKFLOW_TASKS.map((task) => ({ ...task })),
+      });
+      registerOffscreenLoop();
+      const prev = makeDefaultState();
+      prev["Mối Quan Hệ"]["NPC Chính"]["Người Gác Cổng"] = makeNpc(undefined, 0);
+      const next = structuredClone(prev);
+      next["Thế Giới"]["Ngày"] += 1;
+
+      const result = runCascadeEffects(prev, next);
+
+      expect(selectKeyNpcs(prev)).toHaveLength(0);
+      expect(result.state["Mối Quan Hệ"]["NPC Chính"]["Người Gác Cổng"]["_Hoạt Động Ngoài Cảnh"]?.["Số Lần"]).toBe(1);
+    });
+
+    it("tôn trọng công tắc riêng của nhịp sống NPC trong Workflow", () => {
+      useWorkflowStore.setState({
+        enabled: true,
+        tasks: DEFAULT_WORKFLOW_TASKS.map((task) =>
+          task.handlerKey === "offscreen-engine" ? { ...task, enabled: false } : { ...task },
+        ),
+      });
+      registerOffscreenLoop();
+      const prev = makeDefaultState();
+      prev["Mối Quan Hệ"]["NPC Chính"]["Không Chạy"] = makeNpc(undefined, 0);
+      const next = structuredClone(prev);
+      next["Thế Giới"]["Ngày"] += 1;
+
+      const result = runCascadeEffects(prev, next);
+
+      expect(result.state["Mối Quan Hệ"]["NPC Chính"]["Không Chạy"]["_Hoạt Động Ngoài Cảnh"]).toBeUndefined();
     });
   });
 });

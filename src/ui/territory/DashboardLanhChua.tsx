@@ -18,6 +18,7 @@ import { houseColor } from "../../content/westeros/houseColors";
 import { playerHoldingIds, summarizeHolding } from "../../territory/mapAggregate";
 import { BUILDING_CATALOG } from "../../content/westeros/buildings";
 import { formatDuration } from "../../mvu/calendar";
+import { demolitionDays } from "../../territory/construction";
 import { formatCurrencyShort } from "../../economy/currency";
 import { IconX, IconCastle, IconMap, IconBook, IconPopulation } from "../icons";
 import { TabStatus } from "./TabStatus";
@@ -146,9 +147,13 @@ function Shell({
 /** Công trường — hàng đợi xây dựng của lãnh địa (đối chiếu với vị trí trên Tầng 1). */
 function WorksTab({ territoryId, holding }: { territoryId: string; holding: ReturnType<typeof useMvuStore.getState>["stat"]["Lãnh Địa"][string] }) {
   const cancelBuild = useTerritoryStore((s) => s.cancelBuild);
+  const startBuild = useTerritoryStore((s) => s.startBuild);
+  const demolishBuild = useTerritoryStore((s) => s.demolishBuild);
+  const cancelDemolish = useTerritoryStore((s) => s.cancelDemolish);
   const entries = Object.entries(holding["Công Trình"] ?? {});
   const building = entries.filter(([, b]) => b["Đang Xây"]);
-  const done = entries.filter(([, b]) => !b["Đang Xây"]);
+  const demolishing = entries.filter(([, b]) => !b["Đang Xây"] && b["Đang Phá"]);
+  const done = entries.filter(([, b]) => !b["Đang Xây"] && !b["Đang Phá"]);
 
   return (
     <div className="space-y-5">
@@ -179,6 +184,32 @@ function WorksTab({ territoryId, holding }: { territoryId: string; holding: Retu
       </section>
 
       <section>
+        <h3 className="font-display mb-2 text-[12px] uppercase tracking-widest text-[var(--text-faint)]">Đang phá dỡ</h3>
+        {demolishing.length === 0 ? (
+          <p className="text-[13px] italic text-[var(--text-muted)]">Không có công trình nào đang bị tháo dỡ.</p>
+        ) : (
+          <div className="space-y-2">
+            {demolishing.map(([name, b]) => (
+              <div key={name} className="glass flex items-center justify-between rounded-[var(--radius-sm)] px-3.5 py-2.5">
+                <div className="min-w-0">
+                  <div className="text-[13px] text-[var(--text-soft)]">{name}</div>
+                  <div className="mt-0.5 text-[11.5px] text-[var(--text-faint)]">
+                    Cấp {b["Cấp Độ"]} · còn {formatDuration(b["Ngày Phá Còn Lại"] ?? 0)} · công trình đã ngừng hoạt động
+                  </div>
+                </div>
+                <button
+                  onClick={() => cancelDemolish(territoryId, name)}
+                  className="shrink-0 rounded-[var(--radius-sm)] border border-[var(--glass-border)] px-2.5 py-1.5 text-[11.5px] text-[var(--text-soft)] hover:bg-[var(--glass-bg-hover)]"
+                >
+                  Dừng phá
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
         <h3 className="font-display mb-2 text-[12px] uppercase tracking-widest text-[var(--text-faint)]">Đã hoàn thiện</h3>
         {done.length === 0 ? (
           <p className="text-[13px] italic text-[var(--text-muted)]">Chưa có công trình nào hoàn thiện.</p>
@@ -198,6 +229,21 @@ function WorksTab({ territoryId, holding }: { territoryId: string; holding: Retu
                       +{formatCurrencyShort((def.yield["Ngân Khố"] ?? 0) * b["Cấp Độ"])}/tháng
                     </div>
                   ) : null}
+                  <div className="mt-2 flex gap-2 border-t border-[var(--glass-border)] pt-2">
+                    <button
+                      onClick={() => startBuild(territoryId, b["Loại"], name)}
+                      className="rounded px-2 py-1 text-[10.5px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
+                    >
+                      Nâng cấp
+                    </button>
+                    <button
+                      onClick={() => demolishBuild(territoryId, name)}
+                      title={`Phá dỡ trong ${formatDuration(demolitionDays(b["Loại"], b["Cấp Độ"] || 1))}`}
+                      className="rounded px-2 py-1 text-[10.5px] text-[var(--danger)] hover:bg-[rgba(176,106,95,0.12)]"
+                    >
+                      Phá dỡ
+                    </button>
+                  </div>
                 </div>
               );
             })}

@@ -13,7 +13,7 @@ import { AnimatedNumber } from "./AnimatedNumber";
 import { canClaimIronThrone, claimIronThrone } from "../../../character/roleplay";
 import { useState } from "react";
 import { applyPatch } from "../../../mvu/patchEngine";
-import { BodyVisualizer } from "./BodyVisualizer";
+import { GearBodyPanel } from "./GearBodyPanel";
 import { EquipmentModal } from "./EquipmentModal";
 import { DragonCard } from "../../military/DragonCard";
 import { playerDragons } from "../../../strategy/dragons";
@@ -157,14 +157,9 @@ export function StatusPanel() {
         </div>
       </Section>
 
-      {/* ---- Tình Trạng Cơ Thể ---- */}
-      <Section title="TRANG BỊ" icon={<IconSpark size={14} />}>
-        <div className="hover:bg-white/5 rounded-lg transition-colors" title="Nhấn để xem trang bị">
-          <BodyVisualizer 
-            body={stat["Cơ Thể"] || {}} 
-            onClick={() => setEquipModalOpen(true)}
-          />
-        </div>
+      {/* ---- Trang bị & cơ thể (M23: hình nộm + ô trang bị + năng lực) ---- */}
+      <Section title="TRANG BỊ & CƠ THỂ" icon={<IconSpark size={14} />}>
+        <GearBodyPanel stat={stat} onOpenEquipment={() => setEquipModalOpen(true)} />
       </Section>
 
       {/* ---- Chỉ số cốt lõi ---- */}

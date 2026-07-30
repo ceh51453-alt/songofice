@@ -44,6 +44,19 @@ export const NpcMemorySchema = z
   })
   .prefault({});
 
+/**
+ * Dấu vết engine cho nhịp sống ngoài cảnh. Đây không phải "ký ức quan trọng"
+ * (ký ức vẫn do memoryEngine chọn lọc), mà là bằng chứng bền vững rằng NPC đã
+ * tiếp tục làm việc ngay cả khi không được render trong phản hồi của AI.
+ */
+const OffscreenActivitySchema = z
+  .object({
+    "Ngày Tuyệt Đối": safeInt(0),
+    "Mô Tả": safeString().prefault(""),
+    "Số Lần": safeInt(0),
+  })
+  .prefault({});
+
 /** Schema quan hệ thân mật — chỉ áp dụng cho NPC nữ có quan hệ tình cảm/thân xác với người chơi. */
 const NpcIntimacyBase = z
   .object({
@@ -173,6 +186,8 @@ export const NpcSchema = z
       .catch("Bình Thường")
       .prefault("Bình Thường"),
     "Mục Tiêu Cá Nhân": safeString().optional(),
+    /** Engine cập nhật mỗi ngày truyện khi NPC ở ngoài cảnh. */
+    "_Hoạt Động Ngoài Cảnh": OffscreenActivitySchema.optional(),
     "$Ghi Chú Ẩn": safeString().optional(), // $ = AI đọc/ghi được nhưng ẨN khỏi UI (bí mật NPC)
     "$NSFW": safeString().optional(), // Lưu thông tin nhạy cảm, sở thích NSFW dành cho AI
 

@@ -9,7 +9,7 @@ import { useState, useMemo, useRef, useCallback } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { HOUSE_ID_BY_SCHEMA } from "../../territory/territoryEngine";
 import { houseColor } from "../../content/westeros/houseColors";
-import type { Npc } from "../../mvu/npcSchema";
+import { affinityStage, type Npc } from "../../mvu/npcSchema";
 import { GlassButton } from "../components/GlassButton";
 import { GlassSelect } from "../components/GlassSelect";
 import { TradeDialog } from "../economy/TradeDialog";
@@ -32,6 +32,7 @@ interface NodeData {
   relationTypes?: string[];
   betrayalRisk?: boolean;
   intimacy?: boolean;
+  relationshipTone?: LinkData["type"];
   npcData?: Npc;
   x: number;
   y: number;
@@ -45,6 +46,48 @@ interface LinkData {
   type: "alliance" | "family" | "enemy" | "intimate" | "duty" | "neutral" | "house";
   strength: number; // 0 to 1
   label?: string;
+}
+
+const RELATIONSHIP_CLUSTERS: Array<{
+  type: Exclude<LinkData["type"], "house">;
+  label: string;
+  x: number;
+  y: number;
+  height?: number;
+  labelOffset?: number;
+}> = [
+  { type: "family", label: "Gia đình", x: 250, y: 130 },
+  { type: "alliance", label: "Đồng minh", x: 600, y: 125 },
+  { type: "duty", label: "Ràng buộc", x: 950, y: 130 },
+  { type: "intimate", label: "Thân mật", x: 250, y: 435 },
+  { type: "neutral", label: "Chưa chạm mặt", x: 600, y: 405, height: 300, labelOffset: -125 },
+  { type: "enemy", label: "Đối địch", x: 950, y: 425 },
+];
+
+function relationshipCluster(node: NodeData): Exclude<LinkData["type"], "house"> {
+  if (node.relationTypes?.includes("Chưa Chạm Mặt")) return "neutral";
+  const tone = node.relationshipTone ?? relationTone(node.relationTypes?.join(" · ") || "", node.affinity);
+  return tone === "house" ? "neutral" : tone;
+}
+
+/** Xếp người cùng loại quan hệ thành cụm cố định thay cho quỹ đạo quanh người chơi. */
+function placeRelationshipClusters(nodes: NodeData[]) {
+  for (const cluster of RELATIONSHIP_CLUSTERS) {
+    const members = nodes.filter((node) => node.type !== "player" && relationshipCluster(node) === cluster.type);
+    const columns = Math.min(5, Math.max(1, Math.ceil(Math.sqrt(members.length))));
+    const rows = Math.ceil(members.length / columns);
+
+    members.forEach((node, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      node.x = cluster.x + (column - (columns - 1) / 2) * 72;
+      node.y = cluster.y + (row - (rows - 1) / 2) * 52;
+    });
+  }
+}
+
+function graphLabel(name: string): string {
+  return name.length > 13 ? `${name.slice(0, 12)}…` : name;
 }
 
 /** Cảnh báo nguy cơ phản trắc (13.5). */
@@ -108,12 +151,8 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
     const linkList: LinkData[] = [];
     const housesSet = new Set<string>();
 
-    const width = 900;
-    const height = 600;
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    // 1. Player Node (Center)
+    // Người chơi là điểm tham chiếu ở bên trái; các cụm quan hệ nằm ở phần còn lại
+    // của khung để sơ đồ không còn là một bánh xe xoay quanh người chơi.
     nodeList.push({
       id: "player",
       name: playerName,
@@ -122,8 +161,8 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
       role: "Lãnh Chúa / Người Chơi",
       affinity: 100,
       trust: 100,
-      x: centerX,
-      y: centerY,
+      x: 85,
+      y: 300,
       vx: 0,
       vy: 0,
     });
@@ -134,36 +173,31 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
       ...Object.entries(familyNpcs).map(([n, npc]) => [n, npc, "family"] as [string, Npc, "family"]),
       ...Object.entries(mainNpcs).map(([n, npc]) => [n, npc, "npc"] as [string, Npc, "npc"]),
     ];
+    const playerEdgeByNodeId = new Map(
+      relationshipEdges
+        .filter((edge) => edge.sourceId === "player" && edge.targetId)
+        .map((edge) => [edge.targetId!, edge]),
+    );
 
-    const totalCount = allNpcEntries.length;
-    
-    // Position NPCs in concentric orbits around player
-    allNpcEntries.forEach(([name, npc, category], index) => {
+    allNpcEntries.forEach(([name, npc, category]) => {
       const house = npc["Nhà"] || "Vô Danh";
       if (house && house !== "Vô Danh") housesSet.add(house);
 
-      const affinity = npc["Độ Hảo Cảm"] ?? 0;
-      const trust = npc["Tin Cậy"] ?? 0;
-      const stage = npc["Giai Đoạn Quan Hệ"] || "Xa Lạ";
-      // Một vài save từ phiên bản cũ có thể lưu nhãn này dạng string.
-      const relationTypes = Array.isArray(npc["Loại Quan Hệ"])
-        ? npc["Loại Quan Hệ"]
-        : typeof npc["Loại Quan Hệ"] === "string" ? [npc["Loại Quan Hệ"]] : [];
-      const intimacy = !!npc["Quan Hệ Thân Mật"] || relationTypes.some((t) => ["Vợ", "Thiếp", "Tình Nhân", "Hôn Ước"].includes(t));
-      const betrayal = isBetrayalRisk(npc);
-
-      // Determine orbit distance: close for friends/family/intimate, far for enemies
-      let orbitRadius = 180;
-      if (category === "family" || intimacy) orbitRadius = 110;
-      else if (affinity > 30) orbitRadius = 150;
-      else if (affinity < -20 || betrayal) orbitRadius = 240;
-
-      // Angle distribution around center
-      const angle = (index / Math.max(1, totalCount)) * Math.PI * 2 - Math.PI / 2;
-      const x = centerX + Math.cos(angle) * orbitRadius;
-      const y = centerY + Math.sin(angle) * orbitRadius;
-
       const nodeId = `npc_${name}`;
+      const playerEdge = playerEdgeByNodeId.get(nodeId);
+      const affinity = playerEdge?.affinity ?? npc["Độ Hảo Cảm"] ?? 0;
+      const trust = playerEdge?.trust ?? npc["Tin Cậy"] ?? 0;
+      const relationTypes = playerEdge?.label
+        ? playerEdge.label.split(" · ")
+        : Array.isArray(npc["Loại Quan Hệ"])
+          ? npc["Loại Quan Hệ"]
+          : typeof npc["Loại Quan Hệ"] === "string" ? [npc["Loại Quan Hệ"]] : [];
+      const stage = relationTypes.includes("Chưa Chạm Mặt")
+        ? "Chưa Chạm Mặt"
+        : affinityStage(affinity);
+      const intimacy = !!npc["Quan Hệ Thân Mật"] || relationTypes.some((type) => /tình nhân|người tình|thiếp|người yêu/i.test(type));
+      const betrayal = isBetrayalRisk(npc);
+      const playerRelationTone = playerEdge?.tone ?? relationTone(relationTypes.join(" · "), affinity);
       nodeList.push({
         id: nodeId,
         name,
@@ -176,28 +210,28 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
         relationTypes,
         betrayalRisk: betrayal,
         intimacy,
+        relationshipTone: playerRelationTone,
         npcData: npc,
-        x,
-        y,
+        x: 0,
+        y: 0,
         vx: 0,
         vy: 0,
       });
 
-      // Link to Player
-      let linkType: LinkData["type"] = "neutral";
-      if (intimacy) linkType = "intimate";
-      else if (category === "family" || relationTypes.includes("Người Thân")) linkType = "family";
-      else if (affinity >= 15 || relationTypes.includes("Đồng Minh")) linkType = "alliance";
-      else if (affinity <= -15 || betrayal || relationTypes.includes("Kẻ Thù")) linkType = "enemy";
-
-      linkList.push({
-        source: "player",
-        target: nodeId,
-        type: linkType,
-        strength: Math.min(1, Math.abs(affinity) / 100 + 0.3),
-        label: stage,
-      });
+      // Không vẽ dây nối cho người chưa từng chạm mặt: chúng vẫn nằm trong cụm
+      // riêng, nhưng không tạo một mạng hình tia giả tạo từ người chơi.
+      if (playerEdge?.label !== "Chưa Chạm Mặt") {
+        linkList.push({
+          source: "player",
+          target: nodeId,
+          type: playerRelationTone,
+          strength: Math.min(1, Math.abs(affinity) / 100 + 0.3),
+          label: playerEdge?.label || stage,
+        });
+      }
     });
+
+    placeRelationshipClusters(nodeList);
 
     // Liên kết NPC-NPC được hợp nhất từ mạng NPC, gia phả, hôn nhân và hôn ước.
     // Nhờ vậy sơ đồ không bỏ sót những quan hệ chỉ được ghi ở hồ sơ nhân vật.
@@ -493,15 +527,41 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
             <svg
               id="graph-bg"
               className="h-full w-full"
-              viewBox="0 0 900 600"
-              preserveAspectRatio="xMidYMid slice"
+              viewBox="0 0 1200 600"
+              preserveAspectRatio="xMidYMid meet"
             >
               <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
                 
-                {/* Concentric Background Orbits */}
-                <circle cx={450} cy={300} r={110} fill="none" stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
-                <circle cx={450} cy={300} r={150} fill="none" stroke="rgba(255,255,255,0.03)" strokeDasharray="4 4" />
-                <circle cx={450} cy={300} r={240} fill="none" stroke="rgba(255,255,255,0.02)" strokeDasharray="5 5" />
+                {/* Vùng gom cụm: cùng loại quan hệ luôn có một vị trí rõ ràng. */}
+                {RELATIONSHIP_CLUSTERS.map((cluster) => {
+                  const color = getLinkColor(cluster.type);
+                  const height = cluster.height ?? 176;
+                  return (
+                    <g key={cluster.type} className="pointer-events-none">
+                      <rect
+                        x={cluster.x - 164}
+                        y={cluster.y - height / 2}
+                        width={328}
+                        height={height}
+                        rx={18}
+                        fill={`${color}08`}
+                        stroke={`${color}30`}
+                        strokeDasharray="5 6"
+                      />
+                      <text
+                        x={cluster.x}
+                        y={cluster.y + (cluster.labelOffset ?? -68)}
+                        textAnchor="middle"
+                        fill={`${color}bb`}
+                        fontSize={10}
+                        fontWeight="600"
+                        className="uppercase tracking-wider"
+                      >
+                        {cluster.label}
+                      </text>
+                    </g>
+                  );
+                })}
 
                 {/* LINKS / EDGES */}
                 {filteredLinks.map((link, idx) => {
@@ -524,7 +584,7 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                         y2={tgtPos.y}
                         stroke={color}
                         strokeWidth={isSelected ? 2.5 : Math.max(1, link.strength * 2)}
-                        strokeOpacity={isSelected ? 0.9 : 0.4}
+                        strokeOpacity={isSelected ? 0.9 : link.type === "enemy" ? 0.28 : 0.18}
                         strokeDasharray={link.type === "enemy" ? "4 4" : undefined}
                       />
                     </g>
@@ -609,10 +669,11 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
 
                         {/* Name Badge Label underneath */}
                         <g transform={`translate(0, ${radius + 14})`}>
+                          <title>{node.name}</title>
                           <rect
-                            x={-node.name.length * 3.5 - 6}
+                            x={-Math.min(graphLabel(node.name).length * 3.5 + 6, 48)}
                             y={-9}
-                            width={node.name.length * 7 + 12}
+                            width={Math.min(graphLabel(node.name).length * 7 + 12, 96)}
                             height={16}
                             rx={8}
                             fill="rgba(10,14,20,0.85)"
@@ -625,7 +686,7 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                             fontSize={10}
                             className="pointer-events-none"
                           >
-                            {node.name}
+                            {graphLabel(node.name)}
                           </text>
                         </g>
                       </g>

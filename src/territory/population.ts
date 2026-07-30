@@ -120,9 +120,10 @@ export function buildingJobs(b: Building): Partial<Record<JobKey, number>> {
   const lvl = Math.max(1, b["Cấp Độ"] || 1);
   const custom = b["Tuỳ Chỉnh"];
   if (custom && Object.keys(custom["Nhân Lực"] ?? {}).length > 0) {
+    const factor = custom["Nhân Theo Cấp"] === false ? 1 : lvl;
     const out: Partial<Record<JobKey, number>> = {};
     for (const [k, v] of Object.entries(custom["Nhân Lực"])) {
-      if (JOB_KEYS.includes(k as JobKey)) out[k as JobKey] = Math.round((v ?? 0) * lvl);
+      if (JOB_KEYS.includes(k as JobKey)) out[k as JobKey] = Math.round((v ?? 0) * factor);
     }
     return out;
   }
@@ -136,8 +137,18 @@ export function buildingJobs(b: Building): Partial<Record<JobKey, number>> {
 export function buildingHousing(b: Building): number {
   const lvl = Math.max(1, b["Cấp Độ"] || 1);
   const custom = b["Tuỳ Chỉnh"];
-  if (custom && (custom["Sức Chứa Dân"] ?? 0) > 0) return Math.round(custom["Sức Chứa Dân"] * lvl);
+  if (custom && (custom["Sức Chứa Dân"] ?? 0) > 0) {
+    return Math.round(custom["Sức Chứa Dân"] * (custom["Nhân Theo Cấp"] === false ? 1 : lvl));
+  }
   return Math.round((BUILDING_CATALOG[b["Loại"]]?.housing ?? 0) * lvl);
+}
+
+/** Phòng thủ thật của công trình, gồm cả kỳ quan/công trình lore tuỳ chỉnh. */
+export function buildingDefense(b: Building): number {
+  const lvl = Math.max(1, b["Cấp Độ"] || 1);
+  const custom = b["Tuỳ Chỉnh"];
+  if (custom) return Math.round((custom["Phòng Thủ"] ?? 0) * (custom["Nhân Theo Cấp"] === false ? 1 : lvl));
+  return Math.round((BUILDING_CATALOG[b["Loại"]]?.flags?.defense ?? 0) * lvl);
 }
 
 /** Tên hiển thị của công trình — tuỳ chỉnh thì lấy tên người chơi đặt. */
@@ -154,7 +165,7 @@ export function housingCapacity(holding: Holding): number {
   let total = organicHousing(holding);
   let bonus = 0;
   for (const b of Object.values(holding["Công Trình"] ?? {})) {
-    if (b["Đang Xây"]) continue;
+    if (b["Đang Xây"] || b["Đang Phá"]) continue;
     total += buildingHousing(b);
     bonus += (BUILDING_CATALOG[b["Loại"]]?.flags?.housingBonus ?? 0) * (b["Cấp Độ"] || 1);
   }
@@ -202,7 +213,7 @@ export function analysePopulation(holding: Holding): PopulationReport {
 
   // 2. chỗ làm cố định do công trình mở ra
   const done: [string, Building][] = Object.entries(holding["Công Trình"] ?? {})
-    .filter(([, b]) => !b["Đang Xây"]);
+    .filter(([, b]) => !b["Đang Xây"] && !b["Đang Phá"]);
   for (const [, b] of done) {
     for (const [k, v] of Object.entries(buildingJobs(b))) {
       jobs[k as JobKey].capacity += v ?? 0;
@@ -315,24 +326,118 @@ export function socialMood(report: PopulationReport): number {
   return delta;
 }
 
+export interface DemographyReport {
+  /** Các tỷ lệ là phần dân số / tháng (0.001 = 0.1%). */
+  birthRate: number;
+  deathRate: number;
+  immigrationRate: number;
+  emigrationRate: number;
+  births: number;
+  deaths: number;
+  immigrants: number;
+  emigrants: number;
+  netChange: number;
+}
+
+const clamp = (value: number, min: number, max: number): number => Math.max(min, Math.min(max, value));
+
 /**
- * Tăng trưởng dân số MỖI THÁNG. Dân chỉ đẻ thêm khi còn chỗ ở và còn cái ăn;
- * chật chội thì người ta bỏ đi nơi khác chứ không sinh thêm.
+ * Chốt sổ hộ tịch cho một tháng. Dân không chỉ tự tăng bằng một con số mơ hồ:
+ * nơi đủ lương thực, nhà ở, việc làm và được lòng dân sẽ hút người tới; nơi
+ * chật chội, thất nghiệp hay đang khủng hoảng thì người dân sẽ rời đi trước khi
+ * nạn đói và dịch bệnh biến thành tổn thất vĩnh viễn.
+ */
+export function projectDemography(
+  holding: Holding,
+  opts: { foodStock: number; foodNeed: number; loyalty: number },
+): DemographyReport {
+  const population = Math.max(0, holding["Dân Số"] ?? 0);
+  if (population === 0) {
+    return {
+      birthRate: 0, deathRate: 0, immigrationRate: 0, emigrationRate: 0,
+      births: 0, deaths: 0, immigrants: 0, emigrants: 0, netChange: 0,
+    };
+  }
+
+  const report = analysePopulation(holding);
+  const capacity = Math.max(1, report.housingCapacity);
+  const housingSlack = clamp((capacity - population) / capacity, -1, 1);
+  const homelessRate = report.homeless / population;
+  const unemploymentRate = report.unemploymentRate;
+  const fed = opts.foodNeed <= 0 ? 1 : clamp(opts.foodStock / opts.foodNeed, 0, 1);
+  const contentment = clamp((opts.loyalty - 50) / 50, -1, 1);
+  const crises = new Set((holding["Khủng Hoảng"] ?? []).map((c) => c["Loại"]));
+  const plague = crises.has("Dịch Bệnh");
+  const famine = crises.has("Nạn Đói") || fed < 0.6;
+  const rebellion = crises.has("Nổi Loạn");
+  const harshWinter = crises.has("Mùa Đông Khắc Nghiệt");
+
+  // Tỷ lệ nền thấp và ổn định theo tháng; điều kiện tốt chỉ nâng nhẹ mức sinh,
+  // còn đói kém/dịch bệnh giảm mạnh thay vì tạo tăng trưởng âm khó hiểu.
+  const birthRate = clamp(
+    0.00135 + Math.max(0, contentment) * 0.0003 + Math.max(0, housingSlack) * 0.00025
+      - (1 - fed) * 0.0008 - (plague ? 0.00045 : 0),
+    0.0002, 0.0022,
+  );
+  const deathRate = clamp(
+    0.00075 + (1 - fed) * 0.004 + homelessRate * 0.003
+      + (plague ? 0.0035 : 0) + (harshWinter ? 0.0008 : 0),
+    0.0003, 0.012,
+  );
+
+  const inviting = fed >= 0.9 && housingSlack > 0.04 && unemploymentRate < 0.16 && contentment > 0;
+  const immigrationRate = inviting
+    ? clamp(0.00015 + housingSlack * 0.0014 + contentment * 0.0008 - unemploymentRate * 0.0015, 0, 0.0035)
+    : 0;
+  const emigrationRate = clamp(
+    0.0001 + Math.max(0, unemploymentRate - 0.12) * 0.012 + homelessRate * 0.035
+      + Math.max(0, 0.82 - fed) * 0.012 + Math.max(0, -contentment) * 0.003
+      + (rebellion ? 0.004 : 0) + (famine ? 0.003 : 0),
+    0, 0.03,
+  );
+
+  const births = Math.round(population * birthRate);
+  const deaths = Math.round(population * deathRate);
+  const immigrants = Math.round(population * immigrationRate);
+  // Không thể có nhiều người rời đi hơn số dân còn lại sau sinh–chết.
+  const emigrants = Math.min(
+    Math.round(population * emigrationRate),
+    Math.max(0, population + births - deaths),
+  );
+
+  return {
+    birthRate, deathRate, immigrationRate, emigrationRate,
+    births, deaths, immigrants, emigrants,
+    netChange: births - deaths + immigrants - emigrants,
+  };
+}
+
+/** Ghi kết quả hộ tịch gần nhất vào state để UI, AI và bản đồ dùng chung. */
+export function applyDemography(
+  holding: Holding,
+  opts: { foodStock: number; foodNeed: number; loyalty: number },
+): DemographyReport {
+  const result = projectDemography(holding, opts);
+  holding["Nhân Khẩu"] = {
+    "Tỷ Lệ Sinh": result.birthRate,
+    "Tỷ Lệ Chết": result.deathRate,
+    "Tỷ Lệ Nhập Cư": result.immigrationRate,
+    "Tỷ Lệ Xuất Cư": result.emigrationRate,
+    "Sinh": result.births,
+    "Chết": result.deaths,
+    "Gia Nhập": result.immigrants,
+    "Rời Đi": result.emigrants,
+    "Biến Động Ròng": result.netChange,
+  };
+  return result;
+}
+
+/**
+ * Tương thích ngược với các caller cũ: trả về biến động ròng của sổ hộ tịch.
  */
 export function populationGrowth(
   holding: Holding,
   opts: { foodStock: number; foodNeed: number; loyalty: number },
 ): number {
-  const pop = holding["Dân Số"] ?? 0;
-  if (pop <= 0) return 0;
-  const capacity = holding["Sức Chứa Dân Cư"] || housingCapacity(holding);
-
-  // đói là thứ đầu tiên giết tăng trưởng
-  const fed = opts.foodNeed <= 0 ? 1 : Math.min(1, opts.foodStock / opts.foodNeed);
-  if (fed < 0.6) return -Math.round(pop * 0.03 * (1 - fed));
-
-  const room = Math.max(0, 1 - pop / Math.max(1, capacity));
-  const mood = (opts.loyalty - 45) / 100; // -0.45 .. +0.55
-  const rate = 0.006 * room + mood * 0.004;
-  return Math.round(pop * rate);
+  return projectDemography(holding, opts).netChange;
 }

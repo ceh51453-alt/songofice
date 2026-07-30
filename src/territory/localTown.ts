@@ -107,6 +107,8 @@ export function townLayout(
     wallRadius: number;
     hasWall: boolean;
     loreRoads?: TownRoadSpec[];
+    /** Cổng có vị trí canon (không suy từ vòng tường ngẫu nhiên). */
+    fixedGates?: Array<Omit<TownGate, "main"> & { main?: boolean }>;
     /**
      * Người chơi đã tự vạch tường trên bản đồ → KHÔNG sinh vành đai tự động
      * nữa. Đây là chỗ sửa lỗi "nâng cấp Lâu Đài là mất bức tường cũ": tường
@@ -116,7 +118,7 @@ export function townLayout(
   },
 ): TownLayout {
   const key = `${map.seed}|${Math.round(opts.wallRadius)}|${opts.hasWall ? 1 : 0}|${buildings.length}`
-    + `|${(opts.loreRoads ?? []).map((r) => r.name).join(",")}|${opts.playerWalls ? "p" : ""}`;
+    + `|${(opts.loreRoads ?? []).map((r) => r.name).join(",")}|${(opts.fixedGates ?? []).map((g) => g.name).join(",")}|${opts.playerWalls ? "p" : ""}`;
   const hit = cache.get(key);
   if (hit) return hit;
 
@@ -179,7 +181,9 @@ export function townLayout(
   const gates: TownGate[] = [];
   const used: number[] = [];
 
-  if (opts.loreRoads && opts.loreRoads.length > 0) {
+  if (opts.fixedGates && opts.fixedGates.length > 0) {
+    for (const gate of opts.fixedGates) gates.push({ ...gate, main: !!gate.main, at: [...gate.at] as Pt });
+  } else if (opts.loreRoads && opts.loreRoads.length > 0) {
     // Toà thành trong tiểu thuyết: cổng mở đúng hướng những con đường có tên.
     for (const road of opts.loreRoads) {
       const s = segAt(road.angle);
@@ -244,6 +248,9 @@ export function townLayout(
       const probeX = x + Math.cos(ang) * step * 1.6;
       const probeY = y + Math.sin(ang) * step * 1.6;
       const ahead = terrainAtCell(map, probeX, probeY);
+      // Đường bộ phải dừng ở mép biển. Sông vẫn được phép cắt qua vì bước sau
+      // sẽ nhận diện đoạn cắt và dựng cầu; biển chỉ dùng cho bến/cảng và hải trình.
+      if (ahead === "Biển") break;
       const dodge = !isBuildable(ahead) && !isWater(ahead) ? 0.34 : 0;
       ang += bend * 0.35 + dodge * (hash1(i + salt, map.seed) > 0.5 ? 1 : -1);
       // giữ hướng chung, không cho đường quay ngược lại
