@@ -104,9 +104,7 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
   <army_order>, <dragon_order>. Cỗ máy kiểm tra luật (có Doanh Trại không, đủ vàng không,
   chư hầu có chịu tới không) rồi mới cho phép — nên đừng kể như thể quân đã có sẵn trong tay.
   Ngươi ĐƯỢC ghi "Ghi Chú" của một đơn vị (biệt danh đội quân, quân kỳ, lai lịch).
-- TƯƠNG TÁC RỒNG VÀ TRỨNG (Mới): Dùng "replace" hoặc "delta" với path stat_data.Rồng.<Tên rồng> hoặc stat_data.Trứng Rồng.<Tên trứng>.
-  Cập nhật Đặc Tính, Độ Hảo Cảm, Trạng Thái Thu Phục ("Đang Cảm Hóa", "Đã Có Chủ"), Tình Trạng Trứng ("Hóa Đá", "Đang Ấp", "Nứt Vỏ").
-  Ví dụ tăng hảo cảm rồng: { "op": "delta", "path": "stat_data.Rồng.Drogon.Độ Hảo Cảm.Jon Snow", "value": 10 }
+- TƯƠNG TÁC RỒNG VÀ TRỨNG: NGƯƠI KHÔNG được ghi trực tiếp kỵ sĩ, độ hảo cảm, mức/trạng thái thuần hóa của rồng — lời kể không thể quyết định rồng có nghe lời hay không. Khi nhân vật thực hiện một diễn biến cảm hóa cụ thể, phát <dragon_order action="tame" dragon="tên rồng" rider="tên người" method="feeding|patience|rescue|ritual">mô tả diễn biến tối thiểu 80 ký tự, không tự khẳng định kết quả</dragon_order>. Engine kiểm tra thời gian chờ, tình trạng rồng và tung xác suất; chỉ engine mới có thể tạo liên kết hoặc gán kỵ sĩ. Vẫn được cập nhật Tình Trạng Trứng ("Hóa Đá", "Đang Ấp", "Nứt Vỏ") theo diễn biến.
 - THÊM NPC MỚI: dùng "replace" với path tới tên NPC chưa có, value là object đầy đủ:
     { "op": "replace", "path": "stat_data.Mối Quan Hệ.NPC Chính.Ser Jorah Mormont",
       "value": { "Họ Tên": "Ser Jorah Mormont", "Tuổi": 50, "Độ Hảo Cảm": 10,
@@ -224,6 +222,7 @@ viết bình thường, không JSON):
   Cỗ máy tính số ngày hành quân theo khoảng cách và tốc độ binh chủng. Đừng tự nói quân tới nơi ngay.
 - ĐIỀU RỒNG (rồng có bảng riêng, KHÔNG nằm trong biên chế bộ binh):
   <dragon_order dragon="tên rồng" action="fly|feed|rest" target="regionId (fly/feed)">bối cảnh</dragon_order>
+  Cảm hóa chỉ là một lời thỉnh cầu tới engine, không phải lệnh: <dragon_order dragon="tên rồng" action="tame" rider="tên người" method="feeding|patience|rescue|ritual">diễn biến dài, cụ thể, không kể sẵn kết quả</dragon_order>.
   Rồng bay vẫn mất ngày. Rồng đói thì bất trị và tự đi săn gia súc của dân.
 - NGOẠI GIAO — ĐỔI TRẠNG THÁI PHÁP LÝ giữa ta và một Nhà (tuyên chiến, cầu hoà, kết đồng minh,
   thần phục, nhận thần phục). Đây là việc TRỌNG ĐẠI, chỉ phát khi lời kể thật sự có nghi thức đó:

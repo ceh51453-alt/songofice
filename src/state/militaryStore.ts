@@ -14,7 +14,7 @@ import { useMvuStore } from "./mvuStore";
 import { applyPatch, type PatchOp } from "../mvu/patchEngine";
 import { recruitUnit, moveArmy, hireMercenaries, disbandUnit, extendService } from "../strategy/army";
 import { callBanners, dismissVassal, type BannerResponse } from "../strategy/muster";
-import { flyDragon, feedDragon } from "../strategy/dragons";
+import { attemptDragonTaming, flyDragon, feedDragon, type DragonTamingContext } from "../strategy/dragons";
 import { addSellswordOffer } from "../strategy/sellswords";
 import type { MilitaryTagType } from "../ui/tags/parseNarrative";
 import { startSiege, declareWar, makePeace, adjustWarScore } from "../strategy/war";
@@ -63,6 +63,8 @@ interface MilitaryState {
   flyDragon: (dragonKey: string, targetTerritoryId: string) => { ok: boolean; error?: string; days?: number };
   /** cho rồng ăn từ kho lãnh địa. */
   feedDragon: (dragonKey: string, territoryId: string) => { ok: boolean; error?: string };
+  /** Chỉ engine được phép giải quyết một cảnh cảm hóa có diễn biến và xác suất. */
+  tameDragon: (dragonKey: string, riderName?: string, context?: DragonTamingContext) => { ok: boolean; tamed?: boolean; progress?: number; chance?: number; error?: string };
 
   moveUnit: (unitName: string, targetTerritoryId: string) => { ok: boolean; error?: string; days?: number };
   siege: (unitName: string, targetTerritoryId: string) => { ok: boolean; error?: string };
@@ -149,6 +151,18 @@ export const useMilitaryStore = create<MilitaryState>()((set) => ({
     if (!r.ok) return { ok: false, error: r.error };
     applyEngineOps(r.ops);
     return { ok: true };
+  },
+
+  tameDragon: (dragonKey, riderName, context) => {
+    const stat = useMvuStore.getState().stat;
+    const rider = riderName?.trim() || stat["Thông Tin Nhân Vật"]["Họ Tên"];
+    const r = attemptDragonTaming(stat, dragonKey, rider, context);
+    if (!r.ok) return { ok: false, error: r.error };
+    applyEngineOps(r.ops);
+    pushEvent(r.tamed
+      ? `${rider} đã thuần phục ${dragonKey} sau một mối liên kết dài và nguy hiểm.`
+      : `Nỗ lực cảm hoá ${dragonKey}: liên kết ${r.progress}/100 (cơ hội lần này ${r.chance}%).`);
+    return { ok: true, tamed: r.tamed, progress: r.progress, chance: r.chance };
   },
 
   moveUnit: (unitName, targetTerritoryId) => {
@@ -240,6 +254,11 @@ export const useMilitaryStore = create<MilitaryState>()((set) => ({
           if (action === "feed") {
             const r = store.feedDragon(key, a.target || "");
             notes.push(r.ok ? `Cho ${key} ăn tại ${a.target}` : `Cho rồng ăn thất bại: ${r.error}`);
+          } else if (action === "tame") {
+            const r = store.tameDragon(key, a.rider, { narrative: tag.content, method: a.method });
+            notes.push(r.ok
+              ? (r.tamed ? `${a.rider || "Người chơi"} đã thuần phục ${key}` : `Cảm hoá ${key}: ${r.progress}/100`)
+              : `Cảm hoá rồng thất bại: ${r.error}`);
           } else if (action === "rest") {
             notes.push(`${key} nghỉ ngơi`);
           } else {

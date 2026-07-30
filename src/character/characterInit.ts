@@ -216,6 +216,8 @@ export interface WizardData {
   /** Vị thế trong Nhà (Trực hệ, Nhánh phụ, Bề tôi, Kẻ đánh thuê) */
   houseRole?: "Trực hệ" | "Nhánh phụ" | "Bề tôi" | "Kẻ đánh thuê";
   originId: string;
+  /** Tối đa hai xuất thân; originId vẫn được giữ để tương thích save/preset cũ. */
+  originIds?: string[];
   customOrigin?: OriginDef;
   narrativeMode: "Theo Sát Nguyên Tác" | "Diễn Giải Tự Do";
   scenarioMode: "Người Chơi Là Trung Tâm" | "Người Chơi Là Bối Cảnh";
@@ -296,6 +298,8 @@ export interface WizardData {
     avatarUrl?: string;
   };
   hookId: string;
+  /** Năm bắt đầu tự nhập, không bị giới hạn bởi danh sách hook của Era. */
+  customStartYear?: number;
   /** null = không có rồng (era không hỗ trợ hoặc người chơi không chọn). */
   dragon: DragonWizardData | null;
   /** Quan hệ với nhân vật nguyên tác (tuỳ chọn) */
@@ -312,6 +316,19 @@ export interface WizardData {
   customTerritoryLevel?: number;
   customTerritoryName?: string;
   customTuocVi?: string;
+}
+
+/** Chuẩn hoá lựa chọn xuất thân, vẫn đọc được wizard/save đời cũ chỉ có originId. */
+export function selectedOriginIds(data: Pick<WizardData, "originId" | "originIds">): string[] {
+  const raw = data.originIds?.length ? data.originIds : [data.originId];
+  return [...new Set(raw.filter((id): id is string => typeof id === "string" && id.length > 0))].slice(0, 2);
+}
+
+/** Lấy các xuất thân thực tế, kể cả xuất thân tuỳ chỉnh. Phần tử đầu là xuất thân chính. */
+export function resolveWizardOrigins(data: Pick<WizardData, "originId" | "originIds" | "customOrigin">): OriginDef[] {
+  return selectedOriginIds(data)
+    .map((id) => id === "custom" ? data.customOrigin : ORIGINS_BY_ID[id])
+    .filter((origin): origin is OriginDef => Boolean(origin));
 }
 
 export interface CraftingRequest {
@@ -517,13 +534,15 @@ function applyBase(state: StatData, era: EraData, d: Pick<WizardData, "narrative
 /** Dựng StatData từ wizard (8.6b). */
 export function buildStateFromWizard(d: WizardData): StatData {
   const era = ERAS_BY_ID[d.eraId];
-  const origin: OriginDef = d.originId === "custom" && d.customOrigin ? d.customOrigin : ORIGINS_BY_ID[d.originId];
+  const origins = resolveWizardOrigins(d);
+  const origin = origins[0];
   const cultureDef = CULTURES_BY_ID[d.culture];
-  if (!era || !origin) throw new Error(`Era/Xuất thân không hợp lệ: ${d.eraId}/${d.originId}`);
+  if (!era || !origin) throw new Error(`Era/Xuất thân không hợp lệ: ${d.eraId}/${selectedOriginIds(d).join(", ")}`);
   const hook = era.startingHooks.find((h) => h.id === d.hookId);
-  const actualStartYear = parseHookYear(hook, era.startYear);
+  const actualStartYear = Number.isInteger(d.customStartYear) ? d.customStartYear! : parseHookYear(hook, era.startYear);
   const state = makeDefaultState();
   applyBase(state, era, d, actualStartYear);
+  state["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"] = origins.some((item) => item.id === "time-traveler");
 
   // ---- danh tính ----
   const info = state["Thông Tin Nhân Vật"];
@@ -533,7 +552,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
   }
   
   info["Họ Tên"] = d.name.trim() || "Vô Danh";
-  info["Xuất Thân"] = origin.name;
+  info["Xuất Thân"] = origins.map((item) => item.name).join(" + ");
   info["Tước Vị"] = (d.customTuocVi || origin.tuocVi) as typeof info["Tước Vị"];
   info["Lục Địa"] = d.continent;
   info["Văn Hoá"] = d.culture || "Chưa Rõ";
@@ -597,14 +616,14 @@ export function buildStateFromWizard(d: WizardData): StatData {
   // Tính tổng chỉ số cốt lõi
   for (const stat of CORE_STATS) {
     const pbBase = d.pointBuy[stat] ?? STAT_BASE;
-    const originBonus = origin?.statBonus?.[stat] ?? 0;
+    const originBonus = origins.reduce((sum, item) => sum + (item.statBonus[stat] ?? 0), 0);
     const cultureBonus = cultureDef?.statBonus?.[stat] ?? 0;
     const extraBonus = extraBuffs[stat] ?? 0;
     core[stat] = clamp(pbBase + originBonus + cultureBonus + extraBonus, 1, 20);
   }
 
   // ---- thiên phú: quà xuất thân + chọn; effect VÔ ĐIỀU KIỆN cộng cốt lõi (C1) ----
-  const allTalentIds = [...new Set([...origin.giftTalentIds, ...d.talentIds])];
+  const allTalentIds = [...new Set([...origins.flatMap((item) => item.giftTalentIds), ...d.talentIds])];
   for (const id of allTalentIds) {
     const t = TALENTS_BY_ID[id];
     if (!t) continue;
@@ -620,8 +639,10 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
   // ---- kỹ năng: gói xuất thân + phân bổ (trần 5) + grant thiên phú ----
   const skillLevels: Record<string, number> = {};
-  for (const [skillId, lv] of Object.entries(STARTING_SKILLS_BY_ORIGIN[origin.id] ?? {})) {
-    skillLevels[skillId] = (skillLevels[skillId] ?? 0) + lv;
+  for (const item of origins) {
+    for (const [skillId, lv] of Object.entries(STARTING_SKILLS_BY_ORIGIN[item.id] ?? {})) {
+      skillLevels[skillId] = (skillLevels[skillId] ?? 0) + lv;
+    }
   }
   for (const [skillId, pts] of Object.entries(d.skillAllocations)) {
     skillLevels[skillId] = (skillLevels[skillId] ?? 0) + Math.min(pts, SKILL_MAX_CREATE);
@@ -642,12 +663,17 @@ export function buildStateFromWizard(d: WizardData): StatData {
   }
 
   // ---- trang bị + túi đồ + tài sản (gói xuất thân — ánh xạ state 8.5 Bước 1) ----
-  applyEquipment(state, origin.equipment);
-  for (const item of origin.items) {
-    (state["Túi Đồ"] as Record<string, unknown>)[item.ten] = { "Số Lượng": item.soLuong, "Mô Tả": item.moTa };
+  for (const item of origins) applyEquipment(state, item.equipment);
+  for (const originItem of origins.flatMap((item) => item.items)) {
+    const inventory = state["Túi Đồ"] as Record<string, { "Số Lượng": number; "Mô Tả": string }>;
+    const existing = inventory[originItem.ten];
+    inventory[originItem.ten] = {
+      "Số Lượng": (existing?.["Số Lượng"] ?? 0) + originItem.soLuong,
+      "Mô Tả": existing?.["Mô Tả"] || originItem.moTa,
+    };
   }
   
-  let startingGold = origin.assets.vang;
+  let startingGold = origins.reduce((sum, item) => sum + item.assets.vang, 0);
 
   // Áp dụng trang bị Lore
   if (d.loreEquipmentIds) {
@@ -763,10 +789,10 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
   // ---- danh vọng khởi điểm (Bước 7 / 16.4) ----
   const rep = state["Danh Vọng"];
-  rep["Vinh Dự"] = origin.reputation.vinhDu ?? 0;
-  rep["Nhân Từ"] = origin.reputation.nhanTu ?? 0;
-  rep["Uy Dũng"] = origin.reputation.uyDung ?? 0;
-  rep["Xảo Quyệt"] = origin.reputation.xaoQuyet ?? 0;
+  rep["Vinh Dự"] = origins.reduce((sum, item) => sum + (item.reputation.vinhDu ?? 0), 0);
+  rep["Nhân Từ"] = origins.reduce((sum, item) => sum + (item.reputation.nhanTu ?? 0), 0);
+  rep["Uy Dũng"] = origins.reduce((sum, item) => sum + (item.reputation.uyDung ?? 0), 0);
+  rep["Xảo Quyệt"] = origins.reduce((sum, item) => sum + (item.reputation.xaoQuyet ?? 0), 0);
   
   if (cultureDef && cultureDef.reputationBonus) {
     if (cultureDef.reputationBonus.vinhDu) rep["Vinh Dự"] += cultureDef.reputationBonus.vinhDu;
@@ -811,8 +837,9 @@ export function buildStateFromWizard(d: WizardData): StatData {
       "Nhà": state["Thông Tin Nhân Vật"]["Nhà"] ?? "",
       "Đồn Trú": d.startingLocation || "",
       "Trạng Thái Thu Phục": "Đã Có Chủ",
-      "Mức Độ Thuần Hóa": 85,
-      "Độ Hảo Cảm": { [riderName]: 70 },
+      // Rồng được chọn lúc tạo là mối liên kết đã hình thành từ trước, nên vượt ngưỡng cưỡi 90.
+      "Mức Độ Thuần Hóa": 92,
+      "Độ Hảo Cảm": { [riderName]: 92 },
     });
   }
 
@@ -1245,8 +1272,8 @@ export function buildStateFromCanon(
       "Đồn Trú": loc,
       "Nơi Ổ": loc,
       "Trạng Thái Thu Phục": "Đã Có Chủ",
-      "Mức Độ Thuần Hóa": 85,
-      "Độ Hảo Cảm": { [adjustedC.name]: 70 },
+      "Mức Độ Thuần Hóa": 92,
+      "Độ Hảo Cảm": { [adjustedC.name]: 92 },
     });
   }
 
@@ -1771,6 +1798,7 @@ export function buildInitLoreEntry(state: StatData, era: EraData, hook: Starting
     ...Object.entries(state["Rồng"]).map(([, drg]) =>
       `Rồng: ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi). HP ${drg["_HP"]}/${drg["_HP Tối Đa"]}. ` +
       `Chỉ số: ${DRAGON_STATS.map((s) => `${s} ${drg["Chỉ Số"][s]}`).join(", ")}.`),
+    `Năm bắt đầu thực: ${state["Thế Giới"]["Năm"]} AC.`,
     hook ? `Điểm bắt đầu: ${hook.title} (${hook.year}) — ${hook.desc}` : "",
     crisisDesc ? `KHỦNG HOẢNG HIỆN TẠI (khai triển ngay từ lượt đầu): ${crisisDesc}` : "",
     `Chế độ tường thuật: ${state["Cài Đặt Ván"]["Chế Độ Tường Thuật"]}. Hướng kịch bản: ${state["Cài Đặt Ván"]["Hướng Kịch Bản"]}.`,
@@ -1781,6 +1809,10 @@ export function buildInitLoreEntry(state: StatData, era: EraData, hook: Starting
     `• Ngươi KHÔNG ĐƯỢC nhắc đến, ám chỉ, hay tiên tri về sự kiện tương lai dưới bất kỳ hình thức nào.`,
     `• Kiến thức của mọi nhân vật chỉ giới hạn trong: sự kiện đã xảy ra + tin đồn + truyền thuyết PHÙ HỢP thời kỳ ${era.name}.`,
     `• Nếu người chơi hỏi về sự kiện chưa xảy ra, nhân vật trả lời "không ai biết được" hoặc đưa ra suy đoán hợp lý dựa trên bối cảnh hiện tại.`,
+    `• Rồng hoang không thể bị thuần phục tức thì hoặc bằng cập nhật biến. Mỗi lần cảm hóa phải là một diễn biến riêng bằng <dragon_order action="tame" dragon="tên rồng" rider="tên người" method="feeding|patience|rescue|ritual">mô tả ít nhất 80 ký tự, không kết luận kết quả</dragon_order>. Engine kiểm tra 14 ngày chờ, bối cảnh và tung xác suất; chỉ gán kỵ sĩ khi cả thuần hóa lẫn hảo cảm đạt 95/100.`,
+    state["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"]
+      ? `• Nhân vật là Người Xuyên Không nên được phép thuần phục nhiều rồng, nhưng từng liên kết vẫn phải theo đúng quá trình trên.`
+      : `• Mỗi người chỉ được thuần phục một rồng. Không được gán cùng một kỵ sĩ cho con thứ hai bằng cập nhật biến trực tiếp.`,
   ].filter(Boolean);
 
   return {

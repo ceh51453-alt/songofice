@@ -11,6 +11,7 @@ import type { Dragon } from "../../mvu/schema";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { formatDuration } from "../../mvu/calendar";
 import { dragonPower } from "../../combat/dragon";
+import { DRAGON_TAMING_THRESHOLD } from "../../strategy/dragons";
 import { AnimatedNumber } from "../panels/status/AnimatedNumber";
 import { IconDragon, IconWheat, IconMap, IconSpark } from "../icons";
 
@@ -46,7 +47,7 @@ export function dragonReadiness(d: Dragon): { ready: boolean; reason: string } {
   if ((d["Ngày Hồi Phục Còn Lại"] ?? 0) > 0) return { ready: false, reason: `Dưỡng thương ${formatDuration(d["Ngày Hồi Phục Còn Lại"])}` };
   if (d["Tình Trạng"] === "Đang Hồi Phục") return { ready: false, reason: "Đang hồi phục" };
   if (d["Sẵn Sàng Chiến Đấu"] === false) return { ready: false, reason: "Chưa chịu ra trận" };
-  if (!d["Kỵ Sĩ"] && d["Mức Độ Thuần Hóa"] < 40) return { ready: false, reason: "Chưa thuần, không ai cưỡi được" };
+  if (!d["Kỵ Sĩ"] && d["Mức Độ Thuần Hóa"] < DRAGON_TAMING_THRESHOLD) return { ready: false, reason: `Chưa đủ liên kết để cưỡi (cần ${DRAGON_TAMING_THRESHOLD})` };
   return { ready: true, reason: "Sẵn sàng" };
 }
 

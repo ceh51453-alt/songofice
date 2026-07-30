@@ -8,7 +8,7 @@ import { EXCHANGE_RATES } from "../economy/currency";
 import {
   BUDGETS, CORE_STATS, STAT_BASE, buildStateFromCanon, buildStateFromWizard,
   buildInitLoreEntry, buildOpeningMessage, flawRefund, pointBuySpent, resolveCrisisDesc,
-  talentSlots, validatePointBuy, npcAffinityOffset, mergeWizardData, type WizardData,
+  talentSlots, validatePointBuy, npcAffinityOffset, mergeWizardData, selectedOriginIds, type WizardData,
 } from "./characterInit";
 import { ERAS, ERAS_BY_ID } from "../content/westeros/eras";
 import { availableTalents } from "../content/westeros/talents";
@@ -132,6 +132,21 @@ describe("Gate thiên phú + kỹ năng (8.5 Bước 3-4)", () => {
 });
 
 describe("buildStateFromWizard (8.6b)", () => {
+  it("cho phép năm tự nhập và gộp tối đa hai xuất thân, kể cả Người Xuyên Không", () => {
+    const s = buildStateFromWizard(makeWizard({
+      originId: "knight",
+      originIds: ["knight", "time-traveler"],
+      customStartYear: 268,
+    }));
+    expect(selectedOriginIds(makeWizard({ originIds: ["knight", "knight", "time-traveler"] }))).toEqual(["knight", "time-traveler"]);
+    expect(s["Thế Giới"]["Năm"]).toBe(268);
+    expect(s["Thông Tin Nhân Vật"]["Năm Sinh"]).toBe(243);
+    expect(s["Thông Tin Nhân Vật"]["Xuất Thân"]).toContain("Hiệp Sĩ");
+    expect(s["Thông Tin Nhân Vật"]["Xuất Thân"]).toContain("Người Xuyên Không");
+    expect(s["Chỉ Số Cốt Lõi"]["Trí Tuệ"]).toBe(STAT_BASE + 1);
+    expect(s["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"]).toBe(true);
+  });
+
   it("point-buy + bonus xuất thân cộng SAU; parseEffect thiên phú VÔ ĐIỀU KIỆN cộng cốt lõi", () => {
     const s = buildStateFromWizard(
       makeWizard({

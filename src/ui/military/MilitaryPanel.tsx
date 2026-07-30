@@ -30,7 +30,7 @@ import {
 } from "../../strategy/army";
 import { canCallBanners, musteredStrength } from "../../strategy/muster";
 import { mobilizeAt, homeSupportAt, battleLocation, unitAvailability } from "../../combat/mobilization";
-import { playerDragons, dragonSummary } from "../../strategy/dragons";
+import { playerDragons, dragonSummary, DRAGON_TAMING_THRESHOLD } from "../../strategy/dragons";
 import { GlassButton } from "../components/GlassButton";
 import { GlassSelect } from "../components/GlassSelect";
 import { DragonCard } from "./DragonCard";
@@ -715,7 +715,7 @@ function DragonsTab({ stat }: { stat: Stat }) {
           <IconDragon size={14} /> Nhà ngươi hiện không có con rồng nào.
         </p>
         <p className="mt-1 text-[11.5px] italic text-[var(--text-faint)]">
-          Rồng đến qua huyết thống, trứng nở, hoặc thu phục một con hoang — không phải thứ tuyển ở doanh trại.
+          Rồng đến qua huyết thống, trứng nở, hoặc thu phục một con hoang — không phải thứ tuyển ở doanh trại. Thuần phục cần các diễn biến riêng, cách nhau 14 ngày và xác suất do engine quyết định, tới ${DRAGON_TAMING_THRESHOLD}/100; mỗi người chỉ có một rồng, trừ Người Xuyên Không.
         </p>
       </div>
     );
@@ -738,7 +738,7 @@ function DragonsTab({ stat }: { stat: Stat }) {
       ))}
       <p className="text-[11.5px] italic leading-relaxed text-[var(--text-faint)]">
         Rồng bay đi đâu, ăn gì, đốt ai — tất cả diễn ra qua lời kể: hãy nói ra ý định của ngươi trong cuộc chơi
-        và cỗ máy sẽ tính đường bay, cơn đói và thương tích. Con đang bị xích hoặc đang dưỡng thương không ra trận được.
+        và cỗ máy sẽ tính đường bay, cơn đói và thương tích. Thuần phục là quá trình dài, không thể thành công tức thì; con đang bị xích hoặc đang dưỡng thương không ra trận được.
       </p>
     </div>
   );

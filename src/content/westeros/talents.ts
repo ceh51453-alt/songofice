@@ -195,14 +195,15 @@ export const TALENTS_BY_ID: Record<string, TalentDef> =
 
 /** Lọc thiên phú khả dụng cho một Era + xuất thân + Nhà (dùng ở wizard Bước 3, mục 8.5). */
 export function availableTalents(opts: {
-  eraId: string; eraHasMagic: boolean; originId: string; houseId?: string;
+  eraId: string; eraHasMagic: boolean; originId?: string; originIds?: string[]; houseId?: string;
 }): TalentDef[] {
+  const originIds = new Set(opts.originIds?.length ? opts.originIds : opts.originId ? [opts.originId] : []);
   return ALL_TALENTS.filter(t => {
     if (t.eras && t.eras.length && !t.eras.includes(opts.eraId)) return false;
     if (t.requires) {
       for (const req of t.requires) {
         if (req === "era-magic" && !opts.eraHasMagic) return false;
-        if (req.startsWith("origin:") && req.slice(7) !== opts.originId) return false;
+        if (req.startsWith("origin:") && !originIds.has(req.slice(7))) return false;
         if (req.startsWith("house:") && req.slice(6) !== opts.houseId) return false;
       }
     }

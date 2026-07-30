@@ -914,6 +914,10 @@ export const DragonSchema = z
     "Độ Hảo Cảm": z.record(safeString(), clampedStat(0, 100, 0)).catch({}).prefault({}),
     "Mức Độ Thuần Hóa": clampedStat(0, 100, 0),
     "Trạng Thái Thu Phục": z.enum(["Hoang Dã", "Đang Cảm Hóa", "Đã Có Chủ"]).catch("Hoang Dã").prefault("Hoang Dã"),
+    /** Số lần người chơi đã thật sự thử tạo liên kết; chỉ engine thuần rồng được ghi. */
+    "Số Lần Cảm Hóa": safeInt(0),
+    /** Ngày tuyệt đối của lần cảm hóa gần nhất — ngăn spam một cảnh để ép xác suất. */
+    "_Ngày Cảm Hóa Gần Nhất": safeInt(0),
     "Đặc Tính": z.array(z.enum(["Hung Dữ", "Hiền Hòa", "Lười Biếng", "Khát Máu", "Trung Thành", "Bất Trị"])).catch([]).prefault([]),
     "Đang Bị Xích": z.boolean().catch(false).prefault(false),
     "Nơi Ổ": safeString().optional(),
@@ -1091,6 +1095,8 @@ export const StatDataSchema = z
         "Hướng Kịch Bản": z.enum(["Người Chơi Là Trung Tâm", "Người Chơi Là Bối Cảnh"]).catch("Người Chơi Là Trung Tâm").prefault("Người Chơi Là Trung Tâm"),
         "Độ Khó Chiến Đấu": z.enum(["Nhàn Hạ", "Cân Bằng", "Chân Thực"]).catch("Cân Bằng").prefault("Cân Bằng"),
         "Thời Kỳ": safeString().optional(), // id Era (8.2)
+        /** Chỉ xuất thân Người Xuyên Không mới bật được: một người có thể gắn bó với nhiều rồng. */
+        "Đặc Quyền Đa Kỵ Sĩ": z.boolean().catch(false).prefault(false),
         "$Bối Cảnh Ẩn": safeString().prefault(""), // Bộ nhớ ẩn dành riêng cho AI (mối quan hệ, gia phả, bối cảnh phức tạp)
       })
       .prefault({}),

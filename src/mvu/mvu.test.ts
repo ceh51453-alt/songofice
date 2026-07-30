@@ -122,6 +122,11 @@ describe("extractor (5.4c) — lọc an toàn", () => {
     expect(rejectReason({ op: "replace", path: "stat_data.Chỉ Số Phái Sinh._HP Tối Đa", value: 9999 })).toContain("readonly");
   });
 
+  it("AI không thể tự gán kỵ sĩ hoặc độ thuần hóa cho rồng", () => {
+    expect(rejectReason({ op: "replace", path: "stat_data.Rồng.Drogon.Kỵ Sĩ", value: "Daenerys" })).toContain("không được điều khiển");
+    expect(rejectReason({ op: "delta", path: "stat_data.Rồng.Drogon.Mức Độ Thuần Hóa", value: 100 })).toContain("không được điều khiển");
+  });
+
   it("LỌC op ghi nhãn bậc (engine dẫn xuất)", () => {
     expect(rejectReason({ op: "replace", path: "stat_data.Mối Quan Hệ.NPC Chính.X.Giai Đoạn Quan Hệ", value: "Tri Kỷ" })).toContain("nhãn bậc");
     expect(rejectReason({ op: "replace", path: "stat_data.Mối Quan Hệ.NPC Chính.X.Giai Đoạn Đời", value: "Lão Niên" })).toContain("nhãn bậc");

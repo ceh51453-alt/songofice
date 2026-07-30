@@ -7,7 +7,7 @@ import { useMemo, useRef, useState } from "react";
 import { ERAS, ERAS_BY_ID, parseHookYear, type CanonCharacter, type StartingHook } from "../../content/westeros/eras";
 import { humanAgeLabel } from "../../character/ageSystem";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
-import { ORIGINS, ORIGINS_BY_ID } from "../../content/westeros/origins";
+import { ORIGINS } from "../../content/westeros/origins";
 import { REGIONS } from "../../content/westeros/regions";
 import { availableTalents, TALENTS_BY_ID, type TalentDef } from "../../content/westeros/talents";
 import { availableSkills, type SkillDef } from "../../content/westeros/skills";
@@ -18,7 +18,7 @@ import {
   DRAGON_STAT_BASE, DRAGON_STAT_BUDGET, DRAGON_STAT_MAX_CREATE, DRAGON_STAT_MIN_CREATE,
   DRAGON_SKILL_BUDGET, DRAGON_SKILL_MAX_CREATE,
   buildStateFromCanon, buildStateFromWizard, flawRefund, pointBuySpent, resolveCrisisDesc, talentSlots,
-  mergeWizardData, type Difficulty, type WizardData, type DragonWizardData,
+  mergeWizardData, resolveWizardOrigins, selectedOriginIds, type Difficulty, type WizardData, type DragonWizardData,
 } from "../../character/characterInit";
 import { DRAGON_STATS, DRAGON_SKILLS, DRAGON_SIZES, RELIGIONS, PATRON_GODS, BLOODLINES, type DragonStat, type DragonSkill } from "../../mvu/schema";
 import { startNewGame } from "../../character/startGame";
@@ -43,7 +43,7 @@ const WIZARD_STEPS = 14;
 
 function freshWizard(): WizardData {
   return {
-    eraId: "", houseId: null, houseRole: "Trực hệ", originId: "",
+    eraId: "", houseId: null, houseRole: "Trực hệ", originId: "", originIds: [],
     narrativeMode: "Diễn Giải Tự Do", scenarioMode: "Người Chơi Là Trung Tâm", difficulty: "Cân Bằng",
     continent: "Westeros", culture: "First Men", religion: "Thất Diện Thần", patronGod: "", bloodline: "none", startingLocation: "",
     name: "", age: 25, pointBuy: Object.fromEntries(CORE_STATS.map((s) => [s, STAT_BASE])) as Record<CoreStat, number>,
@@ -105,10 +105,32 @@ export function NewGameFlow() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const era = wiz.eraId ? ERAS_BY_ID[wiz.eraId] : null;
-  const origin = wiz.originId ? ORIGINS_BY_ID[wiz.originId] : null;
+  const originIds = selectedOriginIds(wiz);
+  const origins = resolveWizardOrigins(wiz);
+  const origin = origins[0] ?? null;
   // AI chỉ thường trả về phần thay đổi. Ghép bằng hàm chuẩn để không làm rơi
   // các nhánh persona/gia đình/thế lực mà panel game sẽ đọc.
-  const patch = (p: Partial<WizardData>) => setWiz((w) => mergeWizardData(w, p));
+  const patch = (p: Partial<WizardData>) => setWiz((w) => {
+    const merged = mergeWizardData(w, p);
+    // mergeWizardData bỏ qua undefined để bảo toàn patch AI thiếu field; riêng nút reset năm cần xóa giá trị rõ ràng.
+    return Object.prototype.hasOwnProperty.call(p, "customStartYear") && p.customStartYear === undefined
+      ? { ...merged, customStartYear: undefined }
+      : merged;
+  });
+
+  function toggleOrigin(originId: string): void {
+    const selected = selectedOriginIds(wiz);
+    const nextIds = selected.includes(originId)
+      ? selected.filter((id) => id !== originId)
+      : selected.length >= 2
+        ? selected
+        : originId === "time-traveler"
+          ? [...selected, originId]
+          : selected.includes("time-traveler")
+            ? [originId, "time-traveler"]
+            : [...selected, originId];
+    patch({ originId: nextIds[0] ?? "", originIds: nextIds });
+  }
 
   // preview realtime (8.5) — dựng lại state nháp mỗi khi wizard đổi
   const previewState = useMemo(() => {
@@ -616,7 +638,10 @@ export function NewGameFlow() {
               </div>
             )}
 
-            <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Xuất thân</span>
+            <div className="mb-1.5 flex items-baseline justify-between gap-3">
+              <span className="block text-[13px] text-[var(--text-muted)]">Xuất thân</span>
+              <span className="text-[11.5px] text-[var(--accent-text)]">Chọn tối đa 2 · xuất thân đầu là chính</span>
+            </div>
             <div className="grid gap-2 sm:grid-cols-2">
               {ORIGINS.filter((o) => {
                 const essosOrigins = ["dothraki-rider", "braavosi-bravo", "magister-heir"];
@@ -625,7 +650,7 @@ export function NewGameFlow() {
                 if (wiz.continent === "Essos" && westerosOnly.includes(o.id)) return false;
                 return true;
               }).map((o) => (
-                <Card key={o.id} selected={wiz.originId === o.id} onClick={() => patch({ originId: o.id })}>
+                <Card key={o.id} selected={originIds.includes(o.id)} onClick={() => toggleOrigin(o.id)}>
                   <span className="text-[14px] text-[var(--text-soft)]">{o.name} <span className="text-[12px] opacity-70">[{o.tuocVi}]</span></span>
                   <span className="block mt-0.5 text-[12px] leading-relaxed text-[var(--text-faint)]">{o.desc}</span>
                   <span className="block mt-1 text-[11.5px] text-[var(--accent-text)]">
@@ -633,7 +658,7 @@ export function NewGameFlow() {
                   </span>
                 </Card>
               ))}
-              <Card selected={wiz.originId === "custom"} onClick={() => patch({ originId: "custom" })}>
+              <Card selected={originIds.includes("custom")} onClick={() => toggleOrigin("custom")}>
                 <span className="text-[14px] text-[var(--accent-text)]">Tùy Chỉnh (Tạo bằng AI)</span>
                 <span className="block mt-0.5 text-[12px] leading-relaxed text-[var(--text-faint)]">
                   {wiz.customOrigin ? wiz.customOrigin.desc : "Hãy dùng Trợ lý AI bên dưới để tạo chi tiết xuất thân của bạn."}
@@ -646,7 +671,7 @@ export function NewGameFlow() {
               </Card>
             </div>
             
-            {wiz.originId === "custom" && (
+            {originIds.includes("custom") && (
               <CustomOriginEditor
                 origin={wiz.customOrigin}
                 onChange={(o) => patch({ customOrigin: o })}
@@ -696,7 +721,7 @@ export function NewGameFlow() {
               )}
             </div>
 
-            <NavButtons onBack={back} onNext={wiz.originId ? next : undefined} blockedReason="Hãy chọn một Xuất Thân" />
+            <NavButtons onBack={back} onNext={originIds.length > 0 ? next : undefined} blockedReason="Hãy chọn ít nhất một Xuất Thân" />
           </div>
         );
       }
@@ -880,7 +905,8 @@ export function NewGameFlow() {
       }
 
       case 3: {
-        const budget = getCalculatedBudgets(wiz.difficulty, wiz.age).pointBuy + flawRefund(wiz.talentIds);
+        const originPointBuy = origins.reduce((sum, item) => sum + item.extraPointBuy, 0);
+        const budget = getCalculatedBudgets(wiz.difficulty, wiz.age).pointBuy + originPointBuy + flawRefund(wiz.talentIds);
         const spent = pointBuySpent(wiz.pointBuy, wiz.loreEquipmentIds);
         const setStat = (s: CoreStat, delta: number) => {
           const v = (wiz.pointBuy[s] ?? STAT_BASE) + delta;
@@ -895,7 +921,7 @@ export function NewGameFlow() {
             <div className="space-y-2">
               {CORE_STATS.map((s) => {
                 const v = wiz.pointBuy[s] ?? STAT_BASE;
-                const bonus = origin?.statBonus[s] ?? 0;
+                const bonus = origins.reduce((sum, item) => sum + (item.statBonus[s] ?? 0), 0);
                 return (
                   <div key={s} className="glass flex items-center gap-3 px-4 py-2.5">
                     <span className="w-28 text-[13.5px] text-[var(--text-soft)]">{s}</span>
@@ -913,8 +939,8 @@ export function NewGameFlow() {
       }
 
       case 4: {
-        const pool = availableTalents({ eraId: wiz.eraId, eraHasMagic: era?.hasMagic ?? false, originId: wiz.originId, houseId: wiz.houseId ?? undefined });
-        const gifts = new Set(origin?.giftTalentIds ?? []);
+        const pool = availableTalents({ eraId: wiz.eraId, eraHasMagic: era?.hasMagic ?? false, originIds, houseId: wiz.houseId ?? undefined });
+        const gifts = new Set(origins.flatMap((item) => item.giftTalentIds));
         const slots = talentSlots(wiz.difficulty, wiz.talentIds);
         const toggle = (t: TalentDef) => {
           if (wiz.talentIds.includes(t.id)) {
@@ -929,9 +955,9 @@ export function NewGameFlow() {
           <div>
             <StepHeader step={stepLabel} title="Chọn Thiên Phú"
               hint={`${slots.used}/${slots.max} thiên phú tích cực · nhận Khiếm Khuyết = +1 slot & hoàn điểm point-buy · ma thuật gate theo Era/Nhà/xuất thân`} />
-            {(origin?.giftTalentIds.length ?? 0) > 0 && (
+            {gifts.size > 0 && (
               <span className="block mb-3 text-[12.5px] text-[var(--accent-text)]">
-                Quà xuất thân: {origin!.giftTalentIds.map((id) => TALENTS_BY_ID[id]?.name).filter(Boolean).join(", ")}
+                Quà xuất thân: {[...gifts].map((id) => TALENTS_BY_ID[id]?.name).filter(Boolean).join(", ")}
               </span>
             )}
             <div className="space-y-4">
@@ -961,7 +987,7 @@ export function NewGameFlow() {
 
       case 5: {
         const budget = getCalculatedBudgets(wiz.difficulty, wiz.age).skillPoints;
-        const pool = availableSkills({ eraHasMagic: era?.hasMagic ?? false, chosenTalentIds: wiz.talentIds });
+        const pool = availableSkills({ eraHasMagic: era?.hasMagic ?? false, chosenTalentIds: [...new Set([...origins.flatMap((item) => item.giftTalentIds), ...wiz.talentIds])] });
         const spent = Object.values(wiz.skillAllocations).reduce((s, v) => s + v, 0);
         const setSkill = (id: string, delta: number) => {
           const v = (wiz.skillAllocations[id] ?? 0) + delta;
@@ -1301,9 +1327,13 @@ export function NewGameFlow() {
         );
 
       case 11:
+        const eraYear = era?.startYear ?? 0;
+        const hookYear = era?.startingHooks.find((hook) => hook.id === wiz.hookId)?.numericYear
+          ?? parseHookYear(era?.startingHooks.find((hook) => hook.id === wiz.hookId), eraYear);
+        const startYear = wiz.customStartYear ?? hookYear;
         return (
           <div>
-            <StepHeader step={stepLabel} title="Điểm Bắt Đầu" hint="Tình huống mở màn — AI dựng cảnh từ đây." />
+            <StepHeader step={stepLabel} title="Điểm Bắt Đầu" hint="Tình huống mở màn và năm bắt đầu — không bị giới hạn bởi các kịch bản có sẵn." />
             <div className="space-y-2">
               <Card selected={wiz.hookId === "ai-random"} onClick={() => patch({ hookId: "ai-random" })}>
                 <span className="text-[13.5px] text-[var(--accent-text)]">Để AI sinh hook hợp hồ sơ</span>
@@ -1312,19 +1342,50 @@ export function NewGameFlow() {
               {era?.startingHooks
                 .filter((h) => !h.mode || h.mode === wiz.narrativeMode)
                 .map((h) => (
-                  <Card key={h.id} selected={wiz.hookId === h.id} onClick={() => patch({ hookId: h.id })}>
+                  <Card key={h.id} selected={wiz.hookId === h.id} onClick={() => patch({ hookId: h.id, customStartYear: h.numericYear ?? parseHookYear(h, eraYear) })}>
                     <span className="text-[13.5px] text-[var(--text-soft)]">{h.title}</span>
                     <span className="ml-2 text-[12px] text-[var(--accent-text)]">{h.year}</span>
                     <span className="block mt-0.5 text-[12.5px] text-[var(--text-muted)]">{h.desc}</span>
                   </Card>
                 ))}
             </div>
+            <div className="mt-4 glass p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="text-[13px] text-[var(--text-soft)]" htmlFor="custom-start-year">Năm bắt đầu tùy chỉnh</label>
+                <span className="font-mono text-[14px] text-[var(--accent-text)]">{startYear} AC</span>
+              </div>
+              <input
+                id="custom-start-year"
+                type="number"
+                inputMode="numeric"
+                value={wiz.customStartYear ?? ""}
+                placeholder={`Mặc định ${hookYear} AC`}
+                onChange={(e) => {
+                  const value = e.target.value.trim();
+                  patch({ customStartYear: value === "" ? undefined : Number.isFinite(Number(value)) ? Math.trunc(Number(value)) : undefined });
+                }}
+                className="mt-2 w-full rounded border border-[var(--glass-border)] bg-[rgba(0,0,0,0.35)] px-3 py-2 text-[13px] text-[var(--text-soft)] outline-none focus:border-[var(--accent)]"
+              />
+              <div className="mt-2 flex flex-wrap gap-2">
+                {[eraYear - 30, eraYear, eraYear + 30].map((year) => (
+                  <GlassButton key={year} size="sm" onClick={() => patch({ customStartYear: year })}>
+                    {year} AC{year === eraYear ? " · mốc Era" : year < eraYear ? " · trước 30 năm" : " · sau 30 năm"}
+                  </GlassButton>
+                ))}
+                {wiz.customStartYear !== undefined && (
+                  <GlassButton size="sm" onClick={() => patch({ customStartYear: undefined })}>Dùng năm kịch bản</GlassButton>
+                )}
+              </div>
+              <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--text-faint)]">
+                Bạn có thể nhập bất kỳ năm AC nào. Các nút nhanh cho phép bắt đầu khoảng 30 năm trước hoặc sau mốc Era; năm tùy chỉnh luôn được ưu tiên hơn năm của kịch bản.
+              </p>
+            </div>
             <NavButtons onBack={back} onNext={next} />
           </div>
         );
 
       case 12: {
-        const canHaveTerritory = !!origin?.assets.lanhDia || ["lord-heir", "landed-knight", "minor-lord"].includes(wiz.originId);
+        const canHaveTerritory = origins.some((item) => !!item.assets.lanhDia || ["lord-heir", "landed-knight", "minor-lord"].includes(item.id));
         if (!canHaveTerritory) {
           // If cannot have territory, skip automatically to the next step
           return (
@@ -1368,7 +1429,7 @@ export function NewGameFlow() {
                     <div className="flex gap-2">
                       {[1, 2, 3].map((lvl) => {
                         const cost = lvl === 3 ? 3000 : lvl === 2 ? 1000 : 0;
-                        const canAfford = (origin?.assets.vang ?? 0) >= cost;
+                        const canAfford = origins.reduce((sum, item) => sum + item.assets.vang, 0) >= cost;
                         return (
                           <Card 
                             key={lvl} 
@@ -1385,7 +1446,7 @@ export function NewGameFlow() {
                       })}
                     </div>
                     <span className="block mt-1.5 text-[11px] text-[var(--text-muted)] italic">
-                      Cấp càng cao, dân số và tài nguyên khởi điểm càng nhiều, quy mô thành phố càng lớn. Ngân khố: {origin?.assets.vang ?? 0} Vàng.
+                      Cấp càng cao, dân số và tài nguyên khởi điểm càng nhiều, quy mô thành phố càng lớn. Ngân khố: {origins.reduce((sum, item) => sum + item.assets.vang, 0)} Vàng.
                     </span>
                   </div>
                 </div>
@@ -1407,7 +1468,7 @@ export function NewGameFlow() {
             <WizardEquipment
               wiz={wiz}
               patch={patch}
-              gold={(origin?.assets.vang ?? 0) - (wiz.hasCustomTerritory ? (wiz.customTerritoryLevel === 3 ? 3000 : wiz.customTerritoryLevel === 2 ? 1000 : 0) : 0)}
+              gold={origins.reduce((sum, item) => sum + item.assets.vang, 0) - (wiz.hasCustomTerritory ? (wiz.customTerritoryLevel === 3 ? 3000 : wiz.customTerritoryLevel === 2 ? 1000 : 0) : 0)}
             />
             <div className="mt-4">
               <NavButtons onBack={back} onNext={next} />

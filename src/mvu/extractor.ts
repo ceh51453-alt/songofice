@@ -46,6 +46,17 @@ export function rejectReason(op: PatchOp): string | null {
   if (parts.some((p) => p.startsWith("_"))) return `path chạm field readonly "_": ${op.path}`;
   const last = parts[parts.length - 1];
   if (DERIVED_LABEL_FIELDS.includes(last)) return `nhãn bậc do engine dẫn xuất: ${last}`;
+  if (parts[0] === "Cài Đặt Ván" && last === "Đặc Quyền Đa Kỵ Sĩ") {
+    return "đặc quyền đa kỵ sĩ chỉ được xác lập khi tạo nhân vật với xuất thân Người Xuyên Không";
+  }
+  // AI chỉ được KỂ một diễn biến cảm hóa và phát <dragon_order action="tame">.
+  // Các trường quyết định quyền sở hữu/liên kết tuyệt đối không nhận cập nhật trực tiếp.
+  const dragonTamingFields = new Set([
+    "Kỵ Sĩ", "Mức Độ Thuần Hóa", "Trạng Thái Thu Phục", "Độ Hảo Cảm", "Số Lần Cảm Hóa", "_Ngày Cảm Hóa Gần Nhất",
+  ]);
+  if (parts[0] === "Rồng" && (parts.length <= 2 || dragonTamingFields.has(last))) {
+    return "AI không được điều khiển việc thuần rồng trực tiếp; phải kể diễn biến và dùng <dragon_order action=\"tame\"> để engine tung xác suất";
+  }
   // Chủ quyền vùng do ENGINE giữ (vây thành/ngoại giao) — AI đổi chủ qua thẻ
   // <territory_change>, không ghi thẳng vào bảng (9.5.1).
   if (parts[0] === "Chủ Quyền Lãnh Thổ") return "chủ quyền vùng do engine giữ (dùng <territory_change>)";

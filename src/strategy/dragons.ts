@@ -17,6 +17,144 @@ import { registerDailyListener, registerMonthlyListener } from "../mvu/effects";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { calcMapDistance } from "./army";
 import { playerHouseId } from "../territory/territoryEngine";
+import { absoluteDay } from "../mvu/calendar";
+
+/** Một mối liên kết cực sâu mới cho phép cưỡi rồng. */
+export const DRAGON_TAMING_THRESHOLD = 95;
+/** Mỗi cảnh cảm hóa là một diễn biến riêng, không thể spam trong cùng một khoảng thời gian. */
+export const DRAGON_TAMING_COOLDOWN_DAYS = 14;
+export const MIN_TAMING_NARRATIVE_LENGTH = 80;
+
+export const DRAGON_TAMING_METHODS = ["feeding", "patience", "rescue", "ritual"] as const;
+export type DragonTamingMethod = (typeof DRAGON_TAMING_METHODS)[number];
+
+export interface DragonTamingContext {
+  /** Diễn biến thật sự dẫn tới lần thử này; AI không được tự kể sẵn kết quả. */
+  narrative?: string;
+  /** Cách tiếp cận được chọn cho diễn biến. */
+  method?: string;
+}
+
+/** Rồng càng lớn, già và hung dữ càng khó để tạo liên kết. */
+export function dragonTamingDifficulty(d: Dragon): number {
+  const size = d["Kích Cỡ"] === "Khổng Lồ (Balerion-class)" ? 30 : d["Kích Cỡ"] === "Trưởng Thành" ? 16 : 0;
+  const age = Math.min(20, Math.floor((d["Tuổi"] ?? 1) / 8));
+  const traits = d["Đặc Tính"] ?? [];
+  const temperament = (traits.includes("Hung Dữ") ? 12 : 0)
+    + (traits.includes("Khát Máu") ? 16 : 0)
+    + (traits.includes("Bất Trị") ? 22 : 0)
+    - (traits.includes("Hiền Hòa") ? 10 : 0)
+    - (traits.includes("Trung Thành") ? 6 : 0);
+  return Math.max(35, 55 + size + age + temperament);
+}
+
+/** Trừ người xuyên không, mỗi người chỉ có thể gắn bó với đúng một con rồng. */
+export function canRiderTameDragon(state: StatData, riderName: string, excludingDragonKey?: string): { ok: boolean; error?: string } {
+  if (state["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"]) return { ok: true };
+  const alreadyRides = Object.entries(state["Rồng"] ?? {}).some(([key, dragon]) =>
+    key !== excludingDragonKey && dragon["Kỵ Sĩ"] === riderName && dragon["Trạng Thái Thu Phục"] === "Đã Có Chủ",
+  );
+  return alreadyRides
+    ? { ok: false, error: `${riderName} đã có rồng. Chỉ Người Xuyên Không mới được thuần phục nhiều hơn một con.` }
+    : { ok: true };
+}
+
+/**
+ * Thử cảm hoá một con rồng hoang. Đây là một cảnh có điều kiện, thời gian chờ và
+ * xác suất riêng; lời kể chỉ tạo cơ hội, không được quyết định kết quả hay kỵ sĩ.
+ */
+export function attemptDragonTaming(
+  state: StatData,
+  dragonKey: string,
+  riderName: string,
+  context: DragonTamingContext = {},
+  roll = Math.random(),
+): { ok: boolean; tamed?: boolean; progress?: number; chance?: number; error?: string; ops: PatchOp[] } {
+  const dragon = state["Rồng"]?.[dragonKey];
+  if (!dragon) return { ok: false, error: "Không tìm thấy rồng", ops: [] };
+  if (dragon["_HP"] <= 0) return { ok: false, error: "Rồng đã chết", ops: [] };
+  if (dragon["Kỵ Sĩ"] && dragon["Kỵ Sĩ"] !== riderName) return { ok: false, error: `${dragon["Tên"]} đã có kỵ sĩ khác`, ops: [] };
+
+  const narrative = context.narrative?.trim() ?? "";
+  if (narrative.length < MIN_TAMING_NARRATIVE_LENGTH) {
+    return { ok: false, error: `Cần một diễn biến cảm hóa cụ thể (ít nhất ${MIN_TAMING_NARRATIVE_LENGTH} ký tự), không phải lệnh thuần phục.`, ops: [] };
+  }
+  if (/\b(đã\s+(?:thuần phục|khuất phục|có chủ)|trở thành kỵ sĩ|became\s+(?:its\s+)?rider)\b/i.test(narrative)) {
+    return { ok: false, error: "Diễn biến không được tự khẳng định rồng đã bị thuần phục; kết quả do engine tung xác suất.", ops: [] };
+  }
+  const method = context.method?.trim().toLowerCase() as DragonTamingMethod | undefined;
+  if (!method || !DRAGON_TAMING_METHODS.includes(method)) {
+    return { ok: false, error: "Cảnh cảm hóa phải nêu method: feeding, patience, rescue hoặc ritual.", ops: [] };
+  }
+
+  const riderCheck = canRiderTameDragon(state, riderName, dragonKey);
+  if (!riderCheck.ok) return { ok: false, error: riderCheck.error, ops: [] };
+
+  const bond = dragon["Độ Hảo Cảm"]?.[riderName] ?? 0;
+  const tame = dragon["Mức Độ Thuần Hóa"] ?? 0;
+  if (dragon["Trạng Thái Thu Phục"] === "Đã Có Chủ" && dragon["Kỵ Sĩ"] === riderName) {
+    return { ok: false, error: `${dragon["Tên"]} đã là rồng của ${riderName}`, ops: [] };
+  }
+
+  const today = absoluteDay(state["Thế Giới"]);
+  const lastAttempt = dragon["_Ngày Cảm Hóa Gần Nhất"] ?? 0;
+  const daysSinceAttempt = lastAttempt > 0 ? today - lastAttempt : Number.POSITIVE_INFINITY;
+  if (daysSinceAttempt < DRAGON_TAMING_COOLDOWN_DAYS) {
+    return {
+      ok: false,
+      error: `${dragon["Tên"]} cần thời gian lắng dịu thêm ${DRAGON_TAMING_COOLDOWN_DAYS - daysSinceAttempt} ngày trước một diễn biến cảm hóa mới.`,
+      ops: [],
+    };
+  }
+  if ((dragon["Độ Đói"] ?? 0) > 40 && method !== "feeding") {
+    return { ok: false, error: `${dragon["Tên"]} đang đói và bất trị; diễn biến tiếp theo phải là feeding, không phải cưỡi hay nghi thức.`, ops: [] };
+  }
+  if (bond < 20 && !["feeding", "patience"].includes(method)) {
+    return { ok: false, error: "Khi rồng chưa biết người này, chỉ có feeding hoặc patience mới là bước mở đầu đáng tin.", ops: [] };
+  }
+  if (dragon["Tình Trạng"] !== "Khỏe" && method !== "rescue") {
+    return { ok: false, error: "Rồng đang bị thương hoặc kiệt sức; cần một diễn biến rescue trước khi tìm cách tạo liên kết.", ops: [] };
+  }
+
+  const difficulty = dragonTamingDifficulty(dragon);
+  const hungerPenalty = Math.max(0, (dragon["Độ Đói"] ?? 0) - 20) / 2;
+  const attempts = dragon["Số Lần Cảm Hóa"] ?? 0;
+  const methodBonus = method === "feeding" ? 5 : method === "patience" ? 4 : method === "rescue" ? 7 : 2;
+  // Xác suất cố tình thấp: diễn biến tốt chỉ giúp một chút, còn mối liên kết dài lâu mới quan trọng.
+  const chance = Math.max(3, Math.min(45, Math.round(
+    12 - difficulty / 7 + tame / 5 + bond / 4 + Math.min(6, attempts) + methodBonus - hungerPenalty,
+  )));
+  const normalizedRoll = Math.max(0, Math.min(0.999999, roll));
+  const basePath = `stat_data.Rồng.${dragonKey}`;
+  const attemptOps: PatchOp[] = [
+    { op: "replace", path: `${basePath}.Số Lần Cảm Hóa`, value: attempts + 1 },
+    { op: "replace", path: `${basePath}._Ngày Cảm Hóa Gần Nhất`, value: today },
+  ];
+
+  if (normalizedRoll * 100 >= chance) {
+    return {
+      ok: true, tamed: false, progress: tame, chance,
+      ops: [
+        ...attemptOps,
+        { op: "replace", path: `${basePath}.Trạng Thái Thu Phục`, value: "Đang Cảm Hóa" },
+        { op: "replace", path: `${basePath}.Mức Độ Thuần Hóa`, value: Math.max(0, tame - 6) },
+        { op: "replace", path: `${basePath}.Độ Hảo Cảm.${riderName}`, value: Math.max(0, bond - 8) },
+      ],
+    };
+  }
+
+  const nextTame = Math.min(100, tame + 2 + Math.floor(normalizedRoll * 4) + (method === "rescue" ? 1 : 0));
+  const nextBond = Math.min(100, bond + 3 + Math.floor(normalizedRoll * 5) + (method === "patience" ? 1 : 0));
+  const tamed = nextTame >= DRAGON_TAMING_THRESHOLD && nextBond >= DRAGON_TAMING_THRESHOLD;
+  const ops: PatchOp[] = [
+    ...attemptOps,
+    { op: "replace", path: `${basePath}.Trạng Thái Thu Phục`, value: tamed ? "Đã Có Chủ" : "Đang Cảm Hóa" },
+    { op: "replace", path: `${basePath}.Mức Độ Thuần Hóa`, value: nextTame },
+    { op: "replace", path: `${basePath}.Độ Hảo Cảm.${riderName}`, value: nextBond },
+  ];
+  if (tamed) ops.push({ op: "replace", path: `${basePath}.Kỵ Sĩ`, value: riderName });
+  return { ok: true, tamed, progress: nextTame, chance, ops };
+}
 
 /** Ngưỡng TUỔI để rồng lên kích cỡ kế tiếp (7.15 mở rộng). */
 export const DRAGON_GROWTH_AGE: Record<DragonSize, number> = {
@@ -52,6 +190,8 @@ export function newDragon(fields: Partial<Dragon> = {}): Dragon {
     "Độ Hảo Cảm": {},
     "Mức Độ Thuần Hóa": 0,
     "Trạng Thái Thu Phục": "Hoang Dã",
+    "Số Lần Cảm Hóa": 0,
+    "_Ngày Cảm Hóa Gần Nhất": 0,
     "Đặc Tính": [],
     "Đang Bị Xích": false,
     "Nơi Ổ": undefined,

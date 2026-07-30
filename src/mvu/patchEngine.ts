@@ -76,6 +76,27 @@ export interface ApplyPatchResult {
   changedPaths: string[];
 }
 
+/** Luật thế giới: một người chỉ có một rồng, trừ khi ván được khởi tạo cho Người Xuyên Không. */
+function enforceDragonRiderLimit(state: StatData, warnings: PatchWarning[]): void {
+  if (state["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"]) return;
+  const riderDragon = new Map<string, string>();
+  for (const [dragonKey, dragon] of Object.entries(state["Rồng"] ?? {})) {
+    const rider = dragon["Kỵ Sĩ"]?.trim();
+    if (!rider || dragon["Trạng Thái Thu Phục"] !== "Đã Có Chủ") continue;
+    const firstDragon = riderDragon.get(rider);
+    if (!firstDragon) {
+      riderDragon.set(rider, dragonKey);
+      continue;
+    }
+    dragon["Kỵ Sĩ"] = undefined;
+    dragon["Trạng Thái Thu Phục"] = (dragon["Mức Độ Thuần Hóa"] ?? 0) > 0 ? "Đang Cảm Hóa" : "Hoang Dã";
+    warnings.push({
+      op: { op: "replace", path: `stat_data.Rồng.${dragonKey}.Kỵ Sĩ` },
+      reason: `${rider} đã gắn bó với ${firstDragon}; chỉ Người Xuyên Không mới có thể thuần phục nhiều rồng`,
+    });
+  }
+}
+
 /**
  * Áp danh sách op vào state (trên bản deep-clone — không mutate input),
  * rồi validate + tự phục hồi. KHÔNG BAO GIỜ throw vì dữ liệu AI.
@@ -158,6 +179,7 @@ export function applyPatch(state: StatData, ops: PatchOp[]): ApplyPatchResult {
   // validate + tự phục hồi (prefault/catch trong schema tự sửa field lỗi)
   const result = StatDataSchema.safeParse(draft);
   if (result.success) {
+    enforceDragonRiderLimit(result.data, warnings);
     for (const w of warnings) log.warn(`Op bị bỏ: ${w.reason}`, w.op);
     return { state: result.data, warnings, changedPaths };
   }

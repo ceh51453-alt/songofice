@@ -9,7 +9,7 @@ import { applyPatch } from "../mvu/patchEngine";
 import {
   newDragon, playerDragons, battleReadyDragons, dragonSummary, migrateDragonUnits,
   sizeForAge, wingspanOf, monthlyRation, tickDragonsDaily, tickDragonsMonthly, flyDragon,
-  feedDragon, dragonFlightDays,
+  feedDragon, dragonFlightDays, attemptDragonTaming, canRiderTameDragon, DRAGON_TAMING_THRESHOLD,
 } from "./dragons";
 import { seedRegionControl } from "../territory/territoryEngine";
 
@@ -29,6 +29,54 @@ function targaryen(): StatData {
 }
 
 describe("Rồng tách khỏi biên chế bộ binh (M19)", () => {
+  it("thuần phục cần liên kết cao và một kỵ sĩ chỉ có một rồng, trừ Người Xuyên Không", () => {
+    const s = targaryen();
+    s["Rồng"]["Balerion"] = newDragon({
+      "Tên": "Balerion", "Kỵ Sĩ": "Aegon Targaryen", "Trạng Thái Thu Phục": "Đã Có Chủ", "Mức Độ Thuần Hóa": 95,
+    });
+    s["Rồng"]["Meraxes"] = newDragon({ "Tên": "Meraxes", "Mức Độ Thuần Hóa": 98, "Độ Hảo Cảm": { "Aegon Targaryen": 98 } });
+
+    expect(canRiderTameDragon(s, "Aegon Targaryen", "Meraxes").ok).toBe(false);
+    expect(attemptDragonTaming(s, "Meraxes", "Aegon Targaryen", { narrative: "Aegon kiên nhẫn đặt những con dê trước hang, lùi xa khỏi mùi lửa và quay lại nhiều ngày liền để Meraxes nhận ra giọng nói cùng sự hiện diện của mình.", method: "feeding" }, 0).ok).toBe(false);
+
+    s["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"] = true;
+    const attempt = attemptDragonTaming(s, "Meraxes", "Aegon Targaryen", { narrative: "Aegon kiên nhẫn đặt những con dê trước hang, lùi xa khỏi mùi lửa và quay lại nhiều ngày liền để Meraxes nhận ra giọng nói cùng sự hiện diện của mình.", method: "feeding" }, 0);
+    expect(attempt.ok).toBe(true);
+    expect(attempt.tamed).toBe(true);
+    expect(attempt.progress).toBeGreaterThanOrEqual(DRAGON_TAMING_THRESHOLD);
+    const claimed = applyPatch(s, attempt.ops).state;
+    expect(claimed["Rồng"]["Meraxes"]["Kỵ Sĩ"]).toBe("Aegon Targaryen");
+  });
+
+  it("cảm hóa phải có diễn biến, tỉ lệ thấp và thời gian chờ — AI không thể spam lệnh", () => {
+    const s = targaryen();
+    s["Rồng"]["Silverwing"] = newDragon({
+      "Tên": "Silverwing", "Mức Độ Thuần Hóa": 50, "Độ Hảo Cảm": { "Aegon Targaryen": 50 },
+    });
+    expect(attemptDragonTaming(s, "Silverwing", "Aegon Targaryen", { method: "feeding", narrative: "quá ngắn" }, 0).ok).toBe(false);
+
+    const context = {
+      method: "feeding",
+      narrative: "Aegon mang dê tươi đến mép hang trong nhiều buổi chiều, luôn để lại khoảng cách an toàn và rút lui khi Silverwing gầm lên, để nó tự chọn lúc đến gần và nhận mùi của chàng.",
+    };
+    const first = attemptDragonTaming(s, "Silverwing", "Aegon Targaryen", context, 0);
+    expect(first.ok).toBe(true);
+    expect(first.chance).toBeLessThanOrEqual(45);
+
+    const after = applyPatch(s, first.ops).state;
+    expect(attemptDragonTaming(after, "Silverwing", "Aegon Targaryen", context, 0).error).toContain("lắng dịu");
+  });
+
+  it("patch trực tiếp không thể gán hai rồng cho cùng một người nếu không có đặc quyền", () => {
+    const s = targaryen();
+    s["Rồng"]["Balerion"] = newDragon({ "Tên": "Balerion", "Kỵ Sĩ": "Aegon", "Trạng Thái Thu Phục": "Đã Có Chủ", "Mức Độ Thuần Hóa": 95 });
+    s["Rồng"]["Meraxes"] = newDragon({ "Tên": "Meraxes", "Kỵ Sĩ": "Aegon", "Trạng Thái Thu Phục": "Đã Có Chủ", "Mức Độ Thuần Hóa": 95 });
+    const { state, warnings } = applyPatch(s, []);
+    expect(state["Rồng"]["Balerion"]["Kỵ Sĩ"]).toBe("Aegon");
+    expect(state["Rồng"]["Meraxes"]["Kỵ Sĩ"]).toBeUndefined();
+    expect(warnings.some((warning) => warning.reason.includes("chỉ Người Xuyên Không"))).toBe(true);
+  });
+
   it("save cũ nhét rồng vào Biên Chế → migrate về bảng Rồng, không đếm hai lần", () => {
     const s = targaryen();
     const withOld = applyPatch(s, [{

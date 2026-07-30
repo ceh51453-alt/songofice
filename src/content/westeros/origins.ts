@@ -368,6 +368,18 @@ export const ORIGINS: OriginDef[] = [
     reputation: { vinhDu: 8, uyDung: 5 },
     ghiChu: "Hoàn hảo cho người chơi chọn làm Cận vệ / Chư hầu",
     tuocVi: "Hiệp Sĩ",
+  },
+  {
+    id: "time-traveler", name: "Người Xuyên Không",
+    desc: "Ngươi mang ký ức và trực giác không thuộc về thời đại này. Đây là xuất thân phụ đặc biệt: chỉ người xuyên không mới có thể tạo liên kết với nhiều hơn một con rồng.",
+    statBonus: { "Trí Tuệ": 1, "Tinh Tường": 1 }, extraPointBuy: 0,
+    giftTalentIds: [],
+    equipment: [],
+    items: [],
+    assets: { vang: 0, luongThuc: 0, thuNhapKy: 0, chiPhiKy: 0, moTa: "Không có tài sản riêng; giá trị nằm ở ký ức khác thời" },
+    reputation: {},
+    ghiChu: "Nên chọn kèm một xuất thân thông thường. Bật đặc quyền thuần phục nhiều rồng.",
+    tuocVi: "Thường Dân",
   }
 ];
 
