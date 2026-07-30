@@ -56,7 +56,7 @@ RULES:
 - Only use INSERT INTO / UPDATE / DELETE FROM.
 - Each statement ends with semicolon (;).
 - UPDATE and DELETE MUST have WHERE clause.
-- Use delta expressions for numbers: hp = hp - 10, vang = vang + 200.
+- Use delta expressions for numbers: hp = hp - 10, vang = vang + 200. The 'vang' column is the treasury in copper pennies (11,760 pennies = 1 gold dragon).
 - For INSERT, use: (SELECT COALESCE(MAX(row_id),0)+1 FROM table_name) for row_id.
 - String values in single quotes. Escape internal quotes with double single-quotes ('').
 - DO NOT touch fields starting with "_" (engine-only).
@@ -98,4 +98,3 @@ export function buildExtraModelMessages(
     },
   ];
 }
-

@@ -78,11 +78,20 @@ function makeAppMacroContext(history: ApiChatMessage[]): MacroContext {
 }
 
 /** Lớp prompt riêng của app (3.1b.5) — ghép CÙNG pipeline, KHÔNG sửa preset người dùng. */
-function appLayerMessages(): ApiChatMessage[] {
+/** Khối system thực sự được ghép trước mỗi yêu cầu tới AI. */
+export function appLayerMessages(): ApiChatMessage[] {
   const stat = useMvuStore.getState().stat;
   const engine = useExtraModelStore.getState().stateEngine;
   const updatePrompt = engine === "auto-database" ? SQL_UPDATE_PROMPT : MVU_UPDATE_PROMPT;
-  const stateBlock = engine === "auto-database" ? renderTablesForAI(stat) : renderStateForAI(stat);
+  const narrativeState = renderStateForAI(stat);
+  const stateBlock = engine === "auto-database"
+    ? `${renderTablesForAI(stat)}
+
+【BỐI CẢNH CHIẾN LƯỢC CHỈ ĐỌC — VẪN LÀ SỰ THẬT HIỆN TẠI】
+Khối này bổ sung quân sự, tài chính, lãnh địa, ngoại giao, mưu đồ và ký ức NPC cho lời kể. Chỉ dùng SQL với các bảng có DDL ở trên; các hệ không có bảng SQL được cập nhật bằng thẻ engine tương ứng, không tự bịa tên bảng.
+
+${narrativeState}`
+    : narrativeState;
 
   // GĐ2: Inject offscreen news vào world engine prompt
   const offscreenNews = (stat["Thế Giới"] as Record<string, unknown>)["_Tin Nóng Off-screen"] as string | undefined;
@@ -187,6 +196,8 @@ export async function buildPipeline(history: ApiChatMessage[]): Promise<Pipeline
     ["(app) dice_roll", "Luật gieo xúc xắc"],
     ["(app) anti_omniscience", "Chống toàn tri (5.8)"],
     ["(app) dragon_mechanics", "Cơ chế rồng"],
+    ["(app) feudal_warfare", "Luật quân sự phong kiến (M19)"],
+    ["(app) diplomacy_intrigue", "Luật ngoại giao & mưu đồ (M20)"],
     ["(app) world_engine", "Thế Giới Sống (GĐ2)"],
     ["(app) cot_instruction", "Suy Luận CoT (GĐ2)"],
     ["(app) death_doom", "Hệ Thống Tử Vong"],

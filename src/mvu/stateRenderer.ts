@@ -12,6 +12,8 @@ import { renderReputationForAI } from "../npc/reputationEngine";
 import { ERAS_BY_ID } from "../content/westeros/eras";
 import { getTimelineContext } from "../content/westeros/timeline";
 import { getTourneyHint } from "../content/westeros/tourneyData";
+import { formatCurrencyFull } from "../economy/currency";
+import { monthlyBudget } from "../economy/budget";
 
 const MAX_NPC_RENDERED = 10;
 
@@ -178,6 +180,46 @@ function renderMilitaryForAI(state: StatData): string[] {
 }
 
 /**
+ * Tài chính ngắn gọn nhưng đủ để AI không nhầm số dư với khả năng chi trả.
+ * Toàn bộ số trong state dùng Đồng Đỏ; trình bày đổi ra Rồng/Bạc/Đồng để lời
+ * kể không tự phong người chơi thành tỷ phú chỉ vì đọc số raw.
+ */
+function renderFinanceForAI(state: StatData): string[] {
+  const lines: string[] = [];
+  const treasury = state["Thông Tin Nhân Vật"]["Ngân Khố"];
+  const budget = monthlyBudget(state);
+  const sign = budget.net >= 0 ? "+" : "−";
+
+  lines.push(
+    "",
+    `Tài chính: ngân khố ${formatCurrencyFull(treasury)}. Dự toán tháng này: thu ${formatCurrencyFull(budget.income)}, chi ${formatCurrencyFull(budget.expense)}, chênh ${sign}${formatCurrencyFull(Math.abs(budget.net))}.`,
+  );
+  if (budget.net < 0) {
+    lines.push(
+      budget.monthsLeft === 0
+        ? "⚠ NGÂN KHỐ ĐÃ CẠN — đừng kể các khoản chi lớn như thể có tiền sẵn."
+        : `⚠ Đang bội chi; với nhịp hiện tại ngân khố cạn sau khoảng ${budget.monthsLeft} tháng nếu không đổi chính sách.`,
+    );
+  }
+
+  const debts = Object.entries(state["Các Khoản Nợ"] ?? {}).filter(([, debt]) => debt && debt["Nợ Gốc"] > 0);
+  if (debts.length > 0) {
+    lines.push(
+      `Nợ đang mang: ${debts.slice(0, 5).map(([creditor, debt]) =>
+        `${creditor} (${formatCurrencyFull(debt["Nợ Gốc"])}, lãi ${formatCurrencyFull(debt["Lãi/Tháng"])} / tháng${debt["Đang Quỵt"] ? ", ĐANG QUỴT" : ""})`,
+      ).join(" · ")}.`,
+    );
+  }
+  const routes = Object.entries(state["Tuyến Thương Mại"] ?? {}).filter(([, route]) => route["Lợi Nhuận/Tháng"] > 0);
+  if (routes.length > 0) {
+    lines.push(`Tuyến thương mại: ${routes.slice(0, 6).map(([name, route]) =>
+      `${name} (${formatCurrencyFull(route["Lợi Nhuận/Tháng"])} / tháng, an toàn ${route["An Toàn"]}/100)`,
+    ).join(" · ")}.`);
+  }
+  return lines;
+}
+
+/**
  * NGOẠI GIAO (M20) — trước đây khối trạng thái chỉ đưa AI một dòng "Các Nhà: X →
  * CẢNH GIÁC", nên AI không thể biết ta đang có hiệp ước gì, đình chiến còn mấy
  * ngày, hay Nhà nào đang giữ cớ để đánh ta. Khối này bịt lỗ đó.
@@ -340,7 +382,7 @@ export function renderStateForAI(state: StatData): string {
     `Nhân vật: ${info["Họ Tên"]}, ${info["Tuổi"]} tuổi (${info["Giai Đoạn Đời"]}), Nhà ${info["Nhà"]}. Cấp ${info["Cấp Độ"]} (EXP ${info["Kinh Nghiệm"]}). ` +
       `HP ${vitals["HP"]}/${derived["_HP Tối Đa"]}. Thể Lực ${vitals["Thể Lực"]}/${derived["_Thể Lực Tối Đa"]}.` +
       (vitals["Pháp Lực"] > 0 ? ` Pháp Lực ${vitals["Pháp Lực"]}.` : "") +
-      ` Vàng ${info["Ngân Khố"].toLocaleString("vi-VN")}.`,
+      ` Ngân khố ${formatCurrencyFull(info["Ngân Khố"])}.`,
   );
   lines.push(
     `Chỉ số: Sức Mạnh ${core["Sức Mạnh"]} · Nhanh Nhẹn ${core["Nhanh Nhẹn"]} · Thể Chất ${core["Thể Chất"]} · ` +
@@ -375,6 +417,7 @@ export function renderStateForAI(state: StatData): string {
   // ── QUÂN ĐỘI (M19) — AI phải BIẾT mình có bao nhiêu quân, ngạch gì, ở đâu,
   // còn bao nhiêu ngày nghĩa vụ, mới kể đúng được chuyện hành quân và chiến trận.
   lines.push(...renderMilitaryForAI(state));
+  lines.push(...renderFinanceForAI(state));
 
   // rồng (7.15 mở rộng)
   const dragons = Object.entries(state["Rồng"]);
@@ -571,22 +614,26 @@ export function renderStateForAI(state: StatData): string {
 
   // GĐ2: NPC vắng mặt — vị trí hiện tại + hoạt động gần nhất
   const playerLoc = world["Vị Trí"]?.toString().toLowerCase().trim();
-  const absentNpcs: string[] = [];
-  for (const [name, npc] of Object.entries(state["Mối Quan Hệ"]["NPC Chính"]) as [string, Npc][]) {
+  const absentNpcs: { text: string; lastActivityDay: number }[] = [];
+  for (const [name, npc] of allNpcs) {
     if (!npc["Còn Sống"]) continue;
     const npcLoc = npc["Vị Trí Hiện Tại"]?.toLowerCase().trim();
     if (!npcLoc || npcLoc === playerLoc) continue; // cùng scene hoặc không rõ → bỏ qua
     const lastMemory = npc["Ký Ức"].length > 0 ? npc["Ký Ức"][npc["Ký Ức"].length - 1] : null;
-    const engineActivity = npc["_Hoạt Động Ngoài Cảnh"]?.["Mô Tả"];
+    const engineRecord = npc["_Hoạt Động Ngoài Cảnh"];
+    const engineActivity = engineRecord?.["Mô Tả"];
     const activity = engineActivity
       ? `, gần nhất: ${engineActivity}`
       : lastMemory ? `, gần nhất: ${lastMemory["Sự Việc"]}` : "";
-    absentNpcs.push(`${name}: ${npc["Vị Trí Hiện Tại"]}${npc["Tình Trạng"] !== "Bình Thường" ? ` [${npc["Tình Trạng"]}]` : ""}${activity}`);
+    absentNpcs.push({
+      text: `${name}: ${npc["Vị Trí Hiện Tại"]}${npc["Tình Trạng"] !== "Bình Thường" ? ` [${npc["Tình Trạng"]}]` : ""}${activity}`,
+      lastActivityDay: engineRecord?.["Ngày Tuyệt Đối"] ?? -1,
+    });
   }
   if (absentNpcs.length > 0) {
     lines.push("", "NPC vắng mặt (off-screen):");
-    for (const entry of absentNpcs.slice(0, 8)) {
-      lines.push(`  • ${entry}`);
+    for (const entry of absentNpcs.sort((a, b) => b.lastActivityDay - a.lastActivityDay).slice(0, 12)) {
+      lines.push(`  • ${entry.text}`);
     }
   }
 

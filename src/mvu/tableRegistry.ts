@@ -77,7 +77,7 @@ const nhanVatChinh: TableDef = {
     { sqlName: "xuat_than", statKey: "Xuất Thân", sqlType: "TEXT", comment: "Nguồn gốc" },
     { sqlName: "cap_do", statKey: "Cấp Độ", sqlType: "INTEGER NOT NULL", comment: "Level" },
     { sqlName: "kinh_nghiem", statKey: "Kinh Nghiệm", sqlType: "INTEGER", comment: "EXP" },
-    { sqlName: "vang", statKey: "Vàng", sqlType: "INTEGER", comment: "Gold" },
+    { sqlName: "vang", statKey: "Ngân Khố", sqlType: "INTEGER", comment: "Ngân khố (Đồng Đỏ; 11.760 Đồng = 1 Rồng Vàng)" },
     { sqlName: "hp", statKey: "HP", sqlType: "INTEGER NOT NULL", comment: "Máu hiện tại" },
     { sqlName: "the_luc", statKey: "Thể Lực", sqlType: "INTEGER NOT NULL", comment: "Thể lực hiện tại" },
   ],
@@ -88,11 +88,11 @@ const nhanVatChinh: TableDef = {
   xuat_than TEXT, -- Nguồn gốc
   cap_do INTEGER NOT NULL DEFAULT 1, -- Level
   kinh_nghiem INTEGER DEFAULT 0, -- EXP
-  vang INTEGER DEFAULT 0, -- Gold
+  vang INTEGER DEFAULT 0, -- Ngân khố, đơn vị Đồng Đỏ (11.760 = 1 Rồng Vàng)
   hp INTEGER NOT NULL, -- Máu hiện tại
   the_luc INTEGER NOT NULL -- Thể lực hiện tại
 );`,
-  note: "Bảng này chỉ có 1 hàng. HP/Thể Lực engine quản lý trần; chỉ cần cập nhật khi bị thương/hồi phục.",
+  note: "Bảng này chỉ có 1 hàng. `vang` là Ngân Khố theo Đồng Đỏ (không phải số Rồng Vàng). HP/Thể Lực engine quản lý trần; chỉ cần cập nhật khi bị thương/hồi phục.",
   examples: {
     update: `UPDATE nhan_vat_chinh SET hp = hp - 15, vang = vang + 200 WHERE row_id = 1;`,
   },

@@ -349,18 +349,18 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), K
 1. CHỈ dùng 3 loại: INSERT INTO / UPDATE / DELETE FROM.
 2. Mỗi câu kết thúc bằng dấu chấm phẩy (;).
 3. UPDATE và DELETE BẮT BUỘC có WHERE.
-4. Dùng biểu thức delta khi thay đổi số: hp = hp - 10, vang = vang + 200.
+4. Dùng biểu thức delta khi thay đổi số: hp = hp - 10, vang = vang + 200. Cột 'vang' là Ngân Khố theo Đồng Đỏ (11.760 Đồng = 1 Rồng Vàng).
 5. Khi INSERT, row_id dùng: (SELECT COALESCE(MAX(row_id),0)+1 FROM tên_bảng).
 6. Giá trị chuỗi bọc nháy đơn (''), thoát nháy đơn bằng 2 nháy đơn ('').
 7. KHÔNG đụng các trường bắt đầu bằng dấu "_" (engine tự quản lý).
 
 ## GHI NHỚ QUAN TRỌNG
 
-- HP, thời gian, vàng, kỹ năng: dùng delta (hp = hp - 10) KHÔNG dùng giá trị tuyệt đối.
+- HP, thời gian, ngân khố, kỹ năng: dùng delta (hp = hp - 10) KHÔNG dùng giá trị tuyệt đối. Cột 'vang' dùng đơn vị Đồng Đỏ (11.760 Đồng = 1 Rồng Vàng).
 - Hồi phục sức khoẻ & thể lực: Khi cốt truyện diễn tả nhân vật nghỉ ngơi, ngủ qua đêm, ăn uống no say hoặc được chữa trị, tự động UPDATE bảng chỉ số sinh tồn (hoặc bảng tương ứng) để cộng thêm HP và Thể lực (VD: hp = hp + 20, the_luc = the_luc + 40).
 - NPC: dùng WHERE ho_ten = 'Tên NPC' để định vị (KHÔNG dùng row_id cho NPC).
 - Vật phẩm: INSERT khi nhận mới, UPDATE so_luong khi nhận thêm, DELETE khi dùng hết.
-- Rồng & Trứng rồng: UPDATE bảng rong (hoặc trung_rong) để thay đổi do_hao_cam, trang_thai_thu_phuc, tinh_trang_trung tuỳ theo lời kể (tăng hảo cảm, thuần hóa, ấp trứng).
+- Chỉ dùng SQL cho các bảng có DDL trong khối trạng thái. Rồng, quân đội, lãnh địa, ngoại giao và mưu đồ được cung cấp để ngươi kể đúng; thay đổi của chúng phải đi qua thẻ engine chuyên dụng, KHÔNG tự bịa tên bảng SQL.
 - Quan hệ thay đổi? UPDATE do_hao_cam / tin_cay của NPC tương ứng.
 - Di chuyển? UPDATE the_gioi SET vi_tri = 'Nơi mới' WHERE row_id = 1.
 - Thời gian trôi? UPDATE the_gioi SET ngay = ngay + N WHERE row_id = 1.
