@@ -339,6 +339,135 @@ export interface CraftingRequest {
   crafter: "Bản thân" | "Thợ rèn Qohor" | "Thợ rèn Lâu Đài";
 }
 
+/**
+ * AI chỉ trả về phần dữ liệu cần thay đổi. Không ghép nông các object trong
+ * WizardData: một phản hồi như `{ persona: { ngoaiHinh: "..." } }` từng làm
+ * mất các trường Persona còn lại, và gia đình do AI tạo có thể thiếu `persona`.
+ *
+ * Hàm này là cửa duy nhất để nhận patch từ trợ lý AI (và vẫn dùng được cho các
+ * thao tác form thủ công). Nó giữ lại các nhánh cũ, đồng thời bù các trường
+ * bắt buộc mà các panel Quan hệ / Quân sự của game sẽ đọc sau khi khởi tạo.
+ */
+type WizardRecord = Record<string, unknown>;
+
+function isWizardRecord(value: unknown): value is WizardRecord {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function mergeWizardRecords<T>(base: T, patch: unknown): T {
+  if (!isWizardRecord(base) || !isWizardRecord(patch)) {
+    return (patch === undefined ? base : patch) as T;
+  }
+
+  const merged: WizardRecord = { ...base };
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
+    const previous = merged[key];
+    merged[key] = isWizardRecord(previous) && isWizardRecord(value)
+      ? mergeWizardRecords(previous, value)
+      : value;
+  }
+  return merged as T;
+}
+
+function wizardString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function wizardNumber(value: unknown, fallback: number, min = 0, max = 100): number {
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) ? clamp(Math.round(number), min, max) : fallback;
+}
+
+function wizardAbilities(value: unknown, fallback = { voLuc: 10, thongSoai: 10, triMuu: 10, ngoaiGiao: 10 }) {
+  const source = isWizardRecord(value) ? value : {};
+  return {
+    voLuc: wizardNumber(source.voLuc, fallback.voLuc, 0, 20),
+    thongSoai: wizardNumber(source.thongSoai, fallback.thongSoai, 0, 20),
+    triMuu: wizardNumber(source.triMuu, fallback.triMuu, 0, 20),
+    ngoaiGiao: wizardNumber(source.ngoaiGiao, fallback.ngoaiGiao, 0, 20),
+  };
+}
+
+function normalizeFamilyMembers(value: unknown): NonNullable<WizardData["familyMembers"]> {
+  if (!Array.isArray(value)) return [];
+  return value.map((item, index) => {
+    const member = isWizardRecord(item) ? item : {};
+    const persona = isWizardRecord(member.persona) ? member.persona : {};
+    return {
+      id: wizardString(member.id, `ai-family-${index + 1}`),
+      name: wizardString(member.name),
+      relation: wizardString(member.relation, "Người thân"),
+      age: wizardNumber(member.age, 25, 0, 100),
+      gioiTinh: wizardString(member.gioiTinh, "Nam"),
+      loai: wizardString(member.loai, "Người"),
+      nsfw: wizardString(member.nsfw),
+      avatarUrl: wizardString(member.avatarUrl),
+      nangLuc: wizardAbilities(member.nangLuc),
+      persona: {
+        ngoaiHinh: wizardString(persona.ngoaiHinh),
+        tinhCach: wizardString(persona.tinhCach),
+      },
+    };
+  });
+}
+
+function normalizeCustomForce(value: unknown): NonNullable<WizardData["customForce"]> {
+  const force = isWizardRecord(value) ? value : {};
+  const npcs = Array.isArray(force.npcs) ? force.npcs : [];
+  const units = Array.isArray(force.units) ? force.units : [];
+
+  return {
+    npcs: npcs.map((item, index) => {
+      const npc = isWizardRecord(item) ? item : {};
+      return {
+        id: wizardString(npc.id, `ai-retainer-${index + 1}`),
+        name: wizardString(npc.name),
+        role: wizardString(npc.role, "Gia Thần"),
+        statPreset: wizardString(npc.statPreset, "Cân Bằng"),
+        nangLuc: wizardAbilities(npc.nangLuc),
+        tuoi: wizardNumber(npc.tuoi, 30, 0, 100),
+        netTinhCach: wizardString(npc.netTinhCach, "Trung Thành"),
+        gioiTinh: wizardString(npc.gioiTinh, "Nam"),
+        loai: wizardString(npc.loai, "Người"),
+        thanHinh: wizardString(npc.thanHinh),
+        nsfw: wizardString(npc.nsfw),
+        avatarUrl: wizardString(npc.avatarUrl),
+      };
+    }),
+    units: units.map((item, index) => {
+      const unit = isWizardRecord(item) ? item : {};
+      return {
+        id: wizardString(unit.id, `ai-unit-${index + 1}`),
+        type: wizardString(unit.type, "Bộ Binh"),
+        count: wizardNumber(unit.count, 100, 0, 100_000),
+        commander: wizardString(unit.commander),
+      };
+    }),
+  };
+}
+
+export function mergeWizardData(current: WizardData, patch: Partial<WizardData>): WizardData {
+  const merged = mergeWizardRecords(current, patch) as WizardData;
+  const persona: WizardRecord = isWizardRecord(merged.persona) ? merged.persona : {};
+
+  return {
+    ...merged,
+    name: wizardString(merged.name, current.name),
+    age: wizardNumber(merged.age, current.age, 6, 100),
+    persona: {
+      ngoaiHinh: wizardString(persona.ngoaiHinh),
+      tinhCach: wizardString(persona.tinhCach),
+      tieuSu: wizardString(persona.tieuSu),
+      mauMat: wizardString(persona.mauMat),
+      mauToc: wizardString(persona.mauToc),
+      chieuCao: wizardString(persona.chieuCao),
+    },
+    familyMembers: normalizeFamilyMembers(merged.familyMembers),
+    customForce: normalizeCustomForce(merged.customForce),
+  };
+}
+
 function talentToStateEntry(t: TalentDef): Record<string, unknown> {
   return {
     "Loại": t.category,
@@ -664,7 +793,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
     if (cultureDef.reputationBonus.xaoQuyet) rep["Xảo Quyệt"] += cultureDef.reputationBonus.xaoQuyet;
   }
 
-  // ---- tâm phúc (Bước 8) ----
+  // ---- tâm phúc (Bước 10) ----
   if (d.companionId) {
     const comp = buildCompanion(d.companionId, d.companionName, npcAffinityOffset(allTalentIds), d.companionOverrides);
     if (comp) {
@@ -752,17 +881,22 @@ export function buildStateFromWizard(d: WizardData): StatData {
     let familyLore = "\n\n[Gia đình & Tông tộc]:\n";
     let hiddenFamilyNotes = `\n\nGia phả nhân vật chính (${d.name}):\n`;
     for (const member of d.familyMembers) {
+      // Save cũ hoặc dữ liệu ngoài wizard có thể thiếu persona. Không để một
+      // người thân làm hỏng toàn bộ màn tạo nhân vật/game khi render quan hệ.
+      const persona = member.persona ?? { ngoaiHinh: "", tinhCach: "" };
       const npcName = member.name.trim() || "Người thân vô danh";
-      familyLore += `- ${member.relation}: ${npcName} (${member.age} tuổi). Ngoại hình: ${member.persona.ngoaiHinh || 'Bình thường'}. Tính cách: ${member.persona.tinhCach || 'Chưa rõ'}.\n`;
+      familyLore += `- ${member.relation}: ${npcName} (${member.age} tuổi). Ngoại hình: ${persona.ngoaiHinh || 'Bình thường'}. Tính cách: ${persona.tinhCach || 'Chưa rõ'}.\n`;
       hiddenFamilyNotes += `- ${npcName}: ${member.relation} của ${d.name} (${d.houseId ? HOUSES_BY_ID[d.houseId]?.name : 'Không Nhà'}).\n`;
       (state["Mối Quan Hệ"]["Thành Viên Gia Tộc"] as Record<string, unknown>)[member.id] = {
         "Họ Tên": npcName,
         "Tuổi": member.age,
         "Giới Tính": member.gioiTinh || "Nam",
         "Chủng Tộc": member.loai,
-        "Loại Quan Hệ": member.relation,
-        "Ngoại Hình": member.persona.ngoaiHinh,
-        "Tính Cách": member.persona.tinhCach,
+        // NpcSchema dùng mảng nhãn quan hệ; phần vai vế tự do của wizard được
+        // giữ trong Đánh Giá để Mạng lưới/Sổ tay luôn đọc được dữ liệu nhất quán.
+        "Loại Quan Hệ": ["Người Thân"],
+        "Ngoại Hình": persona.ngoaiHinh,
+        "Tính Cách": persona.tinhCach,
         "$NSFW": member.nsfw,
         "Ảnh Chân Dung": member.avatarUrl,
         "Năng Lực": member.nangLuc ? {
@@ -771,6 +905,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
           "Trí Mưu": member.nangLuc.triMuu,
           "Ngoại Giao": member.nangLuc.ngoaiGiao,
         } : undefined,
+        "Đánh Giá": member.relation || "Người thân trong gia tộc",
         "Độ Hảo Cảm": 80,
         "Tin Cậy": true,
       };
@@ -902,14 +1037,83 @@ function adjustCanonCharacterByAge(original: CanonCharacter, targetAge: number, 
 
 /** Dựng StatData từ nhân vật canon (8.4b) — chỉ số khoá theo nguyên tác. */
 
-function autoAssignBloodlineAndCulture(house: string, name: string): { bloodline: string, culture: string } {
-  const h = (house || "").trim();
-  if (["Targaryen", "Velaryon", "Celtigar", "Blackfyre"].includes(h) || name.includes("Targaryen")) return { bloodline: "Máu Valyria Cổ Đại", culture: "Valyrian" };
-  if (["Stark", "Bolton", "Umber", "Karstark", "Mormont", "Glover", "Dustin", "Reed", "Tallhart", "Ryswell", "Blackwood", "Royce", "Dayne"].includes(h) || name.includes("Stark")) return { bloodline: "Máu Tiền Nhân", culture: "First Men" };
-  if (["Greyjoy", "Harlaw", "Goodbrother", "Drumm", "Botley", "Blacktyde"].includes(h)) return { bloodline: "Máu Ironborn", culture: "Ironborn" };
-  if (["Martell", "Yronwood", "Fowler", "Manwoody", "Gargalen", "Uller", "Qorgyle", "Toland"].includes(h)) return { bloodline: "Máu Rhoynar", culture: "Dornish" };
-  if (!h || h === "Không Rõ") return { bloodline: "Không Rõ Huyết Mạch", culture: "Thường Dân" };
-  return { bloodline: "Máu Andal", culture: "Andal" };
+/** Đổi một mã nhân vật/lãnh địa thành tên đọc được trong Sổ tay. */
+function canonLabel(era: EraData, id: string): string {
+  const character = era.canonCharacters.find((entry) => entry.id === id);
+  if (character) return character.name;
+  const region = REGIONS.find((entry) => entry.id === id);
+  if (region) return region.name;
+  const marker = MAP_MARKERS.find((entry) => entry.id === id);
+  if (marker) return marker.name;
+  // Một vài quan hệ canon trỏ tới nhân vật lịch sử không thuộc roster đang
+  // đóng vai. Giữ liên kết lore nhưng không để Sổ tay lộ mã kỹ thuật dạng slug.
+  return id.split("-").map((part) => (/^[ivxlcdm]+$/i.test(part) ? part.toUpperCase() : `${part.charAt(0).toUpperCase()}${part.slice(1)}`)).join(" ");
+}
+
+function canonRelationshipNetwork(character: CanonCharacter, era: EraData): NonNullable<Npc["Mạng Lưới Quan Hệ"]> {
+  return Object.fromEntries(
+    Object.entries(character.relationshipDetails ?? {}).map(([targetId, relation]) => [
+      canonLabel(era, targetId),
+      {
+        "Loại Quan Hệ": relation.type || "Khác",
+        "Độ Hảo Cảm": relation.affinity ?? 0,
+        "Độ Tin Cậy": relation.trust ?? 0,
+        "Công Khai": !relation.type?.includes("(Bí mật)"),
+        "Chi Tiết": relation.detail,
+      },
+    ]),
+  ) as NonNullable<Npc["Mạng Lưới Quan Hệ"]>;
+}
+
+function canonNpc(
+  character: CanonCharacter,
+  era: EraData,
+  actualStartYear: number,
+  playerRelationship: { affinity: number; trust: number; labels: Npc["Loại Quan Hệ"] },
+): Npc {
+  const age = character.birthYear === undefined ? character.age : Math.max(0, actualStartYear - character.birthYear);
+  const notBornYet = character.birthYear !== undefined && character.birthYear > actualStartYear;
+  const places = [...(character.startHoldings ?? []), ...(character.startRegions ?? [])].map((id) => canonLabel(era, id));
+
+  return {
+    "Họ Tên": character.name,
+    "Nhà": character.house,
+    "Xuất Thân": character.origin || character.role,
+    "Văn Hoá": character.culture,
+    "Tôn Giáo": character.religion,
+    "Lục Địa": character.continent || "Westeros",
+    "Lãnh Địa": places,
+    "Tuổi": age,
+    ...(character.birthYear !== undefined ? { "Năm Sinh": character.birthYear } : {}),
+    "Giai Đoạn Đời": lifeStage(age),
+    "Còn Sống": character.deathYear === undefined || character.deathYear >= actualStartYear,
+    "Tình Trạng": notBornYet ? "Chưa Sinh" : "Bình Thường",
+    "Độ Hảo Cảm": playerRelationship.affinity,
+    "Tin Cậy": playerRelationship.trust,
+    "Loại Quan Hệ": playerRelationship.labels,
+    "Đánh Giá": character.biography || character.blurb,
+    "Ngoại Hình": character.appearance,
+    "Chức Vụ": character.role,
+    "Vị Trí Hiện Tại": places[0],
+    "Năng Lực": character.năngLực ?? { "Võ Lực": 30, "Thống Soái": 30, "Trí Mưu": 30, "Ngoại Giao": 30 },
+    "Chỉ Số Cốt Lõi": character.coreStats,
+    "Kỹ Năng": character.skills,
+    "Thiên Phú": character.talentIds,
+    "Trang Bị Canon": character.equipment.map((equipment) => equipment.ten),
+    "Đã Kết Hôn Với": character.spouse ? canonLabel(era, character.spouse) : undefined,
+    "Cha/Mẹ": [character.father, character.mother].filter((id): id is string => Boolean(id)).map((id) => canonLabel(era, id)),
+    "Con Cái": (character.children ?? []).map((id) => canonLabel(era, id)),
+    "Anh Chị Em": (character.siblings ?? []).map((id) => canonLabel(era, id)),
+    "Ngân Khố": character.gold * G,
+    "Túi Đồ": Object.fromEntries(character.items.map((item) => [item.ten, { "Số Lượng": item.soLuong, "Mô Tả": item.moTa }])),
+    "Mạng Lưới Quan Hệ": canonRelationshipNetwork(character, era),
+    "Huyết Thống Thật Sự": {
+      "Cha/Mẹ": [character.secretBiologicalFather, character.secretBiologicalMother]
+        .filter((id): id is string => Boolean(id))
+        .map((id) => canonLabel(era, id)),
+      "Con Cái": [],
+    },
+  } as unknown as Npc;
 }
 
 export function buildStateFromCanon(
@@ -934,12 +1138,12 @@ export function buildStateFromCanon(
   const info = state["Thông Tin Nhân Vật"];
   info["Họ Tên"] = adjustedC.name;
   info["Nhà"] = adjustedC.house as typeof info["Nhà"];
-  info["Xuất Thân"] = adjustedC.role;
+  info["Xuất Thân"] = adjustedC.origin || adjustedC.role;
   info["Tước Vị"] = (adjustedC.tuocVi as any) || "Thường Dân";
-  info["Lục Địa"] = "Westeros";
-  const bc = autoAssignBloodlineAndCulture(adjustedC.house as string, adjustedC.name);
-  info["Văn Hoá"] = (adjustedC as any).culture || bc.culture;
-  info["Huyết Mạch"] = (adjustedC as any).bloodline || bc.bloodline;
+  info["Lục Địa"] = (adjustedC.continent || "Westeros") as typeof info["Lục Địa"];
+  // Văn hoá và huyết mạch là dữ liệu canon từng người, không suy diễn từ họ Nhà.
+  info["Văn Hoá"] = adjustedC.culture || "Chưa xác minh";
+  info["Huyết Mạch"] = adjustedC.bloodline || "Chưa xác minh";
   info["Tôn Giáo"] = c.religion || "Thất Diện Thần";
   info["Thần Bảo Hộ"] = "";
   info["Đức Tin"] = 30;
@@ -1490,6 +1694,37 @@ export function buildStateFromCanon(
     }
   }
 
+  // Sổ tay luôn nhận toàn bộ roster của era, không chỉ vài người có quan hệ trực tiếp
+  // với nhân vật người chơi. Dữ liệu quan hệ vẫn hoàn toàn lấy từ từng hồ sơ canon.
+  const playerFamilyIds = new Set([
+    adjustedC.father,
+    adjustedC.mother,
+    adjustedC.spouse,
+    ...(adjustedC.children ?? []),
+    ...(adjustedC.siblings ?? []),
+  ].filter((id): id is string => Boolean(id)));
+  const playerAllies = new Set(adjustedC.allies ?? []);
+  const playerRivals = new Set(adjustedC.rivals ?? []);
+  const familyNpcs = state["Mối Quan Hệ"]["Thành Viên Gia Tộc"] as Record<string, Npc>;
+  const mainNpcs = state["Mối Quan Hệ"]["NPC Chính"] as Record<string, Npc>;
+
+  // Các vòng lặp tương thích ở trên có thể đã tạo bản rút gọn. Thay chúng bằng
+  // hồ sơ đầy đủ, khóa bằng ID canon để không đụng tên và để liên kết luôn ổn định.
+  for (const key of Object.keys(familyNpcs)) delete familyNpcs[key];
+  for (const key of Object.keys(mainNpcs)) delete mainNpcs[key];
+
+  for (const character of era.canonCharacters) {
+    if (character.id === adjustedC.id) continue;
+    const playerRelationship: { affinity: number; trust: number; labels: Npc["Loại Quan Hệ"] } = playerFamilyIds.has(character.id)
+      ? { affinity: 60, trust: 60, labels: ["Người Thân"] }
+      : playerAllies.has(character.id)
+        ? { affinity: 75, trust: 70, labels: ["Đồng Minh"] }
+        : playerRivals.has(character.id)
+          ? { affinity: -75, trust: -70, labels: ["Kẻ Thù"] }
+          : { affinity: 0, trust: 0, labels: [] };
+    const target = playerFamilyIds.has(character.id) ? familyNpcs : mainNpcs;
+    target[character.id] = canonNpc(character, era, actualStartYear, playerRelationship);
+  }
 
   recomputeDerived(state);
   state["Chỉ Số Sinh Tồn"]["HP"] = state["Chỉ Số Phái Sinh"]["_HP Tối Đa"];

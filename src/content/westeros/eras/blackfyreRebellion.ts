@@ -3,6 +3,8 @@ import type { CanonCharacter } from "../eras";
 export const blackfyreRebellionCharacters: CanonCharacter[] = [
   {
     id: "baelor-breakspear",
+    origin: "Trưởng nam của Daeron II và Myriah Martell, Thái tử của Bảy Vương Quốc và tổng chỉ huy phe Hoàng gia.", culture: "Valyria hậu duệ, gắn bó với Dorne", bloodline: "Nhà Targaryen và Nymeros Martell", continent: "Westeros",
+    appearance: "Tóc nâu sẫm, mắt nâu và gương mặt mang nét Dornish rõ rệt; vì vậy bị kẻ thù xúc phạm là 'Baelor Spear' trước khi tên Breakspear được tôn vinh.",
     name: "Baelor Breakspear",
     tuocVi: "Hoàng Tử",
     house: "Targaryen",
@@ -56,6 +58,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "maekar-i-targaryen",
+    origin: "Hoàng tử thứ tư của Daeron II và Myriah Martell, em trai Baelor và chỉ huy một cánh quân trung thành.", culture: "Valyria hậu duệ, gắn bó với Dorne", bloodline: "Nhà Targaryen và Nymeros Martell", continent: "Westeros",
+    appearance: "Tóc bạc-vàng và mắt tím của dòng Targaryen; vóc dáng nghiêm nghị, quân phong cứng rắn.",
     name: "Maekar Targaryen",
     tuocVi: "Hoàng Tử",
     house: "Targaryen",
@@ -108,6 +112,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "shiera-seastar",
+    origin: "Con ngoài giá thú được thừa nhận của Aegon IV và Serenei of Lys; chị/em cùng cha khác mẹ của Bloodraven và Bittersteel.", culture: "Lysene", bloodline: "Nhà Targaryen qua cha; dòng Lys qua mẹ", continent: "Westeros",
+    appearance: "Một mắt xanh, một mắt nâu; mái tóc bạc-vàng pha những vệt vàng óng, nổi tiếng vì vẻ đẹp khác thường.",
     name: "Shiera Seastar",
     tuocVi: "Thường Dân",
     house: "Khác",
@@ -155,6 +161,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "gwayne-corbray",
+    origin: "Hiệp sĩ Nhà Corbray ở Heart's Home, cầm Lady Forlorn cho phe Blackfyre tại Cánh Đồng Cỏ Đỏ.", culture: "Người Vale", bloodline: "Nhà Corbray", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực; được biết đến bởi thanh kiếm Valyria Lady Forlorn.",
     name: "Gwayne Corbray",
     tuocVi: "Hiệp Sĩ",
     house: "Corbray",
@@ -206,6 +214,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "quentyn-ball",
+    origin: "Hiệp sĩ thường dân từng là thầy vũ khí của Red Keep; theo Daemon Blackfyre sau khi không được phong vào Kingsguard.", culture: "Người Crownlands", bloodline: "Không xác minh", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực; biệt danh Fireball gắn với mái tóc đỏ rực.",
     name: "Quentyn Ball",
     tuocVi: "Hiệp Sĩ",
     house: "Ball",
@@ -256,6 +266,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "robb-reyne",
+    origin: "Hiệp sĩ Nhà Reyne của Castamere, một trong các chiến binh đứng về phía Daemon Blackfyre.", culture: "Người miền Tây", bloodline: "Nhà Reyne", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Robb Reyne",
     tuocVi: "Hiệp Sĩ",
     house: "Reyne",
@@ -300,6 +312,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "leo-tyrell",
+    origin: "Leo 'Longthorn' Tyrell, Lãnh chúa Highgarden và Lord Paramount of the Mander trong thời kỳ nổi loạn.", culture: "Người Reach", bloodline: "Nhà Tyrell", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực; biệt danh Longthorn phản ánh danh tiếng võ dũng.",
     name: "Leo Tyrell",
     tuocVi: "Đại Lãnh Chúa",
     house: "Tyrell",
@@ -345,6 +359,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "donnel-arryn",
+    origin: "Hiệp sĩ Nhà Arryn của Vale, phục vụ phe Hoàng gia và tử trận tại Cánh Đồng Cỏ Đỏ.", culture: "Người Vale", bloodline: "Nhà Arryn", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Donnel Arryn",
     tuocVi: "Đại Lãnh Chúa",
     house: "Arryn",
@@ -391,6 +407,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "damon-lannister",
+    origin: "Lãnh chúa Casterly Rock và Warden of the West trong cuộc nổi loạn Blackfyre đầu tiên.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Damon Lannister",
     tuocVi: "Đại Lãnh Chúa",
     house: "Lannister",
@@ -437,6 +455,8 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
 },
   {
     id: "otho-bracken",
+    origin: "Hiệp sĩ Nhà Bracken ở Stone Hedge, chiến đấu cho Daemon Blackfyre tại Cánh Đồng Cỏ Đỏ.", culture: "Người Riverlands", bloodline: "Nhà Bracken", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Otho Bracken",
     tuocVi: "Hiệp Sĩ",
     house: "Bracken",

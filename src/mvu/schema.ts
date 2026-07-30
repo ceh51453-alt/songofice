@@ -1107,7 +1107,7 @@ export const StatDataSchema = z
       })
       .prefault({}),
 
-    // persona người chơi tự viết (wizard Bước 6) — AI dùng giữ giọng nhân vật
+    // persona người chơi tự viết (wizard Bước 8) — AI dùng giữ giọng nhân vật
     "Persona": z
       .object({
         "Ngoại Hình": safeString().prefault(""),

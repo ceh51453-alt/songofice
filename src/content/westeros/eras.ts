@@ -44,6 +44,17 @@ export interface CanonCharacter {
   /** schemaName của Nhà (khớp enum HOUSES trong schema). */
   house: string;
   role: string;
+  /** Xuất thân xã hội/lịch sử, tách khỏi vai trò đang đảm nhiệm. */
+  origin?: string;
+  /** Văn hoá canon được ghi riêng cho từng nhân vật; không suy diễn theo Nhà. */
+  culture?: string;
+  /** Huyết mạch canon nếu lore xác nhận hoặc nhân vật tự nhận. */
+  bloodline?: string;
+  /** Westeros, Essos, hoặc địa danh xuất thân khi không thuộc hai lục địa này. */
+  continent?: string;
+  /** Ghi chú ngoại hình/tiểu sử dùng cho Sổ tay. */
+  appearance?: string;
+  biography?: string;
   religion: string;
   blurb: string;
   birthYear?: number;
@@ -153,6 +164,9 @@ export const ERAS: EraData[] = [
       {
         id: "last-hero", name: "Anh Hùng Cuối Cùng", house: "Stark", role: "Kẻ Tìm Kiếm", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Người đàn ông cầm kiếm đi vào bóng tối — một mình, với mười hai người bạn, một con chó, và một thanh kiếm. Tất cả sẽ chết, trừ ông.",
+        origin: "Nhân vật truyền thuyết của Đêm Trường; nguồn sử liệu không xác định được danh tính hay quê quán.",
+        culture: "Người Đầu Tiên (truyền thuyết)", bloodline: "Không xác minh", continent: "Westeros",
+        appearance: "Không có mô tả canon xác thực; hình tượng chỉ tồn tại trong truyện kể về Đêm Trường.",
         birthYear: -8035, age: 35, coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 13, "Thể Chất": 16, "Trí Tuệ": 11, "Tinh Tường": 14, "Uy Tín": 13 },
         talentIds: ["warrior-blood", "lord-of-north"],
         skills: { "sword-shield": 7, "weather-endurance": 8, "hunting": 6, "command": 5 },
@@ -170,6 +184,9 @@ export const ERAS: EraData[] = [
       {
         id: "brandon-builder", name: "Brandon Người Xây", house: "Stark", role: "Kiến Trúc Sư Huyền Thoại", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Người đã xây Winterfell và Bức Tường — hay ít nhất, truyền thuyết kể như vậy. Sự thật có lẽ kỳ lạ hơn.",
+        origin: "Nhân vật truyền thuyết của Thời Đại Anh Hùng, được các truyện kể gắn với Winterfell và Bức Tường.",
+        culture: "Người Đầu Tiên (truyền thuyết)", bloodline: "Nhà Stark (truyền thuyết)", continent: "Westeros",
+        appearance: "Không có mô tả canon xác thực; mọi chân dung đều là diễn giải hậu thế.",
         birthYear: -8040, age: 40, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 10, "Thể Chất": 14, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 16 },
         talentIds: ["learned", "commander-instinct"],
         skills: { "command": 8, "lore": 7, "court-etiquette": 4, "weather-endurance": 5 },
@@ -187,6 +204,9 @@ export const ERAS: EraData[] = [
       {
         id: "night-king", name: "Dạ Vương", house: "Khác", role: "Thủ Lĩnh Bóng Trắng", tuocVi: "Thường Dân", religion: "Cựu Thần",
         blurb: "Kẻ mang cái lạnh vĩnh cửu. Không ai biết hắn đến từ đâu, chỉ biết khi hắn xuất hiện, ánh sáng tắt lịm.",
+        origin: "Phản diện giả lập lấy cảm hứng từ truyền thuyết Đêm Trường; không đồng nhất với Dạ Vương lịch sử của Tuần Đêm.",
+        culture: "Không xác minh (thực thể truyền thuyết)", bloodline: "Không xác minh", continent: "Westeros",
+        appearance: "Không có mô tả sách canon xác thực cho thực thể này; giao diện dùng hình tượng băng giá của trò chơi.",
         birthYear: -8500, age: 500, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 14, "Thể Chất": 20, "Trí Tuệ": 15, "Tinh Tường": 16, "Uy Tín": 18 },
         talentIds: ["learned", "commander-instinct"],
         skills: { "sword-shield": 10, "command": 10, "weather-endurance": 10, "lore": 8 },
@@ -200,6 +220,9 @@ export const ERAS: EraData[] = [
       {
         id: "leaf-cotf", name: "Lá", house: "Trẻ Con Rừng", role: "Lục Tiên Ký", tuocVi: "Thường Dân", religion: "Cựu Thần",
         blurb: "Một trong những Trẻ Con Rừng cuối cùng, mang sức mạnh của cây cối và đất đai để chống lại bóng tối.",
+        origin: "Một Trẻ Con Rừng trong truyền thuyết Đêm Trường; tên và hành trạng riêng không có nguồn canon xác thực.",
+        culture: "Trẻ Con Rừng", bloodline: "Trẻ Con Rừng", continent: "Westeros",
+        appearance: "Không có mô tả canon riêng; Trẻ Con Rừng thường được kể là nhỏ người, da nâu và có mắt lớn vàng kim.",
         birthYear: -8200, age: 200, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 16, "Thể Chất": 8, "Trí Tuệ": 16, "Tinh Tường": 18, "Uy Tín": 12 },
         talentIds: ["learned"],
         skills: { "lore": 9, "stealth": 8, "hunting": 7, "maester-medicine": 8 },
@@ -222,7 +245,8 @@ export const ERAS: EraData[] = [
     id: "aegon-conquest",
     name: "Cuộc Chinh Phạt Của Aegon",
     yearRange: "2 BC – 1 AC",
-    startYear: 1,
+    // Aegon đổ bộ tại cửa sông Blackwater vào 2 BC; đây là điểm mở đầu của cuộc chinh phạt.
+    startYear: -2,
     startSeason: "Hạ",
     startLocation: "Dragonstone",
     blurb: "Ba con rồng đổ bộ lên bờ Westeros. Bảy Vương Quốc còn là bảy vương quốc thật — và Aegon Targaryen định biến chúng thành một.",
@@ -234,6 +258,8 @@ export const ERAS: EraData[] = [
       {
         id: "aegon-targaryen", name: "Aegon Targaryen", house: "Targaryen", role: "Kẻ Chinh Phạt", tuocVi: "Vua Bảy Vương Quốc", religion: "Thất Diện Thần",
         blurb: "Chúa rồng của Dragonstone, người cưỡi Balerion Hắc Vong — kẻ sắp bẻ cong cả lục địa.",
+        origin: "Chúa Dragonstone; thủ lĩnh đoàn chinh phạt", culture: "Valyria (Dragonstone)", bloodline: "Dòng máu rồng Valyria", continent: "Westeros",
+        appearance: "Tóc bạc-vàng, mắt tím đậm; thường mặc đen giản dị hơn vẻ huy hoàng của một quân vương.",
         birthYear: -26, age: 27, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 12, "Thể Chất": 14, "Trí Tuệ": 14, "Tinh Tường": 13, "Uy Tín": 17 },
         talentIds: ["dragon-blood", "commander-instinct"],
         skills: { "sword-shield": 7, "command": 8, "war-riding": 5, "court-etiquette": 4 },
@@ -270,6 +296,8 @@ export const ERAS: EraData[] = [
       {
         id: "visenya-targaryen", name: "Visenya Targaryen", house: "Targaryen", role: "Nữ Vương Chiến Binh", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Chị cả cưỡi Vhagar — thanh Dark Sister trong tay, sắc như lời nói của bà.",
+        origin: "Vương nữ Dragonstone; chị và vợ của Aegon", culture: "Valyria (Dragonstone)", bloodline: "Dòng máu rồng Valyria", continent: "Westeros",
+        appearance: "Tóc bạc-vàng, mắt tím; vóc dáng nghiêm nghị, thường mang giáp và thanh Dark Sister.",
         birthYear: -28, age: 29, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 15, "Thể Chất": 13, "Trí Tuệ": 14, "Tinh Tường": 15, "Uy Tín": 14 },
         talentIds: ["dragon-blood", "duelist"],
         skills: { "sword-shield": 8, "dual-wield": 6, "command": 6, "cunning": 5 },
@@ -304,6 +332,8 @@ export const ERAS: EraData[] = [
       {
         id: "rhaenys-targaryen", name: "Rhaenys Targaryen", house: "Targaryen", role: "Nữ Vương Tự Do", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Em út cưỡi Meraxes — yêu thơ ca, bay nhanh hơn gió, và không sợ gì cả.",
+        origin: "Vương nữ Dragonstone; em và vợ của Aegon", culture: "Valyria (Dragonstone)", bloodline: "Dòng máu rồng Valyria", continent: "Westeros",
+        appearance: "Tóc bạc-vàng, mắt tím; duyên dáng và thích trang phục, âm nhạc hơn việc triều chính.",
         birthYear: -24, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 15, "Thể Chất": 11, "Trí Tuệ": 13, "Tinh Tường": 14, "Uy Tín": 16 },
         talentIds: ["dragon-blood", "silver-tongue"],
         skills: { "war-riding": 6, "persuasion": 6, "court-etiquette": 5, "languages": 4 },
@@ -336,6 +366,8 @@ export const ERAS: EraData[] = [
       {
         id: "orys-baratheon", name: "Orys Baratheon", house: "Baratheon", role: "Cánh Tay Trái", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Bạn thân, và là người anh em cùng cha khác mẹ tin đồn của Aegon. Một chiến binh hung bạo và tướng quân trung thành.",
+        origin: "Xuất thân không xác nhận; chiến hữu của Aegon từ Dragonstone", culture: "Valyria (Dragonstone)", bloodline: "Dòng máu Targaryen chỉ là lời đồn", continent: "Westeros",
+        appearance: "Thể hình lớn, tóc đen; chiến binh dùng búa chiến, mang phong thái của một chỉ huy tiền tuyến.",
         birthYear: -2, age: 29, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 11, "Thể Chất": 15, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 13 },
         talentIds: ["warrior-blood", "commander-instinct"],
         skills: { "axe-mace": 8, "command": 7, "unarmed": 6, "war-riding": 5 },
@@ -363,6 +395,8 @@ export const ERAS: EraData[] = [
       {
         id: "harren-the-black", name: "Harren Hoare", house: "Hoare", role: "Vua Quần Đảo Và Các Dòng Sông", tuocVi: "Vua", religion: "Thần Chết Chìm",
         blurb: "Harren Đen — bạo chúa tàn nhẫn vừa hoàn thành lâu đài khổng lồ nhất lịch sử, tin rằng đá có thể cản được rồng.",
+        origin: "Vua Nhà Hoare, kẻ cai trị Riverlands và Quần Đảo Sắt", culture: "Ironborn", bloodline: "Dòng Hoare", continent: "Westeros",
+        appearance: "Vua già, thân hình nặng nề; uy quyền dựa trên Harrenhal và nỗi sợ hơn là lòng trung thành.",
         birthYear: -60, age: 87, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 8, "Thể Chất": 11, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 16 },
         talentIds: ["hot-tempered", "lord-of-north"],
         skills: { "command": 8, "intimidation": 9, "sword-shield": 5 },
@@ -384,6 +418,8 @@ export const ERAS: EraData[] = [
       {
         id: "torrhen-stark", name: "Torrhen Stark", house: "Stark", role: "Vua Phương Bắc", tuocVi: "Vua", religion: "Cựu Thần",
         blurb: "Torrhen Stark, người sẽ mang danh 'Vua Quỳ Gối' để cứu hàng vạn lính Bắc khỏi lửa rồng.",
+        origin: "Vua Phương Bắc, Nhà Stark ở Winterfell", culture: "First Men", bloodline: "Dòng Stark của Tiền Nhân", continent: "Westeros",
+        appearance: "Một vị vua phương Bắc từng trải, khoác lông thú và đặt sự sống của dân mình trên vinh quang cá nhân.",
         birthYear: -30, age: 57, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 11, "Thể Chất": 14, "Trí Tuệ": 14, "Tinh Tường": 15, "Uy Tín": 15 },
         talentIds: ["lord-of-north", "beloved"],
         skills: { "command": 8, "lore": 6, "weather-endurance": 7, "sword-shield": 6 },
@@ -406,6 +442,8 @@ export const ERAS: EraData[] = [
       {
         id: "argilac-durrandon", name: "Argilac Kiêu Ngạo", house: "Durrandon", role: "Vua Bão", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Vua Bão cuối cùng, kiêu ngạo đến mức chặt tay sứ giả của Aegon. Già nhưng vẫn vô cùng nguy hiểm.",
+        origin: "Vua Bão cuối cùng của Nhà Durrandon tại Storm's End", culture: "Andal", bloodline: "Dòng Durrandon", continent: "Westeros",
+        appearance: "Chiến vương đã lớn tuổi nhưng vẫn khoẻ mạnh, nổi bật bởi tính khí bạo liệt và lòng kiêu hãnh.",
         birthYear: -50, age: 77, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 9, "Thể Chất": 12, "Trí Tuệ": 11, "Tinh Tường": 13, "Uy Tín": 14 },
         talentIds: ["warrior-blood", "hot-tempered"],
         skills: { "sword-shield": 8, "command": 7, "intimidation": 7 },
@@ -428,7 +466,7 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "landing-at-blackwater", title: "Đổ Bộ Cửa Sông Blackwater", year: "1 AC", numericYear: 1, desc: "Hạm đội Targaryen vừa cập bờ nơi cửa sông Blackwater. Ba con rồng lượn trên trời. Các vua Westeros bắt đầu tập hợp quân." },
+      { id: "landing-at-blackwater", title: "Đổ Bộ Cửa Sông Blackwater", year: "2 BC", numericYear: -2, desc: "Hạm đội Targaryen vừa cập bờ nơi cửa sông Blackwater. Ba con rồng lượn trên trời. Các vua Westeros bắt đầu tập hợp quân." },
       { id: "council-of-conquest", title: "Hội Nghị Trước Chinh Phạt", year: "2 BC", numericYear: -2, desc: "Trên bàn đá Dragonstone, tấm bản đồ Westeros trải rộng. Phải quyết: đánh đâu trước, dụ ai hàng, đốt ai làm gương." },
       { id: "harrenhal-defiance", title: "Cố Thủ Harrenhal", year: "1 AC", numericYear: 1, desc: "Bọn nhãi ranh Targaryen đòi ngươi quỳ gối. Nhưng ngươi có Harrenhal - pháo đài bằng đá đen kiên cố nhất thế giới. Đá không cháy, ngươi tự nhủ." },
       { id: "march-south", title: "Nam Tiến Lục Địch", year: "1 AC", numericYear: 1, desc: "Ba vạn quân phương Bắc đang rầm rập tiến qua Neck. Ngươi định nghiền nát bọn ngoại bang Targaryen, cho đến khi thấy ba con rồng bay lượn ở phương trời nam." },
@@ -439,8 +477,9 @@ export const ERAS: EraData[] = [
   {
     id: "dance-of-dragons",
     name: "Vũ Điệu Rồng",
-    yearRange: "105 – 131 AC",
-    startYear: 105,
+    yearRange: "129 – 131 AC",
+    // Viserys I chết và hai phe đăng quang đối nghịch trong năm 129 AC.
+    startYear: 129,
     startSeason: "Hạ",
     startLocation: "Dragonstone",
     blurb: "Vua Viserys I chết. Hai phe Targaryen tranh ngôi — Đen và Xanh. Rồng chiến rồng trên bầu trời Westeros, và khi tàn cuộc, giống rồng gần như tuyệt diệt.",
@@ -451,6 +490,8 @@ export const ERAS: EraData[] = [
       {
         id: "rhaenyra-targaryen", name: "Rhaenyra Targaryen", house: "Targaryen", role: "Nữ Vương Đen", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Con gái trưởng của Viserys I, được cha chọn làm người kế vị — nhưng dì ghẻ và em cùng cha khác mẹ nghĩ khác.",
+        origin: "Công chúa Targaryen, người thừa kế được Viserys I chỉ định", culture: "Valyria", bloodline: "Dòng máu rồng Targaryen", continent: "Westeros",
+        appearance: "Tóc bạc-vàng, mắt tím; ở đầu chiến tranh đã là mẹ của nhiều con và là tâm điểm của phe Đen.",
         birthYear: 97, age: 33, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 10, "Thể Chất": 11, "Trí Tuệ": 14, "Tinh Tường": 13, "Uy Tín": 16 },
         talentIds: ["dragon-blood", "highborn-charm"],
         skills: { "command": 6, "court-etiquette": 7, "persuasion": 6, "war-riding": 5 },
@@ -482,6 +523,8 @@ export const ERAS: EraData[] = [
       {
         id: "daemon-targaryen", name: "Daemon Targaryen", house: "Targaryen", role: "Hoàng Tử Lưu Manh", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Em trai vua, tay kiếm cự phách, cưỡi Caraxes — người đàn ông nguy hiểm nhất Westeros, và cũng là phu quân của Rhaenyra.",
+        origin: "Hoàng tử Targaryen, em Viserys I; cựu chỉ huy Áo Choàng Vàng", culture: "Valyria", bloodline: "Dòng máu rồng Targaryen", continent: "Westeros",
+        appearance: "Tóc bạc-vàng; dáng chiến binh, thường mặc giáp đen và mang Dark Sister.",
         birthYear: 81, age: 49, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 15, "Thể Chất": 13, "Trí Tuệ": 13, "Tinh Tường": 14, "Uy Tín": 15 },
         talentIds: ["dragon-blood", "duelist", "hot-tempered"],
         skills: { "sword-shield": 9, "war-riding": 7, "command": 7, "cunning": 5 },
@@ -516,6 +559,8 @@ export const ERAS: EraData[] = [
       {
         id: "aegon-ii", name: "Aegon II Targaryen", house: "Targaryen", role: "Vua Xanh", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Con trai thứ của Viserys, được mẹ Alicent và Otto Hightower đẩy lên ngôi — mặc di nguyện của cha.",
+        origin: "Hoàng tử Targaryen, con trưởng của Alicent Hightower", culture: "Valyria", bloodline: "Targaryen–Hightower", continent: "Westeros",
+        appearance: "Tóc bạc-vàng; vẻ ngoài vương giả nhưng sa đà và bất an dưới vương miện mới cướp được.",
         birthYear: 107, age: 23, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 11, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 14 },
         talentIds: ["dragon-blood", "hot-tempered"],
         skills: { "sword-shield": 5, "war-riding": 5, "court-etiquette": 4, "command": 4 },
@@ -549,6 +594,8 @@ export const ERAS: EraData[] = [
       {
         id: "aemond-targaryen", name: "Aemond Targaryen", house: "Targaryen", role: "Hiệp Sĩ Một Mắt", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
         blurb: "Con trai thứ hai của Alicent. Đã mất một con mắt để đổi lấy Vhagar — con rồng lớn nhất thế giới còn sống.",
+        origin: "Hoàng tử Targaryen, em trai Aegon II", culture: "Valyria", bloodline: "Targaryen–Hightower", continent: "Westeros",
+        appearance: "Tóc bạc-vàng, một mắt xanh ngọc bị thay bằng đá sapphire; cao, nghiêm khắc và hiếu chiến.",
         birthYear: 110, age: 20, coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 14, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 11 },
         talentIds: ["dragon-blood", "warrior-blood", "hot-tempered"],
         skills: { "sword-shield": 8, "war-riding": 6, "command": 6, "intimidation": 7 },
@@ -581,6 +628,8 @@ export const ERAS: EraData[] = [
       {
         id: "corlys-velaryon", name: "Corlys Velaryon", house: "Velaryon", role: "Rắn Biển", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
         blurb: "Chúa tể biển khơi, người giàu nhất Westeros, chỉ huy hạm đội khổng lồ nhất lịch sử lục địa.",
+        origin: "Lãnh chúa Driftmark, thủ lĩnh Nhà Velaryon", culture: "Valyria", bloodline: "Dòng Velaryon cổ", continent: "Westeros",
+        appearance: "Thuỷ thủ giàu có và từng trải, mang dấu vết của những chuyến hải hành xa xôi cùng phong thái một đại lãnh chúa.",
         birthYear: 53, age: 77, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 9, "Thể Chất": 13, "Trí Tuệ": 16, "Tinh Tường": 16, "Uy Tín": 17 },
         talentIds: ["learned", "beloved"],
         skills: { "command": 9, "trading": 10, "negotiation": 9, "lore": 7 },
@@ -605,6 +654,8 @@ export const ERAS: EraData[] = [
       {
         id: "criston-cole", name: "Criston Cole", house: "Cole", role: "Người Tạo Vua", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
         blurb: "Tư lệnh Vệ Vương, từng là hiệp sĩ được Rhaenyra ưu ái nhất — giờ là kẻ thù nguy hiểm nhất của nàng.",
+        origin: "Con trai viên quản gia của lãnh chúa Blackhaven; thăng tiến nhờ võ nghệ", culture: "Andal", bloodline: "Nhà Cole ở Dornish Marches", continent: "Westeros",
+        appearance: "Hiệp sĩ lực lưỡng, tóc và mắt sẫm; khoác giáp trắng của Vệ Vương và nổi tiếng về kỹ năng chiến đấu.",
         birthYear: 82, age: 48, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 15, "Thể Chất": 15, "Trí Tuệ": 11, "Tinh Tường": 13, "Uy Tín": 12 },
         talentIds: ["duelist", "warrior-blood"],
         skills: { "sword-shield": 9, "axe-mace": 8, "command": 7, "court-etiquette": 5 },
@@ -626,6 +677,8 @@ export const ERAS: EraData[] = [
       {
         id: "alicent-hightower", name: "Alicent Hightower", house: "Hightower", role: "Thái Hậu Xanh", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
         blurb: "Con gái Cánh Tay Phải, vợ thứ của Viserys. Nàng thề sẽ đưa huyết mạch mình lên ngai vàng bằng mọi giá.",
+        origin: "Con gái Otto Hightower ở Oldtown; hoàng hậu góa của Viserys I", culture: "Andal (Reach)", bloodline: "Nhà Hightower", continent: "Westeros",
+        appearance: "Tóc nâu đỏ, dáng vẻ mộ đạo và đoan trang; mặc màu xanh của phe mình tại triều đình.",
         birthYear: 88, age: 42, coreStats: { "Sức Mạnh": 7, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 15, "Tinh Tường": 16, "Uy Tín": 15 },
         talentIds: ["silver-tongue", "highborn-charm"],
         skills: { "court-etiquette": 9, "persuasion": 8, "cunning": 7, "maester-medicine": 5 },
@@ -642,8 +695,6 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "heir-proclaimed", title: "Người Thừa Kế Được Công Bố", year: "105 AC", numericYear: 105, desc: "Vua Viserys I công bố Rhaenyra là người thừa kế Ngai Sắt — phá vỡ tiền lệ truyền ngôi cho nam. Triều đình chia rẽ, phe cánh bắt đầu hình thành trong bóng tối." },
-      { id: "green-queen-rises", title: "Vương Hậu Mới Bước Lên", year: "109 AC", numericYear: 109, desc: "Viserys I cưới Alicent Hightower. Nàng sinh con trai — Aegon. Otto Hightower thì thầm rằng vương miện phải thuộc về con trai, không phải con gái. Cuộc đấu tranh bắt đầu." },
       { id: "throne-stolen", title: "Ngai Vàng Bị Cướp", year: "129 AC", numericYear: 129, desc: "Vua Viserys vừa qua đời. Alicent Hightower giấu tin, và Otto Hightower đã đội vương miện cho Aegon II trước khi ngươi kịp biết cha mình đã chết." },
       { id: "black-council", title: "Hội Đồng Đen Tại Dragonstone", year: "129 AC", numericYear: 129, desc: "Tin dữ truyền tới Dragonstone: ngôi vị đã bị cướp. Ngươi phải lập hội đồng chiến tranh — chọn đồng minh, điều rồng, và phản công." },
       { id: "green-coronation", title: "Đăng Quang Vội Vàng", year: "129 AC", numericYear: 129, desc: "Vương miện trên đầu ngươi chưa ấm chỗ, và chị gái cùng cha đã tuyên bố chiến tranh. Cả vương quốc phải chọn phe." },
@@ -653,8 +704,9 @@ export const ERAS: EraData[] = [
   {
     id: "blackfyre-rebellion",
     name: "Loạn Blackfyre",
-    yearRange: "195 – 196 AC",
-    startYear: 195,
+    yearRange: "196 AC",
+    // Cuộc nổi dậy và Redgrass Field đều thuộc 196 AC.
+    startYear: 196,
     startSeason: "Hạ",
     startLocation: "King's Landing",
     blurb: "Daemon Blackfyre — con hoang được hợp pháp hoá của Aegon IV — nổi dậy chống Daeron II với thanh kiếm Blackfyre trong tay. Dòng máu rồng lại một lần nữa tự xé chính mình.",
@@ -665,6 +717,8 @@ export const ERAS: EraData[] = [
       {
         id: "daemon-blackfyre", name: "Daemon Blackfyre", house: "Blackfyre", role: "Rồng Đen Nổi Loạn", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
         blurb: "Đẹp trai, tay kiếm xuất chúng, cầm thanh kiếm Blackfyre do chính vua cha ban — và tin rằng mình mới là vua thật.",
+        origin: "Con ngoài giá thú được hợp pháp hoá của Aegon IV và Daena", culture: "Valyria", bloodline: "Targaryen–Blackfyre", continent: "Westeros",
+        appearance: "Đẹp trai, tóc bạc-vàng, thân hình chiến binh; mang Blackfyre như biểu tượng cho yêu sách ngai vàng.",
         birthYear: 170, age: 25, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 14, "Thể Chất": 15, "Trí Tuệ": 11, "Tinh Tường": 11, "Uy Tín": 16 },
         talentIds: ["warrior-blood", "born-swordsman", "beloved"],
         skills: { "sword-shield": 9, "war-riding": 7, "command": 7, "court-etiquette": 3 },
@@ -691,6 +745,8 @@ export const ERAS: EraData[] = [
       {
         id: "daeron-ii", name: "Daeron II Targaryen", house: "Targaryen", role: "Vua Hiền", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Daeron Hiền Vương — ông kết nạp Dorne bằng hôn nhân thay vì chiến tranh, nhưng giờ đối mặt với sự phản bội từ dòng máu của chính mình.",
+        origin: "Vua Targaryen, con hợp pháp của Aegon IV và Naerys", culture: "Valyria", bloodline: "Targaryen", continent: "Westeros",
+        appearance: "Một quân vương học thức, ôn hoà hơn võ biền; mang trách nhiệm giữ vương quốc không tan vỡ.",
         birthYear: 153, age: 42, coreStats: { "Sức Mạnh": 9, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 15 },
         talentIds: ["learned", "silver-tongue"],
         skills: { "persuasion": 7, "court-etiquette": 8, "lore": 7, "command": 5 },
@@ -716,6 +772,8 @@ export const ERAS: EraData[] = [
       {
         id: "bloodraven", name: "Brynden Rivers (Quạ Máu)", house: "Targaryen", role: "Mắt Ngàn Mắt", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Con hoang mắt đỏ bạch tạng của Aegon IV — tay cung thần sầu, mạng lưới gián điệp khắp vương quốc, và có lẽ... còn hơn thế.",
+        origin: "Con ngoài giá thú của Aegon IV và Melissa Blackwood", culture: "First Men", bloodline: "Targaryen–Blackwood", continent: "Westeros",
+        appearance: "Bạch tạng, một mắt đỏ, bớt hình vết rượu vang trên mặt; thường được gọi là Quạ Máu.",
         birthYear: 175, age: 20, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 14, "Thể Chất": 11, "Trí Tuệ": 16, "Tinh Tường": 17, "Uy Tín": 12 },
         talentIds: ["keen-eye", "schemer", "warg"],
         skills: { "bow-crossbow": 9, "cunning": 7, "gather-rumor": 7, "lore": 5 },
@@ -741,6 +799,8 @@ export const ERAS: EraData[] = [
       {
         id: "bittersteel", name: "Aegor Rivers (Thép Đắng)", house: "Bracken", role: "Kiếm Sĩ Mang Thù", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
         blurb: "Con hoang của Aegon IV và Barba Bracken. Căm hận Bloodraven đến tận xương tuỷ. Sẽ là người sáng lập Hội Binh Vàng sau này.",
+        origin: "Con ngoài giá thú của Aegon IV và Barba Bracken", culture: "Andal", bloodline: "Targaryen–Bracken", continent: "Westeros",
+        appearance: "Tóc sẫm, thân hình lực lưỡng; một kiếm sĩ có vẻ ngoài khắc khổ và thù hằn không che giấu.",
         birthYear: 172, age: 23, coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 13, "Thể Chất": 16, "Trí Tuệ": 11, "Tinh Tường": 12, "Uy Tín": 13 },
         talentIds: ["warrior-blood", "hot-tempered"],
         skills: { "sword-shield": 8, "command": 7, "war-riding": 6, "intimidation": 6 },
@@ -764,7 +824,7 @@ export const ERAS: EraData[] = [
       },
     ],
     startingHooks: [
-      { id: "black-banner-rises", title: "Cờ Đen Phất Lên", year: "195 AC", numericYear: 195, desc: "Daemon Blackfyre công khai tuyên bố quyền thừa kế. Hơn nửa vương quốc ủng hộ — dòng máu chính thống bị thách thức bằng chính thanh kiếm mang tên vương triều." },
+      { id: "black-banner-rises", title: "Cờ Đen Phất Lên", year: "196 AC", numericYear: 196, desc: "Daemon Blackfyre công khai tuyên bố quyền thừa kế. Hơn nửa vương quốc ủng hộ — dòng máu chính thống bị thách thức bằng chính thanh kiếm mang tên vương triều." },
       { id: "bastard-rebellion", title: "Cuộc Loạn Con Hoang", year: "196 AC", numericYear: 196, desc: "Đại quân Blackfyre đang tiến về phía nam. Ngươi phải tập hợp lực lượng trung thành, đối mặt tại Redgrass Field — trận đánh sẽ quyết định số phận vương triều." },
     ],
   },
@@ -784,6 +844,8 @@ export const ERAS: EraData[] = [
       {
         id: "duncan-the-tall", name: "Ser Duncan Cao Lớn", house: "Không Nhà", role: "Hiệp Sĩ Giang Hồ", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
         blurb: "Cao gần bảy bộ, con mồ côi Flea Bottom, cựu giám mã của Hiệp Sĩ Giang Hồ già Arlan xứ Pennytree. Không gia huy, không dòng họ — chỉ có thanh kiếm và lời thề.",
+        origin: "Trẻ mồ côi Flea Bottom; giám mã rồi kế nghiệp Ser Arlan of Pennytree", culture: "Andal (King's Landing)", bloodline: "Không rõ", continent: "Westeros",
+        appearance: "Cao gần bảy bộ, vai rộng, tóc nâu; vẻ ngoài thô mộc trái ngược với lòng trắc ẩn và lý tưởng hiệp sĩ.",
         birthYear: 192, age: 17, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 11, "Thể Chất": 16, "Trí Tuệ": 9, "Tinh Tường": 11, "Uy Tín": 10 },
         talentIds: ["giant-frame", "warrior-blood", "beloved"],
         skills: { "sword-shield": 6, "war-riding": 4, "weather-endurance": 4, "hunting": 3 },
@@ -802,6 +864,8 @@ export const ERAS: EraData[] = [
       {
         id: "aegon-egg", name: "Aegon \"Egg\" Targaryen", house: "Targaryen", role: "Giám Mã Bí Mật", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Con trai út của Hoàng tử Maekar, cạo đầu để giấu tóc bạc Targaryen. Theo Dunk lang thang như giám mã thường dân — nhưng dòng máu rồng chảy trong huyết quản.",
+        origin: "Hoàng tử út của Maekar Targaryen, cải trang làm giám mã", culture: "Valyria", bloodline: "Targaryen", continent: "Westeros",
+        appearance: "Cậu bé đầu cạo, mắt tím; nhanh trí và cố tình che giấu xuất thân hoàng gia.",
         birthYear: 199, age: 10, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 8, "Trí Tuệ": 14, "Tinh Tường": 13, "Uy Tín": 9 },
         talentIds: ["learned", "keen-eye"],
         skills: { "lore": 4, "languages": 3, "court-etiquette": 3, "hunting": 2 },
@@ -828,6 +892,8 @@ export const ERAS: EraData[] = [
       {
         id: "bloodraven-hand", name: "Brynden Rivers (Quạ Máu)", house: "Targaryen", role: "Bàn Tay Nhà Vua", tuocVi: "Vua", religion: "Cựu Thần",
         blurb: "Con hoang bạch tạng mắt đỏ, giờ là Bàn Tay Nhà Vua của Aerys I. Mạng lưới gián điệp dày đặc, quyền lực tuyệt đối — và ai đó đang thì thầm rằng ông ta dùng ma thuật.",
+        origin: "Con ngoài giá thú của Aegon IV; Bàn Tay của Aerys I", culture: "First Men", bloodline: "Targaryen–Blackwood", continent: "Westeros",
+        appearance: "Bạch tạng, mắt đỏ và vết bớt màu rượu vang; quyền lực nhưng khó đoán, luôn được bao quanh bởi gián điệp.",
         birthYear: 175, age: 34, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 13, "Thể Chất": 11, "Trí Tuệ": 17, "Tinh Tường": 18, "Uy Tín": 14 },
         talentIds: ["keen-eye", "schemer", "warg"],
         skills: { "bow-crossbow": 9, "cunning": 8, "gather-rumor": 8, "lore": 6, "command": 5 },
@@ -871,10 +937,18 @@ export const ERAS: EraData[] = [
     availableHouses: ["stark", "baratheon", "targaryen", "lannister", "arryn", "tully", "tyrell", "martell", "greyjoy"],
     hasMagic: false,
     canonCharacters: [
-      ...robertsRebellionCharacters,
+      // Ba hồ sơ dưới đây được khai báo chi tiết ngay trong era (hook và quan hệ riêng),
+      // nên không đưa bản trùng ID từ roster hỗ trợ vào cùng một ván.
+      ...robertsRebellionCharacters.filter((character) =>
+        character.id !== "robert-baratheon"
+        && character.id !== "rhaegar-targaryen"
+        && character.id !== "aerys-ii",
+      ),
       {
         id: "robert-baratheon", name: "Robert Baratheon", house: "Baratheon", role: "Thủ Lĩnh Phiến Quân", tuocVi: "Vua Bảy Vương Quốc", religion: "Thất Diện Thần",
         blurb: "Chiếc búa chiến trong tay, cơn thịnh nộ trong tim — Robert của Storm's End đòi lại người mình yêu bằng chiến tranh.",
+        origin: "Lãnh chúa Storm's End, người thừa kế Nhà Baratheon", culture: "Andal (Stormlands)", bloodline: "Baratheon–Durrandon", continent: "Westeros",
+        appearance: "Một chàng trai to lớn, tóc đen, mắt xanh và thân hình chiến binh; nổi tiếng với búa chiến khổng lồ.",
         birthYear: 262, age: 20, coreStats: { "Sức Mạnh": 17, "Nhanh Nhẹn": 12, "Thể Chất": 16, "Trí Tuệ": 9, "Tinh Tường": 10, "Uy Tín": 15 },
         talentIds: ["giant-frame", "warrior-blood", "beloved"],
         skills: { "axe-mace": 8, "war-riding": 6, "command": 6, "hunting": 5 },
@@ -897,6 +971,8 @@ export const ERAS: EraData[] = [
       {
         id: "eddard-stark-young", name: "Eddard Stark", house: "Stark", role: "Sói Trẻ Phương Bắc", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Người con thứ bỗng thành Lãnh chúa Winterfell sau cái chết của cha và anh — trầm lặng, và không lùi bước.",
+        origin: "Con thứ của Rickard Stark, được nuôi dạy tại Eyrie", culture: "First Men", bloodline: "Nhà Stark", continent: "Westeros",
+        appearance: "Tóc nâu sẫm, mắt xám, vóc người gọn; kín đáo và mang phong thái khắc khổ của phương Bắc.",
         birthYear: 263, age: 19, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 12, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 14, "Uy Tín": 12 },
         talentIds: ["lord-of-north", "warrior-blood"],
         skills: { "sword-shield": 6, "command": 6, "weather-endurance": 4, "lore": 3 },
@@ -917,6 +993,8 @@ export const ERAS: EraData[] = [
       {
         id: "rhaegar-targaryen", name: "Rhaegar Targaryen", house: "Targaryen", role: "Thái Tử Bạc", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Hoàng tử tài hoa nhất thế hệ — cây đàn hạc trong tay này, ngọn thương trong tay kia, và một điềm tiên tri trong đầu.",
+        origin: "Thái tử Targaryen, con cả của Aerys II", culture: "Valyria", bloodline: "Targaryen", continent: "Westeros",
+        appearance: "Tóc bạc-vàng, mắt tím; một hoàng tử học thức với vẻ u buồn, đồng thời là kỵ sĩ thiện chiến.",
         birthYear: 259, age: 23, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 12, "Trí Tuệ": 15, "Tinh Tường": 13, "Uy Tín": 16 },
         talentIds: ["silver-tongue", "duelist", "learned"],
         skills: { "sword-shield": 7, "war-riding": 7, "lore": 6, "persuasion": 5 },
@@ -938,6 +1016,8 @@ export const ERAS: EraData[] = [
       {
         id: "aerys-ii", name: "Aerys II Targaryen", house: "Targaryen", role: "Vua Điên", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Sự hoang tưởng và tàn ác đã thiêu rụi trí óc ông — giờ ông muốn thiêu rụi cả vương quốc bằng ngọn lửa xanh.",
+        origin: "Vua Targaryen thứ mười bảy, con của Jaehaerys II", culture: "Valyria", bloodline: "Targaryen", continent: "Westeros",
+        appearance: "Gầy gò, tóc bạc rối và móng tay dài; nỗi sợ hãi khiến ông xa lạ với chính triều đình mình.",
         birthYear: 244, age: 38, coreStats: { "Sức Mạnh": 7, "Nhanh Nhẹn": 8, "Thể Chất": 6, "Trí Tuệ": 13, "Tinh Tường": 7, "Uy Tín": 16 },
         talentIds: ["schemer"],
         skills: { "intimidation": 9, "command": 6, "lore": 5 },
@@ -959,6 +1039,8 @@ export const ERAS: EraData[] = [
       {
         id: "tywin-lannister-rebellion", name: "Tywin Lannister", house: "Lannister", role: "Sư Tử Đợi Chờ", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Lãnh chúa Casterly Rock. Đã từ bỏ chức Bàn Tay Nhà Vua. Giờ ông ngồi chờ ở hòn đá của mình, xem ai sẽ là người chiến thắng trước khi ra đòn quyết định.",
+        origin: "Lãnh chúa Casterly Rock, cựu Bàn Tay của Aerys II", culture: "Andal (Westerlands)", bloodline: "Nhà Lannister", continent: "Westeros",
+        appearance: "Tóc vàng nhạt, mắt xanh lục; ăn mặc kín đáo nhưng luôn tạo cảm giác quyền lực và lạnh lùng.",
         birthYear: 242, age: 40, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 17, "Tinh Tường": 15, "Uy Tín": 16 },
         talentIds: ["learned", "schemer"],
         skills: { "command": 9, "cunning": 8, "trading": 8, "intimidation": 8 },
@@ -995,10 +1077,17 @@ export const ERAS: EraData[] = [
     availableHouses: ["greyjoy", "stark", "lannister", "baratheon", "arryn", "tully", "tyrell", "martell", "targaryen"],
     hasMagic: false,
     canonCharacters: [
-      ...warOfFiveKingsCharacters,
+      // Balon và Euron có bản 289 AC riêng bên dưới; loại bản 298 AC trùng ID.
+      ...warOfFiveKingsCharacters.filter((character) =>
+        character.id !== "balon-greyjoy"
+        && character.id !== "euron-greyjoy",
+      ),
       {
         id: "balon-greyjoy", name: "Balon Greyjoy", house: "Greyjoy", role: "Vua Quần Đảo Sắt", tuocVi: "Đại Lãnh Chúa", religion: "Thần Chết Chìm",
         blurb: "Con trai Quellon, Lãnh chúa Pyke — tin rằng người Sắt phải cai trị bằng giá sắt, không phải vàng. Và thời khắc đã đến.",
+        origin: "Con trai trưởng của Quellon Greyjoy, Lãnh chúa Pyke và Chúa tể Quần Đảo Sắt.",
+        culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros",
+        appearance: "Người đàn ông gầy, tóc đen pha xám, gương mặt khắc khổ và ánh mắt cứng rắn.",
         birthYear: 256, age: 33, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 12, "Thể Chất": 15, "Trí Tuệ": 11, "Tinh Tường": 11, "Uy Tín": 14 },
         talentIds: ["warrior-blood", "hot-tempered"],
         skills: { "axe-mace": 7, "command": 6, "war-riding": 4, "weather-endurance": 5 },
@@ -1020,6 +1109,9 @@ export const ERAS: EraData[] = [
       {
         id: "robert-baratheon-king", name: "Robert Baratheon", house: "Baratheon", role: "Vua Bảy Vương Quốc", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Sáu năm trên ngai sắt chưa làm Robert béo phì — nhưng sắp rồi. Giờ thì gã còn đủ sức vung búa và dẹp loạn Greyjoy.",
+        origin: "Con trai cả của Steffon và Cassana Baratheon, lớn lên tại Storm's End và từng được Jon Arryn nuôi dạy ở Eyrie.",
+        culture: "Andal vùng Bão Tố", bloodline: "Nhà Baratheon; dòng Durrandon qua nữ hệ", continent: "Westeros",
+        appearance: "Ở năm 289 AC vẫn cao lớn, vai rộng, tóc đen và mắt xanh; chưa mang vóc dáng nặng nề của những năm sau.",
         birthYear: 262, age: 27, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 11, "Thể Chất": 15, "Trí Tuệ": 9, "Tinh Tường": 10, "Uy Tín": 16 },
         talentIds: ["giant-frame", "warrior-blood", "beloved"],
         skills: { "axe-mace": 8, "war-riding": 6, "command": 7, "hunting": 5 },
@@ -1038,6 +1130,9 @@ export const ERAS: EraData[] = [
       {
         id: "theon-greyjoy-child", name: "Theon Greyjoy", house: "Greyjoy", role: "Con Tin Tương Lai", tuocVi: "Lãnh Chúa", religion: "Thần Chết Chìm",
         blurb: "Cậu bé chín tuổi, con út của Balon — chưa biết rằng nếu cha thua, cậu sẽ bị mang đi làm con tin ở Winterfell.",
+        origin: "Con trai út còn sống của Balon Greyjoy, sinh và lớn lên tại Pyke trước khi trở thành con tin chính trị sau cuộc nổi loạn.",
+        culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros",
+        appearance: "Một cậu bé tóc đen, gầy và lanh lợi; các mô tả rõ nét hơn chỉ xuất hiện khi Theon đã trưởng thành.",
         birthYear: 280, age: 9, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 8, "Trí Tuệ": 9, "Tinh Tường": 8, "Uy Tín": 8 },
         talentIds: [],
         skills: { "bow-crossbow": 2, "hunting": 2 },
@@ -1057,13 +1152,16 @@ export const ERAS: EraData[] = [
       {
         id: "euron-greyjoy", name: "Euron Greyjoy", house: "Greyjoy", role: "Mắt Quạ", tuocVi: "Lãnh Chúa", religion: "Thần Chết Chìm",
         blurb: "Kẻ điên rồ và xảo quyệt nhất trong những người anh em của Balon. Cưỡi con tàu Silence với thủy thủ đoàn bị cắt lưỡi.",
+        origin: "Em trai của Balon Greyjoy, một thuyền trưởng Người Sắt từng bị Balon đày khỏi Quần Đảo Sắt.",
+        culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros",
+        appearance: "Tóc đen phủ vai, râu sẫm; một mắt xanh biếc còn mắt kia bị che bằng miếng bịt màu đen.",
         birthYear: 260, age: 29, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 13, "Thể Chất": 13, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 15 },
         talentIds: ["schemer", "master-liar"],
         skills: { "trading": 9, "cunning": 8, "intimidation": 9, "lore": 6 },
         equipment: [
           { slot: "Vũ Khí Chính", ten: "Kiếm thép Valyria (tin đồn)", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Thanh kiếm chém không lưu vết" },
         ],
-        items: [{ ten: "Kèn ma thuật", soLuong: 1, moTa: "Chiếc kèn có thể trói buộc rồng" }],
+        items: [],
         gold: 10000, startHoldings: ["the-iron-islands-seat"],
         startRegions: [],
         startArmies: [
@@ -1097,6 +1195,8 @@ export const ERAS: EraData[] = [
       {
         id: "eddard-stark", name: "Eddard Stark", house: "Stark", role: "Lãnh Chúa Winterfell", tuocVi: "Đại Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Mười lăm năm thái bình cai trị phương Bắc — cho tới khi người bạn cũ phi ngựa tới cổng thành với một lời đề nghị chết người.",
+        origin: "Lãnh chúa Winterfell; cựu Ward của Jon Arryn", culture: "First Men", bloodline: "Nhà Stark", continent: "Westeros",
+        appearance: "Tóc nâu, mắt xám, khuôn mặt nghiêm; mang phẩm chất danh dự và sự thận trọng của phương Bắc.",
         birthYear: 263, age: 35, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 11, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 15, "Uy Tín": 13 },
         talentIds: ["lord-of-north", "born-swordsman", "beloved"],
         skills: { "sword-shield": 7, "command": 8, "court-etiquette": 3, "lore": 5, "weather-endurance": 4 },
@@ -1126,6 +1226,8 @@ export const ERAS: EraData[] = [
       {
         id: "tyrion-lannister", name: "Tyrion Lannister", house: "Lannister", role: "Quỷ Lùn Nhà Lannister", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Cha khinh, chị ghét, cả vương quốc cười nhạo — nhưng trong cái đầu ấy là bộ óc sắc nhất Westeros. Ta uống, và ta biết nhiều thứ.",
+        origin: "Con út của Tywin Lannister; người lùn mang tước vị", culture: "Andal (Westerlands)", bloodline: "Nhà Lannister", continent: "Westeros",
+        appearance: "Thấp bé, tóc vàng nhạt, mắt lệch màu; lời nói sắc bén và trí nhớ đáng gờm là vũ khí quan trọng nhất.",
         birthYear: 273, age: 25, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 17, "Tinh Tường": 16, "Uy Tín": 12 },
         talentIds: ["dwarf", "schemer", "silver-tongue", "perfect-memory"],
         skills: { "cunning": 7, "persuasion": 6, "negotiation": 6, "lore": 7, "gather-rumor": 5 },
@@ -1148,6 +1250,8 @@ export const ERAS: EraData[] = [
       {
         id: "daenerys-targaryen", name: "Daenerys Targaryen", house: "Targaryen", role: "Công Chúa Lưu Vong", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Đứa con cuối cùng của triều đại bị lật đổ, sống lưu vong bên kia Biển Hẹp — sắp bị gả bán cho một khal người Dothraki.",
+        origin: "Công chúa Targaryen sinh trong lưu vong, sống tại Essos", culture: "Valyria", bloodline: "Targaryen", continent: "Essos",
+        appearance: "Tóc bạc-vàng và mắt tím; còn trẻ, dè dặt nhưng mang nét kiêu hãnh của dòng Targaryen.",
         birthYear: 284, age: 14, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 11, "Trí Tuệ": 12, "Tinh Tường": 13, "Uy Tín": 15 },
         talentIds: ["dragon-blood", "silver-tongue"],
         skills: { "persuasion": 4, "languages": 4, "court-etiquette": 3 },
@@ -1167,6 +1271,8 @@ export const ERAS: EraData[] = [
       {
         id: "jon-snow", name: "Jon Snow", house: "Stark", role: "Con Hoang Của Winterfell", tuocVi: "Thường Dân", religion: "Cựu Thần",
         blurb: "Snow — cái họ theo cậu từ lúc sinh. Ở Winterfell không có chỗ cho cậu; Tường Thành thì luôn nhận tất cả.",
+        origin: "Con hoang được thừa nhận của Eddard Stark; chuẩn bị gia nhập Tuần Đêm", culture: "First Men", bloodline: "Snow (công khai)", continent: "Westeros",
+        appearance: "Tóc đen, mắt xám, dáng mảnh nhưng nhanh nhẹn; mang vẻ trầm tĩnh và cảm giác không thuộc về đâu cả.",
         birthYear: 283, age: 15, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 13, "Thể Chất": 12, "Trí Tuệ": 11, "Tinh Tường": 12, "Uy Tín": 10 },
         talentIds: ["born-swordsman", "warg", "ill-reputed"],
         skills: { "sword-shield": 5, "war-riding": 3, "hunting": 3, "weather-endurance": 3 },
@@ -1187,6 +1293,8 @@ export const ERAS: EraData[] = [
       {
         id: "cersei-lannister", name: "Cersei Lannister", house: "Lannister", role: "Vương Hậu", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Hoa hồng vàng của Casterly Rock, vợ của vị vua nát rượu — và người giữ bí mật có thể thiêu rụi cả vương triều.",
+        origin: "Con gái Tywin Lannister, hoàng hậu của Robert", culture: "Andal (Westerlands)", bloodline: "Nhà Lannister", continent: "Westeros",
+        appearance: "Tóc vàng óng, mắt xanh lục; vẻ đẹp quyền quý đi cùng tính kiêu ngạo và óc kiểm soát.",
         birthYear: 273, age: 25, coreStats: { "Sức Mạnh": 7, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 13, "Tinh Tường": 12, "Uy Tín": 16 },
         talentIds: ["master-liar", "highborn-charm", "hot-tempered"],
         skills: { "deception": 6, "court-etiquette": 7, "cunning": 5, "persuasion": 5 },
@@ -1208,6 +1316,8 @@ export const ERAS: EraData[] = [
       {
         id: "robb-stark", name: "Robb Stark", house: "Stark", role: "Sói Trẻ", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Con cả của Ned Stark. Sau cái chết của cha, cậu được phong làm Vua Phương Bắc. Bất bại trên chiến trường, nhưng chiến tranh không chỉ có gươm đao.",
+        origin: "Người thừa kế Winterfell, con cả của Eddard và Catelyn", culture: "First Men", bloodline: "Stark–Tully", continent: "Westeros",
+        appearance: "Tóc nâu, mắt xanh của nhà Tully; trẻ tuổi nhưng có khí chất chỉ huy và được sói Grey Wind theo sát.",
         birthYear: 283, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 13, "Thể Chất": 13, "Trí Tuệ": 12, "Tinh Tường": 14, "Uy Tín": 16 },
         talentIds: ["lord-of-north", "beloved", "commander-instinct"],
         skills: { "command": 7, "sword-shield": 6, "war-riding": 6 },
@@ -1233,6 +1343,8 @@ export const ERAS: EraData[] = [
       {
         id: "stannis-baratheon", name: "Stannis Baratheon", house: "Baratheon", role: "Vua Đích Thực", tuocVi: "Đại Lãnh Chúa", religion: "Thần Ánh Sáng (R'hllor)",
         blurb: "Em trai của Robert. Một con người được rèn từ sắt: cứng rắn, vô tình và không bao giờ uốn cong. Ông tin ngôi vị là quyền của mình.",
+        origin: "Lãnh chúa Dragonstone, em trai Robert", culture: "Andal (Stormlands)", bloodline: "Baratheon–Durrandon", continent: "Westeros",
+        appearance: "Hàm bạnh, tóc đen, ánh mắt nghiêm khắc; phong thái khô khan của một chỉ huy đặt luật lệ lên trên tình cảm.",
         birthYear: 264, age: 34, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 10, "Thể Chất": 15, "Trí Tuệ": 14, "Tinh Tường": 13, "Uy Tín": 9 },
         talentIds: ["commander-instinct"],
         skills: { "command": 9, "trading": 7, "sword-shield": 6, "lore": 5 },
@@ -1261,6 +1373,8 @@ export const ERAS: EraData[] = [
       {
         id: "renly-baratheon", name: "Renly Baratheon", house: "Baratheon", role: "Vua Ở Highgarden", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Em út nhà Baratheon, đẹp trai, quyến rũ và được lòng dân chúng. Anh ta mặc áo giáp xanh và tự xưng vương dù không có quyền kế vị.",
+        origin: "Lãnh chúa Storm's End, em út Robert và Stannis", culture: "Andal (Stormlands)", bloodline: "Baratheon–Durrandon", continent: "Westeros",
+        appearance: "Tóc đen, mắt xanh, ngoại hình rất giống Robert thời trẻ; duyên dáng và thích sự phô trương của triều đình.",
         birthYear: 277, age: 21, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 12, "Thể Chất": 12, "Trí Tuệ": 11, "Tinh Tường": 11, "Uy Tín": 18 },
         talentIds: ["beloved", "highborn-charm", "silver-tongue"],
         skills: { "persuasion": 8, "court-etiquette": 7, "command": 5 },
@@ -1286,6 +1400,8 @@ export const ERAS: EraData[] = [
       {
         id: "joffrey-baratheon", name: "Joffrey Baratheon", house: "Baratheon", role: "Vua Bé Con", tuocVi: "Vua", religion: "Thất Diện Thần",
         blurb: "Tàn nhẫn, kiêu ngạo và hèn nhát. Dù mang tên Baratheon, cậu lại có mái tóc vàng của nhà Lannister.",
+        origin: "Thái tử trên danh nghĩa của Robert Baratheon", culture: "Andal (Crownlands)", bloodline: "Baratheon (công khai)", continent: "Westeros",
+        appearance: "Tóc vàng, mắt xanh lục; một thiếu niên xinh đẹp theo kiểu Lannister nhưng có khí chất bất ổn.",
         birthYear: 286, age: 12, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 9, "Thể Chất": 7, "Trí Tuệ": 8, "Tinh Tường": 7, "Uy Tín": 9 },
         talentIds: ["hot-tempered"],
         skills: { "intimidation": 5, "bow-crossbow": 4 },
@@ -1333,6 +1449,9 @@ export const ERAS: EraData[] = [
       {
         id: "jon-snow-resurrected", name: "Jon Snow", house: "Stark", role: "Sói Trắng", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Bị phản bội và ám sát bởi chính người của mình, cậu được đưa về từ cõi chết. Tuần Đêm đã ở lại phía sau, phía trước là Winterfell.",
+        origin: "Được công khai là con ngoài giá thú của Eddard Stark, lớn lên tại Winterfell; huyết thống trong dữ liệu kịch bản được ghi riêng ở liên kết gia đình.",
+        culture: "Người Đầu Tiên vùng Bắc", bloodline: "Snow (thân phận công khai)", continent: "Westeros",
+        appearance: "Tóc nâu sẫm, mắt xám, dáng gầy rắn rỏi; thường mặc đồ đen của Tuần Đêm và mang Longclaw.",
         birthYear: 283, age: 17, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 13, "Thể Chất": 13, "Trí Tuệ": 11, "Tinh Tường": 14, "Uy Tín": 15 },
         talentIds: ["born-swordsman", "warg", "commander-instinct"],
         skills: { "sword-shield": 8, "command": 7, "weather-endurance": 7, "intimidation": 5 },
@@ -1355,6 +1474,9 @@ export const ERAS: EraData[] = [
       {
         id: "daenerys-targaryen-queen", name: "Daenerys Targaryen", house: "Targaryen", role: "Mẹ Rồng", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Không còn là cô gái sợ hãi. Nàng là Người Phá Xiềng Xích, cưỡi trên lưng con rồng lớn nhất, dẫn dắt đội quân khổng lồ tiến về Westeros.",
+        origin: "Con gái Aerys II và Rhaella Targaryen, sinh tại Dragonstone trong cảnh lưu vong sau khi Nhà Targaryen sụp đổ.",
+        culture: "Valyria hậu duệ; trưởng thành trong lưu vong Essos", bloodline: "Nhà Targaryen", continent: "Essos",
+        appearance: "Tóc vàng bạc, mắt tím và vóc người mảnh; thường gắn với trang phục Dothraki và ba con rồng.",
         birthYear: 284, age: 16, coreStats: { "Sức Mạnh": 7, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 14, "Tinh Tường": 15, "Uy Tín": 18 },
         talentIds: ["dragon-blood", "beloved", "silver-tongue"],
         skills: { "command": 8, "persuasion": 8, "languages": 6, "war-riding": 6 },

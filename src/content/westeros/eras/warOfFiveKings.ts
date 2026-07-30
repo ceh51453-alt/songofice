@@ -3,6 +3,7 @@ import type { CanonCharacter } from "../eras";
 export const warOfFiveKingsCharacters: CanonCharacter[] = [
   {
     id: "tywin-lannister", name: "Tywin Lannister", house: "Lannister", role: "Lãnh Chúa Casterly Rock", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
+    origin: "Con trai Tytos và Jeyne Marbrand, Lãnh chúa Casterly Rock, Warden of the West và từng là Hand of the King.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros", appearance: "Cao, gầy, vai rộng; đầu hói nhưng có tóc mai vàng, mắt xanh lục nhạt và khuôn mặt lạnh lùng.",
     blurb: "Khét tiếng tàn nhẫn, giàu nhất Bảy Vương Quốc. Người thực sự nắm giữ quyền lực của Ngai Sắt từ phía sau.",
     birthYear: 242, age: 56, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 18, "Tinh Tường": 17, "Uy Tín": 18 },
     năngLực: { "Võ Lực": 55, "Thống Soái": 90, "Trí Mưu": 90, "Ngoại Giao": 85 },
@@ -35,6 +36,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "jaime-lannister", name: "Jaime Lannister", house: "Lannister", role: "Kẻ Sát Vương", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
+    origin: "Con trai Tywin và Joanna, em song sinh Cersei; Kingsguard trẻ nhất lịch sử khi được phong, giết Aerys II trong cuộc nổi loạn.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros", appearance: "Cao lớn, đẹp trai, tóc vàng xoăn và mắt xanh lục; ở đầu game vẫn còn cả hai tay.",
     blurb: "Hiệp sĩ Vệ Vương giỏi nhất vương quốc, đẹp trai, kiêu ngạo, nhưng mang danh Sát Vương cả đời.",
     birthYear: 266, age: 32, coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 17, "Thể Chất": 14, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 15 },
     năngLực: { "Võ Lực": 75, "Thống Soái": 75, "Trí Mưu": 50, "Ngoại Giao": 60 },
@@ -82,6 +84,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
   // Đã xóa tyrion-lannister bị trùng lặp với eras.ts
   {
     id: "arya-stark", name: "Arya Stark", house: "Stark", role: "Sói Hoang", tuocVi: "Thường Dân", religion: "Cựu Thần",
+    origin: "Con gái thứ của Eddard Stark và Catelyn Tully, lớn lên tại Winterfell trước khi chiến tranh chia cắt gia đình.", culture: "Người Đầu Tiên vùng Bắc", bloodline: "Nhà Stark và Tully", continent: "Westeros", appearance: "Tóc nâu, mặt dài kiểu Stark và mắt xám; thường bị nhầm là một cậu bé vì dáng mảnh và cách ăn mặc.",
     blurb: "Cô con gái út bướng bỉnh nhà Stark, yêu kiếm thuật hơn thêu thùa, ghét sự giả dối của triều đình.",
     birthYear: 289, age: 9, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 14, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 15, "Uy Tín": 9 },
     năngLực: { "Võ Lực": 30, "Thống Soái": 45, "Trí Mưu": 60, "Ngoại Giao": 75 },
@@ -120,6 +123,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "sansa-stark", name: "Sansa Stark", house: "Stark", role: "Tiểu Thư Mơ Mộng", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
+    origin: "Con gái cả Eddard Stark và Catelyn Tully, được nuôi dạy để trở thành quý nữ miền Bắc rồi đến King's Landing theo cha.", culture: "Người Đầu Tiên vùng Bắc; giáo dưỡng Riverlands", bloodline: "Nhà Stark và Tully", continent: "Westeros", appearance: "Tóc đỏ nâu dày của nhà Tully, mắt xanh lam và vẻ ngoài được xem là xinh đẹp giống mẹ.",
     blurb: "Ưa chuộng bài ca và hiệp sĩ, hoàn hảo cho một cuộc hôn nhân chính trị, nhưng sự ngây thơ sắp bị thử thách.",
     birthYear: 286, age: 12, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 8, "Thể Chất": 8, "Trí Tuệ": 11, "Tinh Tường": 13, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 25, "Thống Soái": 80, "Trí Mưu": 55, "Ngoại Giao": 65 },
@@ -152,6 +156,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "bran-stark", name: "Bran Stark", house: "Stark", role: "Sói Cụt Chân", tuocVi: "Thường Dân", religion: "Cựu Thần",
+    origin: "Con trai thứ hai Eddard Stark và Catelyn Tully, người thừa kế Winterfell sau Robb trước khi bị Jaime đẩy ngã.", culture: "Người Đầu Tiên vùng Bắc", bloodline: "Nhà Stark và Tully", continent: "Westeros", appearance: "Cậu bé tóc nâu, mắt nâu xám và dáng người nhỏ; mất khả năng đi lại sau cú ngã ở Winterfell.",
     blurb: "Mê leo trèo cho đến khi bị ngã, giờ chỉ còn sức mạnh tâm linh dẫn dắt.",
     birthYear: 290, age: 8, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 3, "Thể Chất": 6, "Trí Tuệ": 14, "Tinh Tường": 17, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 15, "Thống Soái": 50, "Trí Mưu": 70, "Ngoại Giao": 85 },
@@ -184,6 +189,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "theon-greyjoy", name: "Theon Greyjoy", house: "Greyjoy", role: "Con Tin Sắt", tuocVi: "Thường Dân", religion: "Thần Chết Chìm",
+    origin: "Con trai út còn sống của Balon Greyjoy, bị nuôi tại Winterfell làm con tin sau Cuộc nổi loạn Greyjoy.", culture: "Người Sắt; giáo dưỡng miền Bắc", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Tóc đen, dáng mảnh và nụ cười tự tin; còn nguyên vẹn trước khi bị Ramsay hành hạ.",
     blurb: "Con tin sống cùng nhà Stark, khao khát được công nhận, ngạo mạn nhưng đầy mặc cảm.",
     birthYear: 279, age: 19, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 14, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 13, "Uy Tín": 11 },
     năngLực: { "Võ Lực": 60, "Thống Soái": 55, "Trí Mưu": 50, "Ngoại Giao": 65 },
@@ -225,6 +231,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "asha-greyjoy", name: "Asha Greyjoy", house: "Greyjoy", role: "Nữ Tướng Đảo Sắt", tuocVi: "Hiệp Sĩ", religion: "Thần Chết Chìm",
+    origin: "Con gái Balon Greyjoy, thuyền trưởng Black Wind và người có ảnh hưởng lớn trong kế vị Quần Đảo Sắt.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Cao, gầy khỏe, tóc đen ngắn, mắt tối và nụ cười sắc; ăn mặc như một thuyền trưởng hơn là quý nữ.",
     blurb: "Chiến binh kiêu hãnh của Quần Đảo Sắt, người được Balon coi trọng hơn cậu em trai Theon.",
     birthYear: 275, age: 23, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 14, "Trí Tuệ": 12, "Tinh Tường": 13, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 65, "Thống Soái": 70, "Trí Mưu": 60, "Ngoại Giao": 65 },
@@ -265,6 +272,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "euron-greyjoy", name: "Euron Greyjoy", house: "Greyjoy", role: "Mắt Quạ", tuocVi: "Quốc Vương", religion: "Thần Chết Chìm",
+    origin: "Em trai Balon Greyjoy, thuyền trưởng Silence và kẻ lưu vong trở về tranh quyền sau cái chết của Balon.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Tóc đen phủ vai, râu sẫm; một mắt xanh biếc còn mắt kia che bằng miếng bịt màu đen.",
     blurb: "Độc ác, điên rồ, dùng phép thuật hắc ám và dong buồm trên tàu Im Lặng với thủy thủ đoàn bị cắt lưỡi.",
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 15, "Thể Chất": 15, "Trí Tuệ": 16, "Tinh Tường": 17, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 70, "Thống Soái": 80, "Trí Mưu": 80, "Ngoại Giao": 85 },
@@ -299,6 +307,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "margaery-tyrell", name: "Margaery Tyrell", house: "Tyrell", role: "Hoa Hồng Mưu Mô", tuocVi: "Vương Hậu", religion: "Thất Diện Thần",
+    origin: "Con gái Mace Tyrell và Alerie Hightower, cháu ngoại Olenna Redwyne; được đưa vào các hôn ước hoàng gia của Nhà Tyrell.", culture: "Người Reach", bloodline: "Nhà Tyrell, Hightower và Redwyne", continent: "Westeros", appearance: "Tóc nâu xoăn, mắt nâu ấm và nụ cười cuốn hút; thường được so sánh với một đóa hồng.",
     blurb: "Xinh đẹp và khôn ngoan, được bà nội Olenna huấn luyện để nắm lấy quyền lực qua hôn nhân.",
     birthYear: 283, age: 15, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 15, "Tinh Tường": 15, "Uy Tín": 19 },
     năngLực: { "Võ Lực": 25, "Thống Soái": 95, "Trí Mưu": 75, "Ngoại Giao": 75 },
@@ -338,6 +347,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "olenna-tyrell", name: "Olenna Tyrell", house: "Tyrell", role: "Nữ Hoàng Gai", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
+    origin: "Sinh ra là Olenna Redwyne, vợ quá cố Luthor Tyrell và bà nội của Margaery, người điều hướng chính trị thực tế của Highgarden.", culture: "Người Reach", bloodline: "Nhà Redwyne; kết hôn vào Tyrell", continent: "Westeros", appearance: "Bà lão nhỏ người, tóc bạc, mắt sáng và lưỡi sắc như gai hồng.",
     blurb: "Trí óc sắc bén, lời lẽ cay độc, người phụ nữ quyền lực nhất nắm giữ tài sản nhà Tyrell.",
     birthYear: 228, age: 70, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 5, "Thể Chất": 6, "Trí Tuệ": 18, "Tinh Tường": 19, "Uy Tín": 17 },
     năngLực: { "Võ Lực": 15, "Thống Soái": 85, "Trí Mưu": 90, "Ngoại Giao": 95 },
@@ -376,6 +386,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "roose-bolton", name: "Roose Bolton", house: "Bolton", role: "Lãnh Chúa Đỉa", tuocVi: "Lãnh Chúa Thành Trì", religion: "Cựu Thần",
+    origin: "Lãnh chúa Dreadfort, chư hầu Stark; về sau phản bội Robb trong kế hoạch Red Wedding cùng Lannister và Frey.", culture: "Người Đầu Tiên vùng Bắc", bloodline: "Nhà Bolton", continent: "Westeros", appearance: "Da nhợt nhạt, mắt nhạt gần như không màu và giọng nói nhỏ nhẹ, lạnh lẽo.",
     blurb: "Giọng nói mềm mỏng, hành động tàn độc. Sẵn sàng lột da cả những đồng minh nếu có lợi.",
     birthYear: 255, age: 43, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 13 },
     năngLực: { "Võ Lực": 60, "Thống Soái": 65, "Trí Mưu": 80, "Ngoại Giao": 75 },
@@ -408,6 +419,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "ramsay-snow", name: "Ramsay Snow", house: "Bolton", role: "Con Hoang Bolton", tuocVi: "Thường Dân", religion: "Cựu Thần",
+    origin: "Con ngoài giá thú của Roose Bolton và vợ một thợ xay; được nuôi ở Dreadfort rồi thừa hưởng tước vị sau phản bội.", culture: "Người Đầu Tiên vùng Bắc", bloodline: "Nhà Bolton, mang họ Snow trước khi hợp pháp hoá", continent: "Westeros", appearance: "Môi hồng, da hồng mịn, tóc đen nhờn và đôi mắt nhạt, sát gần nhau; vẻ ngoài trái ngược sự tàn bạo.",
     blurb: "Bạo chúa tâm thần, thích hành hạ người khác, nuôi chó săn để truy sát con người.",
     birthYear: 276, age: 22, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 13, "Thể Chất": 15, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 70, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 60 },
@@ -445,6 +457,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "brienne-tarth", name: "Brienne xứ Tarth", house: "Tarth", role: "Nữ Hiệp Sĩ", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
+    origin: "Con gái duy nhất Selwyn Tarth, Lord of Evenfall Hall; thề bảo vệ Renly rồi Catelyn Stark.", culture: "Người Bão Tố", bloodline: "Nhà Tarth", continent: "Westeros", appearance: "Rất cao, vai rộng, tóc màu rơm, mặt đầy tàn nhang, mũi gãy và mắt xanh; tự nhận mình xấu xí.",
     blurb: "To lớn, không xinh đẹp, nhưng trung thành tuyệt đối và là một trong những kiếm sĩ giỏi nhất.",
     birthYear: 280, age: 18, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 12, "Thể Chất": 17, "Trí Tuệ": 10, "Tinh Tường": 11, "Uy Tín": 11 },
     năngLực: { "Võ Lực": 90, "Thống Soái": 55, "Trí Mưu": 50, "Ngoại Giao": 55 },
@@ -483,6 +496,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "davos-seaworth", name: "Davos Seaworth", house: "Seaworth", role: "Hiệp Sĩ Hành Tây", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
+    origin: "Cựu kẻ buôn lậu ở King's Landing, được Stannis phong hiệp sĩ và ban đất sau khi phá vòng vây Storm's End bằng hành tây.", culture: "Người Crownlands", bloodline: "Nhà Seaworth do Stannis lập", continent: "Westeros", appearance: "Người đàn ông bình dị, tóc nâu xám và bàn tay còn bốn đốt ngón bị cắt để trả giá cho quá khứ buôn lậu.",
     blurb: "Từ một kẻ buôn lậu trở thành Cánh Tay Phải trung thành nhất của Stannis Baratheon.",
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 13, "Thể Chất": 13, "Trí Tuệ": 13, "Tinh Tường": 15, "Uy Tín": 15 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 75, "Trí Mưu": 65, "Ngoại Giao": 75 },
@@ -520,6 +534,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "balon-greyjoy", name: "Balon Greyjoy", house: "Greyjoy", role: "Vua Quần Đảo Sắt", tuocVi: "Quốc Vương", religion: "Thần Chết Chìm",
+    origin: "Con trai Quellon Greyjoy, Lãnh chúa Pyke đã thất bại trong cuộc nổi loạn năm 289 AC và khởi xướng cuộc chiến mới khi Bảy Vương Quốc suy yếu.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Gầy, tóc đen pha xám, gương mặt khắc khổ và ánh mắt cứng rắn.",
     blurb: "Lần thứ hai xưng vương, lần này đánh vào Phương Bắc yếu ớt thay vì Lannisport.",
     birthYear: 256, age: 42, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 12, "Tinh Tường": 11, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 60, "Thống Soái": 70, "Trí Mưu": 60, "Ngoại Giao": 55 },
@@ -559,6 +574,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "catelyn-tully", name: "Catelyn Stark", house: "Tully", role: "Phu Nhân Winterfell", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
+    origin: "Con gái Hoster Tully và Minisa Whent, vợ Eddard Stark, mẹ của năm người con hợp pháp nhà Stark.", culture: "Người Riverlands", bloodline: "Nhà Tully và Whent; kết hôn vào Stark", continent: "Westeros", appearance: "Tóc đỏ nâu, mắt xanh lam và vẻ ngoài thanh lịch; các con gái Sansa và Arya lần lượt giống bà và Ned.",
     blurb: "Gia đình, Bổn phận, Danh dự. Catelyn sẽ làm mọi thứ để bảo vệ những đứa con của mình.",
     birthYear: 264, age: 34, coreStats: { "Sức Mạnh": 7, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 35, "Thống Soái": 80, "Trí Mưu": 75, "Ngoại Giao": 70 },
@@ -597,6 +613,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "rickon-stark", name: "Rickon Stark", house: "Stark", role: "Sói Út", tuocVi: "Thường Dân", religion: "Cựu Thần",
+    origin: "Con trai út Eddard Stark và Catelyn Tully, còn rất nhỏ khi chiến tranh phá vỡ gia đình ở Winterfell.", culture: "Người Đầu Tiên vùng Bắc", bloodline: "Nhà Stark và Tully", continent: "Westeros", appearance: "Cậu bé tóc nâu, mắt nâu; hoang dại và khó kiểm soát hơn các anh chị sau biến cố.",
     blurb: "Con út nhà Stark, hoang dã và không kiểm soát.",
     birthYear: 295, age: 3, coreStats: { "Sức Mạnh": 4, "Nhanh Nhẹn": 6, "Thể Chất": 5, "Trí Tuệ": 5, "Tinh Tường": 8, "Uy Tín": 6 },
     năngLực: { "Võ Lực": 20, "Thống Soái": 30, "Trí Mưu": 25, "Ngoại Giao": 40 },
@@ -628,6 +645,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "lysa-tully", name: "Lysa Arryn", house: "Tully", role: "Phu Nhân Eyrie", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
+    origin: "Con gái Hoster Tully và Minisa Whent, góa phụ Jon Arryn, nhiếp chính Vale cho con trai Robert Arryn.", culture: "Người Riverlands; sống tại Vale", bloodline: "Nhà Tully và Whent; kết hôn vào Arryn", continent: "Westeros", appearance: "Tóc đỏ nâu kiểu Tully, mắt xanh nhạt; gương mặt mệt mỏi vì bất an và chăm sóc Robert.",
     blurb: "Hoang tưởng và ích kỷ, cô giữ chặt con trai ở The Eyrie, từ chối tham gia cuộc chiến.",
     birthYear: 266, age: 32, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 7, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 11 },
     năngLực: { "Võ Lực": 30, "Thống Soái": 55, "Trí Mưu": 50, "Ngoại Giao": 60 },
@@ -663,6 +681,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "edmure-tully", name: "Edmure Tully", house: "Tully", role: "Người Thừa Kế Riverrun", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
+    origin: "Con trai duy nhất Hoster Tully, Lord of Riverrun và Lord Paramount of the Trident sau khi cha lâm bệnh qua đời.", culture: "Người Riverlands", bloodline: "Nhà Tully và Whent", continent: "Westeros", appearance: "Tóc đỏ nâu và mắt xanh lam theo dòng Tully; đẹp trai, cởi mở nhưng thiếu kinh nghiệm chiến trường.",
     blurb: "Dũng cảm nhưng bốc đồng, muốn tự chứng tỏ khả năng lãnh đạo nhưng hay mắc sai lầm.",
     birthYear: 267, age: 31, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 60, "Thống Soái": 70, "Trí Mưu": 50, "Ngoại Giao": 50 },
@@ -698,6 +717,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "brynden-tully", name: "Brynden Tully", house: "Tully", role: "Cá Đen", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
+    origin: "Em trai Hoster Tully, hiệp sĩ độc thân được gọi là Blackfish và là cố vấn quân sự thân cận của Robb Stark.", culture: "Người Riverlands", bloodline: "Nhà Tully", continent: "Westeros", appearance: "Người đàn ông già nhưng còn rắn rỏi, tóc đỏ pha xám và râu nhọn; mặc giáp đen với biểu tượng cá đen.",
     blurb: "Chiến binh huyền thoại của Riverrun, tư lệnh tiền phương cho Robb Stark.",
     birthYear: 242, age: 56, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 13, "Thể Chất": 15, "Trí Tuệ": 14, "Tinh Tường": 16, "Uy Tín": 15 },
     năngLực: { "Võ Lực": 70, "Thống Soái": 75, "Trí Mưu": 70, "Ngoại Giao": 80 },
@@ -734,6 +754,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "mace-tyrell", name: "Mace Tyrell", house: "Tyrell", role: "Lãnh Chúa Highgarden", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
+    origin: "Con trai Luthor Tyrell và Olenna Redwyne, Lord of Highgarden và Warden of the South; cha của Margaery và Loras.", culture: "Người Reach", bloodline: "Nhà Tyrell và Redwyne", continent: "Westeros", appearance: "Quý tộc to lớn, tự mãn và ăn mặc xa hoa; nguồn canon không ghi nhận chân dung chi tiết hơn.",
     blurb: "Lãnh chúa mập mạp của Highgarden, tham danh vọng nhưng để mẹ Olenna quyết định thực sự.",
     birthYear: 256, age: 42, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 8, "Thể Chất": 13, "Trí Tuệ": 11, "Tinh Tường": 10, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 70, "Trí Mưu": 55, "Ngoại Giao": 50 },
@@ -769,6 +790,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "loras-tyrell", name: "Loras Tyrell", house: "Tyrell", role: "Hiệp Sĩ Hoa", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
+    origin: "Con trai út Mace Tyrell và Alerie Hightower, em trai Margaery; hiệp sĩ nổi tiếng và người tình của Renly Baratheon.", culture: "Người Reach", bloodline: "Nhà Tyrell và Hightower", continent: "Westeros", appearance: "Rất đẹp trai, tóc nâu xoăn, mắt nâu và vóc dáng mảnh của một hiệp sĩ trẻ.",
     blurb: "Hiệp sĩ hào hoa nhất Bảy Vương Quốc, người tình bí mật của Renly Baratheon.",
     birthYear: 282, age: 16, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 16, "Thể Chất": 14, "Trí Tuệ": 11, "Tinh Tường": 12, "Uy Tín": 17 },
     năngLực: { "Võ Lực": 65, "Thống Soái": 85, "Trí Mưu": 55, "Ngoại Giao": 60 },
@@ -805,6 +827,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "victarion-greyjoy", name: "Victarion Greyjoy", house: "Greyjoy", role: "Tư Lệnh Hạm Đội Sắt", tuocVi: "Thường Dân", religion: "Thần Chết Chìm",
+    origin: "Em trai Balon Greyjoy, Lord Captain of the Iron Fleet và một chiến binh tận trung với tập tục Người Sắt.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Rất to lớn, tóc đen, râu rậm và mắt xám thép; sau trận Fair Isle thường che bàn tay bị thương bằng găng sắt.",
     blurb: "Chiến binh tàn bạo trên biển, không có trí thông minh chính trị nhưng trung thành và vô cùng đáng sợ.",
     birthYear: 268, age: 30, coreStats: { "Sức Mạnh": 17, "Nhanh Nhẹn": 12, "Thể Chất": 16, "Trí Tuệ": 8, "Tinh Tường": 10, "Uy Tín": 12 },
     năngLực: { "Võ Lực": 85, "Thống Soái": 60, "Trí Mưu": 40, "Ngoại Giao": 50 },
@@ -843,6 +866,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "aeron-greyjoy", name: "Aeron Greyjoy", house: "Greyjoy", role: "Tóc Ướt", tuocVi: "Thường Dân", religion: "Thần Chết Chìm",
+    origin: "Em trai Balon, Euron và Victarion; từng là người ham vui rồi trở thành mục sư tận hiến của Drowned God sau tai nạn đắm tàu.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Gầy cao, tóc đen dài luôn ướt, râu đen và mắt dữ; mặc áo thô, chân trần theo nghi thức tôn giáo.",
     blurb: "Tu sĩ cuồng tín của Thần Chết Chìm, uống nước biển và ban phước bằng cách dìm nước.",
     birthYear: 269, age: 29, coreStats: { "Sức Mạnh": 11, "Nhanh Nhẹn": 12, "Thể Chất": 14, "Trí Tuệ": 11, "Tinh Tường": 15, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 55, "Thống Soái": 70, "Trí Mưu": 55, "Ngoại Giao": 75 },
@@ -882,6 +906,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "kevan-lannister", name: "Kevan Lannister", house: "Lannister", role: "Cánh Tay Phải Của Tywin", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
+    origin: "Em trai Tywin Lannister, chồng Dorna Swyft và cha Lancel; chỉ huy, cố vấn trung thành nhất của Tywin.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros", appearance: "Tóc vàng pha bạc, bộ ria vàng và vóc dáng rắn rỏi; gương mặt có nét giống Tywin nhưng mềm hơn.",
     blurb: "Đáng tin cậy, vững vàng và luôn đứng trong cái bóng của người anh trai vĩ đại Tywin Lannister.",
     birthYear: 244, age: 54, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 9, "Thể Chất": 11, "Trí Tuệ": 15, "Tinh Tường": 14, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 70, "Trí Mưu": 75, "Ngoại Giao": 70 },
@@ -917,6 +942,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "lancel-lannister", name: "Lancel Lannister", house: "Lannister", role: "Hiệp Sĩ Trẻ", tuocVi: "Hiệp Sĩ", religion: "Thất Diện Thần",
+    origin: "Con trai cả Kevan Lannister và Dorna Swyft, em họ của Cersei, Jaime và Tyrion; hầu cận cho Robert I.", culture: "Người miền Tây", bloodline: "Nhà Lannister và Swyft", continent: "Westeros", appearance: "Chàng trai tóc vàng, còn rất trẻ và mảnh khảnh; gương mặt xanh xao hơn sau trận Blackwater.",
     blurb: "Cháu trai của Tywin, người rót rượu cho Vua Robert, giờ đã thành hiệp sĩ và là người tình bí mật của Cersei.",
     birthYear: 282, age: 16, coreStats: { "Sức Mạnh": 9, "Nhanh Nhẹn": 10, "Thể Chất": 9, "Trí Tuệ": 8, "Tinh Tường": 9, "Uy Tín": 12 },
     năngLực: { "Võ Lực": 45, "Thống Soái": 60, "Trí Mưu": 40, "Ngoại Giao": 45 },
@@ -952,6 +978,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "selyse-florent", name: "Selyse Florent", house: "Baratheon", role: "Vương Hậu Của Stannis", tuocVi: "Vương Hậu", religion: "Thần Ánh Sáng (R'hllor)",
+    origin: "Sinh ra là Selyse Florent, vợ Stannis Baratheon và mẹ Shireen; chuyển sang sùng bái R'hllor dưới ảnh hưởng Melisandre.", culture: "Người Reach", bloodline: "Nhà Florent; kết hôn vào Baratheon", continent: "Westeros", appearance: "Tai to, mắt xanh nhạt, tóc nâu; vẻ mặt nghiêm khắc và hơi gầy gò.",
     blurb: "Lạnh nhạt và sùng đạo, Selyse đã từ bỏ Thất Diện Thần để theo Thần Ánh Sáng của Melisandre.",
     birthYear: 265, age: 33, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 6, "Thể Chất": 5, "Trí Tuệ": 11, "Tinh Tường": 9, "Uy Tín": 8 },
     năngLực: { "Võ Lực": 25, "Thống Soái": 40, "Trí Mưu": 55, "Ngoại Giao": 45 },
@@ -992,6 +1019,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "shireen-baratheon", name: "Shireen Baratheon", house: "Baratheon", role: "Công Chúa Nhỏ", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
+    origin: "Con gái duy nhất Stannis Baratheon và Selyse Florent, người thừa kế Dragonstone khi Stannis không có con trai.", culture: "Người Bão Tố", bloodline: "Nhà Baratheon và Florent", continent: "Westeros", appearance: "Cô bé tóc nâu sẫm; nửa mặt và cổ trái bị sẹo xám lồi do greyscale thời thơ ấu.",
     blurb: "Cô con gái duy nhất của Stannis, khuôn mặt bị sẹo do bệnh Vảy Xám, nhưng rất thông minh và tốt bụng.",
     birthYear: 289, age: 9, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 4, "Thể Chất": 4, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 9 },
     năngLực: { "Võ Lực": 15, "Thống Soái": 45, "Trí Mưu": 60, "Ngoại Giao": 50 },
@@ -1031,6 +1059,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
 },
   {
     id: "melisandre", name: "Melisandre", house: "Không Nhà", role: "Nữ Tư Tế Đỏ", tuocVi: "Thường Dân", religion: "Thần Ánh Sáng (R'hllor)",
+    origin: "Nữ tư tế đỏ của R'hllor, tự xưng là Melisandre of Asshai và đến Dragonstone để ủng hộ tuyên bố của Stannis.", culture: "Asshai'i", bloodline: "Không xác minh", continent: "Essos", appearance: "Cao, mảnh, tóc đỏ đồng và mắt đỏ; vẻ trẻ trung của bà gắn với vòng cổ ruby ma thuật.",
     blurb: "Bóng ma từ Asshai, nữ tư tế của Thần Ánh Sáng. Xinh đẹp, nguy hiểm và mang theo phép thuật bóng tối.",
     birthYear: 0, age: 400, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 14, "Trí Tuệ": 17, "Tinh Tường": 18, "Uy Tín": 19 },
     năngLực: { "Võ Lực": 30, "Thống Soái": 95, "Trí Mưu": 85, "Ngoại Giao": 90 },

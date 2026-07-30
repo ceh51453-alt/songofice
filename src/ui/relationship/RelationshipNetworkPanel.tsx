@@ -14,6 +14,7 @@ import { GlassButton } from "../components/GlassButton";
 import { GlassSelect } from "../components/GlassSelect";
 import { TradeDialog } from "../economy/TradeDialog";
 import { TALENTS_BY_ID } from "../../content/westeros/talents";
+import { getRelationshipEdges, getRelationshipPeople, relationTone, relationshipCounterparty } from "./relationshipData";
 import {
   IconX, IconUsers, IconCrown, IconAlert,
   IconCrossedSwords, IconRefresh, IconSearch,
@@ -41,7 +42,7 @@ interface NodeData {
 interface LinkData {
   source: string;
   target: string;
-  type: "alliance" | "family" | "enemy" | "intimate" | "neutral" | "house";
+  type: "alliance" | "family" | "enemy" | "intimate" | "duty" | "neutral" | "house";
   strength: number; // 0 to 1
   label?: string;
 }
@@ -63,6 +64,7 @@ function getLinkColor(type: LinkData["type"]) {
     case "alliance": return "#10b981"; // Emerald
     case "family": return "#f59e0b"; // Amber/Gold
     case "enemy": return "#ef4444"; // Red/Crimson
+    case "duty": return "#38bdf8"; // Sky / chain of command
     case "house": return "#6366f1"; // Indigo
     default: return "#4b5563"; // Muted Slate
   }
@@ -95,6 +97,10 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
   const playerInfo = stat["Thông Tin Nhân Vật"];
   const playerName = playerInfo?.["Họ Tên"] || "Chủ Nhân";
   const playerHouse = playerInfo?.["Nhà"] || "Stark";
+  const relationshipEdges = useMemo(
+    () => getRelationshipEdges(getRelationshipPeople(stat), playerName),
+    [stat, playerName],
+  );
 
   // Build Graph Nodes & Links
   const { nodes, links, houseList } = useMemo(() => {
@@ -139,7 +145,10 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
       const affinity = npc["Độ Hảo Cảm"] ?? 0;
       const trust = npc["Tin Cậy"] ?? 0;
       const stage = npc["Giai Đoạn Quan Hệ"] || "Xa Lạ";
-      const relationTypes = npc["Loại Quan Hệ"] || [];
+      // Một vài save từ phiên bản cũ có thể lưu nhãn này dạng string.
+      const relationTypes = Array.isArray(npc["Loại Quan Hệ"])
+        ? npc["Loại Quan Hệ"]
+        : typeof npc["Loại Quan Hệ"] === "string" ? [npc["Loại Quan Hệ"]] : [];
       const intimacy = !!npc["Quan Hệ Thân Mật"] || relationTypes.some((t) => ["Vợ", "Thiếp", "Tình Nhân", "Hôn Ước"].includes(t));
       const betrayal = isBetrayalRisk(npc);
 
@@ -190,50 +199,31 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
       });
     });
 
-    // Thêm các liên kết giữa NPC-NPC (từ Mạng Lưới Quan Hệ)
-    allNpcEntries.forEach(([name, npc]) => {
-      if (npc["Mạng Lưới Quan Hệ"]) {
-        Object.entries(npc["Mạng Lưới Quan Hệ"]).forEach(([targetName, info]) => {
-          // Check if target node exists
-          if (nodeList.some((n) => n.name === targetName)) {
-            const targetNodeId = `npc_${targetName}`;
-            const sourceNodeId = `npc_${name}`;
-            
-            // Avoid duplicate bidirectional links if already added (only draw A->B once or handle gracefully)
-            const existingLink = linkList.find((l) => 
-              (l.source === sourceNodeId && l.target === targetNodeId) || 
-              (l.source === targetNodeId && l.target === sourceNodeId)
-            );
-
-            if (!existingLink) {
-              let linkType: LinkData["type"] = "neutral";
-              const affinity = info["Độ Hảo Cảm"] || 0;
-              const typeStr = info["Loại Quan Hệ"] || "";
-
-              if (typeStr.includes("Vợ") || typeStr.includes("Chồng") || typeStr.includes("Người Tình")) linkType = "intimate";
-              else if (typeStr.includes("Cha") || typeStr.includes("Mẹ") || typeStr.includes("Con") || typeStr.includes("Anh") || typeStr.includes("Chị") || typeStr.includes("Em")) linkType = "family";
-              else if (affinity >= 15 || typeStr.includes("Đồng Minh") || typeStr.includes("Bằng Hữu")) linkType = "alliance";
-              else if (affinity <= -15 || typeStr.includes("Kẻ Thù") || typeStr.includes("Đối Thủ")) linkType = "enemy";
-
-              linkList.push({
-                source: sourceNodeId,
-                target: targetNodeId,
-                type: linkType,
-                strength: Math.min(1, Math.abs(affinity) / 100 + 0.2), // Weaker visually than player links
-                label: `${typeStr} ${!info["Công Khai"] ? "(Bí mật)" : ""}`.trim(),
-              });
-            }
-          }
-        });
-      }
-    });
+    // Liên kết NPC-NPC được hợp nhất từ mạng NPC, gia phả, hôn nhân và hôn ước.
+    // Nhờ vậy sơ đồ không bỏ sót những quan hệ chỉ được ghi ở hồ sơ nhân vật.
+    for (const edge of relationshipEdges) {
+      if (edge.sourceId === "player" || !edge.targetId || edge.sourceId === edge.targetId) continue;
+      if (!nodeList.some((node) => node.id === edge.sourceId || node.id === edge.targetId)) continue;
+      const exists = linkList.some((link) =>
+        (link.source === edge.sourceId && link.target === edge.targetId)
+        || (link.source === edge.targetId && link.target === edge.sourceId),
+      );
+      if (exists) continue;
+      linkList.push({
+        source: edge.sourceId,
+        target: edge.targetId,
+        type: relationTone(edge.label, edge.affinity),
+        strength: Math.min(1, Math.abs(edge.affinity) / 100 + 0.2),
+        label: `${edge.label}${edge.isPublic ? "" : " · Bí mật"}`,
+      });
+    }
 
     return {
       nodes: nodeList,
       links: linkList,
       houseList: Array.from(housesSet),
     };
-  }, [mainNpcs, familyNpcs, playerName, playerHouse]);
+  }, [mainNpcs, familyNpcs, playerName, playerHouse, relationshipEdges]);
 
   // Node position map (for dragged positions)
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
@@ -293,6 +283,9 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
     if (!selectedNodeId) return null;
     return nodes.find((n) => n.id === selectedNodeId) || null;
   }, [nodes, selectedNodeId]);
+  const selectedRelationships = useMemo(() => selectedNode
+    ? relationshipEdges.filter((edge) => edge.sourceId === selectedNode.id || edge.targetId === selectedNode.id)
+    : [], [selectedNode, relationshipEdges]);
 
   // Mouse Handlers for Pan & Drag
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -461,6 +454,28 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
               <IconRefresh size={14} /> Reset
             </GlassButton>
           </div>
+        </div>
+
+        {/* Danh bạ luôn hiện: sơ đồ tốt để nhìn tổng thể, nhưng danh bạ giúp
+            người chơi biết ngay đang có ai và vai trò của họ. */}
+        <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-[var(--glass-border)] bg-[rgba(7,10,15,0.45)] px-4 py-2">
+          <span className="shrink-0 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Danh bạ</span>
+          {filteredNodes.filter((node) => node.type !== "player").map((node) => (
+            <button
+              key={node.id}
+              onClick={() => setSelectedNodeId(node.id)}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] transition-colors ${
+                selectedNodeId === node.id
+                  ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                  : "border-[var(--glass-border)] text-[var(--text-muted)] hover:border-[var(--glass-border-bright)] hover:text-[var(--text-soft)]"
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${node.type === "family" ? "bg-amber-300" : node.affinity < -15 ? "bg-red-400" : "bg-emerald-400"}`} />
+              {node.name}
+              <span className="text-[var(--text-faint)]">· {node.role}</span>
+            </button>
+          ))}
+          {filteredNodes.length === 1 && <span className="text-[11px] italic text-[var(--text-faint)]">Chưa có nhân vật phù hợp.</span>}
         </div>
 
         {/* ---- CANVAS & INSPECTOR BODY ---- */}
@@ -710,6 +725,48 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                         }}
                       />
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedNode.type !== "player" && selectedRelationships.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-faint)]">
+                    Liên Kết & Vai Vế
+                  </h4>
+                  <div className="space-y-1.5">
+                    {selectedRelationships.map((edge) => {
+                      const counterparty = relationshipCounterparty(edge, selectedNode.id, playerName);
+                      const targetId = edge.sourceId === selectedNode.id
+                        ? edge.targetId
+                        : edge.sourceId !== "player" ? edge.sourceId : undefined;
+                      const color = getLinkColor(edge.tone);
+                      return (
+                        <div key={edge.id} className="rounded-md border border-[var(--glass-border)] bg-[rgba(0,0,0,0.2)] px-2.5 py-2 text-[11px]">
+                          <div className="flex items-center gap-1.5">
+                            {targetId ? (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedNodeId(targetId)}
+                                className="font-medium text-[var(--text-soft)] hover:text-[var(--accent-text)]"
+                              >
+                                {counterparty}
+                              </button>
+                            ) : <span className="font-medium text-[var(--text-soft)]">{counterparty}</span>}
+                            <span className="rounded border px-1.5 py-0.5 text-[9px]" style={{ color, borderColor: `${color}66`, backgroundColor: `${color}18` }}>
+                              {edge.label}
+                            </span>
+                            {!edge.isPublic && <span className="text-[9px] text-red-300">Bí mật</span>}
+                            {edge.inferred && <span className="text-[9px] text-[var(--text-faint)]">gia phả</span>}
+                          </div>
+                          {(edge.detail || edge.affinity !== 0 || edge.trust !== 0) && (
+                            <p className="mt-1 leading-relaxed text-[var(--text-faint)]">
+                              {edge.detail || `Hảo cảm ${edge.affinity >= 0 ? "+" : ""}${edge.affinity} · Tin cậy ${edge.trust >= 0 ? "+" : ""}${edge.trust}`}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

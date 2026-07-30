@@ -4,6 +4,12 @@
  */
 import type { StatData } from "../../mvu/schema";
 
+/** State vẫn giữ lãnh địa NPC cho bản đồ, nhưng preview chỉ hiển thị đất của người chơi. */
+export function playerHoldings(state: StatData) {
+  const playerName = state["Thông Tin Nhân Vật"]["Họ Tên"];
+  return Object.entries(state["Lãnh Địa"]).filter(([, holding]) => holding["Người Kiểm Soát"] === playerName);
+}
+
 export function CharacterPreview({ state, title }: { state: StatData; title?: string }) {
   const info = state["Thông Tin Nhân Vật"];
   const core = state["Chỉ Số Cốt Lõi"];
@@ -11,7 +17,7 @@ export function CharacterPreview({ state, title }: { state: StatData; title?: st
   const talents = Object.entries(state["Thiên Phú"]);
   const skills = Object.entries(state["Kỹ Năng"]).filter(([, s]) => s["Cấp"] > 0);
   const equipped = Object.entries(state["Trang Bị Đang Mặc"]).filter(([, i]) => i && i["Tên"]);
-  const lands = Object.entries(state["Lãnh Địa"]);
+  const lands = playerHoldings(state);
   const totalFood = lands.reduce((sum, [, t]) => sum + (t["Tài Nguyên"]?.["Lương Thực"] ?? 0), 0);
   const npcs = Object.entries(state["Mối Quan Hệ"]["NPC Chính"]);
   const dragons = Object.entries(state["Rồng"]);
@@ -82,7 +88,7 @@ export function CharacterPreview({ state, title }: { state: StatData; title?: st
 
       {(lands.length > 0 || totalFood > 0) && (
         <p className="leading-relaxed text-[var(--text-muted)]">
-          {lands.length > 0 && <>Lãnh địa: {lands.map(([n]) => n).join(", ")} · </>}
+          {lands.length > 0 && <>Lãnh địa: {lands.map(([id, holding]) => holding["Mô Tả"] || id).join(", ")} · </>}
           Lương {totalFood.toLocaleString("vi-VN")} · Thuế: {state["Chính Sách Thuế"]["Mức Thuế"]}
         </p>
       )}

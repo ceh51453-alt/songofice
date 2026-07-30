@@ -8,10 +8,11 @@ import { EXCHANGE_RATES } from "../economy/currency";
 import {
   BUDGETS, CORE_STATS, STAT_BASE, buildStateFromCanon, buildStateFromWizard,
   buildInitLoreEntry, buildOpeningMessage, flawRefund, pointBuySpent, resolveCrisisDesc,
-  talentSlots, validatePointBuy, npcAffinityOffset, type WizardData,
+  talentSlots, validatePointBuy, npcAffinityOffset, mergeWizardData, type WizardData,
 } from "./characterInit";
-import { ERAS_BY_ID } from "../content/westeros/eras";
+import { ERAS, ERAS_BY_ID } from "../content/westeros/eras";
 import { availableTalents } from "../content/westeros/talents";
+import { getRelationshipEdges, getRelationshipPeople } from "../ui/relationship/relationshipData";
 import { availableSkills } from "../content/westeros/skills";
 import { availableCrises } from "../content/westeros/startingCrises";
 import { resolveCheck } from "../probability/resolveCheck";
@@ -37,6 +38,31 @@ function makeWizard(partial?: Partial<WizardData>): WizardData {
     ...partial,
   };
 }
+
+describe("AI wizard patch", () => {
+  it("giữ Persona và hoàn thiện thành viên gia đình thiếu trường", () => {
+    const current = makeWizard({
+      customForce: { npcs: [], units: [] },
+      persona: { ngoaiHinh: "Mắt xám", tinhCach: "Điềm tĩnh", tieuSu: "Kế thừa Winterfell", mauMat: "Xám", mauToc: "Nâu", chieuCao: "1m78" },
+    });
+    const generated = mergeWizardData(current, {
+      persona: { ngoaiHinh: "Cao, tóc đen" },
+      familyMembers: [{ name: "Arya", relation: "Em gái" }],
+    } as unknown as Partial<WizardData>);
+
+    expect(generated.persona).toEqual({
+      ngoaiHinh: "Cao, tóc đen", tinhCach: "Điềm tĩnh", tieuSu: "Kế thừa Winterfell",
+      mauMat: "Xám", mauToc: "Nâu", chieuCao: "1m78",
+    });
+    expect(generated.familyMembers?.[0]).toMatchObject({
+      id: "ai-family-1", name: "Arya", relation: "Em gái",
+      persona: { ngoaiHinh: "", tinhCach: "" },
+    });
+
+    const state = buildStateFromWizard(generated);
+    expect(state["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["ai-family-1"]["Họ Tên"]).toBe("Arya");
+  });
+});
 
 describe("Point-buy (8.5 Bước 2)", () => {
   it("tổng điểm cố định theo Độ Khó; vượt quỹ bị chặn", () => {
@@ -229,6 +255,75 @@ describe("buildStateFromCanon (8.4b)", () => {
     const oldNed = era.canonCharacters.find((c) => c.name === "Eddard Stark")!;
     expect(oldNed.age).toBe(35);
     expect(youngNed.birthYear).toBe(oldNed.birthYear); // cùng Năm Sinh — chỉ khác Era year (5.1e)
+  });
+
+  it("Sổ tay nhận toàn bộ roster của era bằng ID canon, với gia đình tách riêng", () => {
+    const ned = era.canonCharacters.find((c) => c.id === "eddard-stark")!;
+    const s = buildStateFromCanon(ned, era, MODES);
+    const family = s["Mối Quan Hệ"]["Thành Viên Gia Tộc"];
+    const main = s["Mối Quan Hệ"]["NPC Chính"];
+
+    expect(Object.keys(family).length + Object.keys(main).length).toBe(era.canonCharacters.length - 1);
+    expect(family["catelyn-tully"]?.["Họ Tên"]).toBe("Catelyn Stark");
+    expect(main["tywin-lannister"]?.["Họ Tên"]).toBe("Tywin Lannister");
+    expect(main["tywin-lannister"]?.["Trang Bị Canon"]).toEqual(expect.any(Array));
+
+    const people = getRelationshipPeople(s);
+    const edges = getRelationshipEdges(people, ned.name);
+    expect(edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourceName: "Catelyn Stark", targetName: "Eddard Stark", label: "Vợ/Chồng" }),
+    ]));
+  });
+
+  it("các era chiến tranh mở tại mốc lore của chính cuộc chiến", () => {
+    expect(ERAS_BY_ID["aegon-conquest"].startYear).toBe(-2);
+    expect(ERAS_BY_ID["aegon-conquest"].startingHooks.find((hook) => hook.id === "landing-at-blackwater")?.numericYear).toBe(-2);
+    expect(ERAS_BY_ID["dance-of-dragons"].startYear).toBe(129);
+    expect(ERAS_BY_ID["dance-of-dragons"].startingHooks.every((hook) => (hook.numericYear ?? 129) >= 129)).toBe(true);
+    expect(ERAS_BY_ID["blackfyre-rebellion"].startYear).toBe(196);
+  });
+
+  it("đánh dấu nhân vật chưa sinh thay vì cho họ trạng thái NPC đang hoạt động", () => {
+    const rebellion = ERAS_BY_ID["roberts-rebellion"]!;
+    const robert = rebellion.canonCharacters.find((character) => character.id === "robert-baratheon")!;
+    const state = buildStateFromCanon(robert, rebellion, MODES);
+    expect(state["Mối Quan Hệ"]["NPC Chính"]["margaery-tyrell"]?.["Tình Trạng"]).toBe("Chưa Sinh");
+  });
+
+  it("mỗi era chỉ có một hồ sơ cho mỗi ID canon", () => {
+    for (const currentEra of ERAS) {
+      const ids = currentEra.canonCharacters.map((character) => character.id);
+      expect(new Set(ids).size, currentEra.id).toBe(ids.length);
+    }
+  });
+
+  it("mọi nhân vật roster đều có hồ sơ lore thủ công để Sổ tay không phải suy diễn theo Nhà", () => {
+    for (const currentEra of ERAS) {
+      for (const character of currentEra.canonCharacters) {
+        expect(character.origin, `${currentEra.id}:${character.id} thiếu xuất thân`).toBeTruthy();
+        expect(character.culture, `${currentEra.id}:${character.id} thiếu văn hoá`).toBeTruthy();
+        expect(character.bloodline, `${currentEra.id}:${character.id} thiếu huyết thống`).toBeTruthy();
+        expect(character.continent, `${currentEra.id}:${character.id} thiếu lục địa`).toBeTruthy();
+        expect(character.appearance, `${currentEra.id}:${character.id} thiếu ngoại hình`).toBeTruthy();
+      }
+    }
+  });
+
+  it("các quan hệ với nhân vật lịch sử ngoài roster vẫn hiện tên đọc được", () => {
+    for (const currentEra of ERAS) {
+      const player = currentEra.canonCharacters[0]!;
+      if (!player) continue;
+      const state = buildStateFromCanon(player, currentEra, MODES);
+      const everyone = [
+        ...Object.values(state["Mối Quan Hệ"]["Thành Viên Gia Tộc"]),
+        ...Object.values(state["Mối Quan Hệ"]["NPC Chính"]),
+      ];
+      for (const npc of everyone) {
+        for (const targetName of Object.keys(npc["Mạng Lưới Quan Hệ"] ?? {})) {
+          expect(targetName, `${currentEra.id}:${npc["Họ Tên"]}`).not.toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)+$/);
+        }
+      }
+    }
   });
 });
 

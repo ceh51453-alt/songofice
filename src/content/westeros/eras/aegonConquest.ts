@@ -3,6 +3,8 @@ import type { CanonCharacter } from "../eras";
 export const aegonConquestCharacters: CanonCharacter[] = [
   {
     id: "loren-lannister",
+    origin: "Vua miền Tây, người cai trị Casterly Rock khi Aegon đổ bộ.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình độc lập trong nguồn canon còn lại.",
     name: "Loren Lannister",
     tuocVi: "Quốc Vương",
     house: "Lannister",
@@ -53,6 +55,8 @@ father: "lannister-father-loren",
 },
   {
     id: "mern-ix-gardener",
+    origin: "Vị vua cuối cùng của Nhà Gardener tại Highgarden, tử trận cùng các con ở Cánh Đồng Lửa.", culture: "Người Reach; di sản Người Đầu Tiên", bloodline: "Nhà Gardener", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình độc lập trong nguồn canon còn lại.",
     name: "Mern IX Gardener",
     tuocVi: "Quốc Vương",
     house: "Gardener",
@@ -103,6 +107,8 @@ father: "lannister-father-loren",
 },
   {
     id: "sharra-arryn",
+    origin: "Nhiếp chính cho con trai Ronnel, vị Vua Núi và Thung Lũng còn nhỏ tuổi.", culture: "Người Vale", bloodline: "Nhà Arryn gốc Andal", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Sharra Arryn",
     tuocVi: "Quốc Vương",
     house: "Arryn",
@@ -152,6 +158,8 @@ father: "lannister-father-loren",
 },
   {
     id: "ronnel-arryn",
+    origin: "Vua thiếu niên của Vale, con của Sharra Arryn; vương quốc đầu hàng sau chuyến bay của Visenya tới Eyrie.", culture: "Người Vale", bloodline: "Nhà Arryn gốc Andal", continent: "Westeros",
+    appearance: "Một cậu bé; nguồn canon không cho mô tả ngoại hình chi tiết.",
     name: "Ronnel Arryn",
     tuocVi: "Quốc Vương",
     house: "Arryn",
@@ -197,6 +205,8 @@ father: "arryn-king-sharra",
 },
   {
     id: "edmyn-tully",
+    origin: "Lãnh chúa Riverrun đã quy thuận Aegon và được phong Lord Paramount of the Trident.", culture: "Người Riverlands", bloodline: "Nhà Tully", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Edmyn Tully",
     tuocVi: "Quốc Vương",
     house: "Tully",
@@ -242,6 +252,8 @@ children: ["tully-son-edmyn"],
 },
   {
     id: "vickon-greyjoy",
+    origin: "Lãnh chúa Greyjoy được các thủ lĩnh Người Sắt bầu làm Lord Reaper of Pyke sau khi Nhà Hoare sụp đổ.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Vickon Greyjoy",
     tuocVi: "Quốc Vương",
     house: "Greyjoy",
@@ -293,6 +305,8 @@ children: ["tully-son-edmyn"],
 },
   {
     id: "meria-martell",
+    origin: "Công chúa cầm quyền của Dorne, lãnh đạo sự kháng cự trước cuộc chinh phạt của Aegon.", culture: "Dornish Rhoynar", bloodline: "Nhà Nymeros Martell", continent: "Westeros",
+    appearance: "Nguồn sử mô tả bà già yếu, mù và hói ở cuối đời.",
     name: "Meria Martell",
     tuocVi: "Quốc Vương",
     house: "Martell",
@@ -343,6 +357,8 @@ children: ["tully-son-edmyn"],
 },
   {
     id: "nymor-martell",
+    origin: "Con trai và người kế vị của Meria Martell; về sau thương lượng hoà bình với Aegon I.", culture: "Dornish Rhoynar", bloodline: "Nhà Nymeros Martell", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Nymor Martell",
     tuocVi: "Quốc Vương",
     house: "Martell",
@@ -389,6 +405,8 @@ children: ["tully-son-edmyn"],
 },
   {
     id: "deria-martell",
+    origin: "Con gái của Nymor Martell, được cử đến King's Landing để dàn xếp hoà bình sau Cuộc Chiến Rồng lần thứ nhất tại Dorne.", culture: "Dornish Rhoynar", bloodline: "Nhà Nymeros Martell", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Deria Martell",
     tuocVi: "Lãnh Chúa",
     house: "Martell",
@@ -434,6 +452,8 @@ personalHooks: [
 },
   {
     id: "dickon-morrigen",
+    origin: "Lãnh chúa Crow's Nest, người đã chặn Orys Baratheon ở Wyl trong cuộc chiến Dorne đầu tiên.", culture: "Người Bão Tố", bloodline: "Nhà Morrigen", continent: "Westeros",
+    appearance: "Không có mô tả ngoại hình canon xác thực.",
     name: "Dickon Morrigen",
     tuocVi: "Hiệp Sĩ",
     house: "Khác",
@@ -480,6 +500,7 @@ personalHooks: [
   // ── GIA QUYẾN ĐƯỢC TẠO THEO LORE ──
   {
     id: "lannister-father-loren", name: "Cựu Vương Lannister", tuocVi: "Thường Dân", house: "Lannister", role: "Cựu Vương", religion: "Thất Diện Thần", blurb: "Cha của Loren Lannister.",
+    origin: "Nhân vật quan hệ giả lập để biểu thị cha của Loren; tên, niên đại và thân phận riêng không được nguồn canon xác nhận.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -50, deathYear: -1, age: 50, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -509,6 +530,7 @@ personalHooks: [
 },
   {
     id: "lannister-wife-loren", name: "Vương Hậu Lannister", tuocVi: "Vương Hậu", house: "Lannister", role: "Vương Hậu", religion: "Thất Diện Thần", blurb: "Vợ của Loren Lannister.",
+    origin: "Nhân vật quan hệ giả lập để biểu thị vợ của Loren; tên, niên đại và xuất thân riêng không được nguồn canon xác nhận.", culture: "Không xác minh", bloodline: "Không xác minh", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -25, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -538,6 +560,7 @@ personalHooks: [
 },
   {
     id: "lyman-lannister", name: "Lyman Lannister", tuocVi: "Vương Thân", house: "Lannister", role: "Con trai Loren", religion: "Thất Diện Thần", blurb: "Người thừa kế của Loren Lannister.",
+    origin: "Nhân vật quan hệ giả lập; nguồn canon không nêu tên một người con Lannister này.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -5, age: 5, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -566,6 +589,7 @@ personalHooks: [
 },
   {
     id: "edmund-gardener", name: "Edmund Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Thái tử", religion: "Thất Diện Thần", blurb: "Con trai trưởng của Mern IX.",
+    origin: "Hoàng tử Gardener trong dữ liệu giả lập; các tên riêng của con Mern IX không được nguồn canon xác nhận.", culture: "Người Reach", bloodline: "Nhà Gardener", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -25, deathYear: -2, age: 25, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -595,6 +619,7 @@ personalHooks: [
 },
   {
     id: "gawen-gardener", name: "Gawen Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai thứ của Mern IX.",
+    origin: "Hoàng tử Gardener trong dữ liệu giả lập; các tên riêng của con Mern IX không được nguồn canon xác nhận.", culture: "Người Reach", bloodline: "Nhà Gardener", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -23, deathYear: -2, age: 23, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -624,6 +649,7 @@ personalHooks: [
 },
   {
     id: "garth-gardener", name: "Garth Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai của Mern IX.",
+    origin: "Hoàng tử Gardener trong dữ liệu giả lập; các tên riêng của con Mern IX không được nguồn canon xác nhận.", culture: "Người Reach", bloodline: "Nhà Gardener", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -20, deathYear: -2, age: 20, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -653,6 +679,7 @@ personalHooks: [
 },
   {
     id: "moryn-gardener", name: "Moryn Gardener", tuocVi: "Vương Thân", house: "Gardener", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Con trai út của Mern IX.",
+    origin: "Hoàng tử Gardener trong dữ liệu giả lập; các tên riêng của con Mern IX không được nguồn canon xác nhận.", culture: "Người Reach", bloodline: "Nhà Gardener", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -18, deathYear: -2, age: 18, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -682,6 +709,7 @@ personalHooks: [
 },
   {
     id: "arryn-king-sharra", name: "Cựu Vương Arryn", tuocVi: "Thường Dân", house: "Arryn", role: "Vua đã mất", religion: "Thất Diện Thần", blurb: "Người chồng đã mất của Sharra Arryn.",
+    origin: "Nhân vật quan hệ giả lập để biểu thị người chồng đã mất của Sharra; nguồn canon không xác nhận danh tính.", culture: "Người Vale", bloodline: "Nhà Arryn", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -40, deathYear: -6, age: 34, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -710,6 +738,7 @@ personalHooks: [
 },
   {
     id: "jonos-arryn", name: "Jonos Arryn", tuocVi: "Vương Thân", house: "Arryn", role: "Vương Tử", religion: "Thất Diện Thần", blurb: "Em trai của Ronnel Arryn.",
+    origin: "Nhân vật quan hệ giả lập; nguồn canon chỉ nêu Ronnel là con của Sharra, không xác nhận người em này.", culture: "Người Vale", bloodline: "Nhà Arryn", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -4, age: 4, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -738,6 +767,7 @@ personalHooks: [
 },
   {
     id: "tully-son-edmyn", name: "Con trai Edmyn", tuocVi: "Người Thừa Kế", house: "Tully", role: "Người Thừa Kế", religion: "Thất Diện Thần", blurb: "Người kế vị Riverrun.",
+    origin: "Nhân vật quan hệ giả lập; người thừa kế cụ thể của Edmyn trong niên đại này không được nguồn canon nêu tên.", culture: "Người Riverlands", bloodline: "Nhà Tully", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -10, age: 10, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -767,6 +797,7 @@ personalHooks: [
 },
   {
     id: "goren-greyjoy", name: "Goren Greyjoy", tuocVi: "Người Thừa Kế", house: "Greyjoy", role: "Người Thừa Kế", religion: "Đần Thần (Drowned God)", blurb: "Con trai cả của Vickon Greyjoy.",
+    origin: "Con trai của Vickon Greyjoy, được nêu trong phả hệ Greyjoy.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Không có mô tả ngoại hình canon xác thực.",
     birthYear: -15, age: 15, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 60, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -799,6 +830,7 @@ personalHooks: [
 
   {
     id: "aerion-targaryen", name: "Aerion Targaryen", tuocVi: "Lãnh Chúa", house: "Targaryen", role: "Cố Lãnh Chúa", religion: "Thất Diện Thần", blurb: "Cha của Aegon, Visenya, và Rhaenys.",
+    origin: "Cha của Aegon, Visenya và Rhaenys; một thành viên Targaryen tại Dragonstone trước Cuộc Chinh Phạt.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen", continent: "Westeros", appearance: "Không có mô tả ngoại hình canon xác thực.",
     birthYear: -50, deathYear: -2, age: 48, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -831,6 +863,7 @@ personalHooks: [
 },
   {
     id: "valaena-velaryon", name: "Valaena Velaryon", tuocVi: "Tiểu Thư", house: "Velaryon", role: "Phu Nhân", religion: "Thất Diện Thần", blurb: "Mẹ của Aegon, Visenya, và Rhaenys.",
+    origin: "Phu nhân của Aerion và mẹ của ba người chinh phạt; mang dòng Velaryon và huyết mạch Targaryen qua mẹ.", culture: "Valyria hậu duệ", bloodline: "Nhà Velaryon và Targaryen", continent: "Westeros", appearance: "Không có mô tả ngoại hình canon xác thực.",
     birthYear: -48, deathYear: -2, age: 46, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -862,6 +895,7 @@ personalHooks: [
 },
   {
     id: "hoare-son-harren", name: "Thái Tử Hoare", tuocVi: "Người Thừa Kế", house: "Hoare", role: "Con trai Harren", religion: "Thần Chết Chìm", blurb: "Người con sẽ chết trong lửa rồng cùng cha.",
+    origin: "Con trai không được nêu tên của Harren Hoare, một trong những người chết trong Harrenhal khi Aegon tấn công.", culture: "Người Sắt", bloodline: "Nhà Hoare", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -30, deathYear: 2, age: 30, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -890,6 +924,7 @@ personalHooks: [
 },
   {
     id: "brandon-snow", name: "Brandon Snow", tuocVi: "Thường Dân", house: "Stark", role: "Anh em của Torrhen", religion: "Cựu Thần", blurb: "Con hoang của phương Bắc, đã từng đề xuất ám sát rồng Targaryen.",
+    origin: "Anh em cùng cha khác mẹ của Torrhen Stark; đã đề nghị dùng cung gỗ weirwood hạ sát rồng của Aegon.", culture: "Người Đầu Tiên vùng Bắc", bloodline: "Dòng Stark, mang họ Snow", continent: "Westeros", appearance: "Không có mô tả ngoại hình canon xác thực.",
     birthYear: -28, age: 28, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 12, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 65, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -918,6 +953,7 @@ personalHooks: [
 },
   {
     id: "stark-son-torrhen", name: "Con trai Torrhen", tuocVi: "Người Thừa Kế", house: "Stark", role: "Người Thừa Kế", religion: "Cựu Thần", blurb: "Con trai của Torrhen Stark, phẫn nộ vì cha phải quỳ gối.",
+    origin: "Nhân vật quan hệ giả lập; Torrhen có hai con trai được kể lại nhưng dữ liệu canon không xác nhận người thừa kế này theo ID hiện tại.", culture: "Người Đầu Tiên vùng Bắc", bloodline: "Nhà Stark", continent: "Westeros", appearance: "Không xác minh.",
     birthYear: -10, age: 10, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 10, "Tinh Tường": 10, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 50, "Trí Mưu": 50, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,
@@ -947,6 +983,7 @@ personalHooks: [
 },
   {
     id: "argella-durrandon", name: "Argella Durrandon", tuocVi: "Công Chúa", house: "Durrandon", role: "Nữ Vương Bão", religion: "Thất Diện Thần", blurb: "Con gái của Argilac, người sẽ lấy Orys Baratheon.",
+    origin: "Con gái và người thừa kế của Argilac Durrandon; sau thất thủ Storm's End, bà kết hôn với Orys Baratheon.", culture: "Người Bão Tố", bloodline: "Nhà Durrandon", continent: "Westeros", appearance: "Không có mô tả ngoại hình canon xác thực.",
     birthYear: -18, age: 18, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 10, "Trí Tuệ": 12, "Tinh Tường": 10, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 70, "Trí Mưu": 60, "Ngoại Giao": 50 },
     talentIds: [], skills: {}, equipment: [], items: [], gold: 0,

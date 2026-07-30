@@ -3,6 +3,8 @@ import type { CanonCharacter } from "../eras";
 export const danceOfDragonsCharacters: CanonCharacter[] = [
   {
     id: "jacaerys-velaryon",
+    origin: "Trưởng nam của Rhaenyra, hợp pháp là con Laenor Velaryon nhưng thường bị đồn là con Harwin Strong.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen; công khai là Velaryon", continent: "Westeros",
+    appearance: "Tóc nâu và mắt nâu, không mang ngoại hình Valyria điển hình; cưỡi Vermax.",
     name: "Jacaerys Velaryon",
     tuocVi: "Hoàng Tử",
     house: "Velaryon",
@@ -62,6 +64,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "lucerys-velaryon",
+    origin: "Con trai thứ hai của Rhaenyra, hợp pháp là con Laenor Velaryon nhưng thường bị đồn là con Harwin Strong; người thừa kế Driftmark.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen; công khai là Velaryon", continent: "Westeros",
+    appearance: "Tóc nâu, mắt nâu và thân hình nhỏ hơn anh trai; cưỡi Arrax.",
     name: "Lucerys Velaryon",
     tuocVi: "Hoàng Tử",
     house: "Velaryon",
@@ -115,6 +119,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "aegon-iii",
+    origin: "Con trai trưởng của Rhaenyra Targaryen và Daemon Targaryen, sinh tại Dragonstone trong thời kỳ căng thẳng kế vị.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen", continent: "Westeros",
+    appearance: "Một hoàng tử nhỏ tuổi tóc bạc-vàng, mắt tím; chiến tranh khiến cậu trở nên trầm lặng.",
     name: "Aegon III Targaryen",
     tuocVi: "Hoàng Tử",
     house: "Targaryen",
@@ -168,6 +174,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "helaena-targaryen",
+    origin: "Con gái Viserys I và Alicent Hightower, chị/em gái kiêm vợ của Aegon II, mẹ của Jaehaerys, Jaehaera và Maelor.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen và Hightower", continent: "Westeros",
+    appearance: "Tóc bạc-vàng, mắt tím nhạt; say mê côn trùng và cưỡi Dreamfyre.",
     name: "Helaena Targaryen",
     tuocVi: "Vương Hậu",
     house: "Targaryen",
@@ -227,6 +235,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "daeron-targaryen",
+    origin: "Con trai út của Viserys I và Alicent Hightower, lớn lên ở Oldtown trước khi tham gia chiến tranh cho phe Xanh.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen và Hightower", continent: "Westeros",
+    appearance: "Chàng hoàng tử tóc bạc-vàng, mắt tím; cưỡi Tessarion, con rồng xanh lam.",
     name: "Daeron Targaryen",
     tuocVi: "Hoàng Tử",
     house: "Targaryen",
@@ -280,6 +290,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "otto-hightower",
+    origin: "Em trai Lord of Oldtown, từng hai lần làm Hand of the King cho Jaehaerys I và Viserys I; ông ngoại của Aegon II.", culture: "Người Reach", bloodline: "Nhà Hightower", continent: "Westeros",
+    appearance: "Một quý tộc cao tuổi, dáng nghiêm trang; không có mô tả ngoại hình chi tiết hơn trong nguồn canon.",
     name: "Otto Hightower",
     tuocVi: "Hiệp Sĩ",
     house: "Hightower",
@@ -332,6 +344,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "larys-strong",
+    origin: "Con trai thứ của Lyonel Strong, em trai Harwin; thành viên triều đình King's Landing được gọi là Clubfoot.", culture: "Người Riverlands", bloodline: "Nhà Strong", continent: "Westeros",
+    appearance: "Bàn chân dị tật khiến ông đi khập khiễng; bề ngoài lịch sự che giấu bản tính kín kẽ.",
     name: "Larys Strong",
     tuocVi: "Lãnh Chúa Thành Trì",
     house: "Strong",
@@ -383,6 +397,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "cregan-stark",
+    origin: "Lãnh chúa Winterfell và Warden of the North, người nắm quân Bắc trong giai đoạn cuối Vũ Điệu Rồng.", culture: "Người Đầu Tiên vùng Bắc", bloodline: "Nhà Stark", continent: "Westeros",
+    appearance: "Một chiến binh trẻ nhưng uy nghiêm; nguồn canon không ghi nhận mô tả ngoại hình cụ thể.",
     name: "Cregan Stark",
     tuocVi: "Đại Lãnh Chúa",
     house: "Stark",
@@ -433,6 +449,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "jeyne-arryn",
+    origin: "Lady of the Eyrie, người kế vị cha khi còn nhỏ và giữ Vale cho phe Đen trong Vũ Điệu Rồng.", culture: "Người Vale", bloodline: "Nhà Arryn", continent: "Westeros",
+    appearance: "Nguồn canon không cho mô tả ngoại hình chi tiết; bà nổi tiếng bởi sự độc lập và quyết đoán.",
     name: "Jeyne Arryn",
     tuocVi: "Đại Lãnh Chúa",
     house: "Arryn",
@@ -479,6 +497,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "borros-baratheon",
+    origin: "Lãnh chúa Storm's End, người đứng đầu Nhà Baratheon và chọn liên minh với Aegon II qua hôn ước cho một con gái.", culture: "Người Bão Tố", bloodline: "Nhà Baratheon", continent: "Westeros",
+    appearance: "Người đàn ông to lớn, dữ dằn và nóng tính; thích ăn nói thẳng hơn đọc thư từ.",
     name: "Borros Baratheon",
     tuocVi: "Đại Lãnh Chúa",
     house: "Baratheon",
@@ -531,6 +551,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "dalton-greyjoy",
+    origin: "Lord Reaper of Pyke, được gọi là Red Kraken; lợi dụng nội chiến Targaryen để cướp phá bờ biển phía tây.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros",
+    appearance: "Một chiến binh trẻ khét tiếng vì sự hung bạo; nguồn canon không ghi nhận chân dung chi tiết.",
     name: "Dalton Greyjoy",
     tuocVi: "Đại Lãnh Chúa",
     house: "Greyjoy",
@@ -579,6 +601,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "alys-rivers",
+    origin: "Người phụ nữ gốc không rõ, phục vụ tại Harrenhal và bị gọi là 'bastard' của Nhà Strong; gắn với Aemond Targaryen.", culture: "Không xác minh", bloodline: "Không xác minh", continent: "Westeros",
+    appearance: "Được mô tả là lớn tuổi hơn vẻ ngoài và có mái tóc đen dài; các lời đồn về năng lực ma thuật không được xác minh.",
     name: "Alys Rivers",
     tuocVi: "Thường Dân",
     house: "Strong",
@@ -623,6 +647,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "hugh-hammer",
+    origin: "Thợ rèn thường dân ở Dragonstone, một trong các dragonseed cưỡi Vermithor cho phe Đen trước khi phản bội.", culture: "Người Crownlands", bloodline: "Dòng Valyria không xác minh", continent: "Westeros",
+    appearance: "Người đàn ông lực lưỡng, thô ráp; nguồn canon không có chân dung chi tiết.",
     name: "Hugh Búa Tạ",
     tuocVi: "Thường Dân",
     house: "Khác",
@@ -674,6 +700,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "addam-velaryon",
+    origin: "Con trai Marilda of Hull, được Corlys Velaryon hợp pháp hoá cùng em trai Alyn sau khi Addam cưỡi Seasmoke.", culture: "Valyria hậu duệ qua dòng mẹ không xác minh", bloodline: "Nhà Velaryon theo sắc phong", continent: "Westeros",
+    appearance: "Tóc bạc và vẻ ngoài Valyria, dù cha ruột là Laenor hay Corlys vẫn là điều không được xác nhận.",
     name: "Addam Velaryon",
     tuocVi: "Hiệp Sĩ",
     house: "Velaryon",
@@ -728,6 +756,8 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "nettles",
+    origin: "Cô gái thường dân ở Dragonstone đã thuần phục Sheepstealer bằng cách cho nó ăn cừu; lai lịch gia đình không rõ.", culture: "Không xác minh", bloodline: "Không xác minh", continent: "Westeros",
+    appearance: "Cô gái nhỏ, da nâu, tóc đen và mắt nâu theo ghi chép về các dragonseed.",
     name: "Nettles",
     tuocVi: "Thường Dân",
     house: "Khác",
@@ -779,6 +809,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
   ,
   {
     id: "baela-targaryen", name: "Baela Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Cô Gái Cưỡi Rồng", religion: "Thất Diện Thần",
+    origin: "Con gái song sinh của Daemon Targaryen và Laena Velaryon; cháu gái Rhaenyra và người cưỡi Moondancer.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen và Velaryon", continent: "Westeros", appearance: "Tóc bạc-vàng, mắt tím; táo bạo và hiếu động hơn người chị em song sinh Rhaena.",
     blurb: "Con gái của Daemon. Bướng bỉnh, hoang dại, giống cha mình y hệt. Cô cưỡi con rồng Moondancer.",
     birthYear: 116, age: 13, coreStats: { "Sức Mạnh": 9, "Nhanh Nhẹn": 15, "Thể Chất": 11, "Trí Tuệ": 12, "Tinh Tường": 16, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 45, "Thống Soái": 70, "Trí Mưu": 60, "Ngoại Giao": 80 },
@@ -813,6 +844,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "rhaena-targaryen", name: "Rhaena Targaryen", tuocVi: "Công Chúa", house: "Targaryen", role: "Cô Gái Dịu Dàng", religion: "Thất Diện Thần",
+    origin: "Con gái song sinh của Daemon Targaryen và Laena Velaryon; chị/em của Baela, về sau nuôi rồng Morning.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen và Velaryon", continent: "Westeros", appearance: "Tóc bạc-vàng, mắt tím; kín đáo và dịu dàng hơn Baela.",
     blurb: "Em gái sinh đôi của Baela. Dịu dàng, thích múa và quần áo đẹp hơn là kiếm thuật.",
     birthYear: 116, age: 13, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 10, "Thể Chất": 8, "Trí Tuệ": 14, "Tinh Tường": 12, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 30, "Thống Soái": 80, "Trí Mưu": 70, "Ngoại Giao": 60 },
@@ -846,6 +878,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "harwin-strong", name: "Harwin Strong", tuocVi: "Hiệp Sĩ", house: "Strong", role: "Người Mẻ Cốt", religion: "Cựu Thần",
+    origin: "Con trai trưởng Lyonel Strong, người thừa kế Harrenhal và là người tình bị đồn đoán của Rhaenyra trước khi chết trong hoả hoạn.", culture: "Người Riverlands", bloodline: "Nhà Strong", continent: "Westeros", appearance: "Một hiệp sĩ rất to lớn và khỏe, mang biệt danh Breakbones; không có chân dung chi tiết hơn.",
     blurb: "Người đàn ông mạnh nhất Bảy Vương Quốc, Đội trưởng Đội Gác Thành, và được cho là cha ruột của các con trai Rhaenyra.",
     birthYear: 90, deathYear: 120, age: 30, coreStats: { "Sức Mạnh": 20, "Nhanh Nhẹn": 11, "Thể Chất": 18, "Trí Tuệ": 9, "Tinh Tường": 15, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 100, "Thống Soái": 70, "Trí Mưu": 45, "Ngoại Giao": 75 },
@@ -877,6 +910,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "mysaria", name: "Mysaria", tuocVi: "Thường Dân", house: "Khác", role: "Sâu Trắng", religion: "Khác",
+    origin: "Người phụ nữ xuất thân từ Lys, từng là tình nhân của Daemon và trở thành người điều hành mạng lưới tai mắt tại King's Landing.", culture: "Lysene", bloodline: "Không xác minh", continent: "Essos", appearance: "Da trắng nhợt, tóc vàng nhạt gần trắng và giọng Lys; vì vậy được gọi là White Worm.",
     blurb: "Cựu kỹ nữ đến từ Lys, trở thành người tình của Daemon và là bậc thầy gián điệp của Rhaenyra.",
     birthYear: 88, age: 41, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 12, "Thể Chất": 8, "Trí Tuệ": 18, "Tinh Tường": 16, "Uy Tín": 18 },
     năngLực: { "Võ Lực": 25, "Thống Soái": 90, "Trí Mưu": 90, "Ngoại Giao": 80 },
@@ -908,6 +942,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "tyland-lannister", name: "Tyland Lannister", tuocVi: "Hiệp Sĩ", house: "Lannister", role: "Quản Lý Ngân Khố", religion: "Thất Diện Thần",
+    origin: "Em song sinh của Jason Lannister, Master of Ships rồi Master of Coin trong Hội đồng Xanh.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros", appearance: "Ban đầu rất giống Jason; sau chiến tranh bị tra tấn tàn phá ngoại hình và phải che mặt.",
     blurb: "Phục vụ phe Xanh, đã nhanh tay phân tán ngân khố hoàng gia trước khi Rhaenyra chiếm được vương đô.",
     birthYear: 90, age: 39, coreStats: { "Sức Mạnh": 10, "Nhanh Nhẹn": 10, "Thể Chất": 12, "Trí Tuệ": 17, "Tinh Tường": 16, "Uy Tín": 13 },
     năngLực: { "Võ Lực": 50, "Thống Soái": 65, "Trí Mưu": 85, "Ngoại Giao": 80 },
@@ -939,6 +974,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "jason-lannister", name: "Jason Lannister", tuocVi: "Lãnh Chúa", house: "Lannister", role: "Lãnh Chúa Casterly Rock", religion: "Thất Diện Thần",
+    origin: "Lãnh chúa Casterly Rock và Warden of the West, anh song sinh Tyland; đưa miền Tây về phe Aegon II.", culture: "Người miền Tây", bloodline: "Nhà Lannister", continent: "Westeros", appearance: "Một quý tộc cao lớn, đẹp trai, tóc vàng; rất giống Tyland trước khi người em bị tra tấn.",
     blurb: "Anh trai sinh đôi của Tyland, lãnh chúa giàu có, kiêu ngạo. Dẫn dắt quân đội Tây chiến đấu cho vua Aegon II.",
     birthYear: 90, age: 39, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 12, "Trí Tuệ": 13, "Tinh Tường": 12, "Uy Tín": 15 },
     năngLực: { "Võ Lực": 60, "Thống Soái": 75, "Trí Mưu": 65, "Ngoại Giao": 60 },
@@ -970,6 +1006,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "ulf-white", name: "Ulf Trắng", tuocVi: "Thường Dân", house: "Khác", role: "Kẻ Nát Rượu", religion: "Thất Diện Thần",
+    origin: "Người thường dân Dragonstone, một dragonseed cưỡi Silverwing cho phe Đen trước khi đổi phe ở Tumbleton.", culture: "Người Crownlands", bloodline: "Dòng Valyria không xác minh", continent: "Westeros", appearance: "Người đàn ông lớn tuổi, tóc trắng xám và nghiện rượu; nguồn canon không có mô tả chi tiết hơn.",
     blurb: "Một kỵ sĩ hạt giống, nát rượu và tham lam, cưỡi con rồng Silverwing.",
     birthYear: 90, age: 39, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 9, "Thể Chất": 13, "Trí Tuệ": 6, "Tinh Tường": 7, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 70, "Thống Soái": 50, "Trí Mưu": 30, "Ngoại Giao": 35 },
@@ -1002,6 +1039,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "orwyle", name: "Orwyle", tuocVi: "Thường Dân", house: "Khác", role: "Đại Maester", religion: "Thất Diện Thần",
+    origin: "Grand Maester phục vụ Viserys I rồi Aegon II, thành viên Hội đồng Xanh và người viết hồi ký về thời kỳ này.", culture: "Không xác minh", bloodline: "Không xác minh", continent: "Westeros", appearance: "Một maester lớn tuổi; nguồn canon không cho mô tả ngoại hình chi tiết.",
     blurb: "Đại Maester của Tiểu Hội Đồng, theo phe Xanh.",
     birthYear: 70, age: 59, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 6, "Thể Chất": 8, "Trí Tuệ": 18, "Tinh Tường": 12, "Uy Tín": 10 },
     năngLực: { "Võ Lực": 25, "Thống Soái": 50, "Trí Mưu": 90, "Ngoại Giao": 60 },
@@ -1033,6 +1071,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "jasper-wylde", name: "Jasper Wylde", tuocVi: "Lãnh Chúa", house: "Wylde", role: "Gậy Sắt", religion: "Thất Diện Thần",
+    origin: "Lãnh chúa Rain House, Master of Laws của Viserys I và thành viên Hội đồng Xanh dưới Aegon II.", culture: "Người Bão Tố", bloodline: "Nhà Wylde", continent: "Westeros", appearance: "Ông già khô khan, nổi tiếng với biệt danh Ironrod; không có mô tả chi tiết hơn.",
     blurb: "Quan quản pháp của Vua Viserys, vô cùng cứng nhắc về luật lệ. Ông theo phe Xanh vì luật truyền ngôi cho con trai trưởng.",
     birthYear: 75, age: 54, coreStats: { "Sức Mạnh": 9, "Nhanh Nhẹn": 8, "Thể Chất": 12, "Trí Tuệ": 16, "Tinh Tường": 18, "Uy Tín": 11 },
     năngLực: { "Võ Lực": 45, "Thống Soái": 55, "Trí Mưu": 80, "Ngoại Giao": 90 },
@@ -1064,6 +1103,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
 },
   {
     id: "sabitha-frey", name: "Sabitha Frey", tuocVi: "Tiểu Thư", house: "Frey", role: "Nữ Tướng", religion: "Thất Diện Thần",
+    origin: "Phu nhân của Forrest Frey, chỉ huy quân Nhà Frey và phe Đen trong Riverlands sau khi chồng tử trận.", culture: "Người Riverlands", bloodline: "Nhà Vypren; kết hôn vào Nhà Frey", continent: "Westeros", appearance: "Nữ tướng táo bạo, từng ra chiến trường trong giáp; nguồn canon không có chân dung chi tiết.",
     blurb: "Vợ của lãnh chúa Frey, thích chiến tranh hơn thêu thùa, dẫn dắt quân Frey chiến đấu cho phe Đen.",
     birthYear: 100, age: 29, coreStats: { "Sức Mạnh": 13, "Nhanh Nhẹn": 14, "Thể Chất": 15, "Trí Tuệ": 12, "Tinh Tường": 15, "Uy Tín": 11 },
     năngLực: { "Võ Lực": 65, "Thống Soái": 55, "Trí Mưu": 60, "Ngoại Giao": 75 },

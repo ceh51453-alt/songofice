@@ -18,7 +18,7 @@ import {
   DRAGON_STAT_BASE, DRAGON_STAT_BUDGET, DRAGON_STAT_MAX_CREATE, DRAGON_STAT_MIN_CREATE,
   DRAGON_SKILL_BUDGET, DRAGON_SKILL_MAX_CREATE,
   buildStateFromCanon, buildStateFromWizard, flawRefund, pointBuySpent, resolveCrisisDesc, talentSlots,
-  type Difficulty, type WizardData, type DragonWizardData,
+  mergeWizardData, type Difficulty, type WizardData, type DragonWizardData,
 } from "../../character/characterInit";
 import { DRAGON_STATS, DRAGON_SKILLS, DRAGON_SIZES, RELIGIONS, PATRON_GODS, BLOODLINES, type DragonStat, type DragonSkill } from "../../mvu/schema";
 import { startNewGame } from "../../character/startGame";
@@ -106,7 +106,9 @@ export function NewGameFlow() {
 
   const era = wiz.eraId ? ERAS_BY_ID[wiz.eraId] : null;
   const origin = wiz.originId ? ORIGINS_BY_ID[wiz.originId] : null;
-  const patch = (p: Partial<WizardData>) => setWiz((w) => ({ ...w, ...p }));
+  // AI chỉ thường trả về phần thay đổi. Ghép bằng hàm chuẩn để không làm rơi
+  // các nhánh persona/gia đình/thế lực mà panel game sẽ đọc.
+  const patch = (p: Partial<WizardData>) => setWiz((w) => mergeWizardData(w, p));
 
   // preview realtime (8.5) — dựng lại state nháp mỗi khi wizard đổi
   const previewState = useMemo(() => {
@@ -240,13 +242,16 @@ export function NewGameFlow() {
               {era?.canonCharacters.map((c) => {
                 const hookYear = parseHookYear(null, era?.startYear ?? 0);
                 const notBorn = c.birthYear !== undefined && c.birthYear > hookYear;
+                const alreadyDead = c.deathYear !== undefined && c.deathYear < hookYear;
                 const displayAge = c.birthYear !== undefined ? Math.max(0, hookYear - c.birthYear) : c.age;
                 return (
-                <Card key={c.id} selected={canonChar?.id === c.id} onClick={() => { setCanonChar(c); setCanonHook(null); setCustomStartYear(undefined); setStage("canon-hook"); }}>
+                <Card key={c.id} selected={canonChar?.id === c.id} disabled={notBorn || alreadyDead} onClick={() => { setCanonChar(c); setCanonHook(null); setCustomStartYear(undefined); setStage("canon-hook"); }}>
                   <span className="font-display block text-[15px] text-[var(--text-soft)]">{c.name}</span>
                   <span className="text-[12px] text-[var(--accent-text)]">
                     Nhà {c.house} · {c.role} · {notBorn
                       ? <span className="text-amber-400">chưa sinh (sinh năm {c.birthYear} AC)</span>
+                      : alreadyDead
+                        ? <span className="text-red-300">đã mất (năm {c.deathYear} AC)</span>
                       : `${displayAge} tuổi`}
                   </span>
                   <span className="block mt-1 text-[12.5px] leading-relaxed text-[var(--text-muted)]">{c.blurb}</span>
@@ -368,18 +373,20 @@ export function NewGameFlow() {
 
       default:
         const stepNameMap: Record<string, string> = {
-          "w1": "Nhà & Xuất Thân",
-          "w2": "Huyết Thống & Đặc Quyền",
-          "w3": "Tên & Tuổi",
-          "w4": "Phân Bổ Chỉ Số",
-          "w5": "Thiên Phú & Khiếm Khuyết",
-          "w6": "Kỹ Năng Khởi Đầu",
-          "w7": "Thế Lực Tuỳ Tùng",
-          "w8": "Nhân Dạng & Tiểu Sử",
+          "w1": "Nhà, Xuất Thân & Tín Ngưỡng",
+          "w2": "Tông Tộc & Thế Lực",
+          "w3": "Phân Bổ Chỉ Số",
+          "w4": "Thiên Phú & Khiếm Khuyết",
+          "w5": "Kỹ Năng Khởi Đầu",
+          "w6": "Rồng Của Ngươi",
+          "w7": "Tài Sản & Trang Bị Khởi Đầu",
+          "w8": "Persona & Chân Dung",
           "w9": "Khủng Hoảng Khởi Đầu",
           "w10": "Một Tâm Phúc Khởi Đầu",
           "w11": "Điểm Bắt Đầu",
-          "w12": "Cuộn Giấy Vận Mệnh"
+          "w12": "Lãnh Địa Bắt Đầu",
+          "w13": "Trang Bị Đặc Biệt",
+          "w14": "Cuộn Giấy Vận Mệnh",
         };
         const currentStepName = stepNameMap[stage as string];
 
@@ -768,14 +775,14 @@ export function NewGameFlow() {
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
                         <input type="text" placeholder="Loài (VD: Người, Tiên...)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 w-1/4" value={m.loai || ""} onChange={e => updateFamily(m.id, { loai: e.target.value })} />
-                        <input type="text" placeholder="Thân Hình / Ngoại Hình" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={m.persona.ngoaiHinh} onChange={e => updateFamily(m.id, { persona: { ...m.persona, ngoaiHinh: e.target.value } })} />
+                        <input type="text" placeholder="Thân Hình / Ngoại Hình" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={m.persona?.ngoaiHinh ?? ""} onChange={e => updateFamily(m.id, { persona: { ...(m.persona ?? {}), ngoaiHinh: e.target.value } })} />
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
                         <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Võ:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.voLuc ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), voLuc: parseInt(e.target.value)||0 } })} /></div>
                         <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Thống:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.thongSoai ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), thongSoai: parseInt(e.target.value)||0 } })} /></div>
                         <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Trí:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.triMuu ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), triMuu: parseInt(e.target.value)||0 } })} /></div>
                         <div className="flex items-center gap-1"><span className="text-[11px] text-[var(--text-muted)]">Ngoại:</span><input type="number" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-1 py-0.5 w-10" value={m.nangLuc?.ngoaiGiao ?? 10} onChange={e => updateFamily(m.id, { nangLuc: { ...(m.nangLuc || {voLuc:10,thongSoai:10,triMuu:10,ngoaiGiao:10}), ngoaiGiao: parseInt(e.target.value)||0 } })} /></div>
-                        <input type="text" placeholder="Tính cách" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-0.5 flex-1 min-w-[120px]" value={m.persona.tinhCach} onChange={e => updateFamily(m.id, { persona: { ...m.persona, tinhCach: e.target.value } })} />
+                        <input type="text" placeholder="Tính cách" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-0.5 flex-1 min-w-[120px]" value={m.persona?.tinhCach ?? ""} onChange={e => updateFamily(m.id, { persona: { ...(m.persona ?? {}), tinhCach: e.target.value } })} />
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
                         <input type="text" placeholder="Link ảnh chân dung (URL)" className="bg-[rgba(0,0,0,0.4)] text-[12px] border border-[var(--glass-border)] rounded px-2 py-1 flex-1" value={m.avatarUrl || ""} onChange={e => updateFamily(m.id, { avatarUrl: e.target.value })} />

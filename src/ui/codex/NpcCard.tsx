@@ -10,17 +10,29 @@ import type { Npc } from "../../mvu/npcSchema";
 import { personalityLabel, type PersonalityAxis } from "../../npc/personalityEngine";
 import { TALENTS_BY_ID } from "../../content/westeros/talents";
 import { IconSpark } from "../icons";
+import { relationshipCounterparty, type PersonGroup, type RelationshipEdge } from "../relationship/relationshipData";
 
-function AvatarFallback({ name, house }: { name: string; house?: string }) {
+function Avatar({ name, house, portrait }: { name: string; house?: string; portrait?: string }) {
   const initial = name.charAt(0).toUpperCase();
   // Color based on house name hash
   const hue = (house ?? name).split("").reduce((h, c) => h + c.charCodeAt(0), 0) % 360;
+  const portraitSrc = portrait?.startsWith("http") || portrait?.startsWith("data:")
+    ? portrait
+    : portrait ? `/api/portrait/${portrait}` : undefined;
   return (
     <div
-      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[var(--glass-border)]"
+      className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--glass-border)]"
       style={{ background: `hsl(${hue}, 25%, 22%)` }}
     >
       <span className="font-display text-lg text-[var(--text-soft)]">{initial}</span>
+      {portraitSrc && (
+        <img
+          src={portraitSrc}
+          alt={`Chân dung ${name}`}
+          onError={(event) => { event.currentTarget.style.display = "none"; }}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
     </div>
   );
 }
@@ -55,11 +67,24 @@ function PersonalityBar({ axis, value }: { axis: PersonalityAxis; value: number 
 interface NpcCardProps {
   name: string;
   npc: Npc;
+  personId?: string;
+  group?: PersonGroup;
+  relationships?: RelationshipEdge[];
   expanded?: boolean;
   onToggle?: () => void;
+  onOpenPerson?: (personId: string) => void;
 }
 
-export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
+const RELATIONSHIP_TONE_CLASS: Record<RelationshipEdge["tone"], string> = {
+  family: "border-amber-400/30 bg-amber-400/10 text-amber-200",
+  intimate: "border-pink-400/30 bg-pink-400/10 text-pink-200",
+  alliance: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
+  enemy: "border-red-400/30 bg-red-400/10 text-red-200",
+  duty: "border-sky-400/30 bg-sky-400/10 text-sky-200",
+  neutral: "border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--text-muted)]",
+};
+
+export function NpcCard({ name, npc, personId = `npc_${name}`, group, relationships = [], expanded, onToggle, onOpenPerson }: NpcCardProps) {
   const stageColor = {
     "Tử Thù": "var(--danger)",
     "Thù Địch": "hsl(0, 50%, 55%)",
@@ -81,7 +106,7 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
     >
       {/* Header */}
       <div className="flex items-center gap-3">
-        <AvatarFallback name={npc["Họ Tên"] || name} house={npc["Nhà"]} />
+        <Avatar name={npc["Họ Tên"] || name} house={npc["Nhà"]} portrait={npc["Ảnh Chân Dung"]} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate font-display text-sm text-[var(--text-soft)]">{npc["Họ Tên"] || name}</span>
@@ -99,8 +124,9 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
               {npc["Giai Đoạn Quan Hệ"]} ({npc["Độ Hảo Cảm"]})
             </span>
             <span className="text-[var(--text-faint)]">Tin Cậy: {npc["Tin Cậy"]}</span>
+            {group === "family" && <span className="rounded border border-amber-400/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] text-amber-200">GIA TỘC</span>}
             {npc["Tình Trạng"] !== "Bình Thường" && (
-              <span className="rounded bg-[var(--danger)]/20 px-1.5 py-0.5 text-[10px] text-[var(--danger)]">
+              <span className={`rounded px-1.5 py-0.5 text-[10px] ${npc["Tình Trạng"] === "Chưa Sinh" ? "bg-amber-400/15 text-amber-200" : "bg-[var(--danger)]/20 text-[var(--danger)]"}`}>
                 {npc["Tình Trạng"]}
               </span>
             )}
@@ -116,6 +142,64 @@ export function NpcCard({ name, npc, expanded, onToggle }: NpcCardProps) {
       {/* Expanded content */}
       {expanded && (
         <div className="mt-3 space-y-3 border-t border-[var(--glass-border)] pt-3">
+          {/* Hồ sơ đọc nhanh — các trường này có tác động trực tiếp tới roleplay. */}
+          <div className="rounded-lg border border-[var(--glass-border)] bg-[rgba(0,0,0,0.18)] p-2.5 text-[11px]">
+            <p className="mb-1.5 text-[10px] uppercase tracking-wider text-[var(--accent-text)]">Hồ Sơ</p>
+            <div className="space-y-1 text-[var(--text-muted)]">
+              {npc["Đánh Giá"] && <p>{npc["Đánh Giá"]}</p>}
+              {(npc["Xuất Thân"] || npc["Văn Hoá"] || npc["Tôn Giáo"]) && (
+                <p>
+                  <span className="text-[var(--text-faint)]">Xuất thân:</span> {npc["Xuất Thân"] || "Chưa rõ"}
+                  {npc["Văn Hoá"] && <> · <span className="text-[var(--text-faint)]">Văn hoá:</span> {npc["Văn Hoá"]}</>}
+                  {npc["Tôn Giáo"] && <> · <span className="text-[var(--text-faint)]">Tôn giáo:</span> {npc["Tôn Giáo"]}</>}
+                </p>
+              )}
+              {npc["Lãnh Địa"].length > 0 && <p><span className="text-[var(--text-faint)]">Lãnh địa:</span> {npc["Lãnh Địa"].join(" · ")}</p>}
+              {npc["Trang Bị Canon"].length > 0 && <p><span className="text-[var(--text-faint)]">Trang bị:</span> {npc["Trang Bị Canon"].join(" · ")}</p>}
+              {npc["Ngoại Hình"] && <p><span className="text-[var(--text-faint)]">Ngoại hình:</span> {npc["Ngoại Hình"]}</p>}
+              {npc["Vị Trí Hiện Tại"] && <p><span className="text-[var(--text-faint)]">Hiện ở:</span> {npc["Vị Trí Hiện Tại"]}</p>}
+              {npc["Mục Tiêu Cá Nhân"] && <p><span className="text-[var(--text-faint)]">Mục tiêu:</span> {npc["Mục Tiêu Cá Nhân"]}</p>}
+              {npc["Loại Quan Hệ"].length > 0 && <p><span className="text-[var(--text-faint)]">Với ngươi:</span> {npc["Loại Quan Hệ"].join(" · ")}</p>}
+              {npc["Người Thừa Kế"] && <p className="text-[var(--accent-text)]">Người thừa kế{npc["Thứ Bậc Kế Vị"] ? ` · thứ ${npc["Thứ Bậc Kế Vị"]}` : ""}</p>}
+            </div>
+          </div>
+
+          {relationships.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Mối Quan Hệ Liên Quan</p>
+              <div className="space-y-1.5">
+                {relationships.map((edge) => {
+                  const counterparty = relationshipCounterparty(edge, personId, "Người chơi");
+                  const nextPersonId = edge.sourceId === personId
+                    ? edge.targetId
+                    : edge.sourceId !== "player" ? edge.sourceId : undefined;
+                  return (
+                    <div key={edge.id} className="rounded-md border border-[var(--glass-border)] bg-[rgba(0,0,0,0.14)] px-2 py-1.5 text-[10px]">
+                      <div className="flex items-center gap-1.5">
+                        {nextPersonId && onOpenPerson ? (
+                          <button
+                            type="button"
+                            onClick={(event) => { event.stopPropagation(); onOpenPerson(nextPersonId); }}
+                            className="font-medium text-[var(--text-soft)] hover:text-[var(--accent-text)]"
+                          >
+                            {counterparty}
+                          </button>
+                        ) : <span className="font-medium text-[var(--text-soft)]">{counterparty}</span>}
+                        <span className={`rounded border px-1 py-0.5 text-[9px] ${RELATIONSHIP_TONE_CLASS[edge.tone]}`}>{edge.label}</span>
+                        {!edge.isPublic && <span className="text-red-300">Bí mật</span>}
+                        {edge.inferred && <span className="text-[var(--text-faint)]">Gia phả</span>}
+                      </div>
+                      {(edge.detail || edge.affinity !== 0 || edge.trust !== 0) && (
+                        <p className="mt-0.5 text-[var(--text-faint)]">
+                          {edge.detail || `Hảo cảm ${edge.affinity >= 0 ? "+" : ""}${edge.affinity} · Tin cậy ${edge.trust >= 0 ? "+" : ""}${edge.trust}`}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           
           {/* Huyết Thống Thật Sự (Bí Mật Lore) */}
           {npc["Huyết Thống Thật Sự"] && (npc["Huyết Thống Thật Sự"]["Cha/Mẹ"]?.length > 0 || npc["Huyết Thống Thật Sự"]["Con Cái"]?.length > 0) && (

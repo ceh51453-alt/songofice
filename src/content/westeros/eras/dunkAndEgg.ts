@@ -3,6 +3,8 @@ import type { CanonCharacter } from "../eras";
 export const dunkAndEggCharacters: CanonCharacter[] = [
   {
     id: "aerion-brightflame",
+    origin: "Con trai thứ hai của Maekar I và Dyanna Dayne, hoàng tử Targaryen được gọi là Brightflame.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen và Dayne", continent: "Westeros",
+    appearance: "Tóc bạc-vàng và mắt tím; nổi tiếng vì vẻ đẹp hoàng gia đi cùng tính khí tàn nhẫn.",
     name: "Aerion Brightflame",
     tuocVi: "Hoàng Tử",
     house: "Targaryen",
@@ -59,6 +61,8 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
 },
   {
     id: "daeron-the-drunken",
+    origin: "Con trai cả của Maekar I và Dyanna Dayne, hoàng tử có những giấc mơ tiên tri nhưng chối bỏ nghĩa vụ.", culture: "Valyria hậu duệ", bloodline: "Nhà Targaryen và Dayne", continent: "Westeros",
+    appearance: "Tóc bạc-vàng của Targaryen; thường xuất hiện trong tình trạng say xỉn.",
     name: "Daeron Mập Mạp",
     tuocVi: "Hoàng Tử",
     house: "Targaryen",
@@ -113,6 +117,8 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
 },
   {
     id: "rohanne-webber",
+    origin: "Quý nữ Coldmoat, được gọi là Red Widow sau nhiều cuộc hôn nhân và là trung tâm tranh chấp The Sworn Sword.", culture: "Người Reach", bloodline: "Nhà Webber", continent: "Westeros",
+    appearance: "Tóc đỏ nổi bật, phong thái sắc sảo; biệt danh Red Widow xuất phát từ tóc và những người chồng đã mất.",
     name: "Rohanne Webber",
     tuocVi: "Đại Lãnh Chúa",
     house: "Webber",
@@ -165,6 +171,8 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
 },
   {
     id: "eustace-osgrey",
+    origin: "Hiệp sĩ già của Standfast, từng chiến đấu cho Daemon Blackfyre trong cuộc nổi loạn đầu tiên.", culture: "Người Reach", bloodline: "Nhà Osgrey", continent: "Westeros",
+    appearance: "Một hiệp sĩ lớn tuổi, khập khiễng vì vết thương cũ; không còn dáng dấp thời chiến.",
     name: "Eustace Osgrey",
     tuocVi: "Đại Lãnh Chúa",
     house: "Osgrey",
@@ -215,6 +223,8 @@ export const dunkAndEggCharacters: CanonCharacter[] = [
 },
   {
     id: "daemon-ii-blackfyre",
+    origin: "Con trai Daemon I Blackfyre, người tự xưng dẫn đầu Cuộc Nổi Loạn Blackfyre lần hai từ Tyrosh.", culture: "Valyria hậu duệ; lớn lên lưu vong", bloodline: "Nhà Blackfyre", continent: "Essos",
+    appearance: "Tóc bạc-vàng và mắt tím của dòng Blackfyre; một chàng trai có dáng vẻ hoàng gia nhưng thiếu bản lĩnh chiến trường.",
     name: "Daemon II Blackfyre",
     tuocVi: "Thường Dân",
     house: "Blackfyre",

@@ -63,6 +63,39 @@ function freshState(): StatData {
   return state;
 }
 
+/**
+ * Zustand chỉ gọi `migrate` khi tăng version. Vì thế state từng được lưu ở
+ * phiên bản thiếu một bảng mới (như Ngoại Giao) phải được ghép với default
+ * trước khi giao cho UI; nếu không, một panel có thể đọc vào `undefined` và
+ * làm toàn bộ ứng dụng rơi vào ErrorBoundary.
+ */
+function deepMergeStateDefaults(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
+  const merged = { ...target };
+  for (const [key, value] of Object.entries(source)) {
+    const current = target[key];
+    if (
+      value !== null && typeof value === "object" && !Array.isArray(value) &&
+      current !== null && typeof current === "object" && !Array.isArray(current)
+    ) {
+      merged[key] = deepMergeStateDefaults(current as Record<string, unknown>, value as Record<string, unknown>);
+    } else if (value !== undefined) {
+      merged[key] = value;
+    }
+  }
+  return merged;
+}
+
+function repairPersistedStat(raw: unknown): StatData {
+  const defaults = makeDefaultState();
+  const merged = raw !== null && typeof raw === "object" && !Array.isArray(raw)
+    ? deepMergeStateDefaults(defaults as unknown as Record<string, unknown>, raw as Record<string, unknown>)
+    : defaults;
+  const parsed = StatDataSchema.safeParse(merged);
+  if (parsed.success) return parsed.data;
+  log.warn("Không thể sửa state đã lưu; tạo state mặc định", parsed.error.flatten());
+  return defaults;
+}
+
 export const useMvuStore = create<MvuState>()(
   persist(
     (set, get) => ({
@@ -105,29 +138,31 @@ export const useMvuStore = create<MvuState>()(
     }),
     {
       name: "asoiaf-mvu",
-      version: 3,
+      version: 4,
       partialize: (s) => ({ stat: s.stat }),
       /**
        * v1 → v2: ván cũ dùng lịch 1 field (Ngày = 1-360 trong năm, chưa có
        * Tháng) — normalizeCalendar tách lại đúng (Ngày 250 → tháng 9 ngày 10).
        * v2 → v3: bản đồ đa tầng — chuẩn hoá khoá Nhà và dời công trình của hệ
        * lưới cũ về ô hợp lệ trên lưới lãnh địa 5 m.
+       * v3 → v4: bù toàn bộ bảng mặc định thiếu trong state đã lưu, gồm Ngoại
+       * Giao. Tránh UI đọc `Lời Đề Nghị` từ một state của build cũ.
        */
       migrate: (persisted, version) => {
         const s = persisted as { stat?: unknown } | undefined;
-        if (!s?.stat) return persisted as { stat: StatData };
-        const parsed = StatDataSchema.safeParse(s.stat);
-        if (!parsed.success) return persisted as { stat: StatData };
+        if (!s?.stat) return { stat: freshState() };
+        const stat = repairPersistedStat(s.stat);
         if (version < 2) {
-          normalizeCalendar(parsed.data["Thế Giới"]);
+          normalizeCalendar(stat["Thế Giới"]);
           log.info(`Migrate save v${version} → v2: lịch Ngày/Tháng/Năm`);
         }
         if (version < 3) {
-          normalizeHouseIds(parsed.data);
-          const moved = repairAllHoldings(parsed.data);
+          normalizeHouseIds(stat);
+          const moved = repairAllHoldings(stat);
           log.info(`Migrate save v${version} → v3: bản đồ đa tầng (dời ${moved} công trình)`);
         }
-        return { stat: parsed.data };
+        if (version < 4) log.info(`Migrate save v${version} → v4: bù bảng state mới`);
+        return { stat };
       },
     },
   ),

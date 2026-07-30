@@ -12,6 +12,7 @@ import { TimelineView } from "./TimelineView";
 import { IconX } from "../icons";
 import type { Npc } from "../../mvu/npcSchema";
 import { computeRenown } from "../../npc/reputationEngine";
+import { getRelationshipEdges, getRelationshipPeople, type PersonGroup } from "../relationship/relationshipData";
 
 type Tab = "nhanvat" | "biensu" | "theluc" | "viec" | "bimat";
 
@@ -97,20 +98,30 @@ function NhanVatTab({
   setExpandedNpc: (v: string | null) => void;
 }) {
   const stat = useMvuStore((s) => s.stat);
-  const allNpcs: [string, Npc][] = useMemo(() => [
-    ...Object.entries(stat["Mối Quan Hệ"]["NPC Chính"]),
-    ...Object.entries(stat["Mối Quan Hệ"]["Thành Viên Gia Tộc"]),
-  ], [stat]);
+  const [group, setGroup] = useState<"all" | PersonGroup>("all");
+  const people = useMemo(() => getRelationshipPeople(stat), [stat]);
+  const relationships = useMemo(
+    () => getRelationshipEdges(people, stat["Thông Tin Nhân Vật"]["Họ Tên"] || "Người chơi"),
+    [people, stat],
+  );
 
   const filtered = useMemo(() => {
-    if (!filter) return allNpcs;
     const q = filter.toLowerCase();
-    return allNpcs.filter(([name, npc]) =>
-      name.toLowerCase().includes(q)
-      || (npc["Nhà"] ?? "").toLowerCase().includes(q)
-      || npc["Giai Đoạn Quan Hệ"].toLowerCase().includes(q),
+    return people.filter((person) =>
+      (group === "all" || person.group === group)
+      && (!q
+        || person.name.toLowerCase().includes(q)
+        || (person.npc["Nhà"] ?? "").toLowerCase().includes(q)
+        || person.npc["Giai Đoạn Quan Hệ"].toLowerCase().includes(q)
+        || person.npc["Loại Quan Hệ"].some((relation) => relation.toLowerCase().includes(q)))
     );
-  }, [allNpcs, filter]);
+  }, [people, filter, group]);
+
+  const counts = useMemo(() => ({
+    all: people.length,
+    family: people.filter((person) => person.group === "family").length,
+    npc: people.filter((person) => person.group === "npc").length,
+  }), [people]);
 
   return (
     <div className="space-y-3">
@@ -123,6 +134,26 @@ function NhanVatTab({
         className="w-full rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-2 text-[12px] text-[var(--text-soft)] outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--accent-text)]/50"
       />
 
+      <div className="flex flex-wrap gap-1.5">
+        {([
+          ["all", `Tất cả (${counts.all})`],
+          ["family", `Gia tộc (${counts.family})`],
+          ["npc", `Nhân vật khác (${counts.npc})`],
+        ] as const).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setGroup(id)}
+            className={`rounded-full border px-2.5 py-1 text-[10px] transition-colors ${
+              group === id
+                ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                : "border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-soft)]"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* NPC count */}
       <p className="text-[11px] text-[var(--text-faint)]">
         {filtered.length} nhan vat{filter ? ` (loc: "${filter}")` : ""}
@@ -131,13 +162,17 @@ function NhanVatTab({
       {/* NPC grid */}
       {filtered.length > 0 ? (
         <div className="grid gap-2">
-          {filtered.map(([name, npc]) => (
+          {filtered.map((person) => (
             <NpcCard
-              key={name}
-              name={name}
-              npc={npc}
-              expanded={expandedNpc === name}
-              onToggle={() => setExpandedNpc(expandedNpc === name ? null : name)}
+              key={person.id}
+              name={person.name}
+              npc={person.npc}
+              group={person.group}
+              relationships={relationships.filter((edge) => edge.sourceId === person.id || edge.targetId === person.id)}
+              personId={person.id}
+              expanded={expandedNpc === person.id}
+              onToggle={() => setExpandedNpc(expandedNpc === person.id ? null : person.id)}
+              onOpenPerson={(personId) => setExpandedNpc(personId)}
             />
           ))}
         </div>
@@ -162,6 +197,7 @@ function BienSuTab() {
 function TheLucTab() {
   const stat = useMvuStore((s) => s.stat);
   const houses = Object.entries(stat["Thái Độ Các Nhà"]);
+  const diplomacy = Object.entries(stat["Quan Hệ Ngoại Giao"]);
   const renown = computeRenown(stat);
 
   return (
@@ -204,6 +240,32 @@ function TheLucTab() {
       ) : (
         <div className="py-8 text-center text-[12px] text-[var(--text-faint)]">
           Chua co thong tin ve cac Nha
+        </div>
+      )}
+
+      {diplomacy.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Sổ Quan Hệ Ngoại Giao</p>
+          {diplomacy.map(([houseId, relation]) => {
+            const treaties = relation["Hiệp Ước"].filter((treaty) => treaty["Còn Hiệu Lực"]);
+            const claims = relation["Ân Oán"];
+            return (
+              <div key={houseId} className="rounded-lg border border-[var(--glass-border)] bg-[rgba(0,0,0,0.14)] px-3 py-2.5 text-[11px]">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-[var(--text-soft)]">Nhà {houseId}</span>
+                  <span className={relation["Trạng Thái"] === "Chiến Tranh" ? "text-red-300" : relation["Trạng Thái"] === "Liên Minh" ? "text-emerald-300" : "text-[var(--accent-text)]"}>
+                    {relation["Trạng Thái"]}
+                  </span>
+                </div>
+                <p className="mt-1 text-[var(--text-faint)]">
+                  Tin cậy {relation["Tin Cậy"] >= 0 ? "+" : ""}{relation["Tin Cậy"]} · Thế chiến {relation["War Score"] >= 0 ? "+" : ""}{relation["War Score"]}
+                </p>
+                {treaties.length > 0 && <p className="mt-1 text-[var(--text-muted)]">Hiệp ước: {treaties.map((treaty) => treaty["Loại"]).join(" · ")}</p>}
+                {claims.length > 0 && <p className="mt-1 text-amber-200">Ân oán: {claims.map((claim) => `${claim["Việc"]} (${claim["Mức"]})`).join(" · ")}</p>}
+                {relation["Ghi Chú"] && <p className="mt-1 italic text-[var(--text-faint)]">{relation["Ghi Chú"]}</p>}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

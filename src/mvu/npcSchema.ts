@@ -88,6 +88,12 @@ export const NpcSchema = z
     "Họ Tên": safeString().prefault("Vô Danh"),
     "Biệt Danh": safeString().optional(),
     "Nhà": safeString().optional(), // string, KHÔNG enum — NPC có thể thuộc Nhà nhỏ/Essos/không rõ
+    /** Hồ sơ canon hiển thị trong Sổ tay; không thay thế dữ liệu quan hệ với người chơi. */
+    "Xuất Thân": safeString().optional(),
+    "Văn Hoá": safeString().optional(),
+    "Tôn Giáo": safeString().optional(),
+    "Lục Địa": safeString().optional(),
+    "Lãnh Địa": z.array(safeString()).catch([]).prefault([]),
     "Giới Tính": z.enum(["Nam", "Nữ", "Khác"]).catch("Nam").prefault("Nam"), // dùng cho luật kế vị 13.4
     "Chủng Tộc": safeString().optional(), // Loài (Người, Elf, v.v.)
     "Ngoại Hình": safeString().optional(), // Thân hình, vẻ ngoài
@@ -149,6 +155,7 @@ export const NpcSchema = z
     "Chỉ Số Cốt Lõi": z.record(safeString(), safeInt(10)).optional(),
     "Kỹ Năng": z.record(safeString(), safeInt(0)).optional(),
     "Thiên Phú": z.array(safeString()).optional(),
+    "Trang Bị Canon": z.array(safeString()).catch([]).prefault([]),
 
     // ── GIA TỘC / KẾ VỊ (nối 13.4) ──
     "Người Thừa Kế": z.boolean().catch(false).prefault(false),
@@ -162,7 +169,7 @@ export const NpcSchema = z
     // ── TRẠNG THÁI HIỆN TẠI ──
     "Vị Trí Hiện Tại": safeString().optional(),
     "Tình Trạng": z
-      .enum(["Bình Thường", "Bị Thương", "Lâm Bệnh", "Bị Giam", "Lưu Vong", "Mất Tích"])
+      .enum(["Bình Thường", "Bị Thương", "Lâm Bệnh", "Bị Giam", "Lưu Vong", "Mất Tích", "Chưa Sinh"])
       .catch("Bình Thường")
       .prefault("Bình Thường"),
     "Mục Tiêu Cá Nhân": safeString().optional(),

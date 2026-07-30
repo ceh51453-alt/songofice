@@ -3,6 +3,7 @@ import type { CanonCharacter } from "../eras";
 export const dawnAgeCharacters: CanonCharacter[] = [
   {
     id: "lann-the-clever", name: "Lann Kẻ Trí", house: "Lannister", role: "Kẻ Lừa Đảo Huyền Thoại", tuocVi: "Quốc Vương", religion: "Cựu Thần",
+    origin: "Anh hùng truyền thuyết được kể là đã dùng mưu mẹo chiếm Casterly Rock và lập nên Nhà Lannister.", culture: "Người Đầu Tiên (truyền thuyết)", bloodline: "Nhà Lannister (truyền thuyết)", continent: "Westeros", appearance: "Không có mô tả canon xác thực; nhân vật chỉ tồn tại trong truyền thuyết Thời Đại Anh Hùng.",
     blurb: "Truyền thuyết kể rằng hắn đã lừa dòng dõi Casterly để lấy đi Casterly Rock chỉ bằng trí óc. Trở thành vị Vua của the Rock.",
     birthYear: -8050, age: 30, coreStats: { "Sức Mạnh": 8, "Nhanh Nhẹn": 16, "Thể Chất": 10, "Trí Tuệ": 20, "Tinh Tường": 18, "Uy Tín": 18 },
     năngLực: { "Võ Lực": 40, "Thống Soái": 90, "Trí Mưu": 100, "Ngoại Giao": 90 },
@@ -38,6 +39,7 @@ export const dawnAgeCharacters: CanonCharacter[] = [
 },
   {
     id: "garth-greenhand", name: "Garth Bàn Tay Xanh", house: "Gardener", role: "Vị Thần Của Đất", tuocVi: "Quốc Vương", religion: "Cựu Thần",
+    origin: "Vị tổ truyền thuyết của nhiều nhà quý tộc Reach, gắn với sự trù phú và việc khai phá vùng Reach.", culture: "Người Đầu Tiên (truyền thuyết)", bloodline: "Dòng Gardener (truyền thuyết)", continent: "Westeros", appearance: "Không có mô tả canon xác thực; các truyền thống địa phương kể những phiên bản khác nhau.",
     blurb: "Tổ tiên của mọi gia tộc lớn ở Reach. Đi tới đâu, cây cỏ tốt tươi tới đó, phụ nữ mang thai, vụ mùa bội thu.",
     birthYear: -8080, age: 60, coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 10, "Thể Chất": 18, "Trí Tuệ": 16, "Tinh Tường": 15, "Uy Tín": 20 },
     năngLực: { "Võ Lực": 75, "Thống Soái": 100, "Trí Mưu": 80, "Ngoại Giao": 75 },
@@ -73,6 +75,7 @@ export const dawnAgeCharacters: CanonCharacter[] = [
 },
   {
     id: "durran-godsgrief", name: "Durran Than Thở Trời", house: "Durrandon", role: "Người Xây Storm's End", tuocVi: "Quốc Vương", religion: "Cựu Thần",
+    origin: "Vị vua truyền thuyết sáng lập Nhà Durrandon và Storm's End, được kể là đã thách thức thần linh.", culture: "Người Đầu Tiên (truyền thuyết)", bloodline: "Nhà Durrandon (truyền thuyết)", continent: "Westeros", appearance: "Không có mô tả canon xác thực.",
     blurb: "Kẻ dám yêu con gái thần Gió và Biển, và xây dựng Storm's End để thách thức cơn thịnh nộ của họ. Khởi thủy của Vua Bão.",
     birthYear: -8060, age: 40, coreStats: { "Sức Mạnh": 20, "Nhanh Nhẹn": 11, "Thể Chất": 20, "Trí Tuệ": 12, "Tinh Tường": 13, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 100, "Thống Soái": 80, "Trí Mưu": 60, "Ngoại Giao": 65 },
@@ -108,6 +111,7 @@ export const dawnAgeCharacters: CanonCharacter[] = [
 },
   {
     id: "grey-king", name: "Vua Xám", house: "Greyiron", role: "Vua Đảo Sắt Đầu Tiên", tuocVi: "Quốc Vương", religion: "Thần Chết Chìm",
+    origin: "Vua biển trong truyền thuyết Người Sắt, được kể là đã cưới một nàng tiên cá và thống trị biển cả.", culture: "Người Sắt (truyền thuyết)", bloodline: "Không xác minh", continent: "Westeros", appearance: "Không có mô tả canon xác thực.",
     blurb: "Giết rồng biển Nagga, lấy xương làm ngai. Tóc, râu và mắt đều xám màu biển động. Cai trị Quần Đảo Sắt hơn một ngàn năm.",
     birthYear: -8100, age: 80, coreStats: { "Sức Mạnh": 18, "Nhanh Nhẹn": 12, "Thể Chất": 20, "Trí Tuệ": 14, "Tinh Tường": 16, "Uy Tín": 19 },
     năngLực: { "Võ Lực": 90, "Thống Soái": 95, "Trí Mưu": 70, "Ngoại Giao": 80 },
@@ -143,6 +147,7 @@ export const dawnAgeCharacters: CanonCharacter[] = [
 },
   {
     id: "symeon-star-eyes", name: "Symeon Mắt Sao", house: "Không Nhà", role: "Hiệp Sĩ Mù", tuocVi: "Hiệp Sĩ", religion: "Cựu Thần",
+    origin: "Hiệp sĩ truyền thuyết của Thời Đại Anh Hùng, nhân vật trong những bài ca cổ miền Bắc.", culture: "Người Đầu Tiên (truyền thuyết)", bloodline: "Không xác minh", continent: "Westeros", appearance: "Được kể là có đôi mắt ngọc bích thay vì mắt người; không có chứng cứ lịch sử xác thực.",
     blurb: "Một hiệp sĩ huyền thoại mù lòa, đặt hai viên ngọc sapphire vào hốc mắt và sử dụng trường thương múa với hai đầu sắc bén.",
     birthYear: -8040, age: 35, coreStats: { "Sức Mạnh": 16, "Nhanh Nhẹn": 20, "Thể Chất": 15, "Trí Tuệ": 13, "Tinh Tường": 5, "Uy Tín": 14 },
     năngLực: { "Võ Lực": 80, "Thống Soái": 70, "Trí Mưu": 65, "Ngoại Giao": 25 },
