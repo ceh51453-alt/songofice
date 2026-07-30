@@ -85,10 +85,21 @@ export const TROOP_TYPES = ["Bộ Binh", "Trường Thương", "Kỵ Binh", "K�
  */
 export const TROOP_TYPES_ALL = [
   ...TROOP_TYPES,
+  // ── binh chủng phong kiến bổ sung (M19) ──
+  "Dân Binh", "Nỏ Thủ", "Hiệp Sĩ", "Vệ Binh Gia Tộc",
   "Kỵ Sĩ Dothraki", "Unsullied", "Người Sắt (Ironborn)", "Bọn Man Tộc (Free Folk)",
   "Dân Sơn Cước (Vale Mountain Clans)", "Lính Đánh Thuê", "Nồi Đất (Braavosi)",
   "Rồng", "Voi Chiến", "Người Chết (Wight)", "Others (White Walker)",
 ] as const;
+
+/**
+ * NGẠCH QUÂN (M19) — chế độ phong kiến phân quyền: lãnh chúa chỉ nuôi được một
+ * nhúm quân ăn lương quanh năm, phần còn lại là dân cày bị gọi đi lính theo
+ * nghĩa vụ (có HẠN), là quân của chư hầu kéo tới khi phất cờ hiệu triệu, hoặc
+ * là lính đánh thuê chỉ trung thành với túi vàng.
+ */
+export const ARMY_BRANCHES = ["Chính Quy", "Phục Dịch", "Chư Hầu", "Đánh Thuê"] as const;
+export type ArmyBranch = (typeof ARMY_BRANCHES)[number];
 
 // ── Lãnh địa & Công trình (mục 10) ──
 
@@ -267,6 +278,29 @@ export const MilitaryUnitSchema = z
     "Đang Di Chuyển Đến": safeString().optional(), // territoryId đích; rỗng = đứng yên
     "Ngày Hành Quân Còn Lại": safeInt(0),
     "Ngày Huấn Luyện": safeInt(0), // >0 = quân mới tuyển đang huấn luyện, chưa chiến đấu (11.3)
+
+    // ── M19: ngạch quân + đời lính ──
+    /** quân ăn lương / dân phục dịch / quân chư hầu gửi tới / lính đánh thuê. */
+    "Ngạch": z.enum(ARMY_BRANCHES).catch("Chính Quy").prefault("Chính Quy"),
+    /** kinh nghiệm trận mạc 0-100 — engine cộng sau mỗi trận, đẩy bậc Huấn Luyện lên. */
+    "Kinh Nghiệm": clampedStat(0, 100, 0),
+    "Số Trận Đã Đánh": safeInt(0),
+    /** thương binh còn nằm trại — hồi dần về quân số nếu có hậu cần tử tế. */
+    "Thương Binh": safeInt(0),
+    /** ngày còn lại của kỳ TẬP HỢP (kêu quân về điểm hẹn) — >0 là chưa dùng được. */
+    "Ngày Tập Hợp Còn Lại": safeInt(0),
+    /**
+     * HẠN PHỤC DỊCH: nghĩa vụ quân dịch phong kiến có kỳ hạn. Hết hạn mà còn
+     * giữ lính ngoài đồng thì lính bỏ về gặt lúa, lòng dân sụt. 0 = vô hạn
+     * (quân chính quy / đánh thuê).
+     */
+    "Hạn Phục Dịch Còn Lại": safeInt(0),
+    /** số ngày lương khô đang mang theo — cạn thì Hậu Cần tụt, sĩ khí theo. */
+    "Lương Thực Mang Theo": safeInt(0),
+    /** houseId chư hầu đã gửi đám quân này (rỗng = quân nhà ta). */
+    "Thuộc Chư Hầu": safeString().prefault(""),
+    /** ghi chú tự do cho AI kể (biệt danh đội quân, quân kỳ, lai lịch). */
+    "Ghi Chú": safeString().prefault(""),
   })
   .prefault({});
 export type MilitaryUnit = z.infer<typeof MilitaryUnitSchema>;
@@ -616,18 +650,69 @@ export const SPY_MISSIONS = ["Thu Thập Tin", "Phá Hoại", "Tung Tin Đồn",
 /** Loại âm mưu (14.2). */
 export const PLOT_TYPES = ["Đảo Chính", "Ám Sát", "Phế Truất", "Vu Khống", "Ly Gián", "Đầu Độc"] as const;
 
-/** 1 điệp viên đã cài (14.1). */
+/** Hạng tai mắt (M20) — quyết định chất lượng tin và mức rủi ro. */
+export const SPY_KINDS = ["Điệp Viên", "Chim Nhỏ", "Người Trong Nhà", "Kẻ Mua Được", "Gái Lầu Xanh"] as const;
+
+/** 1 điệp viên đã cài (14.1 + M20). */
 export const SpySchema = z
   .object({
     "Cài Ở": safeString().prefault(""), // Nhà/lãnh địa/triều đình mục tiêu
     "Độ Sâu Thâm Nhập": clampedStat(0, 100, 10), // càng cao càng nhiều tin + rủi ro lộ càng thấp
     "Bị Nghi Ngờ": clampedStat(0, 100, 0), // đạt 100 => bị bắt/xử tử
     "Nhiệm Vụ": z.enum(SPY_MISSIONS).catch("Thu Thập Tin").prefault("Thu Thập Tin"),
+    // ── M20 ──
+    "Hạng": z.enum(SPY_KINDS).catch("Điệp Viên").prefault("Điệp Viên"),
+    /** vỏ bọc còn nguyên bao nhiêu phần — mòn dần theo việc làm, 0 là trần trụi. */
+    "Vỏ Bọc": clampedStat(0, 100, 70),
+    /** ai cầm đầu mối này (NPC) — mất người điều khiển thì mạng lưới rối. */
+    "Người Điều Khiển": safeString().prefault(""),
+    "Số Tin Đã Gửi": safeInt(0),
+    /** ngày tuyệt đối lúc được cài — engine ghi, dùng tính thâm niên. */
+    "_Ngày Cài": z.coerce.number().int().catch(0).prefault(0),
+    "Ghi Chú": safeString().prefault(""),
   })
   .prefault({});
 export type Spy = z.infer<typeof SpySchema>;
 
-/** 1 âm mưu đang tiến hành (14.2). */
+/** Điệp viên ĐỊCH bị phát hiện trong sân nhà (M20 — phản gián). */
+export const EnemySpySchema = z
+  .object({
+    "Của Nhà": safeString().prefault(""),
+    "Nghi Là": safeString().prefault(""), // tên/vai người bị nghi
+    "Chứng Cứ": clampedStat(0, 100, 10), // đủ chứng cứ mới bắt được mà không mất mặt
+    "Đang Rình": safeString().prefault(""), // bí mật/lĩnh vực hắn nhắm tới
+    "Ghi Chú": safeString().prefault(""),
+  })
+  .prefault({});
+export type EnemySpy = z.infer<typeof EnemySpySchema>;
+
+/**
+ * BÍ MẬT (M20) — thay cho bảng "tin tình báo" phẳng trước đây. Một bí mật chỉ
+ * đáng giá khi biết nó nói về AI, NẶNG cỡ nào, và có ĐỦ TIN để người khác chịu
+ * tin. Bí mật đã dùng thì mất giá.
+ */
+export const SecretSchema = z
+  .object({
+    "Về Ai": safeString().prefault(""), // NPC hoặc Nhà bị bí mật này nhắm
+    "Chủ Đề": safeString().prefault(""),
+    "Nội Dung": safeString().prefault(""),
+    /** sức nặng 0-100: đủ lớn thì đổi được cả một lời thề. */
+    "Sức Nặng": clampedStat(0, 100, 40),
+    /** độ tin cậy 0-100: tin vặt của gái lầu xanh khác thư có niêm phong. */
+    "Độ Tin Cậy": clampedStat(0, 100, 50),
+    "Nguồn": safeString().prefault(""), // điệp viên/ai kể
+    "Đã Dùng": z.boolean().catch(false).prefault(false),
+    /** đã bị phe khác biết → không còn là đòn bẩy độc quyền. */
+    "Đã Lan Ra": z.boolean().catch(false).prefault(false),
+    "_Ngày Biết": z.coerce.number().int().catch(0).prefault(0),
+  })
+  .prefault({});
+export type Secret = z.infer<typeof SecretSchema>;
+
+/** Giai đoạn một âm mưu (M20) — âm mưu không phải cái thanh tiến độ suông. */
+export const PLOT_PHASES = ["Ấp Ủ", "Chiêu Mộ", "Chuẩn Bị", "Ra Tay", "Che Dấu", "Đã Xong", "Đã Vỡ"] as const;
+
+/** 1 âm mưu đang tiến hành (14.2 + M20). */
 export const PlotSchema = z
   .object({
     "Loại": z.enum(PLOT_TYPES).catch("Vu Khống").prefault("Vu Khống"),
@@ -635,9 +720,125 @@ export const PlotSchema = z
     "Tiến Độ": clampedStat(0, 100, 0), // đủ 100 mới kích hoạt được
     "Đồng Mưu": z.array(safeString()).catch([]).prefault([]), // NPC tham gia; càng nhiều càng nhanh nhưng càng dễ lộ
     "Độ Bại Lộ": clampedStat(0, 100, 0), // đạt ngưỡng => mục tiêu biết trước, phản đòn
+    // ── M20 ──
+    "Giai Đoạn": z.enum(PLOT_PHASES).catch("Ấp Ủ").prefault("Ấp Ủ"),
+    /** Vàng đã rót vào (Đồng Đỏ) — đẩy nhanh nhưng để lại dấu vết tiền. */
+    "Vốn Đã Bỏ": safeInt(0),
+    /** ai đang lần theo dấu — có tên là mục tiêu đã ngờ. */
+    "Kẻ Điều Tra": safeString().prefault(""),
+    /** cái giá phải trả nếu vỡ — AI đọc để kể hậu quả cho đúng. */
+    "Hậu Quả Nếu Lộ": safeString().prefault(""),
+    "_Ngày Bắt Đầu": z.coerce.number().int().catch(0).prefault(0),
+    "Ghi Chú": safeString().prefault(""),
   })
   .prefault({});
 export type Plot = z.infer<typeof PlotSchema>;
+
+// ── NGOẠI GIAO (M20) ──
+
+/**
+ * Trạng thái PHÁP LÝ giữa hai Nhà — khác "Thái Độ Các Nhà" (tình cảm) và khác
+ * "Tin Cậy" (họ có tin lời ta không).
+ */
+export const DIPLO_STATES = [
+  "Hoà Bình", "Chiến Tranh", "Đình Chiến", "Liên Minh", "Thần Phục Ta", "Ta Thần Phục",
+] as const;
+export type DiploState = (typeof DIPLO_STATES)[number];
+
+/** Loại hiệp ước ký được giữa hai Nhà (M20). */
+export const TREATY_TYPES = [
+  "Hoà Ước", "Đình Chiến", "Liên Minh Quân Sự", "Không Xâm Phạm",
+  "Thông Thương", "Triều Cống", "Hôn Ước", "Thề Trung Thành", "Đổi Con Tin",
+] as const;
+
+export const TreatySchema = z
+  .object({
+    "Loại": z.enum(TREATY_TYPES).catch("Hoà Ước").prefault("Hoà Ước"),
+    "Điều Khoản": safeString().prefault(""),
+    /** ngày tuyệt đối hết hiệu lực; 0 = vĩnh viễn (tới khi có kẻ phá). */
+    "Ngày Hết Hạn": safeInt(0),
+    /** cống nạp mỗi tháng (Đồng Đỏ): dương = họ trả ta, âm = ta trả họ. */
+    "Cống Nạp Tháng": z.coerce.number().int().catch(0).prefault(0),
+    "Còn Hiệu Lực": z.boolean().catch(true).prefault(true),
+    /** ai xé giấy: "" = còn nguyên, "Ta" hoặc "Họ". */
+    "Bên Phá": safeString().prefault(""),
+    "_Ngày Ký": z.coerce.number().int().catch(0).prefault(0),
+  })
+  .prefault({});
+export type Treaty = z.infer<typeof TreatySchema>;
+
+/**
+ * ÂN OÁN (casus belli — M20): lý do để tuyên chiến mà không mất mặt, hoặc món nợ
+ * người ta ghi để đòi lại. Mờ dần theo thời gian nhưng máu thì không mờ.
+ */
+export const GrievanceSchema = z
+  .object({
+    "Việc": safeString().prefault(""),
+    /** 0-100: cướp một xe lương khác hẳn giết một lãnh chúa dưới mái nhà mình. */
+    "Mức": clampedStat(0, 100, 20),
+    /** "Họ Nợ Ta" = ta có cớ đánh họ; "Ta Nợ Họ" = họ có cớ đánh ta. */
+    "Bên Nợ": z.enum(["Họ Nợ Ta", "Ta Nợ Họ"]).catch("Họ Nợ Ta").prefault("Họ Nợ Ta"),
+    "_Ngày": z.coerce.number().int().catch(0).prefault(0),
+  })
+  .prefault({});
+export type Grievance = z.infer<typeof GrievanceSchema>;
+
+/** Quan hệ ngoại giao đầy đủ với MỘT Nhà (M20). Key = houseId. */
+export const DiplomacyRelationSchema = z
+  .object({
+    "Trạng Thái": z.enum(DIPLO_STATES).catch("Hoà Bình").prefault("Hoà Bình"),
+    "War Score": clampedStat(-100, 100, 0),
+    /** họ có tin lời ta không — khác hẳn họ có THÍCH ta không. */
+    "Tin Cậy": clampedStat(-100, 100, 0),
+    "Hiệp Ước": z.array(TreatySchema).catch([]).prefault([]),
+    "Ân Oán": z.array(GrievanceSchema).catch([]).prefault([]),
+    /** ngày tuyệt đối hết hạn đình chiến (0 = không có). */
+    "Ngày Hết Hạn Đình Chiến": safeInt(0),
+    /** engine chốt lại mỗi tháng từ các hiệp ước còn hiệu lực (Đồng Đỏ). */
+    "_Cống Nạp Tháng": z.coerce.number().int().catch(0).prefault(0),
+    "Ghi Chú": safeString().prefault(""),
+  })
+  .prefault({});
+export type DiplomacyRelation = z.infer<typeof DiplomacyRelationSchema>;
+
+/** Nhiệm vụ sứ giả (M20). */
+export const ENVOY_MISSIONS = [
+  "Cầu Hoà", "Cầu Hôn", "Đòi Cống Nạp", "Đề Nghị Liên Minh", "Đòi Con Tin",
+  "Tuyên Chiến", "Doạ Dẫm", "Thăm Dò", "Xin Lỗi",
+] as const;
+
+export const EnvoySchema = z
+  .object({
+    "Tên": safeString().prefault(""),
+    "Tới Nhà": safeString().prefault(""),
+    "Nhiệm Vụ": z.enum(ENVOY_MISSIONS).catch("Thăm Dò").prefault("Thăm Dò"),
+    "Trạng Thái": z.enum(["Đang Đi", "Đang Đàm Phán", "Đang Về", "Đã Về", "Mất Tích"]).catch("Đang Đi").prefault("Đang Đi"),
+    /** số ngày còn lại của chặng hiện tại. */
+    "Ngày Còn Lại": safeInt(0),
+    "Kết Quả": safeString().prefault(""),
+  })
+  .prefault({});
+export type Envoy = z.infer<typeof EnvoySchema>;
+
+/**
+ * LỜI ĐỀ NGHỊ đang chờ ta trả lời (M20). Người chơi KHÔNG bấm nút — họ nói ra
+ * trong cuộc chơi, AI kể diễn biến rồi phát thẻ chốt hạ.
+ */
+export const DiploOfferSchema = z
+  .object({
+    "Từ Nhà": safeString().prefault(""),
+    "Loại": z.enum(TREATY_TYPES).catch("Hoà Ước").prefault("Hoà Ước"),
+    "Điều Khoản": safeString().prefault(""),
+    "Cống Nạp Tháng": z.coerce.number().int().catch(0).prefault(0),
+    /** số năm hiệu lực nếu ký; 0 = vĩnh viễn. */
+    "Số Năm": safeInt(0),
+    /** ngày tuyệt đối mà lời đề nghị hết hiệu lực (im lặng = từ chối). */
+    "Ngày Hết Hạn Trả Lời": safeInt(0),
+    "Ai Mang Tới": safeString().prefault(""),
+    "Ghi Chú": safeString().prefault(""),
+  })
+  .prefault({});
+export type DiploOffer = z.infer<typeof DiploOfferSchema>;
 
 // ── Rồng — hệ thống đầy đủ (7.15 mở rộng) ──
 
@@ -711,9 +912,91 @@ export const DragonSchema = z
       .prefault({}),
     // mô tả ngắn cho AI tường thuật
     "Mô Tả": safeString().prefault(""),
+
+    // ── M19: rồng là một BINH CHỦNG RIÊNG, không nằm trong biên chế bộ binh ──
+    /** houseId phe sở hữu — rỗng = rồng hoang. */
+    "Nhà": safeString().prefault(""),
+    /** territoryId nơi rồng đang đậu (ổ, sân rồng, hoặc đang theo quân). */
+    "Đồn Trú": safeString().prefault(""),
+    /** territoryId đích khi rồng đang bay; rỗng = đang đậu. */
+    "Đang Bay Đến": safeString().optional(),
+    "Ngày Bay Còn Lại": safeInt(0),
+    /** kinh nghiệm trận mạc 0-100 — rồng từng đánh nhiều thì né lao, biết chọn hướng gió. */
+    "Kinh Nghiệm": clampedStat(0, 100, 0),
+    "Số Trận": safeInt(0),
+    /** sải cánh (mét) — engine suy từ tuổi/kích cỡ, dùng cho lời kể. */
+    "_Sải Cánh": safeInt(3),
+    /** cơn đói 0-100 (100 = đói cồn cào) — rồng đói thì bất trị, có khi ăn cả dân. */
+    "Độ Đói": clampedStat(0, 100, 20),
+    /** số gia súc rồng ngốn mỗi tháng — engine tính theo kích cỡ. */
+    "_Khẩu Phần Tháng": safeInt(10),
+    /** vết thương đang mang (mũi lao xuyên cánh, vảy nứt...). */
+    "Vết Thương": z.array(safeString()).catch([]).prefault([]),
+    "Ngày Hồi Phục Còn Lại": safeInt(0),
+    /** đang bị kỵ sĩ cưỡi ra trận hay chỉ thả rông quanh ổ. */
+    "Sẵn Sàng Chiến Đấu": z.boolean().catch(true).prefault(true),
   })
   .prefault({});
 export type Dragon = z.infer<typeof DragonSchema>;
+
+// ── Chư hầu & lính đánh thuê (M19) ──
+
+/** Trạng thái triệu tập của một chư hầu khi lãnh chúa phất cờ. */
+export const VASSAL_CALL_STATES = ["Ở Nhà", "Đang Tập Hợp", "Đang Hành Quân", "Đã Tới", "Từ Chối"] as const;
+
+/**
+ * CHƯ HẦU (M19) — xương sống của chế độ phong kiến phân quyền: lãnh chúa KHÔNG
+ * sở hữu quân của chư hầu, chỉ có quyền HIỆU TRIỆU. Chư hầu trung thành thấp có
+ * thể chần chừ, gửi thiếu quân, hoặc thẳng thừng từ chối.
+ */
+export const VassalSchema = z
+  .object({
+    "Tên Nhà": safeString().prefault(""),
+    "Thành Trì": safeString().prefault(""),
+    "Vùng": safeString().prefault(""), // regionId chư hầu trực thuộc
+    "Chủ Của": safeString().prefault(""), // houseId lãnh chúa mà nhà này thần phục
+    "Trung Thành": clampedStat(0, 100, 60),
+    /** số quân nhà này có thể dốc ra khi được hiệu triệu. */
+    "Quân Cam Kết": safeInt(0),
+    /** binh chủng chủ đạo của nhà này. */
+    "Binh Chủng Chính": z.enum(TROOP_TYPES_ALL).catch("Dân Binh").prefault("Dân Binh"),
+    "Trạng Thái": z.enum(VASSAL_CALL_STATES).catch("Ở Nhà").prefault("Ở Nhà"),
+    /** ngày còn lại tới khi quân chư hầu có mặt ở điểm hẹn. */
+    "Ngày Tới Nơi": safeInt(0),
+    /** số quân thực sự đã gửi trong lần hiệu triệu này. */
+    "Quân Đã Gửi": safeInt(0),
+    /** số ngày quân chư hầu đã ở ngoài đồng — càng lâu càng bào mòn trung thành. */
+    "Ngày Tòng Quân": safeInt(0),
+    "Ghi Chú": safeString().prefault(""),
+  })
+  .prefault({});
+export type Vassal = z.infer<typeof VassalSchema>;
+
+/**
+ * ĐỘI ĐÁNH THUÊ đang chào giá (M19) — chỉ thuê được ở nơi ĐANG CÓ đội đóng
+ * quân. Engine gieo sẵn theo bến cảng/chợ lính, AI cũng có thể dẫn một đội tới
+ * bằng thẻ <sellsword_offer>.
+ */
+export const MercenaryCompanySchema = z
+  .object({
+    "Tên Đoàn": safeString().prefault(""),
+    /** nơi đang đóng quân: territoryId hoặc tên địa danh (Essos) khớp Vị Trí. */
+    "Đang Ở": safeString().prefault(""),
+    "Quân Số": safeInt(0),
+    "Binh Chủng": z.enum(TROOP_TYPES_ALL).catch("Lính Đánh Thuê").prefault("Lính Đánh Thuê"),
+    "Huấn Luyện": z.enum(["Tinh Nhuệ", "Thành Thạo", "Mới Lập Đội", "Rời Rạc"]).catch("Thành Thạo").prefault("Thành Thạo"),
+    /** tiền đặt cọc ký khế ước (Đồng Đỏ) cho TOÀN đoàn. */
+    "Tiền Ký Khế Ước": safeInt(0),
+    /** lương tháng mỗi 100 lính (Đồng Đỏ). */
+    "Lương Tháng Mỗi 100": safeInt(0),
+    /** danh tiếng giữ lời 0-100 — thấp thì dễ trở giáo giữa trận. */
+    "Chữ Tín": clampedStat(0, 100, 50),
+    /** số ngày đoàn còn nán lại trước khi nhổ trại đi nơi khác. */
+    "Ngày Còn Ở Lại": safeInt(30),
+    "Mô Tả": safeString().prefault(""),
+  })
+  .prefault({});
+export type MercenaryCompany = z.infer<typeof MercenaryCompanySchema>;
 
 // ── Cung đình (mục 13) ──
 /** 7 chức Tiểu Hội Đồng (13.1). */
@@ -1096,22 +1379,34 @@ export const StatDataSchema = z
     // ── QUÂN SỰ (7.4 — M8 mở rộng thêm loại quân/vị trí đồn trú) ──
     "Biên Chế Quân Sự": z.record(safeString(), MilitaryUnitSchema).catch({}).prefault({}),
 
+    // ── CHƯ HẦU (M19) — quân của người khác, chỉ mượn được bằng uy tín. Key = houseId. ──
+    "Chư Hầu": z.record(safeString(), VassalSchema).catch({}).prefault({}),
+
+    // ── CHỢ LÍNH ĐÁNH THUÊ (M19) — các đoàn đang chào giá quanh đây. Key = tên đoàn. ──
+    "Đội Đánh Thuê": z.record(safeString(), MercenaryCompanySchema).catch({}).prefault({}),
+
     // ── TƯỚNG LĨNH (7.7) ──
     "Tướng Lĩnh": z.record(safeString(), GeneralSchema).catch({}).prefault({}),
 
-    // ── QUAN HỆ NGOẠI GIAO (12.1) — tình trạng pháp lý chiến sự, KHÁC "Thái Độ
-    // Các Nhà" (tình cảm). Key = houseId. War Score dương = ta thắng thế. ──
-    "Quan Hệ Ngoại Giao": z
-      .record(
-        safeString(),
-        z
-          .object({
-            "Trạng Thái": z.enum(["Hoà Bình", "Chiến Tranh", "Đình Chiến"]).catch("Hoà Bình").prefault("Hoà Bình"),
-            "War Score": clampedStat(-100, 100, 0),
-          })
-          .prefault({}),
-      )
-      .catch({})
+    // ── QUAN HỆ NGOẠI GIAO (12.1 + đại tu M20) — tình trạng PHÁP LÝ + hiệp ước +
+    // ân oán + lòng tin, KHÁC "Thái Độ Các Nhà" (tình cảm). Key = houseId.
+    // War Score dương = ta thắng thế. ──
+    "Quan Hệ Ngoại Giao": z.record(safeString(), DiplomacyRelationSchema).catch({}).prefault({}),
+
+    // ── NGOẠI GIAO — sổ chung (M20): uy tín giữ lời của CHÍNH TA (mọi Nhà đều
+    // nhìn vào đó), sứ giả đang trên đường, và những lời đề nghị đang chờ trả lời. ──
+    "Ngoại Giao": z
+      .object({
+        /**
+         * UY TÍN CAM KẾT 0-100 — thứ đắt nhất trong ngoại giao trung cổ. Xé một
+         * tờ hiệp ước là mọi Nhà khác đều bớt tin, không riêng gì Nhà bị xé.
+         */
+        "Uy Tín Cam Kết": clampedStat(0, 100, 60),
+        "Sứ Giả": z.record(safeString(), EnvoySchema).catch({}).prefault({}),
+        "Lời Đề Nghị": z.record(safeString(), DiploOfferSchema).catch({}).prefault({}),
+        /** readonly — biến động ngoại giao vừa xảy ra, để AI tường thuật. */
+        "_Biến Động": safeString().prefault(""),
+      })
       .prefault({}),
 
     // ── HẠM ĐỘI (7.8) — hải chiến/đổ bộ/phong toả. Key = tên hạm đội. ──
@@ -1168,6 +1463,13 @@ export const StatDataSchema = z
         "Tin Tình Báo Đã Biết": z.record(safeString(), safeString()).catch({}).prefault({}), // chủ đề → nội dung tin
         "Bị Cài Điệp Viên": clampedStat(0, 100, 0), // mức triều đình mình bị địch thâm nhập
         "_Điệp Viên Vừa Lộ": safeString().prefault(""), // readonly — điệp viên vừa bị bắt (AI tường thuật)
+        // ── M20 ──
+        /** sổ BÍ MẬT: cái nào nói về ai, nặng cỡ nào, tin được bao nhiêu phần. */
+        "Bí Mật": z.record(safeString(), SecretSchema).catch({}).prefault({}),
+        /** tai mắt của ĐỊCH bị ta phát hiện — bắt sớm thì mất tin, bắt muộn thì mất bí mật. */
+        "Điệp Viên Địch": z.record(safeString(), EnemySpySchema).catch({}).prefault({}),
+        /** readonly — âm mưu vừa vỡ, để AI kể phản đòn. */
+        "_Âm Mưu Vừa Vỡ": safeString().prefault(""),
       })
       .prefault({}),
 

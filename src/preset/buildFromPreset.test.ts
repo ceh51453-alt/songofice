@@ -47,11 +47,11 @@ const HISTORY: ApiChatMessage[] = [
 ];
 
 describe("buildFromPreset — thứ tự & marker (3.1b.2/3.1b.4)", () => {
-  it("ghép đúng thứ tự prompt_order, bỏ block disabled (cả 2 tầng enabled)", () => {
+  it("ghép đúng thứ tự prompt_order; prompt_order là tầng quyết định bật/tắt (như ST)", () => {
     const { preset } = parsePreset({
       prompts: [
         { identifier: "a", content: "Block A", role: "system" },
-        { identifier: "b", content: "Block B (tắt trong prompts)", role: "system", enabled: false },
+        { identifier: "b", content: "Block B (enabled=false trên prompts — ST vẫn nạp)", role: "system", enabled: false },
         { identifier: "c", content: "Block C", role: "user" },
         { identifier: "d", content: "Block D (tắt trong order)", role: "system" },
       ],
@@ -68,9 +68,14 @@ describe("buildFromPreset — thứ tự & marker (3.1b.2/3.1b.4)", () => {
       ],
     });
     const r = buildFromPreset(preset, makeOpts());
-    expect(r.messages.map((m) => m.content)).toEqual(["Block C", "Block A"]);
-    expect(r.messages.map((m) => m.role)).toEqual(["user", "system"]);
-    expect(r.traces.find((t) => t.identifier === "b")?.skippedReason).toBe("disabled");
+    expect(r.messages.map((m) => m.content)).toEqual([
+      "Block C",
+      "Block B (enabled=false trên prompts — ST vẫn nạp)",
+      "Block A",
+    ]);
+    expect(r.messages.map((m) => m.role)).toEqual(["user", "system", "system"]);
+    expect(r.traces.find((t) => t.identifier === "b")?.skippedReason).toBeUndefined();
+    // chỉ prompt_order tắt mới bỏ block
     expect(r.traces.find((t) => t.identifier === "d")?.skippedReason).toBe("disabled");
   });
 

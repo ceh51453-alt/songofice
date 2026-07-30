@@ -9,6 +9,7 @@ import { startDuel, runDuelRound, autoDuel, type Duelist, BASIC_SKILLS } from ".
 import { resolveSkirmish, type SkirmishSide } from "./skirmish";
 import { terrainMultiplier } from "./terrain";
 import { aggregateUnits, moraleEnumFromScore, qualityBand } from "./scales";
+import { troopQualityFactor } from "../content/westeros/troopTypes";
 import { makeRng } from "../probability/rng";
 import { makeDefaultState, MilitaryUnitSchema } from "../mvu/schema";
 import { applyPatch } from "../mvu/patchEngine";
@@ -73,6 +74,29 @@ describe("Battle Resolver (7.9)", () => {
     const pElite = battlePower(elite, mob, undefined, "Trời Quang");
     // 8000 ô hợp vs 3000 tinh nhuệ: tinh nhuệ phải gần ngang hoặc hơn
     expect(pElite / pMob).toBeGreaterThan(0.85);
+  });
+
+  it("M19: cùng quân số/sĩ khí/huấn luyện, BINH CHỦNG và TRANG BỊ vẫn tạo chênh lệch", () => {
+    const base = { totalTroops: 3000, morale: 65, training: 65, logistics: 60 };
+    const levy = side({ ...base, equipment: 30, troopQuality: troopQualityFactor("Dân Binh"), troopType: "Bộ Binh" });
+    const knights = side({ ...base, equipment: 85, troopQuality: troopQualityFactor("Hiệp Sĩ"), troopType: "Kỵ Binh" });
+    const pLevy = battlePower(levy, knights, undefined, "Trời Quang");
+    const pKnights = battlePower(knights, levy, undefined, "Trời Quang");
+    expect(pKnights).toBeGreaterThan(pLevy);
+  });
+
+  it("M19: quân đang tập hợp/huấn luyện KHÔNG tính vào chiến lực", () => {
+    const ready = aggregateUnits([
+      { "Số Lượng": 1000, "Loại Quân": "Bộ Binh", "Sĩ Khí": "Ổn Định", "Huấn Luyện": "Thành Thạo", "Hậu Cần": "Dồi Dào", "Trang Bị": "Đồng Bộ Chỉnh Tề" } as never,
+    ]);
+    expect(ready.totalTroops).toBe(1000);
+    expect(ready.troopQuality).toBeGreaterThan(0);
+    // dân binh kéo phẩm chất bình quân xuống
+    const mixed = aggregateUnits([
+      { "Số Lượng": 1000, "Loại Quân": "Bộ Binh", "Sĩ Khí": "Ổn Định", "Huấn Luyện": "Thành Thạo", "Hậu Cần": "Dồi Dào", "Trang Bị": "Đồng Bộ Chỉnh Tề" } as never,
+      { "Số Lượng": 1000, "Loại Quân": "Dân Binh", "Sĩ Khí": "Ổn Định", "Huấn Luyện": "Thành Thạo", "Hậu Cần": "Dồi Dào", "Trang Bị": "Đồng Bộ Chỉnh Tề" } as never,
+    ]);
+    expect(mixed.troopQuality!).toBeLessThan(ready.troopQuality!);
   });
 
   it("địa hình đổi kết quả đúng hướng (7.6): kỵ binh mạnh đồng bằng, yếu đầm lầy", () => {

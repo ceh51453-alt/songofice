@@ -15,10 +15,13 @@ import { useConnectionStore } from "./connectionStore";
 import { useMvuStore, currentDay } from "./mvuStore";
 import { useCombatStore } from "./combatStore";
 import { useTerritoryStore } from "./territoryStore";
+import { useMilitaryStore } from "./militaryStore";
+import { useDiplomacyStore } from "./diplomacyStore";
+import { useIntrigueStore } from "./intrigueStore";
 import { buildPipeline } from "../prompt/promptPipeline";
 import { extractUpdates } from "../mvu/extractor";
 import { extractSqlUpdates } from "../mvu/sqlExtractor";
-import { findCombatTrigger, findTerritoryChanges, findTavernGameTrigger, findTourneyTrigger } from "../ui/tags/parseNarrative";
+import { findCombatTrigger, findTerritoryChanges, findTavernGameTrigger, findTourneyTrigger, findMilitaryTags, findDiplomacyTags, findIntrigueTags } from "../ui/tags/parseNarrative";
 import type { StatData } from "../mvu/schema";
 import type { ApiChatMessage } from "../types/connection";
 import { callExtraModel, callOffscreenModel } from "../mvu/extraModelCaller";
@@ -192,6 +195,23 @@ export const useChatStore = create<ChatState>()(
         // AI kể vùng đổi chủ (chiếm/liên minh/thừa kế) → engine đồng bộ + bản đồ đổi màu (9.5.1)
         for (const tc of findTerritoryChanges(variant.display)) {
           useTerritoryStore.getState().captureRegion(tc.regionId, tc.houseId);
+        }
+        // AI kể chuyện binh đao (M19): tuyển quân, hiệu triệu chư hầu, đoàn đánh
+        // thuê tới chào giá, điều quân, điều rồng — đi qua ĐÚNG luật engine
+        const milTags = findMilitaryTags(variant.display);
+        if (milTags.length > 0) {
+          useMilitaryStore.getState().applyMilitaryTags(milTags);
+        }
+        // AI kể chuyện ngoại giao (M20): đổi trạng thái, ký/xé hiệp ước, cử sứ,
+        // ghi ân oán, đặt lời đề nghị lên bàn
+        const dipTags = findDiplomacyTags(variant.display);
+        if (dipTags.length > 0) {
+          useDiplomacyStore.getState().applyDiplomacyTags(dipTags);
+        }
+        // AI kể chuyện trong bóng tối (M20): tai mắt, bí mật, âm mưu, con tin
+        const intrigueTags = findIntrigueTags(variant.display);
+        if (intrigueTags.length > 0) {
+          useIntrigueStore.getState().applyIntrigueTags(intrigueTags);
         }
         // AI kể tới quán rượu/thách đấu → chuẩn bị menu mini-game (tavern_game tag)
         const tavernTrigger = findTavernGameTrigger(variant.display);

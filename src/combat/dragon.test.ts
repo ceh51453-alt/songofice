@@ -7,8 +7,16 @@ import { DragonSchema } from "../mvu/schema";
 import { dragonSideFactor, dragonBurnsGate, resolveDragonDuel, dragonDuelPower } from "./dragon";
 import { makeRng } from "../probability/rng";
 
+/** Rồng CÓ KỴ SĨ — con rồng thật sự ra trận dưới cờ ta (M19). */
 const dragon = (size: "Non" | "Trưởng Thành" | "Khổng Lồ (Balerion-class)", status: "Khỏe" | "Bị Thương" | "Kiệt Sức" = "Khỏe") =>
-  DragonSchema.parse({ "Tên": "Balerion", "Kích Cỡ": size, "Tình Trạng": status });
+  DragonSchema.parse({
+    "Tên": "Balerion", "Kích Cỡ": size, "Tình Trạng": status,
+    "Kỵ Sĩ": "Aegon", "Trạng Thái Thu Phục": "Đã Có Chủ", "Mức Độ Thuần Hóa": 85,
+  });
+
+/** Rồng hoang không ai cưỡi — vẫn là rồng, nhưng không đánh giúp ai. */
+const wildDragon = (size: "Khổng Lồ (Balerion-class)") =>
+  DragonSchema.parse({ "Tên": "Cannibal", "Kích Cỡ": size, "Tình Trạng": "Khỏe" });
 
 describe("Hệ số rồng (7.15)", () => {
   it("không rồng → 1.0; rồng lớn khoẻ → hệ số cao", () => {
@@ -17,6 +25,34 @@ describe("Hệ số rồng (7.15)", () => {
     expect(huge).toBeGreaterThan(1.5);
     // rồng non yếu hơn rồng khổng lồ
     expect(dragonSideFactor([dragon("Non")])).toBeLessThan(huge);
+  });
+
+  it("M19: rồng hoang chưa thuần yếu hơn hẳn rồng có kỵ sĩ (cùng kích cỡ)", () => {
+    const ridden = dragonSideFactor([dragon("Khổng Lồ (Balerion-class)")]);
+    const wild = dragonSideFactor([wildDragon("Khổng Lồ (Balerion-class)")]);
+    expect(wild).toBeLessThan(ridden);
+    expect(wild).toBeGreaterThan(1.0); // vẫn là một con rồng
+  });
+
+  it("M19: chỉ số rồng đẩy hệ số lên — Sức Lửa 18 mạnh hơn Sức Lửa 5", () => {
+    const weak = DragonSchema.parse({
+      "Tên": "Yếu", "Kích Cỡ": "Trưởng Thành", "Kỵ Sĩ": "A", "Mức Độ Thuần Hóa": 85,
+      "Chỉ Số": { "Sức Lửa": 5, "Sức Bay": 5, "Giáp Vảy": 3, "Hung Dữ": 5, "Trung Thành": 5 },
+    });
+    const strong = DragonSchema.parse({
+      "Tên": "Mạnh", "Kích Cỡ": "Trưởng Thành", "Kỵ Sĩ": "B", "Mức Độ Thuần Hóa": 85,
+      "Chỉ Số": { "Sức Lửa": 18, "Sức Bay": 16, "Giáp Vảy": 15, "Hung Dữ": 17, "Trung Thành": 12 },
+    });
+    expect(dragonSideFactor([strong])).toBeGreaterThan(dragonSideFactor([weak]));
+  });
+
+  it("M19: rồng bị xích không cộng chiến lực", () => {
+    const chained = DragonSchema.parse({
+      "Tên": "Xích", "Kích Cỡ": "Khổng Lồ (Balerion-class)", "Kỵ Sĩ": "A",
+      "Mức Độ Thuần Hóa": 85, "Đang Bị Xích": true,
+    });
+    expect(dragonSideFactor([chained])).toBe(1.0);
+    expect(dragonBurnsGate([chained])).toBe(false);
   });
 
   it("rồng Bị Thương/Kiệt Sức MẤT phần lớn hệ số → cửa cho phe yếu", () => {

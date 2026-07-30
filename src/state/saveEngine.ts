@@ -14,8 +14,11 @@ import { useMvuStore } from "./mvuStore";
 import { useChatStore, type UiChatMessage } from "./chatStore";
 import { StatDataSchema, makeDefaultState, type StatData } from "../mvu/schema";
 import { normalizeCalendar } from "../mvu/calendar";
-import { normalizeHouseIds } from "../territory/territoryEngine";
+import { normalizeHouseIds, repairPlayerSovereignty } from "../territory/territoryEngine";
 import { repairAllHoldings } from "../territory/localMap";
+import { migrateDragonUnits, repairDragons } from "../strategy/dragons";
+import { seedVassals } from "../strategy/muster";
+import { seedDiplomacy } from "../strategy/diplomacy";
 import { genId } from "../lib/id";
 import { createLogger } from "../lib/log";
 
@@ -52,10 +55,26 @@ function extractMeta(stat: StatData): SaveSlotMeta {
 function migrateMapData(state: StatData): void {
   // khoá Nhà đúng định dạng (save cũ ghi "Lannister" thay vì "lannister")
   normalizeHouseIds(state);
+  repairPlayerSovereignty(state);
   // bố cục Tầng 1: save cũ đặt công trình theo hệ lưới trước đây (mọi thứ dồn
   // quanh ô 750, kích thước 1-2 ô) — dời về ô hợp lệ theo khuôn viên & địa hình
   const moved = repairAllHoldings(state);
   if (moved > 0) log.info(`Migration: bố trí lại ${moved} công trình theo lưới lãnh địa 5 m`);
+  migrateMilitary(state);
+}
+
+/**
+ * Migration quân sự (M19): save cũ nhét rồng vào biên chế bộ binh và chưa có
+ * bảng chư hầu. Gom rồng về bảng "Rồng" (nếu không, chiến lực đếm hai lần) và
+ * gieo chư hầu cho các vùng đang nắm.
+ */
+function migrateMilitary(state: StatData): void {
+  const moved = migrateDragonUnits(state);
+  if (moved > 0) log.info(`Migration: chuyển ${moved} con rồng từ biên chế bộ binh sang bảng Rồng`);
+  repairDragons(state);
+  seedVassals(state);
+  // save cũ chưa có bảng quan hệ ngoại giao đầy đủ (M20)
+  seedDiplomacy(state);
 }
 
 function migrateState(raw: unknown): StatData {

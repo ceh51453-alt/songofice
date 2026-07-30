@@ -10,6 +10,7 @@ import { availableTroopsForEra, recruitableTroopsForEra } from "../content/weste
 import {
   recruitUnit, hasBarracks, moveArmy, tickArmy, armyMarkerPosition, calcMapDistance,
   distanceToDays, checkSellswordDefection, sellswordWage,
+  canRecruitAt, hireMercenaries, trainingFromExperience,
 } from "./army";
 import { EXCHANGE_RATES } from "../economy/currency";
 
@@ -119,8 +120,10 @@ describe("Lính Đánh Thuê phản trắc (7.7)", () => {
   });
 
   it("wage chỉ tính cho Lính Đánh Thuê", () => {
-    expect(sellswordWage({ "Số Lượng": 100, "Loại Quân": "Lính Đánh Thuê" } as never)).toBe(300);
-    expect(sellswordWage({ "Số Lượng": 100, "Loại Quân": "Bộ Binh" } as never)).toBe(0);
+    // M19: lương lấy từ công thức chung (economy/wages) — đắt hơn quân thường nhiều lần
+    const merc = sellswordWage({ "Số Lượng": 100, "Loại Quân": "Lính Đánh Thuê", "Ngạch": "Đánh Thuê" } as never);
+    expect(merc).toBeGreaterThan(0);
+    expect(sellswordWage({ "Số Lượng": 100, "Loại Quân": "Bộ Binh", "Ngạch": "Chính Quy" } as never)).toBe(0);
   });
 
   it("tickArmy: hết Vàng trả lương → Lính Đánh Thuê roll rời bỏ", () => {
@@ -135,5 +138,100 @@ describe("Lính Đánh Thuê phản trắc (7.7)", () => {
     tickArmy(state);
     // hoặc đã rời (bị xoá) hoặc còn — nhưng KHÔNG bị trừ lương (vì không đủ tiền)
     expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(0);
+  });
+});
+
+// ── M19: ngạch quân phong kiến ──────────────────────────────────────────────
+
+describe("Ngạch quân (M19)", () => {
+  it("Phục Dịch KHÔNG cần Doanh Trại, Chính Quy thì cần", () => {
+    const s = lordWithBarracks();
+    delete s["Lãnh Địa"]["the-north-seat"]["Công Trình"]["Doanh Trại"];
+    expect(canRecruitAt(s, "the-north-seat", "Chính Quy").ok).toBe(false);
+    expect(canRecruitAt(s, "the-north-seat", "Phục Dịch").ok).toBe(true);
+    const r = recruitUnit(s, "the-north-seat", "Dân Binh", 300, { branch: "Phục Dịch" });
+    expect(r.ok).toBe(true);
+  });
+
+  it("không cai quản lãnh địa → chặn mọi ngạch (chỉ tuyển ở khu được phép)", () => {
+    const s = lordWithBarracks();
+    s["Thông Tin Nhân Vật"]["Tước Vị"] = "Thường Dân"; // mất quyền Lập Quân Đồn Trú
+    expect(canRecruitAt(s, "the-north-seat", "Chính Quy").ok).toBe(false);
+    expect(canRecruitAt(s, "the-north-seat", "Phục Dịch").ok).toBe(false);
+    expect(recruitUnit(s, "the-north-seat", "Bộ Binh", 100).ok).toBe(false);
+  });
+
+  it("quân phục dịch có HẠN nghĩa vụ; hết hạn thì rã ngũ và dân về ruộng", () => {
+    const s = lordWithBarracks();
+    const r = recruitUnit(s, "the-north-seat", "Dân Binh", 300, { branch: "Phục Dịch" });
+    const state = applyPatch(s, r.ops).state;
+    const unit = state["Biên Chế Quân Sự"][r.unitName!];
+    expect(unit["Ngạch"]).toBe("Phục Dịch");
+    expect(unit["Hạn Phục Dịch Còn Lại"]).toBe(90);
+
+    // hạn nghĩa vụ chỉ đếm khi lính đã TỤ ĐỦ dưới cờ — ngày lặn lội tới điểm hẹn không tính
+    const popBefore = state["Lãnh Địa"]["the-north-seat"]["Dân Số"];
+    const total = unit["Ngày Tập Hợp Còn Lại"] + 95;
+    for (let i = 0; i < total; i++) tickArmy(state);
+    expect(state["Biên Chế Quân Sự"][r.unitName!]).toBeUndefined();
+    expect(state["Lãnh Địa"]["the-north-seat"]["Dân Số"]).toBe(popBefore + 300);
+  });
+
+  it("quân mới tuyển phải TẬP HỢP xong mới huấn luyện, và chưa điều đi được", () => {
+    const s = lordWithBarracks();
+    const r = recruitUnit(s, "the-north-seat", "Bộ Binh", 200);
+    const state = applyPatch(s, r.ops).state;
+    const name = r.unitName!;
+    expect(state["Biên Chế Quân Sự"][name]["Ngày Tập Hợp Còn Lại"]).toBeGreaterThan(0);
+    expect(moveArmy(state, name, "the-riverlands").ok).toBe(false); // chưa tụ đủ quân
+
+    const musterDays = state["Biên Chế Quân Sự"][name]["Ngày Tập Hợp Còn Lại"];
+    for (let i = 0; i < musterDays; i++) tickArmy(state);
+    expect(state["Biên Chế Quân Sự"][name]["Ngày Tập Hợp Còn Lại"]).toBe(0);
+    // huấn luyện mới bắt đầu đếm sau khi tập hợp xong
+    expect(state["Biên Chế Quân Sự"][name]["Ngày Huấn Luyện"]).toBeGreaterThan(0);
+  });
+
+  it("kinh nghiệm trận mạc đẩy bậc Huấn Luyện lên", () => {
+    expect(trainingFromExperience(0, "Rời Rạc")).toBe("Rời Rạc");
+    expect(trainingFromExperience(20, "Rời Rạc")).toBe("Mới Lập Đội");
+    expect(trainingFromExperience(50, "Rời Rạc")).toBe("Thành Thạo");
+    expect(trainingFromExperience(85, "Rời Rạc")).toBe("Tinh Nhuệ");
+    // không hạ bậc quân vốn đã tinh nhuệ
+    expect(trainingFromExperience(0, "Tinh Nhuệ")).toBe("Tinh Nhuệ");
+  });
+
+  it("hết lương khô ngoài đồng → hậu cần sụp, lính đào ngũ", () => {
+    const s = lordWithBarracks();
+    const { state } = applyPatch(s, [{
+      op: "replace", path: "stat_data.Biên Chế Quân Sự.Quân Viễn Chinh",
+      value: {
+        "Số Lượng": 1000, "Loại Quân": "Bộ Binh", "Ngạch": "Chính Quy",
+        "Lãnh Địa Đồn Trú": "vùng-không-thuộc-ta", "Lương Thực Mang Theo": 2,
+      },
+    }]);
+    for (let i = 0; i < 5; i++) tickArmy(state);
+    const u = state["Biên Chế Quân Sự"]["Quân Viễn Chinh"];
+    expect(u["Hậu Cần"]).toBe("Cực Kỳ Thiếu Thốn");
+    expect(u["Số Lượng"]).toBeLessThan(1000);
+  });
+
+  it("thuê lính đánh thuê: cần đoàn đang chào giá, trừ tiền cọc", () => {
+    const s = lordWithBarracks(5000);
+    expect(hireMercenaries(s, "Đoàn Nhị Tử", 500).ok).toBe(false); // chưa có đoàn nào
+
+    s["Đội Đánh Thuê"]["Đoàn Nhị Tử"] = {
+      "Tên Đoàn": "Đoàn Nhị Tử", "Đang Ở": "Pentos", "Quân Số": 1000,
+      "Binh Chủng": "Lính Đánh Thuê", "Huấn Luyện": "Thành Thạo",
+      "Tiền Ký Khế Ước": 100 * EXCHANGE_RATES.GOLD_TO_COPPER, "Lương Tháng Mỗi 100": 50,
+      "Chữ Tín": 45, "Ngày Còn Ở Lại": 20, "Mô Tả": "",
+    };
+    const goldBefore = s["Thông Tin Nhân Vật"]["Ngân Khố"];
+    const r = hireMercenaries(s, "Đoàn Nhị Tử", 500);
+    expect(r.ok).toBe(true);
+    const state = applyPatch(s, r.ops).state;
+    expect(state["Thông Tin Nhân Vật"]["Ngân Khố"]).toBeLessThan(goldBefore);
+    expect(state["Biên Chế Quân Sự"][r.unitName!]["Ngạch"]).toBe("Đánh Thuê");
+    expect(state["Đội Đánh Thuê"]["Đoàn Nhị Tử"]["Quân Số"]).toBe(500);
   });
 });

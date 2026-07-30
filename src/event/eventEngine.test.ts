@@ -11,7 +11,7 @@ import {
   resetEventEngine,
 } from "./eventEngine";
 import type { GameEvent, EventCondition } from "./eventTypes";
-import { makeDefaultState } from "../mvu/schema";
+import { makeDefaultState, DiplomacyRelationSchema } from "../mvu/schema";
 
 function makeState(overrides: Record<string, unknown> = {}) {
   const s = makeDefaultState();
@@ -27,7 +27,7 @@ function makeState(overrides: Record<string, unknown> = {}) {
     s["Lãnh Địa"]["test-region"] = {} as any;
   }
   if (overrides.atWar) {
-    s["Quan Hệ Ngoại Giao"]["Lannister"] = { "Trạng Thái": "Chiến Tranh", "War Score": 0 };
+    s["Quan Hệ Ngoại Giao"]["Lannister"] = DiplomacyRelationSchema.parse({ "Trạng Thái": "Chiến Tranh" });
   }
   if (overrides.hasSpy) {
     s["Tình Báo"]["Điệp Viên"]["spy-1"] = {} as any;

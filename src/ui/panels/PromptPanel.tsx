@@ -3,7 +3,7 @@
  * xuất round-trip, xoá. Không phải editor — chỉnh preset vẫn làm ở ST gốc.
  */
 import { useRef, useState } from "react";
-import { usePresetStore } from "../../state/presetStore";
+import { usePresetStore, regexScriptKey } from "../../state/presetStore";
 import { useT } from "../../i18n";
 import { GlassButton } from "../components/GlassButton";
 import { IconAlert, IconCheck, IconSpinner, IconTrash } from "../icons";
@@ -16,6 +16,55 @@ function downloadJson(name: string, json: string): void {
   a.download = `${name}.json`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Bật/tắt regex script của preset đang dùng. Preset ST hay tắt sẵn các script
+ * sinh HTML (hộp chuỗi tư duy, thẻ lựa chọn) — bật ở đây là chạy được, file gốc
+ * không bị sửa nên export vẫn round-trip.
+ */
+function RegexScriptList() {
+  const preset = usePresetStore((s) => s.activePreset);
+  const toggle = usePresetStore((s) => s.toggleRegexScript);
+  const scripts = preset?.extensions?.regex_scripts ?? [];
+  if (scripts.length === 0) return null;
+
+  return (
+    <div className="glass px-3.5 py-3">
+      <p className="mb-2 text-[13px] font-medium text-[var(--text-soft)]">
+        Regex script của preset
+        <span className="ml-1.5 text-[12px] font-normal text-[var(--text-faint)]">({scripts.length})</span>
+      </p>
+      <ul className="space-y-1">
+        {scripts.map((s, i) => {
+          const key = regexScriptKey(s, i);
+          const on = !s.disabled;
+          const scope = [s.markdownOnly && "hiển thị", s.promptOnly && "gửi AI"].filter(Boolean).join(" + ") || "cả hai";
+          return (
+            <li key={key}>
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-[var(--radius-sm)] px-2 py-1.5 transition-colors hover:bg-[var(--glass-bg-hover)]">
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={(e) => toggle(key, e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[var(--accent-text)]"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className={`block truncate text-[13px] ${on ? "text-[var(--text-soft)]" : "text-[var(--text-faint)]"}`}>
+                    {s.scriptName}
+                  </span>
+                  <span className="text-[11.5px] text-[var(--text-faint)]">{scope}</span>
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--text-faint)]">
+        Script sinh HTML chạy trong khung cách ly — không đọc được API key hay dữ liệu lưu của app.
+      </p>
+    </div>
+  );
 }
 
 export function PromptPanel() {
@@ -120,6 +169,9 @@ export function PromptPanel() {
           })}
         </div>
       )}
+
+      {/* ---- Regex script của preset active ---- */}
+      <RegexScriptList />
 
       {/* ---- Cảnh báo parse của preset active ---- */}
       {store.activeWarnings.length > 0 && (

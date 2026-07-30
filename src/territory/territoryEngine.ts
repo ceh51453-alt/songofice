@@ -26,6 +26,29 @@ export function playerHouseId(state: StatData): string {
 }
 
 /**
+ * Chốt lại cờ "Là Của Người Chơi" từ Nhà Kiểm Soát (M20).
+ *
+ * seedRegionControl tính cờ này NGAY LÚC gieo, nhưng ở luồng nhân vật nguyên tác
+ * thì Nhà của nhân vật chưa được ghi vào state ở thời điểm đó — nên MỌI vùng đều
+ * bị gắn cờ false, và hệ quả là `playerIsRulingLord` luôn sai: rail Triều Đình
+ * và Mưu Đồ bị khoá vĩnh viễn dù đang đóng vai một đại lãnh chúa. Gọi hàm này ở
+ * CUỐI init (và lúc migrate save) để cờ khớp với thực tế bàn cờ.
+ */
+export function repairPlayerSovereignty(state: StatData): number {
+  const pHouse = playerHouseId(state);
+  if (!pHouse) return 0;
+  let fixed = 0;
+  for (const sov of Object.values(state["Chủ Quyền Lãnh Thổ"] ?? {})) {
+    const owns = String(sov["Nhà Kiểm Soát"] ?? "").toLowerCase() === pHouse;
+    if (sov["Là Của Người Chơi"] !== owns) {
+      sov["Là Của Người Chơi"] = owns;
+      fixed++;
+    }
+  }
+  return fixed;
+}
+
+/**
  * Chuẩn hoá tên Nhà về houseId (khoá của HOUSES_BY_ID / bảng màu).
  * Dữ liệu cốt truyện hay ghi schemaName ("Lannister") vào chỗ đòi houseId
  * ("lannister") — khi đó bản đồ tra không ra Nhà và tô thành "vô chủ".

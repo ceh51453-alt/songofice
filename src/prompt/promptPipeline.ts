@@ -21,7 +21,7 @@ import { useMvuStore, currentSeedInfo } from "../state/mvuStore";
 import { useCombatStore } from "../state/combatStore";
 import { renderStateForAI } from "../mvu/stateRenderer";
 import { renderTablesForAI } from "../mvu/tableBridge";
-import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT, ANTI_OMNISCIENCE_PROMPT, DRAGON_MECHANICS_PROMPT, WORLD_ENGINE_PROMPT, COT_INSTRUCTION_PROMPT, DEATH_AND_DOOM_PROMPT } from "../mvu/mvuPrompt";
+import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT, ANTI_OMNISCIENCE_PROMPT, DRAGON_MECHANICS_PROMPT, FEUDAL_WARFARE_PROMPT, DIPLOMACY_INTRIGUE_PROMPT, WORLD_ENGINE_PROMPT, COT_INSTRUCTION_PROMPT, DEATH_AND_DOOM_PROMPT } from "../mvu/mvuPrompt";
 import { useExtraModelStore } from "../state/extraModelStore";
 import { streamRng } from "../probability/rng";
 import { countTokens } from "./tokenizer";
@@ -56,6 +56,8 @@ function makeAppMacroContext(history: ApiChatMessage[]): MacroContext {
     // char/description/scenario... — M5 (character card) sẽ điền
     user: playerName !== "Vô Danh" ? playerName : "Người Chơi",
     lastMessage: history.length > 0 ? history[history.length - 1].content : "",
+    lastUserMessage: [...history].reverse().find((m) => m.role === "user")?.content ?? "",
+    lastCharMessage: [...history].reverse().find((m) => m.role === "assistant")?.content ?? "",
     // RNG seedable (5bis.1): stream "macro", tái lập theo (seed gốc, turn)
     rng: streamRng(rootSeed, tick, "macro"),
     vars: {
@@ -95,6 +97,8 @@ function appLayerMessages(): ApiChatMessage[] {
     { role: "system", content: DICE_ROLL_PROMPT },
     { role: "system", content: ANTI_OMNISCIENCE_PROMPT },
     { role: "system", content: DRAGON_MECHANICS_PROMPT },
+    { role: "system", content: FEUDAL_WARFARE_PROMPT }, // M19: luật quân sự phong kiến
+    { role: "system", content: DIPLOMACY_INTRIGUE_PROMPT }, // M20: ngoại giao & bóng tối
     { role: "system", content: worldPrompt },           // GĐ2: World Background Engine
     { role: "system", content: COT_INSTRUCTION_PROMPT }, // GĐ2: CoT 4-bước
     { role: "system", content: DEATH_AND_DOOM_PROMPT }, // Hệ thống Tử vong

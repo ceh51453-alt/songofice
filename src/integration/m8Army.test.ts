@@ -44,10 +44,13 @@ describe("M8 — tuyển quân + huấn luyện + di chuyển (11.3/11.4)", () =
     const r = useMilitaryStore.getState().recruit("the-north-seat", "Bộ Binh", 1000);
     expect(r.ok).toBe(true);
     const unitName = Object.keys(useMvuStore.getState().stat["Biên Chế Quân Sự"])[0];
-    expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Ngày Huấn Luyện"]).toBeGreaterThan(0);
+    const fresh = useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName];
+    expect(fresh["Ngày Huấn Luyện"]).toBeGreaterThan(0);
+    // M19: trước khi luyện còn phải TẬP HỢP — quạ bay đi, người từ các thôn kéo về
+    expect(fresh["Ngày Tập Hợp Còn Lại"]).toBeGreaterThan(0);
 
-    // AI kể thời gian trôi → huấn luyện xong (Bộ Binh 2 tháng = 60 ngày)
-    advanceDays(61);
+    // AI kể thời gian trôi → tập hợp + huấn luyện xong (Bộ Binh 2 tháng = 60 ngày)
+    advanceDays(fresh["Ngày Tập Hợp Còn Lại"] + 61);
     expect(useMvuStore.getState().stat["Biên Chế Quân Sự"][unitName]["Ngày Huấn Luyện"]).toBe(0);
 
     // điều quân sang Vùng Sông → tới nơi sau khi đủ ngày

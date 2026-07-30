@@ -15,6 +15,8 @@ import { useState } from "react";
 import { applyPatch } from "../../../mvu/patchEngine";
 import { BodyVisualizer } from "./BodyVisualizer";
 import { EquipmentModal } from "./EquipmentModal";
+import { DragonCard } from "../../military/DragonCard";
+import { playerDragons } from "../../../strategy/dragons";
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -64,7 +66,8 @@ export function StatusPanel() {
   const skills = Object.entries(stat["Kỹ Năng"]).filter(([, s]) => s["Cấp"] > 0);
   const talents = Object.entries(stat["Thiên Phú"]).filter(([, t]) => !t["Ẩn"]);
   const houses = Object.entries(stat["Thái Độ Các Nhà"]);
-  const dragons = Object.entries(stat["Rồng"]);
+  // M19: cùng nguồn với tab Rồng trong bảng Quân Sự
+  const dragons = playerDragons(stat);
 
   const canClaimThrone = canClaimIronThrone(stat);
 
@@ -212,51 +215,14 @@ export function StatusPanel() {
         </Section>
       )}
 
-      {/* ---- Rồng ---- */}
+      {/* ---- Rồng (M19: dùng CHUNG thẻ với bảng Quân Sự — một nguồn dữ liệu) ---- */}
       {dragons.length > 0 && (
         <Section title="RỒNG" icon={<IconDragon size={14} />}>
-          {dragons.map(([key, drg]) => {
-            const drgStats = drg["Chỉ Số"];
-            const drgSkills = Object.entries(drg["Kỹ Năng"]).filter(([, lv]) => lv > 0);
-            return (
-              <div key={key} className="space-y-2">
-                <div>
-                  <p className="font-display text-[15px] text-[var(--accent-text)]">{drg["Tên"]}</p>
-                  <p className="text-[12px] text-[var(--text-muted)]">
-                    {drg["Kích Cỡ"]} · Màu {drg["Màu Sắc"]} · {drg["Tuổi"]} tuổi · {drg["Tình Trạng"]}
-                  </p>
-                </div>
-                <Bar label="HP Rồng" value={drg["_HP"]} max={drg["_HP Tối Đa"]} color="#c06030" />
-                {drgStats && (
-                  <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-[12px]">
-                    {(Object.entries(drgStats) as [string, number][]).map(([name, v]) => (
-                      <div key={name} className="flex items-baseline justify-between gap-1">
-                        <span className="truncate text-[var(--text-faint)]">{name}</span>
-                        <span className="font-mono text-[13px] text-[var(--text-soft)]">
-                          <AnimatedNumber value={v} />
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {drgSkills.length > 0 && (
-                  <div className="space-y-1 border-t border-[var(--glass-border)] pt-1.5">
-                    {drgSkills.map(([name, lv]) => (
-                      <div key={name} className="flex items-center justify-between text-[12px]">
-                        <span className="text-[var(--text-muted)]">{name}</span>
-                        <span className="rounded border border-[var(--accent-border)] bg-[var(--accent-soft)] px-1.5 text-[11px] text-[var(--accent-text)]">
-                          {lv}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {drg["Mô Tả"] && (
-                  <p className="text-[11px] leading-relaxed text-[var(--text-faint)] italic">{drg["Mô Tả"]}</p>
-                )}
-              </div>
-            );
-          })}
+          <div className="space-y-3">
+            {dragons.map(([key, drg]) => (
+              <DragonCard key={key} dragonKey={key} dragon={drg} variant="compact" />
+            ))}
+          </div>
         </Section>
       )}
 

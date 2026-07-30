@@ -1,6 +1,7 @@
 /**
  * Macro cơ bản bắt buộc (mục 3.2): char/user/persona/description/personality/
- * scenario/mesExamples/time/date/random/roll/lastMessage/newline/trim.
+ * scenario/mesExamples/time/date/random/roll/newline/trim +
+ * lastMessage/lastUserMessage/lastCharMessage.
  * ({{// comment}} xử lý trong core resolver.)
  */
 import { registerMacro, TRIM_SENTINEL } from "../macroEngine";
@@ -29,6 +30,8 @@ export function registerCoreMacros(): void {
   registerMacro("scenario", (_a, ctx) => ctx.scenario);
   registerMacro("mesExamples", (_a, ctx) => ctx.mesExamples);
   registerMacro("lastMessage", (_a, ctx) => ctx.lastMessage);
+  registerMacro("lastUserMessage", (_a, ctx) => ctx.lastUserMessage);
+  registerMacro("lastCharMessage", (_a, ctx) => ctx.lastCharMessage);
   registerMacro("time", (_a, ctx) => ctx.now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }));
   registerMacro("date", (_a, ctx) => ctx.now.toLocaleDateString("vi-VN"));
   registerMacro("newline", () => "\n");

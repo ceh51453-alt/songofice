@@ -192,7 +192,12 @@ export function enemyDuelistFromAttrs(attrs: Record<string, string>): Duelist {
 
 /** Phe người chơi cho Battle Resolver: gộp mọi đơn vị Biên Chế (7.9.1). */
 export function playerBattleSide(state: StatData): BattleSideInput {
-  const units = Object.values(state["Biên Chế Quân Sự"]);
+  // M19: quân đang TẬP HỢP hoặc đang HUẤN LUYỆN không ra trận được — nếu tính
+  // vào chiến lực thì người chơi cứ bấm tuyển là mạnh lên tức thì, mất sạch ý
+  // nghĩa của thời gian trong một cuộc chiến trung cổ.
+  const units = Object.values(state["Biên Chế Quân Sự"]).filter(
+    (u) => (u["Ngày Tập Hợp Còn Lại"] ?? 0) <= 0 && (u["Ngày Huấn Luyện"] ?? 0) <= 0,
+  );
   const agg = aggregateUnits(units);
   // không có quân → đội hộ vệ nhỏ mặc định (AI không nên trigger Đại Chiến khi trắng quân)
   if (agg.totalTroops === 0) {

@@ -137,7 +137,7 @@ export function registerMonthlyListener(id: string, fn: TimeListener): void {
 // Hiệu ứng lan toả tổng — chạy sau MỖI lần applyPatch
 // ---------------------------------------------------------------------------
 export interface EffectEvent {
-  kind: "stage_up" | "stage_down" | "year_change" | "time_passed" | "territory" | "territory_lost" | "renown_change" | "childbirth";
+  kind: "stage_up" | "stage_down" | "year_change" | "time_passed" | "territory" | "territory_lost" | "renown_change" | "childbirth" | "military";
   text: string;
 }
 

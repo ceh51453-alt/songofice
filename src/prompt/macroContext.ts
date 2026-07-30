@@ -21,6 +21,9 @@ export interface MacroContext {
   scenario: string;
   mesExamples: string;
   lastMessage: string;
+  /** Tin gần nhất của người chơi / của AI ({{lastUserMessage}}, {{lastCharMessage}}). */
+  lastUserMessage: string;
+  lastCharMessage: string;
   /** RNG 0..1 — inject seedable từ 5bis khi có (M4); mặc định Math.random. */
   rng: () => number;
   now: Date;
@@ -41,6 +44,8 @@ export function makeEmptyMacroContext(partial?: Partial<MacroContext>): MacroCon
     scenario: "",
     mesExamples: "",
     lastMessage: "",
+    lastUserMessage: "",
+    lastCharMessage: "",
     rng: Math.random,
     now: new Date(),
     vars: {

@@ -31,7 +31,12 @@ import { STARTING_CRISES } from "../content/westeros/startingCrises";
 import { COMPANIONS_BY_ID } from "../content/westeros/companions";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 import { REGIONS } from "../content/westeros/regions";
-import { seedRegionControl, toHouseId, normalizeHouseIds, seedMissingTerrain } from "../territory/territoryEngine";
+import { seedRegionControl, toHouseId, normalizeHouseIds, seedMissingTerrain, repairPlayerSovereignty } from "../territory/territoryEngine";
+import { newUnit } from "../strategy/army";
+import { newDragon } from "../strategy/dragons";
+import { seedVassals } from "../strategy/muster";
+import { seedDiplomacy } from "../strategy/diplomacy";
+import { seedSellswordMarket } from "../strategy/sellswords";
 import { layoutHolding, repairAllHoldings, type BuildPlanItem } from "../territory/localMap";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { loreSeatFor } from "../content/westeros/loreSeats";
@@ -679,19 +684,25 @@ export function buildStateFromWizard(d: WizardData): StatData {
       const lv = drg.skillAllocations[sk] ?? 0;
       if (lv > 0) skillRecord[sk] = clamp(lv, 0, 10);
     }
-    (state["Rồng"] as Record<string, unknown>)[drg.name || "Rồng Vô Danh"] = {
+    const riderName = d.name.trim() || "Vô Danh";
+    (state["Rồng"] as Record<string, unknown>)[drg.name || "Rồng Vô Danh"] = newDragon({
       "Tên": drg.name || "Rồng Vô Danh",
       "Kích Cỡ": drg.size,
-      "Kỵ Sĩ": d.name.trim() || "Vô Danh",
+      "Kỵ Sĩ": riderName,
       "Tình Trạng": "Khỏe",
       "_HP": hpMax,
       "_HP Tối Đa": hpMax,
       "Màu Sắc": drg.color || "Đen",
       "Tuổi": drg.size === "Non" ? 1 : drg.size === "Trưởng Thành" ? 30 : 100,
-      "Chỉ Số": Object.fromEntries(DRAGON_STATS.map((s) => [s, clamp(drg.stats[s] ?? DRAGON_STAT_BASE, 1, 20)])),
+      "Chỉ Số": Object.fromEntries(DRAGON_STATS.map((s) => [s, clamp(drg.stats[s] ?? DRAGON_STAT_BASE, 1, 20)])) as never,
       "Kỹ Năng": skillRecord,
       "Mô Tả": drg.description || "",
-    };
+      "Nhà": state["Thông Tin Nhân Vật"]["Nhà"] ?? "",
+      "Đồn Trú": d.startingLocation || "",
+      "Trạng Thái Thu Phục": "Đã Có Chủ",
+      "Mức Độ Thuần Hóa": 85,
+      "Độ Hảo Cảm": { [riderName]: 70 },
+    });
   }
 
   // ---- chủ quyền lãnh thổ theo Era (9.6.1); migrate holding gói xuất thân ----
@@ -700,19 +711,13 @@ export function buildStateFromWizard(d: WizardData): StatData {
   // ---- Tùy chỉnh thế lực: Quân số & NPC ----
   if (d.houseId === "custom" && d.customForce) {
     for (const u of d.customForce.units) {
-      (state["Biên Chế Quân Sự"] as Record<string, unknown>)[u.id] = {
+      (state["Biên Chế Quân Sự"] as Record<string, unknown>)[u.id] = newUnit(u.type as never, u.count, "Chính Quy", {
         "Tướng Chỉ Huy": u.commander?.trim() || "Tạm Khuyết",
-        "Số Lượng": u.count,
-        "Loại Quân": u.type,
-        "Thành Phần": {},
-        "Hậu Cần": "Cầm Cự Được",
-        "Sĩ Khí": "Ổn Định",
-        "Trang Bị": "Đồng Bộ Chỉnh Tề",
+        "Nhà": state["Thông Tin Nhân Vật"]["Nhà"] ?? "",
         "Huấn Luyện": "Thành Thạo",
+        "Kinh Nghiệm": 45,
         "Lãnh Địa Đồn Trú": d.startingLocation || state["Thế Giới"]["Vị Trí"],
-        "Ngày Hành Quân Còn Lại": 0,
-        "Ngày Huấn Luyện": 0,
-      };
+      });
     }
     for (const n of d.customForce.npcs) {
       (state["Tướng Lĩnh"] as Record<string, unknown>)[n.id] = {
@@ -784,8 +789,15 @@ export function buildStateFromWizard(d: WizardData): StatData {
   // từng lãnh địa (mỗi ván một vùng đất khác nhưng vẫn đúng chất của vùng), rồi
   // bố trí lại công trình cho hợp địa hình và không chồng lấn.
   normalizeHouseIds(state);
+  // cờ "vùng này của ta" phải chốt SAU khi đã biết Nhà của nhân vật (M20)
+  repairPlayerSovereignty(state);
   seedMissingTerrain(state);
   repairAllHoldings(state);
+  // Quân sự phong kiến (M19): bảng chư hầu của các vùng ta nắm + chợ lính quanh đây
+  seedVassals(state);
+  seedSellswordMarket(state);
+  // Bản đồ chính trị (M20): mở quan hệ ngoại giao với mọi Nhà đã có thái độ
+  seedDiplomacy(state);
 
   return state;
 }
@@ -999,7 +1011,14 @@ export function buildStateFromCanon(
   if (adjustedC.dragon) {
     const drg = adjustedC.dragon;
     const hpMax = DRAGON_SIZE_HP[drg.size] + (drg.stats["Giáp Vảy"] ?? 3) * 20;
-    (state["Rồng"] as Record<string, unknown>)[drg.name] = {
+    let loc = "dragonstone";
+    if (adjustedC.startHoldings?.[0]) loc = adjustedC.startHoldings[0];
+    else if (adjustedC.startRegions?.[0]) loc = `${adjustedC.startRegions[0]}-seat`;
+
+    // RỒNG LÀ BINH CHỦNG RIÊNG (M19): chỉ ghi vào bảng "Rồng", KHÔNG nhét thêm
+    // một bản sao vào "Biên Chế Quân Sự" — làm vậy thì chiến lực đếm rồng hai
+    // lần mà tab Rồng vẫn trống.
+    (state["Rồng"] as Record<string, unknown>)[drg.name] = newDragon({
       "Tên": drg.name,
       "Kích Cỡ": drg.size,
       "Kỵ Sĩ": adjustedC.name,
@@ -1011,26 +1030,13 @@ export function buildStateFromCanon(
       "Chỉ Số": { ...drg.stats },
       "Kỹ Năng": { ...drg.skills },
       "Mô Tả": drg.description,
-    };
-
-    let loc = "dragonstone";
-    if (adjustedC.startHoldings?.[0]) loc = adjustedC.startHoldings[0];
-    else if (adjustedC.startRegions?.[0]) loc = `${adjustedC.startRegions[0]}-seat`;
-    
-    (state["Biên Chế Quân Sự"] as Record<string, unknown>)[drg.name] = {
-      "Tướng Chỉ Huy": adjustedC.name,
       "Nhà": adjustedC.house,
-      "Số Lượng": 1,
-      "Loại Quân": "Rồng",
-      "Thành Phần": {},
-      "Hậu Cần": "Dồi Dào",
-      "Sĩ Khí": "Hăng Hái",
-      "Trang Bị": "Không Có",
-      "Huấn Luyện": "Tinh Nhuệ",
-      "Lãnh Địa Đồn Trú": loc,
-      "Ngày Hành Quân Còn Lại": 0,
-      "Ngày Huấn Luyện": 0
-    };
+      "Đồn Trú": loc,
+      "Nơi Ổ": loc,
+      "Trạng Thái Thu Phục": "Đã Có Chủ",
+      "Mức Độ Thuần Hóa": 85,
+      "Độ Hảo Cảm": { [adjustedC.name]: 70 },
+    });
   }
 
   // ---- thiết lập Triều Đình nguyên tác ----
@@ -1200,20 +1206,16 @@ export function buildStateFromCanon(
     if (canonChar?.startArmies || canonChar?.startFleets) {
       if (canonChar.startArmies) {
         for (const a of canonChar.startArmies) {
-          state["Biên Chế Quân Sự"][a.name] = {
+          state["Biên Chế Quân Sự"][a.name] = newUnit(a.type as any, a.size, "Chính Quy", {
             "Tướng Chỉ Huy": name,
             "Nhà": house,
-            "Số Lượng": a.size,
-            "Loại Quân": a.type as any,
-            "Thành Phần": {},
             "Hậu Cần": "Dồi Dào",
             "Sĩ Khí": "Hăng Hái",
-            "Trang Bị": "Đồng Bộ Chỉnh Tề",
             "Huấn Luyện": a.quality as any,
             "Lãnh Địa Đồn Trú": loc,
-            "Ngày Hành Quân Còn Lại": 0,
-            "Ngày Huấn Luyện": 0
-          };
+            // quân nguyên tác đã đứng dưới cờ từ lâu — có kinh nghiệm sẵn
+            "Kinh Nghiệm": a.quality === "Tinh Nhuệ" ? 80 : a.quality === "Thành Thạo" ? 45 : 15,
+          });
         }
       }
       if (canonChar.startFleets) {
@@ -1239,20 +1241,21 @@ export function buildStateFromCanon(
       const size = Math.max(1, Math.floor(totalSize * fraction));
       if (size === 0) return;
       armyCount++;
-      state["Biên Chế Quân Sự"][`army_${chId}_${armyCount}`] = {
+      // quân thường trực của một Nhà lớn: phần lõi là chính quy, phần đông đảo
+      // phía sau vẫn là dân phục dịch — đúng cách Westeros ra trận
+      const branch = armyCount === 1 ? "Chính Quy" : "Phục Dịch";
+      state["Biên Chế Quân Sự"][`army_${chId}_${armyCount}`] = newUnit(type as any, size, branch, {
         "Tướng Chỉ Huy": name,
         "Nhà": house,
-        "Số Lượng": size,
-        "Loại Quân": type as any,
-        "Thành Phần": {},
         "Hậu Cần": "Dồi Dào",
         "Sĩ Khí": "Hăng Hái",
-        "Trang Bị": "Đồng Bộ Chỉnh Tề",
         "Huấn Luyện": quality as any,
         "Lãnh Địa Đồn Trú": loc,
-        "Ngày Hành Quân Còn Lại": 0,
-        "Ngày Huấn Luyện": 0
-      };
+        "Kinh Nghiệm": quality === "Tinh Nhuệ" ? 80 : quality === "Thành Thạo" ? 45 : 15,
+        // dân đã đứng dưới cờ từ trước khi ván bắt đầu — cho một kỳ nghĩa vụ dài
+        // để người chơi kịp hiểu luật trước khi phải trả họ về ruộng
+        ...(branch === "Phục Dịch" ? { "Hạn Phục Dịch Còn Lại": 180 } : {}),
+      });
     };
 
     const addFleet = (size: number) => {
@@ -1495,8 +1498,15 @@ export function buildStateFromCanon(
   // từng lãnh địa (mỗi ván một vùng đất khác nhưng vẫn đúng chất của vùng), rồi
   // bố trí lại công trình cho hợp địa hình và không chồng lấn.
   normalizeHouseIds(state);
+  // cờ "vùng này của ta" phải chốt SAU khi đã biết Nhà của nhân vật (M20)
+  repairPlayerSovereignty(state);
   seedMissingTerrain(state);
   repairAllHoldings(state);
+  // Quân sự phong kiến (M19): bảng chư hầu của các vùng ta nắm + chợ lính quanh đây
+  seedVassals(state);
+  seedSellswordMarket(state);
+  // Bản đồ chính trị (M20): mở quan hệ ngoại giao với mọi Nhà đã có thái độ
+  seedDiplomacy(state);
 
   return state;
 }

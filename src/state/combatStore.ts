@@ -15,6 +15,8 @@ import { troopMatchup, compositionFromUnits, type MatchupSide } from "../combat/
 import { adjustWarScore, warScoreForOutcome, setWarStatus } from "../strategy/war";
 import { captiveOpsFromGeneral } from "../strategy/betrayal";
 import { dragonSideFactor, dragonBurnsGate } from "../combat/dragon";
+import { newDragon, battleReadyDragons } from "../strategy/dragons";
+import { awardBattleExperience } from "../strategy/army";
 import { playerHouseId } from "../territory/territoryEngine";
 import type { Dragon } from "../mvu/schema";
 import { startDuel, runDuelRound, autoDuel, type DuelState, type DuelAction } from "../combat/duel";
@@ -148,12 +150,13 @@ function enemyDragon(attrs: Record<string, string>): number {
   if (!raw || raw === "false" || raw === "0") return 1.0;
   const size: Dragon["Kích Cỡ"] =
     raw === "Khổng Lồ" || raw.includes("Khổng Lồ") ? "Khổng Lồ (Balerion-class)" : raw === "Non" ? "Non" : "Trưởng Thành";
-  return dragonSideFactor([{
+  return dragonSideFactor([newDragon({
     "Tên": "Rồng địch", "Kích Cỡ": size, "Tình Trạng": "Khỏe", "_HP": 1000, "_HP Tối Đa": 1000,
-    "Màu Sắc": "Đen", "Tuổi": 50, "Chỉ Số": { "Sức Lửa": 10, "Sức Bay": 10, "Giáp Vảy": 10, "Hung Dữ": 10, "Trung Thành": 10 },
-    "Kỹ Năng": {}, "Mô Tả": "", "Độ Hảo Cảm": {}, "Mức Độ Thuần Hóa": 0,
-    "Trạng Thái Thu Phục": "Hoang Dã", "Đặc Tính": [], "Đang Bị Xích": false,
-  }]);
+    "Màu Sắc": "Đen", "Tuổi": 50,
+    "Chỉ Số": { "Sức Lửa": 10, "Sức Bay": 10, "Giáp Vảy": 10, "Hung Dữ": 10, "Trung Thành": 10 },
+    "Kỵ Sĩ": attrs.enemy_dragonrider || "Kỵ sĩ địch",
+    "Trạng Thái Thu Phục": "Đã Có Chủ", "Mức Độ Thuần Hóa": 70,
+  })]);
 }
 
 /** Parse chuỗi thành phần binh chủng địch từ attrs (JSON `{"Kỵ Binh":0.7}` hoặc "loại:tỷ,..."). */
@@ -205,7 +208,11 @@ function shipCasualtyOps(stat: StatData, totalLoss: number): PatchOp[] {
   return ops;
 }
 
-/** Trừ thương vong vào các đơn vị theo tỷ lệ; đơn vị về 0 → xoá (7.9.5). */
+/**
+ * Trừ thương vong vào các đơn vị theo tỷ lệ; đơn vị về 0 → xoá (7.9.5).
+ * M19: không phải ai ngã xuống cũng chết — một phần ba là THƯƠNG BINH, nằm trại
+ * và quay lại hàng ngũ dần nếu hậu cần còn tử tế (strategy/army.tickArmy).
+ */
 function casualtyOps(stat: StatData, totalLoss: number, newMorale: string): PatchOp[] {
   const units = Object.entries(stat["Biên Chế Quân Sự"]).filter(([, u]) => u["Số Lượng"] > 0);
   const total = units.reduce((s, [, u]) => s + u["Số Lượng"], 0);
@@ -216,11 +223,22 @@ function casualtyOps(stat: StatData, totalLoss: number, newMorale: string): Patc
     if (u["Số Lượng"] - loss <= 0) {
       ops.push({ op: "remove", path: `stat_data.Biên Chế Quân Sự.${name}` }); // quân chết là chết
     } else {
+      const wounded = Math.round(loss / 3);
       ops.push({ op: "replace", path: `stat_data.Biên Chế Quân Sự.${name}.Số Lượng`, value: u["Số Lượng"] - loss });
       ops.push({ op: "replace", path: `stat_data.Biên Chế Quân Sự.${name}.Sĩ Khí`, value: newMorale });
+      if (wounded > 0) {
+        ops.push({ op: "delta", path: `stat_data.Biên Chế Quân Sự.${name}.Thương Binh`, value: wounded });
+      }
     }
   }
   return ops;
+}
+
+/** Đơn vị còn sống tham chiến — dùng để cộng kinh nghiệm sau trận (M19). */
+function engagedUnitNames(stat: StatData): string[] {
+  return Object.entries(stat["Biên Chế Quân Sự"])
+    .filter(([, u]) => u["Số Lượng"] > 0 && u["Ngày Tập Hợp Còn Lại"] <= 0 && u["Ngày Huấn Luyện"] <= 0)
+    .map(([name]) => name);
 }
 
 export const useCombatStore = create<CombatState>()(
@@ -365,8 +383,9 @@ export const useCombatStore = create<CombatState>()(
         player.matchupFactor = troopMatchup(taSide, dichSide, { terrain, weather, siege });
         enemy.matchupFactor = troopMatchup(dichSide, taSide, { terrain, weather, siege });
 
-        // rồng/siêu nhiên (7.15) — hệ số phi đối xứng + đốt cổng thành khi công thành
-        const playerDragons = Object.values(stat["Rồng"]);
+        // rồng/siêu nhiên (7.15 + M19) — chỉ rồng SẴN SÀNG mới ra trận: con đang
+        // bị xích, đang dưỡng thương hay chưa thuần thì không cộng vào chiến lực
+        const playerDragons = battleReadyDragons(stat);
         const playerDragonFactor = dragonSideFactor(playerDragons);
         const enemyDragonFactor = enemyDragon(attrs);
         if (playerDragonFactor > 1 && playerDragons.length > 0) {
@@ -405,8 +424,11 @@ export const useCombatStore = create<CombatState>()(
         const result: BattleResult = resolveBattle({ player, enemy, terrain, seed: battleSeed, difficulty });
         const report = formatBattleReport(result, player, enemy, scale, terrain);
 
+        const wonBattle = result.outcome.includes("Thắng");
         const ops: PatchOp[] = [
           ...casualtyOps(stat, result.casualtiesPlayer, result.newMoralePlayer),
+          // lính sống sót lên tay: kinh nghiệm đẩy bậc Huấn Luyện (M19)
+          ...awardBattleExperience(stat, engagedUnitNames(stat), wonBattle),
           { op: "replace", path: "stat_data.Trận Đang Diễn._Đang Chiến Đấu", value: false },
           { op: "replace", path: "stat_data.Trận Đang Diễn._Log", value: result.log },
         ];
@@ -468,7 +490,7 @@ export const useCombatStore = create<CombatState>()(
         const weather = (stat["Thế Giới"]["Thời Tiết"] ?? "Trời Quang") as import("../combat/battleResolver").WeatherCondition;
         player.matchupFactor = troopMatchup(taSide, dichSide, { terrain, weather, siege: siegeCtx });
         enemy.matchupFactor = troopMatchup(dichSide, taSide, { terrain, weather, siege: siegeCtx });
-        const playerDragonsP = Object.values(stat["Rồng"]);
+        const playerDragonsP = battleReadyDragons(stat);
         const playerDragonFactorP = dragonSideFactor(playerDragonsP);
         const enemyDragonFactorP = enemyDragon(attrs);
         if (playerDragonFactorP > 1 && playerDragonsP.length > 0) {

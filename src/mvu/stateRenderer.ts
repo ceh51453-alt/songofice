@@ -83,6 +83,231 @@ function fmtNpc(name: string, npc: Npc): string {
   return lines.join("\n");
 }
 
+/**
+ * QUÂN ĐỘI (M19) — trước đây khối trạng thái không hề nhắc tới quân, nên AI kể
+ * chuyện chiến tranh bằng trí tưởng tượng: bịa ra quân không có, quên mất đám
+ * dân phục dịch sắp hết hạn, và không bao giờ biết chư hầu nào đang trên đường.
+ * Khối này bịt đúng lỗ đó.
+ */
+function renderMilitaryForAI(state: StatData): string[] {
+  const lines: string[] = [];
+  const house = String(state["Thông Tin Nhân Vật"]["Nhà"] ?? "").toLowerCase();
+  const units = Object.entries(state["Biên Chế Quân Sự"] ?? {}).filter(
+    ([, u]) => u["Số Lượng"] > 0 && (!u["Nhà"] || !house || String(u["Nhà"]).toLowerCase() === house),
+  );
+
+  if (units.length > 0) {
+    const total = units.reduce((s, [, u]) => s + u["Số Lượng"], 0);
+    const byBranch = new Map<string, number>();
+    for (const [, u] of units) byBranch.set(u["Ngạch"], (byBranch.get(u["Ngạch"]) ?? 0) + u["Số Lượng"]);
+    lines.push(
+      "",
+      `Quân đội dưới cờ ngươi: ${total.toLocaleString("vi-VN")} người ` +
+        `(${[...byBranch].map(([b, n]) => `${b} ${n.toLocaleString("vi-VN")}`).join(", ")}).`,
+    );
+    for (const [name, u] of units.slice(0, 10)) {
+      const parts = [
+        `• ${name}: ${u["Số Lượng"].toLocaleString("vi-VN")} ${u["Loại Quân"]} [${u["Ngạch"]}]`,
+        `Sĩ khí ${u["Sĩ Khí"]}, huấn luyện ${u["Huấn Luyện"]} (KN ${u["Kinh Nghiệm"]}/100), trang bị ${u["Trang Bị"]}, hậu cần ${u["Hậu Cần"]}`,
+      ];
+      if (u["Tướng Chỉ Huy"] && u["Tướng Chỉ Huy"] !== "Tạm Khuyết") parts.push(`Chủ tướng ${u["Tướng Chỉ Huy"]}`);
+      if (u["Ngày Tập Hợp Còn Lại"] > 0) parts.push(`ĐANG TẬP HỢP, còn ${formatDuration(u["Ngày Tập Hợp Còn Lại"])} mới tụ đủ`);
+      else if (u["Ngày Huấn Luyện"] > 0) parts.push(`đang huấn luyện, còn ${formatDuration(u["Ngày Huấn Luyện"])}`);
+      else if (u["Đang Di Chuyển Đến"]) parts.push(`đang hành quân tới ${u["Đang Di Chuyển Đến"]}, còn ${formatDuration(u["Ngày Hành Quân Còn Lại"])}`);
+      else parts.push(`đóng tại ${u["Lãnh Địa Đồn Trú"] || "chưa rõ"}`);
+      if (u["Thương Binh"] > 0) parts.push(`${u["Thương Binh"].toLocaleString("vi-VN")} thương binh nằm trại`);
+      if (u["Hạn Phục Dịch Còn Lại"] > 0) {
+        parts.push(
+          u["Hạn Phục Dịch Còn Lại"] <= 15
+            ? `SẮP HẾT HẠN NGHĨA VỤ (${formatDuration(u["Hạn Phục Dịch Còn Lại"])}) — lính đã nghĩ tới đồng ruộng`
+            : `hạn nghĩa vụ còn ${formatDuration(u["Hạn Phục Dịch Còn Lại"])}`,
+        );
+      }
+      if (u["Lương Thực Mang Theo"] <= 5 && !u["Lãnh Địa Đồn Trú"]) parts.push("LƯƠNG KHÔ SẮP CẠN");
+      if (u["Ghi Chú"]) parts.push(u["Ghi Chú"]);
+      lines.push(parts.join(". ") + ".");
+    }
+    if (units.length > 10) lines.push(`  … và ${units.length - 10} đơn vị khác.`);
+  } else {
+    lines.push("", "Quân đội dưới cờ ngươi: KHÔNG CÓ đơn vị nào — đừng kể như thể ngươi đang cầm quân.");
+  }
+
+  // chư hầu (M19)
+  const vassals = Object.entries(state["Chư Hầu"] ?? {});
+  if (vassals.length > 0) {
+    const marching = vassals.filter(([, v]) => v["Trạng Thái"] === "Đang Hành Quân");
+    const arrived = vassals.filter(([, v]) => v["Trạng Thái"] === "Đã Tới");
+    const refused = vassals.filter(([, v]) => v["Trạng Thái"] === "Từ Chối");
+    const pledged = vassals.reduce((s, [, v]) => s + v["Quân Cam Kết"], 0);
+    lines.push(
+      "",
+      `Chư hầu (${vassals.length} nhà, tổng cam kết ~${pledged.toLocaleString("vi-VN")} quân): ` +
+        vassals
+          .slice(0, 8)
+          .map(([, v]) => `${v["Tên Nhà"]} (${v["Thành Trì"]}, trung thành ${v["Trung Thành"]}, ${v["Trạng Thái"]})`)
+          .join(" · ") + ".",
+    );
+    if (marching.length > 0) {
+      lines.push(
+        `  Đang trên đường tới: ${marching.map(([, v]) => `${v["Tên Nhà"]} ${v["Quân Đã Gửi"].toLocaleString("vi-VN")} quân (còn ${formatDuration(v["Ngày Tới Nơi"])})`).join(", ")}.`,
+      );
+    }
+    if (arrived.length > 0) {
+      lines.push(
+        `  Đã có mặt dưới cờ: ${arrived.map(([, v]) => `${v["Tên Nhà"]} (${v["Ngày Tòng Quân"]} ngày tòng quân)`).join(", ")}. Giữ quá lâu là bào mòn lòng trung.`,
+      );
+    }
+    if (refused.length > 0) {
+      lines.push(`  ⚠ TỪ CHỐI hiệu triệu: ${refused.map(([, v]) => v["Tên Nhà"]).join(", ")} — đây là chuyện chính trị, hãy kể cho ra chuyện.`);
+    }
+  }
+
+  // chợ lính đánh thuê (M19)
+  const companies = Object.entries(state["Đội Đánh Thuê"] ?? {}).filter(([, c]) => c["Quân Số"] > 0);
+  if (companies.length > 0) {
+    lines.push(
+      "",
+      `Đoàn đánh thuê đang chào giá quanh đây: ` +
+        companies
+          .map(([, c]) => `${c["Tên Đoàn"]} (${c["Quân Số"].toLocaleString("vi-VN")} ${c["Binh Chủng"]}, ${c["Huấn Luyện"]}, chữ tín ${c["Chữ Tín"]}/100, còn nán ${formatDuration(c["Ngày Còn Ở Lại"])})`)
+          .join(" · ") + ".",
+    );
+  }
+
+  return lines;
+}
+
+/**
+ * NGOẠI GIAO (M20) — trước đây khối trạng thái chỉ đưa AI một dòng "Các Nhà: X →
+ * CẢNH GIÁC", nên AI không thể biết ta đang có hiệp ước gì, đình chiến còn mấy
+ * ngày, hay Nhà nào đang giữ cớ để đánh ta. Khối này bịt lỗ đó.
+ */
+function renderDiplomacyForAI(state: StatData): string[] {
+  const lines: string[] = [];
+  const dip = state["Ngoại Giao"];
+  const rels = Object.entries(state["Quan Hệ Ngoại Giao"] ?? {});
+  const today = absoluteDay(state["Thế Giới"]);
+
+  if (rels.length > 0) {
+    lines.push("", `Ngoại giao — uy tín cam kết của ngươi: ${dip["Uy Tín Cam Kết"]}/100 ` +
+      `(${dip["Uy Tín Cam Kết"] >= 70 ? "lời ngươi đáng giá" : dip["Uy Tín Cam Kết"] >= 40 ? "người ta còn dè dặt" : "KHÔNG AI TIN LỜI NGƯƠI NỮA"}).`);
+    for (const [houseId, r] of rels) {
+      const parts = [`• ${houseId}: ${r["Trạng Thái"]}`];
+      if (r["Trạng Thái"] === "Chiến Tranh") parts.push(`War Score ${r["War Score"] > 0 ? "+" : ""}${r["War Score"]}`);
+      parts.push(`lòng tin ${r["Tin Cậy"]}`);
+      if (r["Ngày Hết Hạn Đình Chiến"] > 0) {
+        const left = r["Ngày Hết Hạn Đình Chiến"] - today;
+        parts.push(left > 0 ? `đình chiến còn ${formatDuration(left)}` : "ĐÌNH CHIẾN VỪA HẾT HẠN");
+      }
+      const active = r["Hiệp Ước"].filter((t) => t["Còn Hiệu Lực"]);
+      if (active.length > 0) {
+        parts.push(`hiệp ước: ${active.map((t) => t["Loại"] + (t["Điều Khoản"] ? ` (${t["Điều Khoản"]})` : "")).join(", ")}`);
+      }
+      const broken = r["Hiệp Ước"].filter((t) => !t["Còn Hiệu Lực"] && t["Bên Phá"]);
+      if (broken.length > 0) parts.push(`đã bị xé: ${broken.map((t) => `${t["Loại"]} (bởi ${t["Bên Phá"]})`).join(", ")}`);
+      if (r["_Cống Nạp Tháng"] !== 0) {
+        parts.push(r["_Cống Nạp Tháng"] > 0 ? `họ cống ta ${r["_Cống Nạp Tháng"]}/tháng` : `ta cống họ ${-r["_Cống Nạp Tháng"]}/tháng`);
+      }
+      const ours = r["Ân Oán"].filter((g) => g["Bên Nợ"] === "Họ Nợ Ta");
+      const theirs = r["Ân Oán"].filter((g) => g["Bên Nợ"] === "Ta Nợ Họ");
+      if (ours.length > 0) parts.push(`TA CÓ CỚ (${ours.reduce((s, g) => s + g["Mức"], 0)}): ${ours.slice(0, 3).map((g) => g["Việc"]).join("; ")}`);
+      if (theirs.length > 0) parts.push(`HỌ CÓ CỚ (${theirs.reduce((s, g) => s + g["Mức"], 0)}): ${theirs.slice(0, 3).map((g) => g["Việc"]).join("; ")}`);
+      if (r["Ghi Chú"]) parts.push(r["Ghi Chú"]);
+      lines.push(parts.join(" · ") + ".");
+    }
+  }
+
+  const envoys = Object.entries(dip["Sứ Giả"] ?? {}).filter(([, e]) => e["Trạng Thái"] !== "Đã Về");
+  if (envoys.length > 0) {
+    lines.push(`Sứ giả đang đi: ${envoys.map(([n, e]) => `${n} → ${e["Tới Nhà"]} (${e["Nhiệm Vụ"]}, ${e["Trạng Thái"]}, còn ${formatDuration(e["Ngày Còn Lại"])})`).join(" · ")}.`);
+  }
+  const offers = Object.entries(dip["Lời Đề Nghị"] ?? {});
+  if (offers.length > 0) {
+    lines.push(
+      "Lời đề nghị ĐANG CHỜ NGƯỜI CHƠI TRẢ LỜI (họ trả lời bằng lời trong cuộc chơi, không có nút bấm):",
+      ...offers.map(([k, o]) => {
+        const left = o["Ngày Hết Hạn Trả Lời"] - today;
+        return `  • [${k}] ${o["Từ Nhà"]} đề nghị ${o["Loại"]}: ${o["Điều Khoản"] || "(chưa rõ điều khoản)"}` +
+          (o["Cống Nạp Tháng"] ? `, cống nạp ${o["Cống Nạp Tháng"]}/tháng` : "") +
+          (o["Số Năm"] ? `, ${o["Số Năm"]} năm` : "") +
+          (left > 0 ? ` — còn ${formatDuration(left)} để trả lời` : " — SẮP HẾT HẠN");
+      }),
+    );
+  }
+  if (dip["_Biến Động"]) {
+    lines.push(`⚠ BIẾN ĐỘNG NGOẠI GIAO: ${dip["_Biến Động"]} — hãy tường thuật việc này.`);
+  }
+  return lines;
+}
+
+/** MƯU ĐỒ (M20) — tai mắt có vỏ bọc, bí mật có sức nặng, âm mưu có giai đoạn. */
+function renderIntrigueForAI(state: StatData): string[] {
+  const lines: string[] = [];
+  const intel = state["Tình Báo"];
+
+  const spies = Object.entries(intel["Điệp Viên"]);
+  if (spies.length > 0) {
+    lines.push("", "Tai mắt của ngươi:");
+    for (const [n, s] of spies) {
+      const risk = s["Bị Nghi Ngờ"] >= 80 ? " ⚠ SẮP BỊ LỘ" : s["Vỏ Bọc"] <= 20 ? " ⚠ vỏ bọc gần như trần trụi" : "";
+      lines.push(
+        `  • ${n} (${s["Hạng"]}) cài ở ${s["Cài Ở"] || "?"} — ${s["Nhiệm Vụ"]}, thâm nhập ${s["Độ Sâu Thâm Nhập"]}, ` +
+          `nghi ngờ ${s["Bị Nghi Ngờ"]}, vỏ bọc ${Math.round(s["Vỏ Bọc"])}` +
+          (s["Người Điều Khiển"] ? `, đầu mối qua ${s["Người Điều Khiển"]}` : "") +
+          `, đã gửi ${s["Số Tin Đã Gửi"]} tin.${risk}`,
+      );
+    }
+  }
+  if (intel["_Điệp Viên Vừa Lộ"]) {
+    lines.push(`⚠ ĐIỆP VIÊN VỪA BỊ LỘ: ${intel["_Điệp Viên Vừa Lộ"]} — hãy tường thuật hắn bị bắt và hệ quả.`);
+  }
+  if (intel["Bị Cài Điệp Viên"] > 0) {
+    lines.push(`Sân nhà ngươi bị thâm nhập: ${intel["Bị Cài Điệp Viên"]}/100.`);
+  }
+  const enemySpies = Object.entries(intel["Điệp Viên Địch"] ?? {});
+  if (enemySpies.length > 0) {
+    lines.push(
+      `Kẻ bị nghi là tai mắt của địch: ${enemySpies.map(([k, e]) => `${k} (của ${e["Của Nhà"] || "?"}, chứng cứ ${e["Chứng Cứ"]}${e["Đang Rình"] ? `, rình ${e["Đang Rình"]}` : ""})`).join(" · ")}.`,
+      "  (bắt khi chứng cứ dưới 60 là bắt oan — mất mặt và Nhà kia có cớ oán)",
+    );
+  }
+
+  const secrets = Object.entries(intel["Bí Mật"] ?? {});
+  if (secrets.length > 0) {
+    lines.push("Sổ bí mật (đòn bẩy = sức nặng × độ tin):");
+    for (const [k, s] of secrets.slice(0, 8)) {
+      const flags = [s["Đã Dùng"] ? "đã dùng" : "", s["Đã Lan Ra"] ? "đã lan ra" : ""].filter(Boolean).join(", ");
+      lines.push(
+        `  • [${k}] về ${s["Về Ai"] || "?"}: ${s["Nội Dung"] || "(NGƯƠI CHƯA VIẾT NỘI DUNG — hãy phát thẻ <secret> điền vào)"}` +
+          ` — nặng ${s["Sức Nặng"]}, tin ${s["Độ Tin Cậy"]}${s["Nguồn"] ? `, nguồn ${s["Nguồn"]}` : ""}${flags ? ` [${flags}]` : ""}`,
+      );
+    }
+  }
+
+  const plots = Object.entries(state["Âm Mưu"]);
+  if (plots.length > 0) {
+    lines.push("Âm mưu đang chạy:");
+    for (const [n, p] of plots) {
+      lines.push(
+        `  • ${n} (${p["Loại"]} nhắm ${p["Mục Tiêu"] || "?"}) — giai đoạn ${p["Giai Đoạn"]}, ` +
+          `tiến độ ${Math.round(p["Tiến Độ"])}/bại lộ ${Math.round(p["Độ Bại Lộ"])}` +
+          (p["Đồng Mưu"].length > 0 ? `, đồng mưu: ${p["Đồng Mưu"].join(", ")}` : "") +
+          (p["Kẻ Điều Tra"] ? `, ⚠ ${p["Kẻ Điều Tra"]} đang lần theo dấu` : "") +
+          (p["Hậu Quả Nếu Lộ"] ? `. Nếu vỡ: ${p["Hậu Quả Nếu Lộ"]}` : ""),
+      );
+    }
+  }
+  if (intel["_Âm Mưu Vừa Vỡ"]) {
+    lines.push(`⚠ ÂM MƯU VỪA VỠ: ${intel["_Âm Mưu Vừa Vỡ"]} — mục tiêu đã biết, hãy kể cảnh phản đòn.`);
+  }
+
+  const captives = Object.entries(state["Tù Binh"]);
+  if (captives.length > 0) {
+    lines.push(`Con tin đang giữ: ${captives.map(([n, c]) => `${c["Họ Tên"] || n} (Nhà ${c["Nhà"] || "?"}, ${c["Đối Xử"]}, chuộc ${c["Giá Chuộc"]})`).join(" · ")}.`);
+  }
+  return lines;
+}
+
 /** Khối render đầy đủ cho prompt. */
 export function renderStateForAI(state: StatData): string {
   const info = state["Thông Tin Nhân Vật"];
@@ -147,6 +372,10 @@ export function renderStateForAI(state: StatData): string {
     lines.push(`Túi đồ: ${items.slice(0, 15).map(([name, it]) => `${name}×${it["Số Lượng"]}`).join(", ")}${items.length > 15 ? "…" : ""}.`);
   }
 
+  // ── QUÂN ĐỘI (M19) — AI phải BIẾT mình có bao nhiêu quân, ngạch gì, ở đâu,
+  // còn bao nhiêu ngày nghĩa vụ, mới kể đúng được chuyện hành quân và chiến trận.
+  lines.push(...renderMilitaryForAI(state));
+
   // rồng (7.15 mở rộng)
   const dragons = Object.entries(state["Rồng"]);
   if (dragons.length > 0) {
@@ -157,11 +386,21 @@ export function renderStateForAI(state: StatData): string {
       const affinity = Object.entries(drg["Độ Hảo Cảm"] || {}).map(([n, a]) => `${n}(${a})`).join(", ");
       
       lines.push(
-        `• ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi, ${drg["Trạng Thái Thu Phục"]}). ` +
+        `• ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi, sải cánh ~${drg["_Sải Cánh"]}m, ${drg["Trạng Thái Thu Phục"]}). ` +
           `HP ${drg["_HP"]}/${drg["_HP Tối Đa"]}. Tình Trạng: ${drg["Tình Trạng"]}. ` +
           (drg["Đang Bị Xích"] ? `ĐANG BỊ XÍCH (${drg["Nơi Ổ"] || "Chưa rõ"}). ` : "") +
           (drg["Kỵ Sĩ"] ? ` Kỵ Sĩ: ${drg["Kỵ Sĩ"]}. ` : ` Mức Độ Thuần Hóa: ${drg["Mức Độ Thuần Hóa"]}/100. `) +
           (affinity ? ` Hảo cảm: ${affinity}. ` : "")
+      );
+      const drgPlace = drg["Đang Bay Đến"]
+        ? `đang bay tới ${drg["Đang Bay Đến"]} (còn ${formatDuration(drg["Ngày Bay Còn Lại"])})`
+        : `đậu tại ${drg["Đồn Trú"] || drg["Nơi Ổ"] || "chưa rõ"}`;
+      const hungry = drg["Độ Đói"] >= 80 ? "ĐÓI CỒN CÀO (dễ nổi loạn, tự đi săn)"
+        : drg["Độ Đói"] >= 50 ? "đang đói" : "no đủ";
+      lines.push(
+        `  Vị trí: ${drgPlace}. ${hungry} (ăn ~${drg["_Khẩu Phần Tháng"]} phần/tháng). ` +
+          `Đã qua ${drg["Số Trận"]} trận (kinh nghiệm ${drg["Kinh Nghiệm"]}/100).` +
+          ((drg["Vết Thương"]?.length ?? 0) > 0 ? ` Vết thương: ${drg["Vết Thương"].join(", ")} — còn ${formatDuration(drg["Ngày Hồi Phục Còn Lại"])} mới lành.` : ""),
       );
       if (stats) {
         lines.push(
@@ -245,27 +484,11 @@ export function renderStateForAI(state: StatData): string {
     lines.push(`Hôn ước đang thương lượng: ${betrothals.map(([, b]) => `${b["Đối Tượng"]} (Nhà ${b["Nhà Đối Tác"]})`).join(", ")}.`);
   }
 
-  // tình báo & mưu đồ (14.1-14.2) — chỉ render khi có hoạt động
-  const intel = state["Tình Báo"];
-  const spies = Object.entries(intel["Điệp Viên"]);
-  if (spies.length > 0) {
-    lines.push("", `Điệp viên: ${spies.map(([n, s]) => `${n} (cài ở ${s["Cài Ở"] || "?"}, ${s["Nhiệm Vụ"]}, nghi ngờ ${s["Bị Nghi Ngờ"]})`).join(" · ")}.`);
-  }
-  if (intel["_Điệp Viên Vừa Lộ"]) {
-    lines.push(`⚠ ĐIỆP VIÊN VỪA BỊ LỘ: ${intel["_Điệp Viên Vừa Lộ"]} — hãy tường thuật hắn bị bắt và hệ quả.`);
-  }
-  const intelKnown = Object.entries(intel["Tin Tình Báo Đã Biết"]);
-  if (intelKnown.length > 0) {
-    lines.push(`Tin tình báo đã biết: ${intelKnown.slice(0, 6).map(([k, v]) => `${k}: ${v}`).join(" | ")}.`);
-  }
-  const plots = Object.entries(state["Âm Mưu"]);
-  if (plots.length > 0) {
-    lines.push(`Âm mưu đang chạy: ${plots.map(([n, p]) => `${n} (${p["Loại"]} nhắm ${p["Mục Tiêu"]}, tiến độ ${p["Tiến Độ"]}/bại lộ ${p["Độ Bại Lộ"]})`).join(" · ")}.`);
-  }
-  const captives = Object.entries(state["Tù Binh"]);
-  if (captives.length > 0) {
-    lines.push(`Con tin đang giữ: ${captives.map(([n, c]) => `${c["Họ Tên"] || n} (Nhà ${c["Nhà"] || "?"}, ${c["Đối Xử"]}, chuộc ${c["Giá Chuộc"]})`).join(" · ")}.`);
-  }
+  // ── NGOẠI GIAO (M20) — pháp lý + hiệp ước + ân oán + lòng tin ──
+  lines.push(...renderDiplomacyForAI(state));
+
+  // ── MƯU ĐỒ (M20) — tai mắt, vỏ bọc, sổ bí mật, phản gián, âm mưu ──
+  lines.push(...renderIntrigueForAI(state));
 
   // lãnh địa quản lý (10.1) — tài nguyên + công trình đang xây, gọn
   const holdings = Object.entries(state["Lãnh Địa"]);

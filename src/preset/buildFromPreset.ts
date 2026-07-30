@@ -109,7 +109,10 @@ export function buildFromPreset(preset: STPreset, opts: BuildOptions): BuildResu
       warnings.push(`prompt_order tham chiếu identifier không tồn tại: ${o.identifier}`);
       continue;
     }
-    if (!o.enabled || !block.enabled) {
+    // Bật/tắt do prompt_order QUYẾT ĐỊNH (đúng ST): field `enabled` trên object
+    // prompt là di sản, ST không dùng nó để lọc. Trước đây bắt cả hai cùng true
+    // nên block bật trong order mà tắt trong prompts bị rụng im lặng.
+    if (!o.enabled) {
       traces.push({
         identifier: block.identifier, name: block.name, role: block.role, kind: block.marker ? "marker" : "prompt",
         tokens: 0, content: "", messageIndex: null, skippedReason: "disabled",

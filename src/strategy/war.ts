@@ -7,6 +7,7 @@
  * Engine giữ số; captureRegion đồng bộ Lãnh Địa (10.1). AI narrate qua <siege_update>.
  */
 import type { StatData } from "../mvu/schema";
+import { DiplomacyRelationSchema } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import { registerDailyListener, registerMonthlyListener } from "../mvu/effects";
 import { absoluteDay } from "../mvu/calendar";
@@ -14,10 +15,18 @@ import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 import { playerHouseId, makeHolding } from "../territory/territoryEngine";
 
-export type DiploState = "Hoà Bình" | "Chiến Tranh" | "Đình Chiến";
+/**
+ * Trạng thái pháp lý — M20 chuyển nguồn chân lý sang schema.DIPLO_STATES (thêm
+ * Liên Minh / Thần Phục). Alias giữ đây cho code cũ.
+ */
+export type { DiploState } from "../mvu/schema";
 
-/** Tuyên chiến / đổi trạng thái ngoại giao (12.1). Trả ops cho engine áp. */
-export function setWarStatus(houseId: string, status: DiploState): PatchOp[] {
+/**
+ * Tuyên chiến / đổi trạng thái ngoại giao (12.1). Chỉ ghi TRẠNG THÁI THÔ — hệ
+ * quả đầy đủ (bội ước, mất uy tín, ân oán) nằm ở strategy/diplomacy.setDiploStatus,
+ * để tuyên chiến qua đường ngoại giao và qua kết quả trận đánh không lệch nhau.
+ */
+export function setWarStatus(houseId: string, status: string): PatchOp[] {
   return [{ op: "replace", path: `stat_data.Quan Hệ Ngoại Giao.${houseId}.Trạng Thái`, value: status }];
 }
 export function declareWar(houseId: string): PatchOp[] {
@@ -157,8 +166,10 @@ export function tickSiege(state: StatData): void {
 }
 
 function bumpWarScore(state: StatData, houseId: string, delta: number): void {
-  const diplo = state["Quan Hệ Ngoại Giao"] as Record<string, { "Trạng Thái": DiploState; "War Score": number }>;
-  if (!diplo[houseId]) diplo[houseId] = { "Trạng Thái": "Chiến Tranh", "War Score": 0 };
+  const diplo = state["Quan Hệ Ngoại Giao"];
+  if (!diplo[houseId]) {
+    diplo[houseId] = DiplomacyRelationSchema.parse({ "Trạng Thái": "Chiến Tranh" });
+  }
   diplo[houseId]["War Score"] = Math.max(-100, Math.min(100, diplo[houseId]["War Score"] + delta));
 }
 

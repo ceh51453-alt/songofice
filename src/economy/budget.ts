@@ -19,7 +19,9 @@ import { isBlockaded } from "./blockade";
 import { wallUpkeep } from "../territory/walls";
 import { buildingLedgers } from "../territory/construction";
 import { treasuryMultiplier } from "../strategy/court";
-import { TROOP_META } from "../content/westeros/troopTypes";
+import { troopWage, unitMonthlyWage } from "./wages";
+
+export { troopWage };
 
 const G = EXCHANGE_RATES.GOLD_TO_COPPER;
 
@@ -47,31 +49,27 @@ export interface Budget {
 
 // ── Quân sự ─────────────────────────────────────────────────────────────────
 
-/** Lương một người lính mỗi tháng, theo binh chủng (Đồng Đỏ). */
-export function troopWage(troopType: string): number {
-  const meta = TROOP_META[troopType as keyof typeof TROOP_META];
-  // lương tháng suy từ chính chi phí tuyển: quân đắt tuyển thì cũng đắt nuôi.
-  // Bộ binh thường ra đúng 112 Đồng Đỏ ≈ 2 Hươu Bạc/tháng như trước.
-  if (meta) {
-    const base = meta.costPer100["Ngân Khố"] / 100; // Rồng Vàng mỗi lính
-    const wage = base * 0.05 * G; // bộ binh thường ≈ 588 Đồng Đỏ ≈ 10 Hươu Bạc
-    return Math.max(120, Math.round(meta.mercenary ? wage * 2.6 : wage));
-  }
-  return 588;
-}
-
 function militaryLines(state: StatData): LedgerLine[] {
   const house = state["Thông Tin Nhân Vật"]["Nhà"];
   let wages = 0;
   let troops = 0;
   let training = 0;
+  /** tách riêng khoản khế ước lính đánh thuê — người chơi phải thấy nó ngốn cỡ nào. */
+  let sellswordWages = 0;
+  let sellswords = 0;
 
   for (const u of Object.values(state["Biên Chế Quân Sự"] ?? {})) {
-    if (house && u["Nhà"] !== house) continue;
+    if (house && u["Nhà"] && u["Nhà"] !== house) continue;
     const n = u["Số Lượng"] || 0;
     if (n <= 0) continue;
-    troops += n;
-    wages += n * troopWage(u["Loại Quân"]);
+    const wage = unitMonthlyWage(u);
+    if (u["Ngạch"] === "Đánh Thuê") {
+      sellswords += n;
+      sellswordWages += wage;
+    } else {
+      troops += n;
+      wages += wage;
+    }
     // quân đang huấn luyện tốn thêm giáo cụ, thầy dạy, ngựa tập
     if ((u["Ngày Huấn Luyện"] || 0) > 0) training += n * 40;
   }
@@ -88,6 +86,13 @@ function militaryLines(state: StatData): LedgerLine[] {
       id: "exp-wages", label: "Lương Binh Sĩ", kind: "expense", group: "Quân Sự",
       amount: Math.round(wages),
       detail: `${troops.toLocaleString("vi-VN")} quân thường trực`,
+    });
+  }
+  if (sellswordWages > 0) {
+    out.push({
+      id: "exp-sellswords", label: "Khế Ước Đánh Thuê", kind: "expense", group: "Quân Sự",
+      amount: Math.round(sellswordWages),
+      detail: `${sellswords.toLocaleString("vi-VN")} lính đánh thuê · trễ lương là trở giáo`,
     });
   }
   if (training > 0) {

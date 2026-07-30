@@ -1,9 +1,16 @@
 /**
  * Render các đoạn thẻ ngữ nghĩa (5.6) — mỗi loại 1 component kính mờ riêng.
  * M4: raven_scroll, event_popup, combat_trigger (placeholder chờ engine M6);
- * các thẻ khác render dạng card chung. Không emoji — icon SVG.
+ * các thẻ khác render dạng card chung.
+ *
+ * Ngoài thẻ của app, nội dung do preset ST sinh ra cũng được render:
+ *   ```html … ```  → SandboxedHtml (iframe cách ly, script preset chạy được)
+ *   HTML thô       → InlineHtml (shadow DOM, đã lọc DOMPurify)
  */
 import { parseNarrative, parseCouncilSession, splitTagParts, type NarrativeSegment } from "./parseNarrative";
+import { splitRichContent, looksLikeHtml, htmlToPlainText } from "../chat/richContent";
+import { InlineHtml } from "../chat/InlineHtml";
+import { SandboxedHtml } from "../chat/SandboxedHtml";
 import { IconAlert, IconCrossedSwords, IconCrown, IconMap, IconScroll, IconUsers } from "../icons";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
@@ -166,11 +173,52 @@ function BattleReportCard({ content, attrs }: { content: string; attrs: Record<s
   );
 }
 
+/** Dải chân dung nhân vật được nhắc tới trong đoạn văn. */
+function PortraitCards({ chars }: { chars: Array<{ name: string; image: string }> }) {
+  if (chars.length === 0) return null;
+  return (
+    <div className="mt-4 flex flex-wrap gap-4 justify-center">
+      {chars.map(char => (
+        <div key={char.name} className="flex flex-col items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--glass-bg)] p-2 shadow-sm">
+          <div className="flex h-[280px] w-[220px] items-center justify-center overflow-hidden rounded-sm bg-black/50">
+            <img src={`/portraits/${char.image}`} alt={char.name} className="h-full w-full object-cover" />
+          </div>
+          <span className="font-display text-[13px] font-medium tracking-wide text-[var(--accent-text)]">{char.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Dò tên nhân vật trong text thuần (dùng cho nhánh HTML — không tô inline được). */
+function findMentionedChars(plain: string, year: number): Array<{ name: string; image: string }> {
+  const out: Array<{ name: string; image: string }> = [];
+  for (const part of plain.split(CHAR_REGEX)) {
+    if (!part) continue;
+    const matched = SORTED_CHARS.find(c => c.toLowerCase() === part.toLowerCase());
+    if (!matched || out.some(o => o.name === matched)) continue;
+    const image = getPortraitForCharacter(matched, year);
+    if (image) out.push({ name: matched, image });
+  }
+  return out;
+}
+
+/** Đoạn văn có HTML trình bày của preset → shadow DOM + chân dung bên dưới. */
+function HtmlText({ html }: { html: string }) {
+  const currentYear = useMvuStore(s => s.stat["Thế Giới"]["Năm"]);
+  return (
+    <>
+      <InlineHtml html={html} />
+      <PortraitCards chars={findMentionedChars(htmlToPlainText(html), currentYear)} />
+    </>
+  );
+}
+
 function CharacterMentionText({ text }: { text: string }) {
   const currentYear = useMvuStore(s => s.stat["Thế Giới"]["Năm"]);
   if (!text) return null;
   const parts = text.split(CHAR_REGEX);
-  
+
   const mentionedChars: Array<{ name: string; image: string }> = [];
 
   const renderedText = (
@@ -179,7 +227,7 @@ function CharacterMentionText({ text }: { text: string }) {
         if (!part) return null;
         const lowerPart = part.toLowerCase();
         const matchedChar = SORTED_CHARS.find(c => c.toLowerCase() === lowerPart);
-        
+
         if (matchedChar) {
           const image = getPortraitForCharacter(matchedChar, currentYear);
           if (image && !mentionedChars.some(c => c.name === matchedChar)) {
@@ -199,18 +247,7 @@ function CharacterMentionText({ text }: { text: string }) {
   return (
     <>
       {renderedText}
-      {mentionedChars.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-4 justify-center">
-          {mentionedChars.map(char => (
-            <div key={char.name} className="flex flex-col items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--glass-bg)] p-2 shadow-sm">
-              <div className="flex h-[280px] w-[220px] items-center justify-center overflow-hidden rounded-sm bg-black/50">
-                <img src={`/portraits/${char.image}`} alt={char.name} className="h-full w-full object-cover" />
-              </div>
-              <span className="font-display text-[13px] font-medium tracking-wide text-[var(--accent-text)]">{char.name}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <PortraitCards chars={mentionedChars} />
     </>
   );
 }
@@ -218,7 +255,9 @@ function CharacterMentionText({ text }: { text: string }) {
 function Segment({ seg }: { seg: NarrativeSegment }) {
   switch (seg.type) {
     case "text":
-      return <CharacterMentionText text={seg.content} />;
+      return looksLikeHtml(seg.content)
+        ? <HtmlText html={seg.content} />
+        : <CharacterMentionText text={seg.content} />;
     case "raven_scroll":
       return <RavenScroll content={seg.content} />;
     case "event_popup":
@@ -236,14 +275,28 @@ function Segment({ seg }: { seg: NarrativeSegment }) {
   }
 }
 
-/** Render nội dung 1 tin nhắn AI: văn thường + thẻ inline. */
-export function NarrativeContent({ text }: { text: string }) {
-  const segments = parseNarrative(text);
+/** Thẻ ngữ nghĩa của app + văn/HTML trong một mảnh nội dung. */
+function NarrativeParts({ text }: { text: string }) {
   return (
     <>
-      {segments.map((seg, i) => (
+      {parseNarrative(text).map((seg, i) => (
         <Segment key={i} seg={seg} />
       ))}
+    </>
+  );
+}
+
+/** Render nội dung 1 tin nhắn AI: khối ```html``` cách ly + văn/HTML + thẻ inline. */
+export function NarrativeContent({ text }: { text: string }) {
+  return (
+    <>
+      {splitRichContent(text).map((part, i) =>
+        part.kind === "htmlBlock" ? (
+          <SandboxedHtml key={i} html={part.content} />
+        ) : (
+          <NarrativeParts key={i} text={part.content} />
+        ),
+      )}
     </>
   );
 }

@@ -123,6 +123,22 @@ export function tickIntelligence(state: StatData): void {
         const key = `Tin từ ${spy["Cài Ở"] || name} (${formatDateShort(state["Thế Giới"])})`;
         if (!intel["Tin Tình Báo Đã Biết"][key]) {
           intel["Tin Tình Báo Đã Biết"][key] = `Điệp viên ${name} thu được tin tức từ ${spy["Cài Ở"] || "mục tiêu"}.`;
+          // M20: vào SỔ BÍ MẬT với sức nặng/độ tin theo hạng tai mắt + độ sâu.
+          // NỘI DUNG để trống — AI viết vào bằng thẻ <secret>, vì chỉ nó biết
+          // trong truyện đang có bí mật gì đáng giá.
+          const q = spyIntelQuality(state, name);
+          intel["Bí Mật"][key] = {
+            "Về Ai": spy["Cài Ở"] || "",
+            "Chủ Đề": key,
+            "Nội Dung": "",
+            "Sức Nặng": q.weight,
+            "Độ Tin Cậy": q.credibility,
+            "Nguồn": name,
+            "Đã Dùng": false,
+            "Đã Lan Ra": false,
+            "_Ngày Biết": absoluteDay(state["Thế Giới"]),
+          };
+          spy["Số Tin Đã Gửi"] = (spy["Số Tin Đã Gửi"] ?? 0) + 1;
         }
       }
       spy["Độ Sâu Thâm Nhập"] = clamp(depth + 1, 0, 100);
@@ -287,11 +303,25 @@ export interface BlackmailResult {
  * nhưng khuất phục (AI kể). Tiêu 1 tin tình báo.
  */
 export function blackmailOps(state: StatData, npcName: string, intelKey: string, seed: number): BlackmailResult {
-  const result = resolveCheck({ checkId: "blackmail", actor: playerActor(state), difficulty: "Thường", seed });
+  // M20: ĐÒN BẨY quyết định độ khó — một bí mật nặng và đáng tin hạ DC xuống
+  // thấp, còn tin vặt nghe từ gái lầu xanh thì gần như không ép được ai.
+  const secret = state["Tình Báo"]["Bí Mật"]?.[intelKey];
+  const leverage = secret ? secretLeverage(secret) : 0;
+  const dc = clamp(55 - Math.round(leverage / 2), 10, 75);
+  const result = resolveCheck({ checkId: "blackmail", actor: playerActor(state), difficulty: dc, seed });
   const success = isSuccess(result.grade);
   const ops: PatchOp[] = [];
+
   if (intelKey && state["Tình Báo"]["Tin Tình Báo Đã Biết"][intelKey]) {
     ops.push({ op: "remove", path: `stat_data.Tình Báo.Tin Tình Báo Đã Biết.${intelKey}` });
+  }
+  if (secret) {
+    // bí mật đã dùng thì mất giá, không mất hẳn — vẫn còn để nhắc lại
+    ops.push({ op: "replace", path: `stat_data.Tình Báo.Bí Mật.${intelKey}.Đã Dùng`, value: true });
+    if (!success) {
+      // ép mà thất bại thì bí mật thường lan ra — mất luôn thế độc quyền
+      ops.push({ op: "replace", path: `stat_data.Tình Báo.Bí Mật.${intelKey}.Đã Lan Ra`, value: true });
+    }
   }
   const group = npcGroup(state, npcName);
   if (group) {
@@ -347,9 +377,290 @@ export function setTreatmentOps(state: StatData, name: string, treatment: string
   return ops;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ĐẠI TU M20 — mưu đồ không còn là hai thanh tiến độ với vài cái nút.
+//
+// Bốn thứ được thêm, mỗi thứ bịt một lỗ logic của bản cũ:
+//   1. BÍ MẬT có sổ riêng: nói về AI, nặng cỡ nào, tin được bao nhiêu phần. Một
+//      tin vặt của gái lầu xanh không ép được lãnh chúa quỳ.
+//   2. VỎ BỌC điệp viên: mòn theo việc làm. Nhiệm vụ bẩn thì mòn nhanh.
+//   3. PHẢN GIÁN: tai mắt của địch trong sân nhà ta, có thanh chứng cứ riêng.
+//   4. ÂM MƯU CÓ GIAI ĐOẠN và tự bò theo NGÀY — không cần ai bấm "đẩy nhanh".
+// ═══════════════════════════════════════════════════════════════════════════
+
+import { absoluteDay } from "../mvu/calendar";
+import type { Secret } from "../mvu/schema";
+import { PLOT_PHASES } from "../mvu/schema";
+
+/** Nhiệm vụ càng bẩn thì vỏ bọc mòn càng nhanh. */
+const COVER_WEAR: Record<string, number> = {
+  "Thu Thập Tin": 1,
+  "Nằm Vùng": 0,
+  "Tung Tin Đồn": 2,
+  "Phá Hoại": 4,
+  "Ám Sát (chuẩn bị)": 5,
+};
+
+/** Hạng tai mắt quyết định chất lượng tin thu được (M20). */
+const KIND_QUALITY: Record<string, { weight: number; credibility: number }> = {
+  "Điệp Viên": { weight: 45, credibility: 65 },
+  "Chim Nhỏ": { weight: 30, credibility: 45 },
+  "Người Trong Nhà": { weight: 60, credibility: 80 },
+  "Kẻ Mua Được": { weight: 50, credibility: 55 },
+  "Gái Lầu Xanh": { weight: 35, credibility: 40 },
+};
+
+// ── Sổ bí mật (M20) ─────────────────────────────────────────────────────────
+
+/** Ghi một bí mật vào sổ — AI viết NỘI DUNG, engine chốt sức nặng/độ tin. */
+export function recordSecretOps(
+  state: StatData,
+  key: string,
+  fields: { about?: string; topic?: string; content?: string; weight?: number; credibility?: number; source?: string },
+): PatchOp[] {
+  if (!key.trim()) return [];
+  const secret: Secret = {
+    "Về Ai": fields.about ?? "",
+    "Chủ Đề": fields.topic ?? key,
+    "Nội Dung": fields.content ?? "",
+    "Sức Nặng": clamp(Math.round(fields.weight ?? 40), 0, 100),
+    "Độ Tin Cậy": clamp(Math.round(fields.credibility ?? 50), 0, 100),
+    "Nguồn": fields.source ?? "",
+    "Đã Dùng": false,
+    "Đã Lan Ra": false,
+    "_Ngày Biết": absoluteDay(state["Thế Giới"]),
+  };
+  return [
+    { op: "replace", path: `stat_data.Tình Báo.Bí Mật.${key}`, value: secret },
+    // giữ bảng cũ đồng bộ để phần code/lore đọc "Tin Tình Báo Đã Biết" không vỡ
+    { op: "replace", path: `stat_data.Tình Báo.Tin Tình Báo Đã Biết.${key}`, value: secret["Nội Dung"] || secret["Chủ Đề"] },
+  ];
+}
+
+/** Đòn bẩy thực của một bí mật = sức nặng × độ tin, giảm nếu đã dùng/đã lan. */
+export function secretLeverage(s: Secret): number {
+  let v = (s["Sức Nặng"] * s["Độ Tin Cậy"]) / 100;
+  if (s["Đã Dùng"]) v *= 0.5;
+  if (s["Đã Lan Ra"]) v *= 0.4;
+  return Math.round(v);
+}
+
+/** Bí mật đáng giá nhất còn dùng được để nhắm vào một người/Nhà. */
+export function bestSecretAgainst(state: StatData, about: string): [string, Secret] | null {
+  const target = about.toLowerCase();
+  const cands = Object.entries(state["Tình Báo"]["Bí Mật"] ?? {}).filter(
+    ([, s]) => !target || String(s["Về Ai"]).toLowerCase().includes(target),
+  );
+  if (cands.length === 0) return null;
+  return cands.sort((a, b) => secretLeverage(b[1]) - secretLeverage(a[1]))[0];
+}
+
+// ── Phản gián (M20) ─────────────────────────────────────────────────────────
+
+/** Ghi nhận một tai mắt của địch bị phát hiện trong sân nhà. */
+export function noteEnemySpyOps(
+  key: string,
+  fields: { house?: string; suspect?: string; evidence?: number; watching?: string; note?: string },
+): PatchOp[] {
+  if (!key.trim()) return [];
+  return [{
+    op: "replace", path: `stat_data.Tình Báo.Điệp Viên Địch.${key}`,
+    value: {
+      "Của Nhà": fields.house ?? "",
+      "Nghi Là": fields.suspect ?? key,
+      "Chứng Cứ": clamp(Math.round(fields.evidence ?? 15), 0, 100),
+      "Đang Rình": fields.watching ?? "",
+      "Ghi Chú": fields.note ?? "",
+    },
+  }];
+}
+
+/**
+ * Bắt một tai mắt địch. Đủ chứng cứ (≥60) thì bắt gọn và hạ mức bị thâm nhập;
+ * thiếu chứng cứ thì bắt oan — mất mặt, Nhà kia có cớ oán.
+ */
+export function seizeEnemySpyOps(state: StatData, key: string): OpsResult {
+  const e = state["Tình Báo"]["Điệp Viên Địch"]?.[key];
+  if (!e) return { ok: false, error: "Không có kẻ nào tên vậy trong sổ nghi vấn", ops: [] };
+  const solid = e["Chứng Cứ"] >= 60;
+  const ops: PatchOp[] = [
+    { op: "remove", path: `stat_data.Tình Báo.Điệp Viên Địch.${key}` },
+    { op: "delta", path: "stat_data.Tình Báo.Bị Cài Điệp Viên", value: solid ? -20 : -5 },
+  ];
+  if (!solid) {
+    ops.push({ op: "delta", path: "stat_data.Danh Vọng.Nhân Từ", value: -6 });
+    if (e["Của Nhà"]) ops.push(...setHouseAttitudeOps(e["Của Nhà"], "Bất Mãn"));
+  }
+  return { ok: true, ops };
+}
+
+// ── Âm mưu có giai đoạn, tự bò theo ngày (M20) ──────────────────────────────
+
+/** Giai đoạn kế tiếp theo tiến độ — âm mưu là một quá trình, không phải cái thanh. */
+export function phaseForProgress(progress: number): (typeof PLOT_PHASES)[number] {
+  if (progress >= 100) return "Ra Tay";
+  if (progress >= 70) return "Chuẩn Bị";
+  if (progress >= 35) return "Chiêu Mộ";
+  return "Ấp Ủ";
+}
+
+/** Dựng âm mưu mới đầy đủ field M20 (dùng cho cả thẻ AI). */
+export function startPlotFullOps(
+  state: StatData,
+  name: string,
+  seed: { type?: string; target?: string; allies?: string[]; stake?: string; note?: string },
+): PatchOp[] {
+  if (!name.trim()) return [];
+  return [{
+    op: "replace", path: `stat_data.Âm Mưu.${name}`,
+    value: {
+      "Loại": seed.type ?? "Vu Khống",
+      "Mục Tiêu": seed.target ?? "",
+      "Tiến Độ": 0,
+      "Đồng Mưu": seed.allies ?? [],
+      "Độ Bại Lộ": 0,
+      "Giai Đoạn": "Ấp Ủ",
+      "Vốn Đã Bỏ": 0,
+      "Kẻ Điều Tra": "",
+      "Hậu Quả Nếu Lộ": seed.stake ?? "",
+      "_Ngày Bắt Đầu": absoluteDay(state["Thế Giới"]),
+      "Ghi Chú": seed.note ?? "",
+    },
+  }];
+}
+
+/**
+ * Tick NGÀY cho âm mưu (M20): tự bò tiến độ theo Trí Tuệ + Mưu Lược + đồng mưu
+ * (nên không cần nút "Đẩy nhanh"), Độ Bại Lộ bò theo số đồng mưu và kẻ bất mãn.
+ * Vượt ngưỡng bại lộ → âm mưu VỠ: xoá khỏi sổ, ghi cờ cho AI kể phản đòn.
+ */
+export function tickPlots(state: StatData): void {
+  const intellect = state["Chỉ Số Cốt Lõi"]["Trí Tuệ"];
+  const scheme = state["Kỹ Năng"]["Mưu Lược"]?.["Cấp"] ?? 0;
+  const master = whisperAbility(state);
+
+  for (const [name, plot] of Object.entries(state["Âm Mưu"])) {
+    if (plot["Giai Đoạn"] === "Đã Xong" || plot["Giai Đoạn"] === "Đã Vỡ") continue;
+
+    const allies = plot["Đồng Mưu"].length;
+    const disloyal = plot["Đồng Mưu"].filter((n) => (findNpc(state, n)?.["Độ Hảo Cảm"] ?? 0) < 0).length;
+
+    // tiến độ mỗi ngày: chậm, nhưng đều — mưu đồ chín theo thời gian truyện
+    const gain = Math.max(
+      0.4,
+      (1.2 + (intellect - 8) * 0.12 + scheme * 0.3 + allies * 0.35 + plot["Vốn Đã Bỏ"] / 120000) / 2,
+    );
+    plot["Tiến Độ"] = clamp(Math.round((plot["Tiến Độ"] + gain) * 10) / 10, 0, 100);
+
+    // bại lộ: mỗi cái miệng là một khe hở; Đại Điệp Viên bịt bớt
+    const leak = Math.max(0.15, 0.35 + allies * 0.22 + disloyal * 0.5 - master / 150);
+    plot["Độ Bại Lộ"] = clamp(Math.round((plot["Độ Bại Lộ"] + leak) * 10) / 10, 0, 100);
+
+    if (plot["Giai Đoạn"] !== "Che Dấu") plot["Giai Đoạn"] = phaseForProgress(plot["Tiến Độ"]);
+
+    if (plot["Độ Bại Lộ"] >= 100) {
+      delete state["Âm Mưu"][name];
+      state["Tình Báo"]["_Âm Mưu Vừa Vỡ"] =
+        `${name} (${plot["Loại"]} nhắm ${plot["Mục Tiêu"] || "?"})${plot["Hậu Quả Nếu Lộ"] ? ` — ${plot["Hậu Quả Nếu Lộ"]}` : ""}`;
+      // mục tiêu biết trước thì phản đòn: Nhà của mục tiêu thành thù địch
+      const house = findNpc(state, plot["Mục Tiêu"])?.["Nhà"];
+      if (house) {
+        const schemaName = HOUSES_BY_ID[house]?.schemaName ?? house;
+        const cur = state["Thái Độ Các Nhà"][schemaName];
+        if (cur) cur["Thái Độ"] = "Thù Địch";
+      }
+    }
+  }
+}
+
+/** Vốn rót thêm vào âm mưu (thẻ AI) — nhanh hơn nhưng để lại dấu vết tiền. */
+export function fundPlotOps(state: StatData, name: string, gold: number): OpsResult {
+  const plot = state["Âm Mưu"][name];
+  if (!plot) return { ok: false, error: `Không có âm mưu "${name}"`, ops: [] };
+  const amount = Math.max(0, Math.round(gold));
+  if (amount > state["Thông Tin Nhân Vật"]["Ngân Khố"]) return { ok: false, error: "Không đủ vàng", ops: [] };
+  return {
+    ok: true,
+    ops: [
+      { op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -amount },
+      { op: "delta", path: `stat_data.Âm Mưu.${name}.Vốn Đã Bỏ`, value: amount },
+      // tiền chảy là tiền để lại vết
+      { op: "delta", path: `stat_data.Âm Mưu.${name}.Độ Bại Lộ`, value: Math.min(12, Math.round(amount / 25000)) },
+    ],
+  };
+}
+
+/** Có kẻ đang lần theo dấu âm mưu — AI ghi tên vào, người chơi thấy mà lo. */
+export function setPlotInvestigatorOps(name: string, who: string): PatchOp[] {
+  return [
+    { op: "replace", path: `stat_data.Âm Mưu.${name}.Kẻ Điều Tra`, value: who },
+    { op: "delta", path: `stat_data.Âm Mưu.${name}.Độ Bại Lộ`, value: 10 },
+  ];
+}
+
+// ── Vỏ bọc điệp viên mòn dần (M20) ──────────────────────────────────────────
+
+export function tickSpyCover(state: StatData): void {
+  const master = whisperAbility(state);
+  for (const spy of Object.values(state["Tình Báo"]["Điệp Viên"])) {
+    const wear = COVER_WEAR[spy["Nhiệm Vụ"]] ?? 1;
+    if (spy["Nhiệm Vụ"] === "Nằm Vùng") {
+      // ẩn mình thì vá lại vỏ bọc
+      spy["Vỏ Bọc"] = clamp(spy["Vỏ Bọc"] + 1, 0, 100);
+    } else {
+      spy["Vỏ Bọc"] = clamp(spy["Vỏ Bọc"] - Math.max(0.2, wear / 3 - master / 200), 0, 100);
+    }
+    // vỏ bọc mỏng thì nghi ngờ tăng nhanh gấp đôi
+    if (spy["Vỏ Bọc"] <= 20) spy["Bị Nghi Ngờ"] = clamp(spy["Bị Nghi Ngờ"] + 2, 0, 100);
+  }
+}
+
+/** Cài một tai mắt (thẻ AI) — có hạng, có người điều khiển, có vỏ bọc. */
+export function plantSpyOps(
+  state: StatData,
+  alias: string,
+  fields: { target?: string; kind?: string; mission?: string; handler?: string; cost?: number },
+): OpsResult {
+  if (!alias.trim()) return { ok: false, error: "Cần bí danh điệp viên", ops: [] };
+  if (state["Tình Báo"]["Điệp Viên"][alias]) return { ok: false, error: "Bí danh đã tồn tại", ops: [] };
+  const cost = Math.max(0, Math.round(fields.cost ?? SPY_RECRUIT_COST));
+  if (cost > state["Thông Tin Nhân Vật"]["Ngân Khố"]) return { ok: false, error: "Không đủ Vàng để tuyển", ops: [] };
+  const ops: PatchOp[] = [];
+  if (cost > 0) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -cost });
+  ops.push({
+    op: "replace", path: `stat_data.Tình Báo.Điệp Viên.${alias}`,
+    value: {
+      "Cài Ở": fields.target ?? "",
+      "Độ Sâu Thâm Nhập": 10,
+      "Bị Nghi Ngờ": 0,
+      "Nhiệm Vụ": fields.mission ?? "Thu Thập Tin",
+      "Hạng": fields.kind ?? "Điệp Viên",
+      "Vỏ Bọc": 70,
+      "Người Điều Khiển": fields.handler ?? "",
+      "Số Tin Đã Gửi": 0,
+      "_Ngày Cài": absoluteDay(state["Thế Giới"]),
+      "Ghi Chú": "",
+    },
+  });
+  return { ok: true, ops };
+}
+
+/** Chất lượng tin một tai mắt gửi về (dùng khi engine tự sinh bí mật). */
+export function spyIntelQuality(state: StatData, alias: string): { weight: number; credibility: number } {
+  const spy = state["Tình Báo"]["Điệp Viên"][alias];
+  const base = KIND_QUALITY[spy?.["Hạng"] ?? "Điệp Viên"] ?? KIND_QUALITY["Điệp Viên"];
+  const depth = spy?.["Độ Sâu Thâm Nhập"] ?? 10;
+  return {
+    weight: clamp(Math.round(base.weight + depth / 4), 0, 100),
+    credibility: clamp(Math.round(base.credibility + depth / 5), 0, 100),
+  };
+}
+
 let registered = false;
 export function registerIntelligenceLoop(): void {
   if (registered) return;
   registerDailyListener("intelligence", tickIntelligence);
+  registerDailyListener("spy-cover", tickSpyCover);
+  registerDailyListener("plots", tickPlots);
   registered = true;
 }

@@ -14,6 +14,7 @@ import { TerritoryPanel } from "../territory/TerritoryPanel";
 import { MilitaryPanel } from "../military/MilitaryPanel";
 import { CourtPanel } from "../court/CourtPanel";
 import { IntriguePanel } from "../intrigue/IntriguePanel";
+import { DiplomacyPanel } from "../diplomacy/DiplomacyPanel";
 import { EconomyPanel } from "../economy/EconomyPanel";
 import { CodexPanel } from "../codex/CodexPanel";
 import { JournalPanel } from "../journal/JournalPanel";
@@ -30,9 +31,10 @@ import { useEconomyStore } from "../../state/economyStore";
 import { playerHoldingIds } from "../../territory/mapAggregate";
 import { courtInvolved } from "../../strategy/court";
 import { intrigueAvailable } from "../../strategy/intrigue";
+import { diplomacyAvailable } from "../../strategy/diplomacy";
 import { useT } from "../../i18n";
 import {
-  IconBook, IconCastle, IconChevronRight, IconCrown, IconMap, IconMask, IconSend, IconShield, IconUsers, IconX, IconSkull
+  IconBanner, IconBook, IconCastle, IconChevronRight, IconCrown, IconMap, IconMask, IconScroll, IconSend, IconShield, IconUsers, IconX, IconSkull
 } from "../icons";
 import { IconCoin } from "../economy/EconomyIcons";
 import { AudioPlayer } from "../audio/AudioPlayer";
@@ -54,8 +56,10 @@ export function GameScreen() {
   const [militaryOpen, setMilitaryOpen] = useState(false);
   const [courtOpen, setCourtOpen] = useState(false);
   const [intrigueOpen, setIntrigueOpen] = useState(false);
+  const [diplomacyOpen, setDiplomacyOpen] = useState(false);
   const courtActive = useMvuStore((s) => courtInvolved(s.stat));
   const intrigueActive = useMvuStore((s) => intrigueAvailable(s.stat));
+  const diplomacyActive = useMvuStore((s) => diplomacyAvailable(s.stat));
   const hasHoldings = useMvuStore((s) => Object.keys(s.stat["Lãnh Địa"]).length > 0);
   const toggleEconomy = useEconomyStore((s) => s.togglePanel);
   const economyOpen = useEconomyStore((s) => s.panelOpen);
@@ -96,10 +100,11 @@ export function GameScreen() {
     { key: "map", label: "Bản Đồ (Thế Giới / Lãnh Thổ / Lãnh Địa)", icon: <IconMap size={18} />, enabled: true, active: gameView === "map", onClick: () => { setGameView("map"); selectRegion(null); } },
     { key: "territory", label: t("game.navTerritory"), icon: <IconCastle size={18} />, enabled: myHoldings.length > 0, active: territoryDashboardOpen, onClick: openTerritory },
     { key: "military", label: t("game.navMilitary"), icon: <IconShield size={18} />, enabled: true, active: militaryOpen, onClick: () => setMilitaryOpen(true) },
+    { key: "diplomacy", label: "Ngoại Giao", icon: <IconScroll size={18} />, enabled: diplomacyActive, active: diplomacyOpen, onClick: () => setDiplomacyOpen(true) },
     { key: "economy", label: "Kinh Tế", icon: <IconCoin size={18} />, enabled: hasHoldings, active: economyOpen, onClick: toggleEconomy },
     { key: "court", label: t("game.navCourt"), icon: <IconCrown size={18} />, enabled: courtActive, active: courtOpen, onClick: () => setCourtOpen(true) },
     { key: "intrigue", label: t("game.navIntrigue"), icon: <IconMask size={18} />, enabled: intrigueActive, active: intrigueOpen, onClick: () => setIntrigueOpen(true) },
-    { key: "kingdoms", label: "7 Vương Quốc", icon: <IconCrown size={18} />, enabled: true, active: kingdomsOpen, onClick: () => setKingdomsOpen(true) },
+    { key: "kingdoms", label: "Bảy Vương Quốc (bàn cờ quyền lực)", icon: <IconBanner size={18} />, enabled: true, active: kingdomsOpen, onClick: () => setKingdomsOpen(true) },
     { key: "relationship", label: "Quan Hệ", icon: <IconUsers size={18} />, enabled: true, active: relationshipOpen, onClick: () => setRelationshipOpen(true) },
     { key: "codex", label: "So Tay", icon: <IconCodex size={18} />, enabled: true, active: codexOpen, onClick: () => setCodexOpen(true) },
     { key: "journal", label: t("game.navJournal"), icon: <IconBook size={18} />, enabled: true, active: journalOpen, onClick: () => setJournalOpen(true) },
@@ -114,6 +119,7 @@ export function GameScreen() {
       <MilitaryPanel open={militaryOpen} onClose={() => setMilitaryOpen(false)} />
       <CourtPanel open={courtOpen} onClose={() => setCourtOpen(false)} />
       <IntriguePanel open={intrigueOpen} onClose={() => setIntrigueOpen(false)} />
+      <DiplomacyPanel open={diplomacyOpen} onClose={() => setDiplomacyOpen(false)} />
       <EconomyPanel />
       <KingdomsPanel open={kingdomsOpen} onClose={() => setKingdomsOpen(false)} />
       <RelationshipNetworkPanel open={relationshipOpen} onClose={() => setRelationshipOpen(false)} />
@@ -189,7 +195,9 @@ export function GameScreen() {
         <MobileNavBtn label={t("game.navMilitary")} icon={<IconShield size={17} />} active={militaryOpen} onClick={() => setMilitaryOpen(true)} />
         {hasHoldings && <MobileNavBtn label="Kinh Tế" icon={<IconCoin size={17} />} active={economyOpen} onClick={toggleEconomy} />}
         {courtActive && <MobileNavBtn label={t("game.navCourt")} icon={<IconCrown size={17} />} active={courtOpen} onClick={() => setCourtOpen(true)} />}
+        {diplomacyActive && <MobileNavBtn label="Ngoại Giao" icon={<IconScroll size={17} />} active={diplomacyOpen} onClick={() => setDiplomacyOpen(true)} />}
         {intrigueActive && <MobileNavBtn label={t("game.navIntrigue")} icon={<IconMask size={17} />} active={intrigueOpen} onClick={() => setIntrigueOpen(true)} />}
+        <MobileNavBtn label="Bảy Vương Quốc" icon={<IconBanner size={17} />} active={kingdomsOpen} onClick={() => setKingdomsOpen(true)} />
         <MobileNavBtn label="So Tay" icon={<IconCodex size={17} />} active={codexOpen} onClick={() => setCodexOpen(true)} />
         <MobileNavBtn label={t("game.statusTitle")} icon={<IconUsers size={17} />} active={sheetOpen} onClick={() => setSheetOpen(true)} />
       </div>

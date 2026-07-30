@@ -19,6 +19,11 @@ export const STRegexScriptSchema = z
     maxDepth: z.number().nullable().optional(),
     markdownOnly: z.boolean().prefault(false),
     promptOnly: z.boolean().prefault(false),
+    /** Chuỗi bị cắt khỏi phần bắt được trước khi chèn vào replaceString. */
+    trimStrings: z.array(z.string()).prefault([]),
+    /** 0 = không thay macro trong findRegex (app chỉ hỗ trợ 0 — cảnh báo nếu khác). */
+    substituteRegex: z.coerce.number().int().prefault(0),
+    runOnEdit: z.boolean().prefault(false),
   })
   .passthrough();
 
@@ -27,16 +32,20 @@ export const STPromptSchema = z
     identifier: z.string(), // UUID hoặc tên marker ("main", "chatHistory"...)
     name: z.string().prefault(""),
     content: z.string().prefault(""), // chứa macro {{...}}
-    role: z.enum(["system", "user", "assistant"]).prefault("system"),
-    enabled: z.boolean().prefault(true),
-    marker: z.boolean().prefault(false), // TRUE = placeholder hệ thống (3.1b.2)
-    system_prompt: z.boolean().prefault(false),
+    // .catch: giá trị lạ ở MỘT field không được làm rụng cả block prompt —
+    // preset ST thật hay có role/flag ngoài chuẩn, ST vẫn nạp bình thường.
+    role: z.enum(["system", "user", "assistant"]).catch("system").prefault("system"),
+    enabled: z.boolean().catch(true).prefault(true),
+    marker: z.boolean().catch(false).prefault(false), // TRUE = placeholder hệ thống (3.1b.2)
+    system_prompt: z.boolean().catch(false).prefault(false),
+    // 1 = ABSOLUTE (chèn xen vào chat ở depth); 0/null = RELATIVE (theo prompt_order).
     injection_position: z
-      .union([z.literal(0), z.literal(1), z.null()])
+      .union([z.null(), z.coerce.number().int()])
+      .catch(null)
       .prefault(null),
-    injection_depth: z.coerce.number().int().prefault(4),
-    injection_order: z.coerce.number().int().prefault(100),
-    forbid_overrides: z.boolean().prefault(false),
+    injection_depth: z.coerce.number().int().catch(4).prefault(4),
+    injection_order: z.coerce.number().int().catch(100).prefault(100),
+    forbid_overrides: z.boolean().catch(false).prefault(false),
   })
   .passthrough(); // giữ field lạ để round-trip export không mất
 

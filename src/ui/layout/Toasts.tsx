@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import type { EffectEvent } from "../../mvu/effects";
-import { IconCalendar, IconMap, IconUsers } from "../icons";
+import { IconCalendar, IconMap, IconUsers, IconShield } from "../icons";
 
 interface ToastItem {
   id: number;
@@ -46,6 +46,8 @@ export function Toasts() {
         >
           {t.event.kind === "stage_up" || t.event.kind === "stage_down" ? (
             <IconUsers size={15} color={t.event.kind === "stage_up" ? "var(--ok)" : "var(--danger)"} />
+          ) : t.event.kind === "military" ? (
+            <IconShield size={15} color="var(--accent-text)" />
           ) : t.event.kind === "territory" || t.event.kind === "territory_lost" ? (
             <IconMap size={15} color={t.event.kind === "territory" ? "var(--ok)" : "var(--danger)"} />
           ) : (

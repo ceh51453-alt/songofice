@@ -122,6 +122,9 @@ function postureFactor(side: BattleSideInput, opp: BattleSideInput, terrain: Ter
 export function battlePower(side: BattleSideInput, opp: BattleSideInput, terrain: Terrain | undefined, weather: WeatherCondition): number {
   const soLuong = side.totalTroops / 100;
   const chatLuong = (side.morale + side.training + side.logistics) / 3 / 100;
+  // M19 — TRANG BỊ & BINH CHỦNG: giáp trụ và loại lính là hai thứ mà sĩ khí không
+  // mua được. Neo quanh 1.0 cho quân "đồng bộ chỉnh tề, bộ binh thường" (≈±15%).
+  const trangBi = 0.75 + (side.equipment / 100) * 0.25 + (side.troopQuality ?? 0.55) * 0.2;
   const siege = side.siegeRole !== undefined || opp.siegeRole !== undefined;
   const tuong = generalFactor(side, { terrain, siege, weather });
   const theTran = postureFactor(side, opp, terrain, weather);
@@ -141,7 +144,7 @@ export function battlePower(side: BattleSideInput, opp: BattleSideInput, terrain
     dragonMult = clamp(dPower, 1.0, 4.0);
   }
 
-  return Math.round(soLuong * chatLuong * tuong * theTran * dragonMult * 100) / 100;
+  return Math.round(soLuong * chatLuong * trangBi * tuong * theTran * dragonMult * 100) / 100;
 }
 
 export function fogRoll(rng: RNG, weather: WeatherCondition): { dice: [number, number]; mod: number } {

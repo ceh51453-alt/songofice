@@ -5,7 +5,7 @@
  * báo; con tin đòi chuộc / trao đổi / hành quyết.
  */
 import { describe, expect, it } from "vitest";
-import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
+import { SpySchema, makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { NpcSchema } from "../mvu/npcSchema";
 import { applyPatch } from "../mvu/patchEngine";
 import {
@@ -38,7 +38,7 @@ describe("Tình báo — điệp viên (14.1)", () => {
 
   it("tick: thu được tin qua các turn (Thu Thập Tin, thâm nhập cao)", () => {
     const s = baseState();
-    s["Tình Báo"]["Điệp Viên"]["Điệp"] = { "Cài Ở": "Lannister", "Độ Sâu Thâm Nhập": 90, "Bị Nghi Ngờ": 0, "Nhiệm Vụ": "Thu Thập Tin" };
+    s["Tình Báo"]["Điệp Viên"]["Điệp"] = SpySchema.parse({ "Cài Ở": "Lannister", "Độ Sâu Thâm Nhập": 90, "Bị Nghi Ngờ": 0, "Nhiệm Vụ": "Thu Thập Tin" });
     const state = StatDataSchema.parse(s);
     for (let t = 0; t < 20; t++) {
       state["_engineMeta"]["_Nhịp"] = t;
@@ -51,7 +51,7 @@ describe("Tình báo — điệp viên (14.1)", () => {
 
   it("tick: Bị Nghi Ngờ đạt 100 → điệp viên bị bắt + ghi vừa lộ", () => {
     const s = baseState();
-    s["Tình Báo"]["Điệp Viên"]["Kẻ Lộ"] = { "Cài Ở": "Tyrell", "Độ Sâu Thâm Nhập": 5, "Bị Nghi Ngờ": 98, "Nhiệm Vụ": "Phá Hoại" };
+    s["Tình Báo"]["Điệp Viên"]["Kẻ Lộ"] = SpySchema.parse({ "Cài Ở": "Tyrell", "Độ Sâu Thâm Nhập": 5, "Bị Nghi Ngờ": 98, "Nhiệm Vụ": "Phá Hoại" });
     const state = StatDataSchema.parse(s);
     tickIntelligence(state);
     expect(state["Tình Báo"]["Điệp Viên"]["Kẻ Lộ"]).toBeUndefined();
@@ -60,7 +60,7 @@ describe("Tình báo — điệp viên (14.1)", () => {
 
   it("Nằm Vùng hạ nghi ngờ; Đại Điệp Viên giảm Bị Cài Điệp Viên", () => {
     const s = baseState();
-    s["Tình Báo"]["Điệp Viên"]["Ẩn"] = { "Cài Ở": "X", "Độ Sâu Thâm Nhập": 30, "Bị Nghi Ngờ": 40, "Nhiệm Vụ": "Nằm Vùng" };
+    s["Tình Báo"]["Điệp Viên"]["Ẩn"] = SpySchema.parse({ "Cài Ở": "X", "Độ Sâu Thâm Nhập": 30, "Bị Nghi Ngờ": 40, "Nhiệm Vụ": "Nằm Vùng" });
     s["Tình Báo"]["Bị Cài Điệp Viên"] = 50;
     s["Triều Đình"]["Tiểu Hội Đồng"]["Đại Điệp Viên"] = { "Người Giữ Chức": "Varys", "Năng Lực": 90 };
     const state = StatDataSchema.parse(s);
@@ -113,7 +113,7 @@ describe("Hành động lẻ (14.3)", () => {
     const rNoPrep = attemptAssassination(bare, "Mục Tiêu", 42);
 
     const s2 = StatDataSchema.parse(s);
-    s2["Tình Báo"]["Điệp Viên"]["Sát Thủ"] = { "Cài Ở": "Bolton", "Độ Sâu Thâm Nhập": 50, "Bị Nghi Ngờ": 0, "Nhiệm Vụ": "Ám Sát (chuẩn bị)" };
+    s2["Tình Báo"]["Điệp Viên"]["Sát Thủ"] = SpySchema.parse({ "Cài Ở": "Bolton", "Độ Sâu Thâm Nhập": 50, "Bị Nghi Ngờ": 0, "Nhiệm Vụ": "Ám Sát (chuẩn bị)" });
     const rPrep = attemptAssassination(s2, "Mục Tiêu", 42);
     expect(rPrep.result.target).toBeGreaterThan(rNoPrep.result.target);
   });

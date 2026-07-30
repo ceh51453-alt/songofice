@@ -3,6 +3,7 @@
  * công thức đồng nhất; thang mô tả 7 bậc cho AI kể đúng mà không bịa số.
  */
 import type { MilitaryUnit } from "../mvu/schema";
+import { troopQualityFactor } from "../content/westeros/troopTypes";
 
 export function qualityBand(v: number): string {
   if (v <= 20) return "Rệu Rã";
@@ -42,12 +43,17 @@ export interface AggregatedSide {
   training: number;
   logistics: number;
   equipment: number;
+  /**
+   * M19 — phẩm chất BINH CHỦNG bình quân (0..1): một vạn dân binh cầm liềm không
+   * bằng một vạn hiệp sĩ giáp tấm, dù sĩ khí và huấn luyện có ghi giống nhau.
+   */
+  troopQuality?: number;
 }
 
 export function aggregateUnits(units: MilitaryUnit[]): AggregatedSide {
   const alive = units.filter((u) => u["Số Lượng"] > 0);
   const total = alive.reduce((s, u) => s + u["Số Lượng"], 0);
-  if (total === 0) return { totalTroops: 0, morale: 50, training: 45, logistics: 60, equipment: 60 };
+  if (total === 0) return { totalTroops: 0, morale: 50, training: 45, logistics: 60, equipment: 60, troopQuality: 0.5 };
   const w = (f: (u: MilitaryUnit) => number) => alive.reduce((s, u) => s + f(u) * u["Số Lượng"], 0) / total;
   return {
     totalTroops: total,
@@ -55,5 +61,6 @@ export function aggregateUnits(units: MilitaryUnit[]): AggregatedSide {
     training: w((u) => TRAIN_SCORE[u["Huấn Luyện"]]),
     logistics: w((u) => LOGI_SCORE[u["Hậu Cần"]]),
     equipment: w((u) => EQUIP_SCORE[u["Trang Bị"]]),
+    troopQuality: w((u) => troopQualityFactor(u["Loại Quân"])),
   };
 }

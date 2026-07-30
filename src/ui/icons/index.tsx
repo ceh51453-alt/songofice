@@ -409,6 +409,16 @@ export function IconMountain(props: IconProps) {
 }
 
 /** Tâm ngắm — về vị trí hiện tại. */
+/** Cờ hiệu treo trên cán — bàn cờ quyền lực các Nhà (Bảy Vương Quốc). */
+export function IconBanner(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M6 3v18" />
+      <path d="M6 4h12l-2.5 4.5L18 13H6" />
+    </svg>
+  );
+}
+
 export function IconTarget(props: IconProps) {
   return (
     <svg {...base(props)}>

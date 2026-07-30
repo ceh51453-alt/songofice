@@ -4,7 +4,16 @@
  * (<combat_trigger scale="Đại Chiến">, <battle_report outcome="Thắng">...).
  * Thẻ KHÔNG nhận diện được → fallback text thường, không vỡ UI.
  */
-export const KNOWN_TAGS = ["raven_scroll", "royal_decree", "council_session", "event_popup", "combat_trigger", "battle_report", "siege_update", "territory_change", "tavern_game", "tourney"] as const;
+export const KNOWN_TAGS = [
+  "raven_scroll", "royal_decree", "council_session", "event_popup", "combat_trigger",
+  "battle_report", "siege_update", "territory_change", "tavern_game", "tourney",
+  // ── quân sự phong kiến (M19) ──
+  "recruit", "banner_call", "sellsword_offer", "army_order", "dragon_order",
+  // ── ngoại giao (M20) ──
+  "diplomacy", "treaty", "envoy", "grievance", "offer",
+  // ── mưu đồ (M20) ──
+  "spy", "secret", "enemy_spy", "plot", "blackmail", "assassination", "captive",
+] as const;
 
 export type NarrativeTagType = (typeof KNOWN_TAGS)[number];
 
@@ -76,6 +85,51 @@ export function findTourneyTrigger(text: string): { attrs: Record<string, string
     if (seg.type === "tourney") return { attrs: seg.attrs, content: seg.content };
   }
   return null;
+}
+
+/**
+ * Mọi thẻ QUÂN SỰ (M19) theo đúng thứ tự xuất hiện — chatStore đẩy sang engine.
+ * Trả cả loại thẻ để một vòng lặp xử được hết, không cần 5 hàm find riêng.
+ */
+export type MilitaryTagType = "recruit" | "banner_call" | "sellsword_offer" | "army_order" | "dragon_order";
+
+export function findMilitaryTags(text: string): { type: MilitaryTagType; attrs: Record<string, string>; content: string }[] {
+  const kinds: MilitaryTagType[] = ["recruit", "banner_call", "sellsword_offer", "army_order", "dragon_order"];
+  const out: { type: MilitaryTagType; attrs: Record<string, string>; content: string }[] = [];
+  for (const seg of parseNarrative(text)) {
+    if (kinds.includes(seg.type as MilitaryTagType)) {
+      out.push({ type: seg.type as MilitaryTagType, attrs: seg.attrs, content: seg.content });
+    }
+  }
+  return out;
+}
+
+/** Thẻ NGOẠI GIAO (M20) — đổi trạng thái, ký/xé hiệp ước, cử sứ, ân oán, đề nghị. */
+export type DiplomacyTagType = "diplomacy" | "treaty" | "envoy" | "grievance" | "offer";
+
+export function findDiplomacyTags(text: string): { type: DiplomacyTagType; attrs: Record<string, string>; content: string }[] {
+  const kinds: DiplomacyTagType[] = ["diplomacy", "treaty", "envoy", "grievance", "offer"];
+  const out: { type: DiplomacyTagType; attrs: Record<string, string>; content: string }[] = [];
+  for (const seg of parseNarrative(text)) {
+    if (kinds.includes(seg.type as DiplomacyTagType)) {
+      out.push({ type: seg.type as DiplomacyTagType, attrs: seg.attrs, content: seg.content });
+    }
+  }
+  return out;
+}
+
+/** Thẻ MƯU ĐỒ (M20) — tai mắt, bí mật, phản gián, âm mưu, tống tiền, ám sát, con tin. */
+export type IntrigueTagType = "spy" | "secret" | "enemy_spy" | "plot" | "blackmail" | "assassination" | "captive";
+
+export function findIntrigueTags(text: string): { type: IntrigueTagType; attrs: Record<string, string>; content: string }[] {
+  const kinds: IntrigueTagType[] = ["spy", "secret", "enemy_spy", "plot", "blackmail", "assassination", "captive"];
+  const out: { type: IntrigueTagType; attrs: Record<string, string>; content: string }[] = [];
+  for (const seg of parseNarrative(text)) {
+    if (kinds.includes(seg.type as IntrigueTagType)) {
+      out.push({ type: seg.type as IntrigueTagType, attrs: seg.attrs, content: seg.content });
+    }
+  }
+  return out;
 }
 
 /** Tách "tiêu đề | nội dung" cho thẻ 2 phần (raven_scroll, event_popup). */
