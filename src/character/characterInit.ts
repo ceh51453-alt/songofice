@@ -940,6 +940,17 @@ export function buildStateFromWizard(d: WizardData): StatData {
   // Quân sự phong kiến (M19): bảng chư hầu của các vùng ta nắm + chợ lính quanh đây
   seedVassals(state);
   seedSellswordMarket(state);
+  // Seed Thái Độ Các Nhà từ era.availableHouses — đảm bảo mọi Nhà thuộc era
+  // đều có mặt trong bảng Ngoại Giao, không phải đợi AI runtime mới tạo.
+  const playerHouse = (d.houseId && HOUSES_BY_ID[d.houseId]?.schemaName) ?? "";
+  for (const houseId of era.availableHouses) {
+    const house = HOUSES_BY_ID[houseId];
+    if (!house) continue;
+    const schemaName = house.schemaName;
+    if (schemaName === playerHouse) continue;
+    if (state["Thái Độ Các Nhà"][schemaName]) continue;
+    state["Thái Độ Các Nhà"][schemaName] = { "Thái Độ": "Cảnh Giác", "Mô Tả": "" };
+  }
   // Bản đồ chính trị (M20): mở quan hệ ngoại giao với mọi Nhà đã có thái độ
   seedDiplomacy(state);
 
@@ -1577,6 +1588,8 @@ export function buildStateFromCanon(
     "Tully": { size: 20000, quality: "Mới Lập Đội", seat: "the-riverlands-seat", region: "the-riverlands" },
     "Greyjoy": { size: 15000, quality: "Thành Thạo", seat: "the-iron-islands-seat", region: "the-iron-islands" },
     "Targaryen": { size: 10000, quality: "Tinh Nhuệ", seat: "the-crownlands-seat", region: "the-crownlands" },
+    "Velaryon": { size: 3500, quality: "Tinh Nhuệ", seat: "driftmark", region: "the-crownlands" },
+    "Hightower": { size: 8000, quality: "Thành Thạo", seat: "the-reach-seat", region: "the-reach" },
     "Hoare": { size: 18000, quality: "Thành Thạo", seat: "the-riverlands-seat", region: "the-riverlands" },
     "Durrandon": { size: 25000, quality: "Thành Thạo", seat: "the-stormlands-seat", region: "the-stormlands" },
     "Gardener": { size: 70000, quality: "Đồng Bộ Chỉnh Tề", seat: "the-reach-seat", region: "the-reach" }
@@ -1775,6 +1788,17 @@ export function buildStateFromCanon(
   // Quân sự phong kiến (M19): bảng chư hầu của các vùng ta nắm + chợ lính quanh đây
   seedVassals(state);
   seedSellswordMarket(state);
+  // Seed Thái Độ Các Nhà từ era.availableHouses — đảm bảo mọi Nhà thuộc era
+  // (vd Velaryon, Hightower ở Vũ Điệu Rồng) đều có mặt trong bảng Ngoại Giao,
+  // không phải đợi AI runtime mới tạo.
+  for (const houseId of era.availableHouses) {
+    const house = HOUSES_BY_ID[houseId];
+    if (!house) continue;
+    const schemaName = house.schemaName;
+    if (schemaName === adjustedC.house) continue;
+    if (state["Thái Độ Các Nhà"][schemaName]) continue;
+    state["Thái Độ Các Nhà"][schemaName] = { "Thái Độ": "Cảnh Giác", "Mô Tả": "" };
+  }
   // Bản đồ chính trị (M20): mở quan hệ ngoại giao với mọi Nhà đã có thái độ
   seedDiplomacy(state);
 

@@ -115,7 +115,37 @@ export function applyPatch(state: StatData, ops: PatchOp[]): ApplyPatchResult {
       }
       switch (op.op) {
         case "replace": {
-          setAtPath(draft, parts, op.value);
+          // Bảo vệ NPC: khi AI gửi replace trên path NPC đã tồn tại, merge
+          // thay vì ghi đè — tránh mất Họ Tên/Tuổi/Năm Sinh nếu AI gửi
+          // object thiếu trường (schema sẽ fill default "Vô Danh" / 25).
+          if (
+            parts.length >= 3 &&
+            parts[0] === "Mối Quan Hệ" &&
+            (parts[1] === "NPC Chính" || parts[1] === "Thành Viên Gia Tộc") &&
+            parts.length === 3 &&
+            op.value !== null &&
+            typeof op.value === "object" &&
+            !Array.isArray(op.value)
+          ) {
+            const existing = getAtPath(draft, parts);
+            if (existing !== null && typeof existing === "object" && !Array.isArray(existing)) {
+              // Merge: giữ trường cũ nếu patch không cung cấp hoặc cung cấp giá trị mặc định
+              const merged = { ...(existing as Record<string, unknown>) };
+              const NPC_DEFAULTS: Record<string, unknown> = { "Họ Tên": "Vô Danh", "Tuổi": 25, "Giai Đoạn Đời": "Trưởng Thành" };
+              for (const [k, v] of Object.entries(op.value as Record<string, unknown>)) {
+                // Chỉ bỏ qua giá trị mới nếu đó là default VÀ trường cũ đã có giá trị thực
+                if (k in NPC_DEFAULTS && v === NPC_DEFAULTS[k] && merged[k] !== undefined && merged[k] !== NPC_DEFAULTS[k]) {
+                  continue;
+                }
+                merged[k] = v;
+              }
+              setAtPath(draft, parts, merged);
+            } else {
+              setAtPath(draft, parts, op.value);
+            }
+          } else {
+            setAtPath(draft, parts, op.value);
+          }
           changedPaths.push(parts.join("."));
           break;
         }

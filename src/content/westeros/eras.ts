@@ -500,7 +500,7 @@ export const ERAS: EraData[] = [
     startSeason: "Hạ",
     startLocation: "Dragonstone",
     blurb: "Vua Viserys I chết. Hai phe Targaryen tranh ngôi — Đen và Xanh. Rồng chiến rồng trên bầu trời Westeros, và khi tàn cuộc, giống rồng gần như tuyệt diệt.",
-    availableHouses: ["targaryen", "velaryon", "stark", "lannister", "baratheon", "greyjoy", "tyrell", "martell", "arryn", "tully"],
+    availableHouses: ["targaryen", "velaryon", "hightower", "stark", "lannister", "baratheon", "greyjoy", "tyrell", "martell", "arryn", "tully"],
     hasMagic: true,
     canonCharacters: [
       ...danceOfDragonsCharacters,
