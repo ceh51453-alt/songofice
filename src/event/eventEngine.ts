@@ -16,6 +16,7 @@ import { isSuccess } from "../probability/grades";
 import type { ResultGrade } from "../probability/grades";
 import { absoluteDay } from "../mvu/calendar";
 import { createLogger } from "../lib/log";
+import { REGIONS, REGIONS_BY_ID } from "../content/westeros/regions";
 
 const log = createLogger("event/eventEngine");
 
@@ -52,6 +53,33 @@ function getByPath(obj: unknown, path: string): unknown {
   return cur;
 }
 
+function normalized(value: unknown): string {
+  return String(value ?? "").trim().toLocaleLowerCase("vi").replace(/[\s_]+/g, "-");
+}
+
+function expectedValues(value: unknown): string[] {
+  return (Array.isArray(value) ? value : [value]).map(normalized).filter(Boolean);
+}
+
+/** Resolve cả regionId mới lẫn tên seat/tên vùng của save cũ. */
+function currentRegion(state: StatData) {
+  const location = normalized(state["Thế Giới"]?.["Vị Trí"]);
+  if (REGIONS_BY_ID[location]) return REGIONS_BY_ID[location];
+  const directHolding = Object.entries(state["Lãnh Địa"] ?? {}).find(
+    ([holdingId, holding]) => normalized(holdingId) === location || normalized(holding["Mô Tả"]) === location,
+  );
+  const holdingRegion = directHolding?.[1]["Thuộc Vùng"];
+  if (holdingRegion && REGIONS_BY_ID[holdingRegion]) return REGIONS_BY_ID[holdingRegion];
+  return REGIONS.find((region) =>
+    normalized(region.name) === location || normalized(region.seat) === location,
+  );
+}
+
+function matches(value: unknown, expected: unknown): boolean {
+  const actual = normalized(value);
+  return expectedValues(expected).includes(actual);
+}
+
 // ── Kiểm tra điều kiện ──
 
 export function evaluateCondition(cond: EventCondition, state: StatData): boolean {
@@ -79,6 +107,25 @@ export function evaluateCondition(cond: EventCondition, state: StatData): boolea
     }
     case "era":
       return state["Cài Đặt Ván"]?.["Thời Kỳ"] === cond.value;
+    case "continent":
+      return matches(state["Thông Tin Nhân Vật"]["Lục Địa"], cond.value);
+    case "region": {
+      const region = currentRegion(state);
+      return !!region && expectedValues(cond.value).some((id) =>
+        id === normalized(region.id) || id === normalized(region.name) || id === normalized(region.seat),
+      );
+    }
+    case "culture":
+      return matches(state["Thông Tin Nhân Vật"]["Văn Hoá"], cond.value);
+    case "religion":
+      return matches(state["Thông Tin Nhân Vật"]["Tôn Giáo"], cond.value);
+    case "coastal": {
+      const region = currentRegion(state);
+      if (region?.coastal) return true;
+      return Object.values(state["Lãnh Địa"] ?? {}).some(
+        (holding) => REGIONS_BY_ID[holding["Thuộc Vùng"]]?.coastal,
+      );
+    }
     case "has_spy":
       return Object.keys(state["Tình Báo"]["Điệp Viên"]).length > 0;
     case "no_active_event":
@@ -105,8 +152,31 @@ export function buildEventPool(allEvents: GameEvent[], state: StatData): GameEve
 
   return allEvents.filter((e) => {
     if (coolingIds.has(e.id)) return false;
+    if (!eventInScope(e, state)) return false;
     return evaluateConditions(e.conditions, state);
   });
+}
+
+function eventInScope(event: GameEvent, state: StatData): boolean {
+  const scope = event.scope;
+  if (!scope) return true;
+  const continent = normalized(state["Thông Tin Nhân Vật"]["Lục Địa"]);
+  const region = currentRegion(state);
+  const culture = normalized(state["Thông Tin Nhân Vật"]["Văn Hoá"]);
+  const religion = normalized(state["Thông Tin Nhân Vật"]["Tôn Giáo"]);
+  const includes = (list: string[] | undefined, value: string) =>
+    !list?.length || list.map(normalized).includes(value);
+
+  if (!includes(scope.continentIds, continent)) return false;
+  if (scope.excludeContinentIds?.map(normalized).includes(continent)) return false;
+  if (scope.regionIds?.length && (!region || ![
+    normalized(region.id), normalized(region.name), normalized(region.seat),
+    normalized((region as { parentId?: string }).parentId),
+  ].some((id) => scope.regionIds!.map(normalized).includes(id)))) return false;
+  if (!includes(scope.cultureIds, culture)) return false;
+  if (!includes(scope.religions, religion)) return false;
+  if (scope.coastalOnly && !evaluateCondition({ type: "coastal" }, state)) return false;
+  return true;
 }
 
 // ── Roll chọn sự kiện ──

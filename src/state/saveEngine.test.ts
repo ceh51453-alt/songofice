@@ -4,9 +4,11 @@
 import { describe, it, expect } from "vitest";
 import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { normalizeCalendar } from "../mvu/calendar";
-import { CURRENT_SCHEMA_VERSION } from "./saveEngine";
+import { CURRENT_SCHEMA_VERSION, migrateState } from "./saveEngine";
 import type { ExportedSave } from "./saveEngine";
 import type { SaveSlotMeta, SaveSlotRecord } from "./db";
+import { REGIONS } from "../content/world/geography";
+import { MVU_PERSIST_VERSION } from "./mvuStore";
 
 // ── Helpers (không cần Dexie thật — test logic thuần) ──
 
@@ -77,6 +79,10 @@ describe("saveEngine (M15)", () => {
   });
 
   describe("migration", () => {
+    it("persist version của bản đồ thế giới là v11", () => {
+      expect(MVU_PERSIST_VERSION).toBe(11);
+    });
+
     it("state đầy đủ parse thành công qua Zod", () => {
       const state = makeTestState({ name: "Arya" });
       const json = JSON.stringify(state);
@@ -118,6 +124,33 @@ describe("saveEngine (M15)", () => {
       expect(result.data!["Thế Giới"]["Năm"]).toBe(298);
       expect(result.data!["Thế Giới"]["Tháng"]).toBe(9);
       expect(result.data!["Thế Giới"]["Ngày"]).toBe(10);
+    });
+
+    it("save 9 vùng giữ chủ cũ và chỉ thêm chủ quyền/thị trường còn thiếu", () => {
+      const old = makeTestState({ year: 299 });
+      old["Chủ Quyền Lãnh Thổ"] = {
+        "the-north": {
+          "Nhà Kiểm Soát": "bolton", "Người Kiểm Soát": "Roose Bolton",
+          "Tình Trạng": "Mới Chiếm", "Là Của Người Chơi": false, "_Ngày Đổi Chủ": 987,
+        },
+      };
+      old["Kinh Tế Vùng"] = {
+        "the-north": {
+          "Sản Vật Chủ Lực": ["Lông Thú"], "Thiếu Hụt": ["Lương Thực"],
+          "Giá Cả": { "Lương Thực": 777 },
+        },
+      };
+      const oldControl = structuredClone(old["Chủ Quyền Lãnh Thổ"]["the-north"]);
+      const oldMarket = structuredClone(old["Kinh Tế Vùng"]["the-north"]);
+
+      const migrated = migrateState(JSON.parse(JSON.stringify(old)));
+      const northSibling = REGIONS.find((region) => region.parentId === "macro-the-north" && region.id !== "the-north")!;
+      const essos = REGIONS.find((region) => region.continentId === "essos")!;
+      expect(migrated["Chủ Quyền Lãnh Thổ"]["the-north"]).toEqual(oldControl);
+      expect(migrated["Chủ Quyền Lãnh Thổ"][northSibling.id]).toEqual(oldControl);
+      expect(migrated["Chủ Quyền Lãnh Thổ"][essos.id]).toBeDefined();
+      expect(migrated["Kinh Tế Vùng"]["the-north"]).toEqual(oldMarket);
+      expect(Object.keys(migrated["Kinh Tế Vùng"])).toEqual(expect.arrayContaining(REGIONS.map((region) => region.id)));
     });
   });
 

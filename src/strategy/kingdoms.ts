@@ -1,5 +1,5 @@
 /**
- * kingdoms (M21) — BÀN CỜ QUYỀN LỰC WESTEROS.
+ * kingdoms (M21) — BÀN CỜ QUYỀN LỰC CỦA THẾ GIỚI ĐÃ BIẾT.
  *
  * Bảng "7 Vương Quốc" cũ chỉ đếm lại những con số mà Bản Đồ, Quân Sự và Ngoại
  * Giao đều đã hiện — nên nó vô dụng. Cái người chơi thật sự cần khi mở nó là câu
@@ -7,17 +7,19 @@
  *
  *   1. AI MẠNH HƠN AI — cán cân giữa các thế lực đang nắm đất (đất, người, đinh
  *      tráng gọi được), và ta đứng thứ mấy trong cái hàng đó.
- *   2. CHUYỆN GÌ ĐANG XẢY RA Ở CHÍN VÙNG — ai giữ, giữ có chắc không, thành nào
+ *   2. CHUYỆN GÌ ĐANG XẢY RA TRÊN LỤC ĐỊA HIỆN TẠI — ai giữ, giữ có chắc không, thành nào
  *      đang bị vây và còn mấy ngày nữa thì đổ, vùng nào vừa đổi chủ.
  *   3. TA ĐỨNG Ở ĐÂU TRONG ĐÓ — chiến tuyến đang mở, cớ hai bên đang giữ, phe
  *      phái của Era chia đôi bàn cờ thế nào.
  *
  * Engine chỉ TỔNG HỢP, không ghi gì. Nguồn chân lý vẫn là "Chủ Quyền Lãnh Thổ"
- * (ai nắm vùng nào — 9.5.1), "Quan Hệ Ngoại Giao" (pháp lý — M20) và bảng chư
- * hầu tĩnh (M19). Không con số nào ở đây được lưu vào state.
+ * (ai nắm vùng nào — 9.5.1), "Quan Hệ Ngoại Giao" (pháp lý — M20) và dữ liệu
+ * lực lượng địa phương. Không con số nào ở đây được lưu vào state.
  */
 import type { StatData } from "../mvu/schema";
-import { REGIONS, REGIONS_BY_ID, factionsForYear } from "../content/westeros/regions";
+import {
+  CONTINENTS_BY_ID, REGIONS, REGIONS_BY_ID, regionForLocation, factionsForYear,
+} from "../content/world/geography";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
 import {
   BANNERMEN_BY_ID, bannermenOfRegion, regionLevyPotential, type BannermanData,
@@ -33,11 +35,24 @@ import { diplomacySummary, type DiploSummary } from "./diplomacy";
  */
 export const LEVY_RATE = 0.005;
 
-/** Tên thế lực từ houseId — phủ cả Nhà cổ (gardener/durrandon/hoare) và chư hầu. */
+const POLITY_NAMES: Record<string, string> = {
+  braavos: "Thành bang Braavos", pentos: "Thành bang Pentos", myr: "Thành bang Myr",
+  tyrosh: "Thành bang Tyrosh", lys: "Thành bang Lys", volantis: "Thành bang Volantis",
+  lorath: "Thành bang Lorath", norvos: "Thành bang Norvos", qohor: "Thành bang Qohor",
+  dothraki: "Các khalasar Dothraki", sarnor: "Sarnor", saath: "Saath",
+  astapor: "Thành bang Astapor", yunkai: "Thành bang Yunkai", meereen: "Thành bang Meereen",
+  "new-ghis": "Tân Ghis", qarth: "Qarth", lhazar: "Lhazar",
+  "yi-ti": "Đế quốc Yi Ti", "jogos-nhai": "Các zhat Jogos Nhai", asshai: "Asshai",
+  ibben: "Ibben", "summer-islands": "Quần Đảo Mùa Hè", naath: "Naath",
+  "basilisk-isles": "Quần Đảo Basilisk", gogossos: "Gogossos",
+};
+
+/** Tên thế lực từ id — phủ Nhà Westeros, chính thể Essos và dữ liệu custom. */
 export function powerName(houseId: string): string {
   if (!houseId) return "Vô Chủ";
   const canon = HOUSES_BY_ID[houseId]?.name ?? BANNERMEN_BY_ID[houseId]?.name;
   if (canon) return canon;
+  if (POLITY_NAMES[houseId]) return POLITY_NAMES[houseId];
   const pretty = houseId
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -45,11 +60,22 @@ export function powerName(houseId: string): string {
   return `Nhà ${pretty}`;
 }
 
-/** Đinh tráng một vùng gọi được nếu chủ vùng phất cờ và ai cũng nghe. */
+/** Tỷ lệ huy động ước lượng theo mô hình xã hội, không áp một levy phong kiến toàn cầu. */
+export function mobilizationRateForRegion(regionId: string): number {
+  const region = REGIONS_BY_ID[regionId];
+  if (!region || region.continentId === "westeros") return LEVY_RATE;
+  const polity = `${region.realmId} ${region.parentId} ${region.id}`;
+  if (/dothraki|jogos-nhai/.test(polity)) return 0.018;
+  if (/astapor|yunkai|meereen|new-ghis|ghiscar/.test(polity)) return 0.01;
+  if (/braavos|pentos|myr|tyrosh|lys|volantis|lorath|norvos|qohor|qarth/.test(polity)) return 0.007;
+  return 0.006;
+}
+
+/** Quân lực một vùng có thể huy động trong mô hình chính trị địa phương. */
 export function regionLevy(regionId: string): number {
   const region = REGIONS_BY_ID[regionId];
   if (!region) return 0;
-  return Math.round(region.population * LEVY_RATE);
+  return Math.round(region.population * mobilizationRateForRegion(regionId));
 }
 
 // ── Vây thành ────────────────────────────────────────────────────────────────
@@ -91,11 +117,14 @@ function siegeView(sov: StatData["Chủ Quyền Lãnh Thổ"][string], pHouse: s
   };
 }
 
-// ── Chín vùng ────────────────────────────────────────────────────────────────
+// ── Các vùng trên lục địa hiện tại ──────────────────────────────────────────
 
 export interface RegionCard {
   id: string;
   name: string;
+  continentId: string;
+  continentName: string;
+  realmId: string;
   seat: string;
   terrain: string;
   coastal: boolean;
@@ -107,9 +136,9 @@ export interface RegionCard {
   status: string;
   isPlayer: boolean;
   population: number;
-  /** đinh tráng vùng gọi được (ước lượng theo dân số). */
+  /** lực lượng vùng có thể huy động (ước lượng theo dân số/chính thể). */
   levy: number;
-  /** tổng quân các chư hầu ĐÃ BIẾT MẶT của vùng cam kết dốc ra. */
+  /** tổng quân các lực lượng địa phương ĐÃ BIẾT MẶT cam kết dốc ra. */
   knownLevy: number;
   bannermen: BannermanData[];
   /** quân của TA đang đóng tại vùng này. */
@@ -131,7 +160,7 @@ export interface PowerCard {
   regionIds: string[];
   regionNames: string[];
   population: number;
-  /** tỉ trọng dân số trên tổng Westeros (0..1) — thước đo thật của quyền lực. */
+  /** tỉ trọng dân số trong phạm vi lục địa đang xem (0..1). */
   populationShare: number;
   levy: number;
   knownLevy: number;
@@ -160,8 +189,16 @@ export interface KingdomsBoard {
   year: number;
   playerHouseId: string;
   playerHouseName: string;
-  /** tổng dân số chín vùng — mẫu số của mọi tỉ trọng. */
+  /** Lục địa theo vị trí hiện tại; rỗng nghĩa là đang xem toàn thế giới. */
+  scopeContinentId: string;
+  scopeContinentName: string;
+  scopeLabel: string;
+  /** số vùng lá trong phạm vi và toàn thế giới — không hard-code 9. */
+  scopeRegionCount: number;
+  worldRegionCount: number;
+  /** tổng dân số trong phạm vi đang xem — mẫu số của mọi tỉ trọng. */
   totalPopulation: number;
+  worldPopulation: number;
   /** quân TA thực có trong biên chế (khác hẳn tiềm lực). */
   playerArmy: number;
   regions: RegionCard[];
@@ -172,7 +209,7 @@ export interface KingdomsBoard {
   factions: FactionCard[];
   /** các Nhà đang ở trạng thái Chiến Tranh với ta. */
   wars: DiploSummary[];
-  /** mọi vùng đang bị vây trên toàn Westeros. */
+  /** mọi vùng đang bị vây trong phạm vi hiện tại. */
   sieges: RegionCard[];
   /** vùng không yên: Nổi Loạn / Đang Tranh Chấp / Mới Chiếm. */
   unrest: RegionCard[];
@@ -208,14 +245,27 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
   const relations = new Map(diplomacySummary(state).map((r) => [r.houseId, r]));
   const { byRegion, total: playerArmy } = ourTroopsByRegion(state);
 
+  // Bàn cờ mặc định theo lục địa nơi người chơi đang đứng. Nếu vị trí tự do
+  // chưa ánh xạ được, hiển thị toàn thế giới và nói rõ phạm vi đó trong UI.
+  const currentRegion = regionForLocation(state["Thế Giới"]["Vị Trí"]);
+  const scopeContinentId = currentRegion?.continentId ?? "";
+  const scopeContinentName = scopeContinentId
+    ? CONTINENTS_BY_ID[scopeContinentId]?.name ?? scopeContinentId
+    : "Toàn thế giới";
+  const scopeRegions = scopeContinentId
+    ? REGIONS.filter((region) => region.continentId === scopeContinentId)
+    : REGIONS;
+
   // phe phái của Era (nếu năm này bàn cờ đang chia phe)
-  const rawFactions = factionsForYear(year) ?? {};
+  const rawFactions = scopeContinentId && scopeContinentId !== "westeros"
+    ? {}
+    : factionsForYear(year) ?? {};
   const factionOf = new Map<string, string>();
   for (const [faction, houseIds] of Object.entries(rawFactions)) {
     for (const id of houseIds) factionOf.set(id, faction);
   }
 
-  const regions: RegionCard[] = REGIONS.map((region) => {
+  const regions: RegionCard[] = scopeRegions.map((region) => {
     const sov = sovereignty[region.id];
     const holderId = toHouseId(String(sov?.["Nhà Kiểm Soát"] ?? ""));
     const changedOn = Number(sov?.["_Ngày Đổi Chủ"]) || 0;
@@ -224,6 +274,9 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
     return {
       id: region.id,
       name: region.name,
+      continentId: region.continentId,
+      continentName: CONTINENTS_BY_ID[region.continentId]?.name ?? region.continentId,
+      realmId: region.realmId,
       seat: region.seat,
       terrain: region.terrain,
       coastal: region.coastal,
@@ -243,7 +296,8 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
     };
   });
 
-  const totalPopulation = REGIONS.reduce((s, r) => s + r.population, 0);
+  const totalPopulation = scopeRegions.reduce((s, r) => s + r.population, 0);
+  const worldPopulation = REGIONS.reduce((s, r) => s + r.population, 0);
 
   // gom vùng theo thế lực nắm đất — vô chủ không phải một thế lực
   const grouped = new Map<string, RegionCard[]>();
@@ -273,7 +327,7 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
         faction: factionOf.get(houseId) ?? "",
       };
     })
-    // mạnh trước yếu sau: đinh tráng là thước đo, số vùng phá thế hoà
+    // mạnh trước yếu sau: quân huy động là thước đo, số vùng phá thế hoà
     .sort((a, b) => b.levy - a.levy || b.regionIds.length - a.regionIds.length);
 
   const playerIndex = powers.findIndex((p) => p.isPlayer);
@@ -296,7 +350,13 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
     year,
     playerHouseId: pHouse,
     playerHouseName: pHouse ? powerName(pHouse) : "",
+    scopeContinentId,
+    scopeContinentName,
+    scopeLabel: scopeContinentId ? `Lục địa ${scopeContinentName}` : "Toàn thế giới đã biết",
+    scopeRegionCount: scopeRegions.length,
+    worldRegionCount: REGIONS.length,
     totalPopulation,
+    worldPopulation,
     playerArmy,
     regions,
     powers,

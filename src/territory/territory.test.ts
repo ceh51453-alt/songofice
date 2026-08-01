@@ -9,8 +9,10 @@ import { applyPatch } from "../mvu/patchEngine";
 import { rejectReason } from "../mvu/extractor";
 import {
   seedRegionControl, captureRegionOps, regionFill, regionController, playerHouseId,
+  repairRegionControl,
 } from "./territoryEngine";
 import { houseColor, PLAYER_HEAT_COLOR, ATTITUDE_HEAT } from "../content/westeros/houseColors";
+import { REGIONS } from "../content/world/geography";
 
 function starkPlayer(era = "war-of-five-kings") {
   const eraYears: Record<string, number> = { "aegon-conquest": 1, "war-of-five-kings": 298, "roberts-rebellion": 282 };
@@ -45,9 +47,73 @@ describe("seedRegionControl (9.6.1) + đồng bộ", () => {
     expect(s["Lãnh Địa"]["Lãnh địa tổ truyền"]).toBeDefined();
     expect((s["Lãnh Địa"]["Lãnh địa tổ truyền"] as any)["Thuộc Vùng"]).toBe("the-north");
   });
+
+  it("fresh-seed: claim leaf mang id legacy chỉ thuộc đúng leaf đó", () => {
+    const s = makeDefaultState();
+    s["Thông Tin Nhân Vật"]["Nhà"] = "Lannister";
+    s["Chủ Quyền Lãnh Thổ"]["the-north"] = {
+      "Nhà Kiểm Soát": "lannister",
+      "Người Kiểm Soát": "Tywin Lannister",
+      "Tình Trạng": "Mới Chiếm",
+      "Là Của Người Chơi": true,
+      "_Ngày Đổi Chủ": 1234,
+    };
+    const sibling = REGIONS.find((region) => region.parentId === "macro-the-north" && region.id !== "the-north")!;
+
+    seedRegionControl(s, "war-of-five-kings", { createIfMissing: false });
+
+    expect(s["Chủ Quyền Lãnh Thổ"]["the-north"]["Nhà Kiểm Soát"]).toBe("lannister");
+    expect(s["Chủ Quyền Lãnh Thổ"][sibling.id]["Nhà Kiểm Soát"]).not.toBe("lannister");
+    expect(s["Chủ Quyền Lãnh Thổ"][sibling.id]["Là Của Người Chơi"]).toBe(false);
+  });
+
+  it("legacy-migration: save 9 vùng giữ entry cũ và trải chủ xuống các leaf trong macro", () => {
+    const s = makeDefaultState();
+    s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
+    s["Chủ Quyền Lãnh Thổ"]["the-north"] = {
+      "Nhà Kiểm Soát": "bolton",
+      "Người Kiểm Soát": "Roose Bolton",
+      "Tình Trạng": "Mới Chiếm",
+      "Là Của Người Chơi": false,
+      "_Ngày Đổi Chủ": 1234,
+    };
+    const before = structuredClone(s["Chủ Quyền Lãnh Thổ"]["the-north"]);
+    const sibling = REGIONS.find((region) => region.parentId === "macro-the-north" && region.id !== "the-north")!;
+    const essos = REGIONS.find((region) => region.continentId === "essos")!;
+
+    expect(repairRegionControl(s, { mode: "legacy-migration" })).toBe(REGIONS.length - 1);
+    expect(s["Chủ Quyền Lãnh Thổ"]["the-north"]).toEqual(before);
+    expect(s["Chủ Quyền Lãnh Thổ"][sibling.id]).toEqual(before);
+    expect(s["Chủ Quyền Lãnh Thổ"][sibling.id]).not.toBe(s["Chủ Quyền Lãnh Thổ"]["the-north"]);
+    expect(s["Chủ Quyền Lãnh Thổ"][essos.id]).toBeDefined();
+  });
+
+  it("không kéo holding/vùng hợp lệ do wizard chọn về quê Nhà", () => {
+    const s = makeDefaultState();
+    const chosen = REGIONS.find((region) => region.continentId === "essos")!;
+    s["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
+    s["Chủ Quyền Lãnh Thổ"][chosen.id] = {
+      "Nhà Kiểm Soát": "stark", "Người Kiểm Soát": "Arya Stark",
+      "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0,
+    };
+    s["Lãnh Địa"]["custom-holding"] = {
+      "Mô Tả": "Cơ nghiệp mới", "Dân Số": 2000, "Trung Thành": 70,
+      "Thuộc Vùng": chosen.id, "Tài Nguyên": {}, "Công Trình": {}, "Khủng Hoảng": [],
+    } as any;
+
+    seedRegionControl(s, "war-of-five-kings", { createIfMissing: false });
+    expect(s["Chủ Quyền Lãnh Thổ"][chosen.id]["Nhà Kiểm Soát"]).toBe("stark");
+    expect(s["Lãnh Địa"]["custom-holding"]["Thuộc Vùng"]).toBe(chosen.id);
+  });
 });
 
 describe("Tô màu 2 chế độ (9.5.2)", () => {
+  it("thế lực thế giới có màu riêng và id mod nhận fallback ổn định", () => {
+    expect(houseColor("braavos")).not.toEqual(houseColor(""));
+    expect(houseColor("polity-from-a-mod")).toEqual(houseColor("polity-from-a-mod"));
+    expect(houseColor("polity-from-a-mod")).not.toEqual(houseColor(""));
+  });
+
   it("Chính Trị: vùng tô màu Nhà kiểm soát; vô chủ → sọc", () => {
     const s = starkPlayer("aegon-conquest"); // Crownlands vô chủ ở Era này
     expect(regionFill(s, "the-north", "political").color).toBe(houseColor("stark").base);

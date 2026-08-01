@@ -56,8 +56,12 @@ export interface GoodDef {
   luxury?: boolean;
   /** vùng nổi tiếng sản xuất (giá rẻ hơn tại chỗ, đắt khi đi xa). */
   homeRegions?: string[];
-  /** hàng ngoại — chỉ có khi thương đoàn Essos ghé, giá cắt cổ. */
+  /** Lục địa xuất xứ; quyết định hàng có phải nhập khẩu tại thị trường hiện tại. */
+  originContinentIds?: string[];
+  /** Hàng nhập khẩu legacy; chỉ dùng khi chưa có originContinentIds. */
   foreign?: boolean;
+  /** Di vật không còn nguồn cung thường xuyên, kể cả tại lục địa xuất xứ. */
+  relic?: boolean;
   desc: string;
 }
 
@@ -71,43 +75,43 @@ export const GOODS: GoodDef[] = [
   {
     id: "Lương Thực", category: "Lương Thực", unit: "bao", basePrice: 10 * S,
     bulk: 1.6, spoil: 0.02, demandPerK: 260, staple: true,
-    homeRegions: ["the-reach", "the-riverlands"],
+    homeRegions: ["the-reach", "the-riverlands", "lhazar", "yi-ti", "volantis"],
     desc: "Lúa mạch, yến mạch và bột mì — thứ đứng giữa dân và nạn đói.",
   },
   {
     id: "Cá Khô", category: "Lương Thực", unit: "thùng", basePrice: 8 * S,
     bulk: 1.2, spoil: 0.01, demandPerK: 70, staple: true,
-    homeRegions: ["the-iron-islands", "the-north"],
+    homeRegions: ["the-iron-islands", "the-north", "braavos", "lorath", "ibben", "summer-islands", "summer-isles"],
     desc: "Cá muối phơi khô — lương ăn của thuỷ thủ và của mùa đông dài.",
   },
   {
     id: "Thịt Muối", category: "Lương Thực", unit: "thùng", basePrice: 18 * S,
     bulk: 1.1, spoil: 0.015, demandPerK: 45,
-    homeRegions: ["the-north", "the-stormlands"],
+    homeRegions: ["the-north", "the-stormlands", "dothraki-sea", "ibben"],
     desc: "Thịt ướp muối trong thùng gỗ sồi — quân lương đi xa được.",
   },
   {
     id: "Rau Củ", category: "Lương Thực", unit: "giỏ", basePrice: 4 * S,
     bulk: 1.4, spoil: 0.12, demandPerK: 120, staple: true,
-    homeRegions: ["the-reach"],
+    homeRegions: ["the-reach", "yi-ti", "lhazar"],
     desc: "Củ cải, hành, đậu — rẻ, nặng, và thối rất nhanh.",
   },
   {
     id: "Trái Cây", category: "Lương Thực", unit: "giỏ", basePrice: 7 * S,
     bulk: 1.3, spoil: 0.18, demandPerK: 40,
-    homeRegions: ["dorne", "the-reach"],
+    homeRegions: ["dorne", "the-reach", "lys", "summer-islands", "summer-isles", "naath"],
     desc: "Cam Dorne, táo Reach, chà là — hàng của mùa hè và của người có tiền.",
   },
   {
     id: "Mật Ong", category: "Lương Thực", unit: "vò", basePrice: 30 * S,
     bulk: 0.7, spoil: 0, demandPerK: 12,
-    homeRegions: ["the-reach", "the-riverlands"],
+    homeRegions: ["the-reach", "the-riverlands", "lhazar", "summer-islands", "summer-isles"],
     desc: "Chất ngọt duy nhất đáng kể — cũng là nguyên liệu ủ rượu mật.",
   },
   {
     id: "Muối", category: "Lương Thực", unit: "bao", basePrice: 25 * S,
     bulk: 1.0, spoil: 0, demandPerK: 22, staple: true,
-    homeRegions: ["the-iron-islands", "dorne"],
+    homeRegions: ["the-iron-islands", "dorne", "tyrosh", "new-ghis", "basilisk-isles"],
     desc: "Không có muối thì không có mùa đông nào sống nổi.",
   },
 
@@ -115,13 +119,13 @@ export const GOODS: GoodDef[] = [
   {
     id: "Bia", category: "Đồ Uống", unit: "thùng", basePrice: 5 * S,
     bulk: 1.8, spoil: 0.05, demandPerK: 150,
-    homeRegions: ["the-riverlands", "the-westerlands"],
+    homeRegions: ["the-riverlands", "the-westerlands", "braavos", "pentos"],
     desc: "Bia lúa mạch nhạt — nước uống hằng ngày, an toàn hơn nước giếng.",
   },
   {
     id: "Rượu Vang", category: "Đồ Uống", unit: "thùng", basePrice: 40 * S,
     bulk: 1.5, spoil: 0, demandPerK: 26,
-    homeRegions: ["dorne", "the-reach"],
+    homeRegions: ["dorne", "the-reach", "pentos", "lys", "volantis", "summer-islands", "summer-isles"],
     desc: "Vang đỏ Dorne và vang trắng Reach — thứ chảy trong mọi bàn tiệc.",
   },
   {
@@ -135,19 +139,19 @@ export const GOODS: GoodDef[] = [
   {
     id: "Gỗ", category: "Nguyên Liệu", unit: "khối", basePrice: 15 * S,
     bulk: 2.4, spoil: 0, demandPerK: 60,
-    homeRegions: ["the-north", "the-riverlands", "the-stormlands"],
+    homeRegions: ["the-north", "the-riverlands", "the-stormlands", "qohor", "sarnor", "summer-islands", "summer-isles", "sothoryos"],
     desc: "Gỗ xẻ — nhà cửa, giàn giáo, thân thuyền, và củi đốt mùa đông.",
   },
   {
     id: "Đá", category: "Nguyên Liệu", unit: "khối", basePrice: 20 * S,
     bulk: 3.0, spoil: 0, demandPerK: 14,
-    homeRegions: ["the-vale", "the-westerlands"],
+    homeRegions: ["the-vale", "the-westerlands", "qarth", "ghiscar"],
     desc: "Đá tảng đục từ mỏ — nặng tới mức chở xa là lỗ.",
   },
   {
     id: "Quặng Sắt", category: "Nguyên Liệu", unit: "tạ", basePrice: 30 * S,
     bulk: 2.6, spoil: 0, demandPerK: 8,
-    homeRegions: ["the-westerlands", "the-north"],
+    homeRegions: ["the-westerlands", "the-north", "qohor", "ibben"],
     desc: "Quặng thô chưa nấu — vô dụng nếu không có than và lò.",
   },
   {
@@ -171,7 +175,7 @@ export const GOODS: GoodDef[] = [
   {
     id: "Len", category: "Nguyên Liệu", unit: "kiện", basePrice: 20 * S,
     bulk: 1.4, spoil: 0.01, demandPerK: 35,
-    homeRegions: ["the-north", "the-vale"],
+    homeRegions: ["the-north", "the-vale", "lhazar", "ibben"],
     desc: "Lông cừu chưa xe — nguyên liệu của mọi tấm áo chống rét.",
   },
   {
@@ -278,7 +282,7 @@ export const GOODS: GoodDef[] = [
   {
     id: "Ngựa", category: "Gia Súc", unit: "con", basePrice: 3 * G,
     bulk: 2.0, spoil: 0.005, demandPerK: 3,
-    homeRegions: ["dorne", "the-riverlands"],
+    homeRegions: ["dorne", "the-riverlands", "dothraki-sea", "vaes-dothrak", "jogos-nhai"],
     desc: "Ngựa cưỡi và ngựa chiến — một con bằng cả gia sản của nông dân.",
   },
   {
@@ -302,33 +306,82 @@ export const GOODS: GoodDef[] = [
   // ── XA XỈ & HÀNG NGOẠI ────────────────────────────────────────────────────
   {
     id: "Gia Vị", category: "Xa Xỉ", unit: "hộp", basePrice: 5 * G,
-    bulk: 0.3, spoil: 0, demandPerK: 1, luxury: true, foreign: true,
+    bulk: 0.3, spoil: 0, demandPerK: 1, luxury: true,
+    originContinentIds: ["essos", "summer-isles", "ulthos"],
+    homeRegions: ["qarth", "yi-ti", "summer-islands", "ulthos-coast"],
     desc: "Tiêu, quế, nghệ tây từ Quần Đảo Gia Vị — nhẹ như bụi, đắt như vàng.",
   },
   {
     id: "Lụa Myr", category: "Xa Xỉ", unit: "cuộn", basePrice: 12 * G,
-    bulk: 0.4, spoil: 0, demandPerK: 0, luxury: true, foreign: true,
+    bulk: 0.4, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["essos"], homeRegions: ["myr"],
     desc: "Lụa dệt bên kia Biển Hẹp — áo cưới của tiểu thư, hối lộ của lãnh chúa.",
   },
   {
     id: "Nhuộm Tím Myr", category: "Xa Xỉ", unit: "vò", basePrice: 20 * G,
-    bulk: 0.3, spoil: 0, demandPerK: 0, luxury: true, foreign: true,
+    bulk: 0.3, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["essos"], homeRegions: ["myr"],
     desc: "Thuốc nhuộm tím hoàng gia — một vò đủ nhuộm áo cho cả một triều đình.",
   },
   {
     id: "Thảm Qohor", category: "Xa Xỉ", unit: "tấm", basePrice: 25 * G,
-    bulk: 1.0, spoil: 0, demandPerK: 0, luxury: true, foreign: true,
+    bulk: 1.0, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["essos"], homeRegions: ["qohor"],
     desc: "Thảm dệt Qohor — trải trên sàn đại sảnh để khách biết chủ giàu tới đâu.",
   },
   {
     id: "Ngọc Trai", category: "Xa Xỉ", unit: "hộp", basePrice: 30 * G,
-    bulk: 0.2, spoil: 0, demandPerK: 0, luxury: true, foreign: true,
+    bulk: 0.2, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["essos", "summer-isles"], homeRegions: ["qarth", "summer-islands", "naath"],
     desc: "Ngọc trai Biển Ngọc Bích — của hồi môn và của đút lót.",
   },
   {
     id: "Thép Valyria", category: "Xa Xỉ", unit: "thỏi", basePrice: 2000 * G,
-    bulk: 0.5, spoil: 0, demandPerK: 0, luxury: true, foreign: true,
+    bulk: 0.5, spoil: 0, demandPerK: 0, luxury: true, relic: true,
+    originContinentIds: ["essos"], homeRegions: ["valyria"],
     desc: "Thép Valyria — không ai còn rèn được nữa, nên mỗi thỏi là một di vật.",
+  },
+  {
+    id: "Lụa Yi Ti", category: "Xa Xỉ", unit: "cuộn", basePrice: 18 * G,
+    bulk: 0.35, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["essos"], homeRegions: ["yi-ti"],
+    desc: "Lụa mỏng từ Yi Ti, theo đoàn buôn vượt nửa thế giới tới các triều đình phương tây.",
+  },
+  {
+    id: "Ren Myr", category: "Chế Phẩm", unit: "cuộn", basePrice: 8 * G,
+    bulk: 0.25, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["essos"], homeRegions: ["myr"],
+    desc: "Ren mảnh đến mức lọt qua nhẫn, sản phẩm của những phường thợ Myr danh tiếng.",
+  },
+  {
+    id: "Ống Kính Myr", category: "Chế Phẩm", unit: "chiếc", basePrice: 15 * G,
+    bulk: 0.3, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["essos"], homeRegions: ["myr"],
+    desc: "Thấu kính mài chính xác dùng cho thiên văn, hàng hải và do thám từ xa.",
+  },
+  {
+    id: "Rượu Hồng Lys", category: "Đồ Uống", unit: "thùng", basePrice: 5 * G,
+    bulk: 1.5, spoil: 0, demandPerK: 1, luxury: true,
+    originContinentIds: ["essos"], homeRegions: ["lys"],
+    desc: "Rượu ngọt thơm của Lys, thường xuất hiện trên bàn tiệc các thương gia và quý tộc.",
+  },
+  {
+    id: "Dầu Cá Voi Ibben", category: "Chế Phẩm", unit: "thùng", basePrice: 2 * G,
+    bulk: 1.7, spoil: 0, demandPerK: 5,
+    originContinentIds: ["essos"], homeRegions: ["ibben"],
+    desc: "Dầu đèn và chất chống thấm lấy từ những chuyến săn cá voi trên biển lạnh Ibben.",
+  },
+  {
+    id: "Gỗ Vàng", category: "Nguyên Liệu", unit: "khối", basePrice: 10 * G,
+    bulk: 2.3, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["summer-isles"], homeRegions: ["summer-islands", "summer-isles"],
+    desc: "Gỗ vàng quý của Quần Đảo Mùa Hè, dùng làm cung mạnh và đồ chạm khắc cao cấp.",
+  },
+  {
+    id: "Đá Quý Qarth", category: "Xa Xỉ", unit: "hộp", basePrice: 35 * G,
+    bulk: 0.2, spoil: 0, demandPerK: 0, luxury: true,
+    originContinentIds: ["essos"], homeRegions: ["qarth"],
+    desc: "Hồng ngọc, ngọc lục bảo và đá khắc chuyển qua các hội thương nhân của Qarth.",
   },
 ];
 

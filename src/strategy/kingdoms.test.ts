@@ -6,8 +6,8 @@
 import { describe, expect, it } from "vitest";
 import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { absoluteDay } from "../mvu/calendar";
-import { REGIONS_BY_ID } from "../content/westeros/regions";
-import { kingdomsBoard, powerName, regionLevy, LEVY_RATE } from "./kingdoms";
+import { REGIONS, REGIONS_BY_ID } from "../content/world/geography";
+import { kingdomsBoard, powerName, regionLevy, mobilizationRateForRegion } from "./kingdoms";
 
 /** Một lãnh chúa Stark nắm Phương Bắc; Lannister nắm Vùng Tây + Đất Vương Thất. */
 function board(): StatData {
@@ -38,9 +38,10 @@ describe("Tên thế lực", () => {
 });
 
 describe("Đinh tráng gọi được", () => {
-  it("neo theo dân số vùng — Phương Bắc 4 triệu dân ra 20.000 quân (canon)", () => {
-    expect(regionLevy("the-north")).toBe(20000);
-    expect(regionLevy("the-north")).toBe(Math.round(REGIONS_BY_ID["the-north"].population * LEVY_RATE));
+  it("neo theo dân số của province lá, không nhân lại dân số macro", () => {
+    expect(regionLevy("the-north")).toBe(
+      Math.round(REGIONS_BY_ID["the-north"].population * mobilizationRateForRegion("the-north")),
+    );
   });
 
   it("vùng không tồn tại thì bằng 0, không nổ", () => {
@@ -68,7 +69,7 @@ describe("Cán cân quyền lực", () => {
     expect(b.playerHouseId).toBe("stark");
     expect(b.playerRank).toBe(2);
     const me = b.powers.find((p) => p.isPlayer);
-    expect(me?.populationShare).toBeCloseTo(4_000_000 / b.totalPopulation, 5);
+    expect(me?.populationShare).toBeCloseTo(REGIONS_BY_ID["the-north"].population / b.totalPopulation, 5);
   });
 
   it("ta không nắm đất thì không có hạng — bàn cờ là của người khác", () => {
@@ -168,12 +169,30 @@ describe("Bàn cờ chỉ ĐỌC", () => {
     expect(JSON.stringify(s)).toBe(before);
   });
 
-  it("state trắng (chưa gieo chủ quyền) vẫn ra chín vùng, không nổ", () => {
+  it("state trắng dùng số vùng động của lục địa hiện tại, không hard-code 9", () => {
     const s = StatDataSchema.parse(makeDefaultState());
     const b = kingdomsBoard(s);
-    expect(b.regions).toHaveLength(9);
+    const expected = REGIONS.filter((region) => region.continentId === b.scopeContinentId);
+    expect(b.regions).toHaveLength(expected.length);
+    expect(b.scopeRegionCount).toBe(expected.length);
+    expect(b.worldRegionCount).toBe(REGIONS.length);
     expect(b.powers).toHaveLength(0);
     expect(b.playerRank).toBeNull();
     expect(b.today).toBe(absoluteDay(s["Thế Giới"]));
+  });
+
+  it("chuyển phạm vi sang Essos theo vị trí người chơi", () => {
+    const s = StatDataSchema.parse(makeDefaultState());
+    const essos = REGIONS.find((region) => region.continentId === "essos")!;
+    s["Thế Giới"]["Vị Trí"] = essos.id;
+    s["Chủ Quyền Lãnh Thổ"][essos.id] = {
+      "Nhà Kiểm Soát": essos.defaultHouse, "Người Kiểm Soát": "",
+      "Tình Trạng": "Ổn Định", "Là Của Người Chơi": false, "_Ngày Đổi Chủ": 0,
+    };
+    const b = kingdomsBoard(s);
+    expect(b.scopeContinentId).toBe("essos");
+    expect(b.scopeContinentName).toBe("Essos");
+    expect(b.regions.every((region) => region.continentId === "essos")).toBe(true);
+    expect(b.scopeRegionCount).toBe(REGIONS.filter((region) => region.continentId === "essos").length);
   });
 });

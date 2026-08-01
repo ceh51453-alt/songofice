@@ -21,7 +21,7 @@ import { EXCHANGE_RATES } from "../economy/currency";
  */
 const G = EXCHANGE_RATES.GOLD_TO_COPPER;
 import { ORIGINS_BY_ID, type EquipGrant, type OriginDef } from "../content/westeros/origins";
-import { CULTURES_BY_ID } from "../content/westeros/cultures";
+import { CULTURES_BY_ID, culturesForContinent } from "../content/westeros/cultures";
 import { TALENTS_BY_ID, type TalentDef } from "../content/westeros/talents";
 import { SKILLS_BY_ID, STARTING_SKILLS_BY_ORIGIN } from "../content/westeros/skills";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
@@ -30,7 +30,16 @@ import { LORE_EQUIPMENT_BY_ID } from "../content/westeros/equipment";
 import { STARTING_CRISES } from "../content/westeros/startingCrises";
 import { COMPANIONS_BY_ID } from "../content/westeros/companions";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
-import { REGIONS } from "../content/westeros/regions";
+import {
+  REGIONS,
+  REGIONS_BY_ID,
+  CONTINENTS_BY_ID,
+  macroForRegion,
+  regionForLocation,
+  regionsForContinent,
+  type ContinentId,
+  type MapRegion,
+} from "../content/world/geography";
 import { seedRegionControl, toHouseId, normalizeHouseIds, seedMissingTerrain, repairPlayerSovereignty } from "../territory/territoryEngine";
 import { newUnit } from "../strategy/army";
 import { newDragon } from "../strategy/dragons";
@@ -38,7 +47,6 @@ import { seedVassals } from "../strategy/muster";
 import { seedDiplomacy } from "../strategy/diplomacy";
 import { seedSellswordMarket } from "../strategy/sellswords";
 import { layoutHolding, repairAllHoldings, type BuildPlanItem } from "../territory/localMap";
-import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { loreSeatFor } from "../content/westeros/loreSeats";
 import { seatConstructionPlan, seatProfileFor, seatWallsFor } from "../content/westeros/seatProfiles";
 import { defaultJobSplit } from "../content/westeros/buildings";
@@ -213,8 +221,8 @@ export const DRAGON_SKILL_MAX_CREATE = 3;
 export interface WizardData {
   eraId: string;
   houseId: string | null;
-  /** Vị thế trong Nhà (Trực hệ, Nhánh phụ, Bề tôi, Kẻ đánh thuê) */
-  houseRole?: "Trực hệ" | "Nhánh phụ" | "Bề tôi" | "Kẻ đánh thuê";
+  /** Vị thế trong Nhà/thành bang/khalasar/công ty. */
+  houseRole?: string;
   originId: string;
   /** Tối đa hai xuất thân; originId vẫn được giữ để tương thích save/preset cũ. */
   originIds?: string[];
@@ -224,7 +232,7 @@ export interface WizardData {
   difficulty: Difficulty;
   name: string;
   nickname?: string;
-  continent: "Westeros" | "Essos";
+  continent: ContinentId;
   culture: string;
   religion: string;
   patronGod: string;
@@ -316,6 +324,24 @@ export interface WizardData {
   customTerritoryLevel?: number;
   customTerritoryName?: string;
   customTuocVi?: string;
+}
+
+/** Reset dependent wizard choices when moving to a different continent. */
+export function wizardPatchForContinent(continent: ContinentId): Partial<WizardData> {
+  const culture = culturesForContinent(continent)[0];
+  return {
+    continent,
+    culture: culture?.id ?? "",
+    religion: culture?.defaultReligion ?? "Khác...",
+    patronGod: "",
+    houseId: null,
+    houseRole: undefined,
+    originId: "",
+    originIds: [],
+    customOrigin: undefined,
+    startingLocation: "",
+    crisisId: null,
+  };
 }
 
 /** Chuẩn hoá lựa chọn xuất thân, vẫn đọc được wizard/save đời cũ chỉ có originId. */
@@ -531,6 +557,19 @@ function applyBase(state: StatData, era: EraData, d: Pick<WizardData, "narrative
   state["_engineMeta"]["_Seed Gốc"] = newRootSeed();
 }
 
+/** Resolve a leaf province while preserving old presets that stored a seat/name. */
+export function resolveStartingRegion(
+  startingLocation: string,
+  eraStartLocation: string,
+  continentId?: ContinentId,
+): MapRegion | null {
+  const explicit = regionForLocation(startingLocation);
+  if (explicit && (!continentId || explicit.continentId === continentId)) return explicit;
+  const eraRegion = regionForLocation(eraStartLocation);
+  if (eraRegion && (!continentId || eraRegion.continentId === continentId)) return eraRegion;
+  return continentId ? regionsForContinent(continentId)[0] ?? null : eraRegion;
+}
+
 /** Dựng StatData từ wizard (8.6b). */
 export function buildStateFromWizard(d: WizardData): StatData {
   const era = ERAS_BY_ID[d.eraId];
@@ -544,12 +583,15 @@ export function buildStateFromWizard(d: WizardData): StatData {
   applyBase(state, era, d, actualStartYear);
   state["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"] = origins.some((item) => item.id === "time-traveler");
 
+  // Wizard stores the leaf region id. Narrative/UI shows the readable seat,
+  // while sovereignty, units and holdings consistently keep the region id.
+  const startRegion = resolveStartingRegion(d.startingLocation, era.startLocation, d.continent);
+  const startRegionId = startRegion?.id ?? "";
+  const startLocationLabel = startRegion?.seat || startRegion?.name || era.startLocation;
+  state["Thế Giới"]["Vị Trí"] = startLocationLabel;
+
   // ---- danh tính ----
   const info = state["Thông Tin Nhân Vật"];
-  
-  if (d.startingLocation) {
-    state["Thế Giới"]["Vị Trí"] = d.startingLocation;
-  }
   
   info["Họ Tên"] = d.name.trim() || "Vô Danh";
   info["Xuất Thân"] = origins.map((item) => item.name).join(" + ");
@@ -571,7 +613,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
     info["Khẩu Hiệu"] = d.customHouseWords?.trim();
     if (d.customHouseSigilKey) info["Ảnh Gia Huy"] = d.customHouseSigilKey;
   } else {
-    info["Nhà"] = (d.houseId ? (HOUSES_BY_ID[d.houseId]?.schemaName as typeof info["Nhà"]) : "Không Nhà") ?? "Không Nhà";
+    info["Nhà"] = (d.houseId ? HOUSES_BY_ID[d.houseId]?.schemaName : "Không Nhà") ?? "Không Nhà";
   }
 
   state["Persona"]["Ngoại Hình"] = d.persona.ngoaiHinh;
@@ -751,21 +793,23 @@ export function buildStateFromWizard(d: WizardData): StatData {
       "Tường Thành": [],
       "Đường Đi": [],
       "Khủng Hoảng": [],
-      "Thuộc Vùng": d.startingLocation || state["Thế Giới"]["Vị Trí"],
-      "Ven Biển": REGIONS_BY_ID[d.startingLocation || state["Thế Giới"]["Vị Trí"]]?.coastal ?? false,
-      "Công Trình": autoBuildCity(lvl, d.customTerritoryName, d.startingLocation || state["Thế Giới"]["Vị Trí"]),
+      "Thuộc Vùng": startRegionId,
+      "Ven Biển": startRegion?.coastal ?? false,
+      "Công Trình": autoBuildCity(lvl, d.customTerritoryName, startRegionId),
     };
     
     // Đăng ký vùng này thuộc về người chơi
     if (!state["Chủ Quyền Lãnh Thổ"]) state["Chủ Quyền Lãnh Thổ"] = {};
-    const regionId = d.startingLocation || state["Thế Giới"]["Vị Trí"];
+    const regionId = startRegionId;
+    if (!regionId) throw new Error(`Không xác định được vùng khởi đầu cho ${era.startLocation}`);
     if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
       state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0 };
     }
     state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = toHouseId(d.houseId || d.customHouseName || "Vô Danh");
     state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
   } else if (origin.assets.lanhDia) {
-    const regionId = d.startingLocation || state["Thế Giới"]["Vị Trí"];
+    const regionId = startRegionId;
+    if (!regionId) throw new Error(`Không xác định được vùng khởi đầu cho ${era.startLocation}`);
     (state["Lãnh Địa"] as Record<string, unknown>)[origin.assets.lanhDia.ten] = {
       "Mô Tả": origin.assets.lanhDia.moTa,
       "Dân Số": origin.assets.lanhDia.danSo,
@@ -805,6 +849,11 @@ export function buildStateFromWizard(d: WizardData): StatData {
   if (d.companionId) {
     const comp = buildCompanion(d.companionId, d.companionName, npcAffinityOffset(allTalentIds), d.companionOverrides);
     if (comp) {
+      comp[1]["Nhà"] = info["Nhà"];
+      comp[1]["Văn Hoá"] = info["Văn Hoá"];
+      comp[1]["Tôn Giáo"] = info["Tôn Giáo"];
+      comp[1]["Lục Địa"] = info["Lục Địa"];
+      comp[1]["Vị Trí Hiện Tại"] = startLocationLabel;
       if (d.companionOverrides?.avatarUrl) {
         comp[1]["Ảnh Chân Dung"] = d.companionOverrides.avatarUrl;
       }
@@ -835,7 +884,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
       "Kỹ Năng": skillRecord,
       "Mô Tả": drg.description || "",
       "Nhà": state["Thông Tin Nhân Vật"]["Nhà"] ?? "",
-      "Đồn Trú": d.startingLocation || "",
+      "Đồn Trú": startRegionId,
       "Trạng Thái Thu Phục": "Đã Có Chủ",
       // Rồng được chọn lúc tạo là mối liên kết đã hình thành từ trước, nên vượt ngưỡng cưỡi 90.
       "Mức Độ Thuần Hóa": 92,
@@ -854,12 +903,17 @@ export function buildStateFromWizard(d: WizardData): StatData {
         "Nhà": state["Thông Tin Nhân Vật"]["Nhà"] ?? "",
         "Huấn Luyện": "Thành Thạo",
         "Kinh Nghiệm": 45,
-        "Lãnh Địa Đồn Trú": d.startingLocation || state["Thế Giới"]["Vị Trí"],
+        "Lãnh Địa Đồn Trú": startRegionId,
       });
     }
     for (const n of d.customForce.npcs) {
       (state["Tướng Lĩnh"] as Record<string, unknown>)[n.id] = {
         "Họ Tên": n.name?.trim() || "Vô Danh",
+        "Nhà": info["Nhà"],
+        "Văn Hoá": info["Văn Hoá"],
+        "Tôn Giáo": info["Tôn Giáo"],
+        "Lục Địa": info["Lục Địa"],
+        "Vị Trí Hiện Tại": startLocationLabel,
         "Chức Vụ": n.role,
         "Tuổi": n.tuoi || 30,
         "Giới Tính": n.gioiTinh || "Nam",
@@ -898,6 +952,11 @@ export function buildStateFromWizard(d: WizardData): StatData {
       hiddenFamilyNotes += `- ${npcName}: ${member.relation} của ${d.name} (${d.houseId ? HOUSES_BY_ID[d.houseId]?.name : 'Không Nhà'}).\n`;
       (state["Mối Quan Hệ"]["Thành Viên Gia Tộc"] as Record<string, unknown>)[member.id] = {
         "Họ Tên": npcName,
+        "Nhà": info["Nhà"],
+        "Văn Hoá": info["Văn Hoá"],
+        "Tôn Giáo": info["Tôn Giáo"],
+        "Lục Địa": info["Lục Địa"],
+        "Vị Trí Hiện Tại": startLocationLabel,
         "Tuổi": member.age,
         "Giới Tính": member.gioiTinh || "Nam",
         "Chủng Tộc": member.loai,
@@ -1058,7 +1117,7 @@ function adjustCanonCharacterByAge(original: CanonCharacter, targetAge: number, 
 /** Dựng StatData từ nhân vật canon (8.4b) — chỉ số khoá theo nguyên tác. */
 
 /** Đổi một mã nhân vật/lãnh địa thành tên đọc được trong Sổ tay. */
-function canonLabel(era: EraData, id: string): string {
+export function canonLabel(era: EraData, id: string): string {
   const character = era.canonCharacters.find((entry) => entry.id === id);
   if (character) return character.name;
   const region = REGIONS.find((entry) => entry.id === id);
@@ -1811,12 +1870,20 @@ export function buildStateFromCanon(
 export function buildInitLoreEntry(state: StatData, era: EraData, hook: StartingHook | null, crisisDesc: string | null): LoreEntry {
   const info = state["Thông Tin Nhân Vật"];
   const persona = state["Persona"];
+  const continentId = String(info["Lục Địa"] || "westeros").toLocaleLowerCase("en-US") as ContinentId;
+  const continent = CONTINENTS_BY_ID[continentId];
+  const culture = CULTURES_BY_ID[info["Văn Hoá"]];
+  const currentRegion = regionForLocation(state["Thế Giới"]["Vị Trí"]);
+  const currentMacro = currentRegion ? macroForRegion(currentRegion) : null;
   const lines = [
     `[Bối cảnh ván chơi — luôn ghi nhớ]`,
     `Thời Kỳ: ${era.name} (${era.yearRange}). ${era.blurb}`,
     `Nhân vật chính: ${info["Họ Tên"]}${info["Biệt Danh"] ? ` "${info["Biệt Danh"]}"` : ""}, Nhà ${info["Nhà"]}, xuất thân ${info["Xuất Thân"]}.`,
-    `${info["Lục Địa"] === "Essos" ? `Lục địa: Essos` : `Lục địa: Westeros`}`,
-    `Văn hoá: ${info["Văn Hoá"]}, Tôn giáo: ${info["Tôn Giáo"]}`,
+    `Lục địa: ${continent?.name ?? info["Lục Địa"]}${continent?.description ? ` — ${continent.description}` : ""}`,
+    currentRegion
+      ? `Vị trí khởi đầu: ${currentRegion.seat}, tỉnh ${currentRegion.name}${currentMacro ? ` thuộc ${currentMacro.name}` : ""}. ${currentRegion.description}`
+      : `Vị trí khởi đầu: ${state["Thế Giới"]["Vị Trí"]}.`,
+    `Văn hoá: ${culture?.name ?? info["Văn Hoá"]}${culture ? ` [${culture.id}]` : ""}, Tôn giáo: ${info["Tôn Giáo"]}`,
     `Ngoại hình: ${persona["Ngoại Hình"]}, Tính cách: ${persona["Tính Cách"]}, Tiểu sử: ${persona["Tiểu Sử"]}.`,
     `Đặc điểm chi tiết: Màu mắt (${persona["Đặc Điểm"]?.["Màu Mắt"] || "không rõ"}), Màu tóc (${persona["Đặc Điểm"]?.["Màu Tóc"] || "không rõ"}), Chiều cao (${persona["Đặc Điểm"]?.["Chiều Cao"] || "không rõ"}).`,
     ...Object.entries(state["Rồng"]).map(([, drg]) =>

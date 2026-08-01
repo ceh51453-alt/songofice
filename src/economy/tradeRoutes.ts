@@ -4,7 +4,7 @@
  */
 import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
-import { calcMapDistance, distanceToDays } from "../strategy/army";
+import { calcMapDistance, distanceToDays, findRegionPath } from "../strategy/army";
 import { DAYS_PER_MONTH } from "../mvu/calendar";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import {
@@ -29,6 +29,7 @@ export function estimateProfit(
   fromId: string,
   toId: string,
   goods: Good[],
+  routeType: "Bộ" | "Biển" | "Sông" = "Bộ",
 ): number {
   if (goods.length === 0) return 0;
   let totalMargin = 0;
@@ -38,7 +39,8 @@ export function estimateProfit(
     totalMargin += Math.max(0, sellPrice - buyPrice);
   }
   // chia cho thời gian đi đường → lợi nhuận/tháng (vận chuyển mất thời gian)
-  const dist = calcMapDistance(fromId, toId);
+  const dist = calcMapDistance(fromId, toId, routeType === "Bộ" ? "land" : "direct");
+  if (!Number.isFinite(dist)) return 0;
   const months = Math.max(1, distanceToDays(dist) / DAYS_PER_MONTH);
   return Math.round(totalMargin / months * 10 * EXCHANGE_RATES.GOLD_TO_COPPER); // ×10 vì mỗi tuyến chở lô lớn, quy ra Đồng Đỏ
 }
@@ -63,14 +65,19 @@ export function createTradeRoute(
   if (type === "Biển" && (!REGIONS_BY_ID[fromId]?.coastal || !REGIONS_BY_ID[toId]?.coastal)) {
     return { ok: false, error: "Tuyến biển cần cả 2 vùng ven biển", ops: [] };
   }
+  if (type === "Bộ" && !findRegionPath(fromId, toId, "land")) {
+    return { ok: false, error: "Không có hành lang đường bộ liên tục giữa hai vùng; hãy chọn tuyến biển qua cảng", ops: [] };
+  }
 
-  const profit = estimateProfit(state, fromId, toId, goods);
+  const profit = estimateProfit(state, fromId, toId, goods, type);
   const fromName = REGIONS_BY_ID[fromId]?.name ?? fromId;
   const toName = REGIONS_BY_ID[toId]?.name ?? toId;
   const routeName = `${fromName} → ${toName}`;
 
-  // kiểm tra trùng
-  if (state["Tuyến Thương Mại"][routeName]) {
+  // kiểm tra trùng theo endpoint, không phụ thuộc tên hiển thị cũ sau migration
+  if (state["Tuyến Thương Mại"][routeName] || Object.values(state["Tuyến Thương Mại"]).some(
+    (route) => route["Từ"] === fromId && route["Đến"] === toId,
+  )) {
     return { ok: false, error: "Tuyến này đã tồn tại", ops: [] };
   }
 

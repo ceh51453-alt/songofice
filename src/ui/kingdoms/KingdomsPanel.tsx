@@ -1,12 +1,12 @@
 /**
- * KingdomsPanel (M21) — BÀN CỜ QUYỀN LỰC WESTEROS.
+ * KingdomsPanel (M21) — BÀN CỜ QUYỀN LỰC CỦA THẾ GIỚI ĐÃ BIẾT.
  *
  * KHÔNG CÓ NÚT CHẠY ENGINE (theo quy ước M20). Đây là bàn cờ VĨ MÔ để nhìn ba
  * thứ mà Bản Đồ / Quân Sự / Ngoại Giao đều không nói được:
  *
  *   Cán Cân    — ai mạnh hơn ai, ta đứng thứ mấy, Era này bàn cờ chia phe thế nào.
- *   Chín Vùng  — ai giữ vùng nào, giữ có chắc không, thành nào đang bị vây và
- *                còn mấy ngày thì đổ, vùng nào vừa đổi chủ, chư hầu vùng đó là ai.
+ *   Các Vùng   — ai giữ vùng nào, giữ có chắc không, thành nào đang bị vây và
+ *                còn mấy ngày thì đổ, vùng nào vừa đổi chủ, lực lượng địa phương là ai.
  *   Chiến Cuộc — chiến tuyến đang mở, cớ hai bên đang giữ, vùng đang cháy.
  *
  * Chỉ có NÚT ĐIỀU HƯỚNG: nhảy tới vùng trên bản đồ, hoặc mồi một câu vào ô chat
@@ -17,7 +17,7 @@ import { useMvuStore } from "../../state/mvuStore";
 import { useUiStore } from "../../state/uiStore";
 import { useTerritoryStore } from "../../state/territoryStore";
 import { houseColor } from "../../content/westeros/houseColors";
-import { FACTION_COLORS_MAP } from "../../content/westeros/regions";
+import { FACTION_COLORS_MAP } from "../../content/world/geography";
 import { formatDuration } from "../../mvu/calendar";
 import { formatCurrencyShort } from "../../economy/currency";
 import { kingdomsBoard, type KingdomsBoard, type PowerCard, type RegionCard } from "../../strategy/kingdoms";
@@ -147,20 +147,20 @@ export function KingdomsPanel({ open, onClose }: { open: boolean; onClose: () =>
   const hot = board.sieges.length + board.wars.length;
   const tabs: { key: Tab; label: string }[] = [
     { key: "balance", label: "Cán Cân" },
-    { key: "regions", label: "Chín Vùng" },
+    { key: "regions", label: `${board.scopeRegionCount} Vùng` },
     { key: "war", label: hot > 0 ? `Chiến Cuộc (${hot})` : "Chiến Cuộc" },
   ];
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end" role="dialog" aria-label="Bảy Vương Quốc">
+    <div className="fixed inset-0 z-40 flex justify-end" role="dialog" aria-label="Bàn Cờ Thế Giới">
       <div className="absolute inset-0 bg-[rgba(5,7,10,0.5)] backdrop-blur-sm" onClick={onClose} />
       <aside className="glass-strong anim-in relative flex h-full w-full max-w-lg flex-col overflow-hidden border-l border-[var(--glass-border)]">
         <header className="flex items-center justify-between border-b border-[var(--glass-border)] px-5 py-4">
           <div className="flex items-center gap-2">
             <IconCrown size={19} color="var(--accent-text)" />
             <div>
-              <h2 className="font-display text-[18px] leading-tight tracking-wide text-[var(--text-soft)]">Bảy Vương Quốc</h2>
-              <p className="text-[11px] text-[var(--text-faint)]">Bàn cờ quyền lực Westeros — năm {board.year} AC</p>
+              <h2 className="font-display text-[18px] leading-tight tracking-wide text-[var(--text-soft)]">Bàn Cờ Thế Giới</h2>
+              <p className="text-[11px] text-[var(--text-faint)]">{board.scopeLabel} · {board.scopeRegionCount}/{board.worldRegionCount} vùng — năm {board.year} AC</p>
             </div>
           </div>
           <button onClick={onClose} aria-label="Đóng" className="rounded-md p-1.5 text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]">
@@ -191,8 +191,8 @@ export function KingdomsPanel({ open, onClose }: { open: boolean; onClose: () =>
         </div>
 
         <p className="border-t border-[var(--glass-border)] px-4 py-2.5 text-[11px] italic leading-relaxed text-[var(--text-faint)]">
-          Đinh tráng là ƯỚC LƯỢNG số quân một vùng gọi được khi phất cờ (1 trên 200 miệng ăn) — không phải quân
-          đang có ngoài đồng. Bàn cờ này chỉ để nhìn cho rõ; muốn đổi nó thì phải nói ra trong cuộc chơi.
+          Quân huy động là ƯỚC LƯỢNG theo dân số và chính thể địa phương — không phải quân đang có ngoài đồng.
+          Bàn cờ này chỉ để nhìn cho rõ; muốn đổi nó thì phải nói ra trong cuộc chơi.
         </p>
       </aside>
     </div>
@@ -207,7 +207,7 @@ function StandingBar({ board }: { board: KingdomsBoard }) {
     return (
       <div className="border-b border-[var(--glass-border)] px-4 py-2.5">
         <p className="text-[12px] leading-relaxed text-[var(--text-muted)]">
-          Ngươi chưa nắm tấc đất nào trong Bảy Vương Quốc — bàn cờ này đang là của người khác.
+          Ngươi chưa nắm tấc đất nào trong {board.scopeLabel.toLowerCase()} — bàn cờ này đang là của người khác.
           {board.playerArmy > 0 ? ` Ngươi có ${num(board.playerArmy)} quân trong tay, không có đất để nuôi.` : ""}
         </p>
       </div>
@@ -223,12 +223,12 @@ function StandingBar({ board }: { board: KingdomsBoard }) {
           <span className="text-[var(--text-faint)]">/{board.powers.length} thế lực</span>
         </span>
         <span className="shrink-0 font-mono text-[11.5px] text-[var(--text-faint)]">
-          {(me.populationShare * 100).toFixed(1)}% Westeros
+          {(me.populationShare * 100).toFixed(1)}% {board.scopeContinentName}
         </span>
       </div>
       <ShareBar value={me.populationShare} color={col.base} />
       <p className="mt-1.5 text-[11px] text-[var(--text-faint)]">
-        {me.regionIds.length} vùng · gọi được ~{num(me.levy)} đinh tráng · đang có {num(board.playerArmy)} quân trong biên chế
+        {me.regionIds.length} vùng · huy động được ~{num(me.levy)} quân · đang có {num(board.playerArmy)} quân trong biên chế
       </p>
     </div>
   );
@@ -243,7 +243,7 @@ function BalanceTab({ board, onMap, onSpeak }: {
   if (board.powers.length === 0) {
     return (
       <p className="text-[13px] italic leading-relaxed text-[var(--text-muted)]">
-        Chưa Nhà nào được ghi là chủ của vùng nào — bàn cờ chủ quyền chưa được gieo.
+        Chưa thế lực nào được ghi là chủ của vùng nào trong phạm vi này — bàn cờ chủ quyền chưa được gieo.
       </p>
     );
   }
@@ -259,7 +259,7 @@ function BalanceTab({ board, onMap, onSpeak }: {
           Thế lực nắm đất
         </h3>
         <p className="mb-2 text-[11px] italic text-[var(--text-faint)]">
-          Xếp theo số đinh tráng gọi được — thước đo duy nhất mà một lãnh chúa Westeros thật sự quan tâm.
+          Xếp theo lực lượng có thể huy động trong mô hình chính trị địa phương, không áp một tỷ lệ phong kiến cho cả thế giới.
         </p>
         <div className="space-y-1.5">
           {board.powers.map((p, i) => (
@@ -339,7 +339,7 @@ function PowerRow({ power, rank, relative, expanded, onToggle, onMap, onSpeak }:
         <div className="mt-1.5 pl-6">
           <ShareBar value={relative} color={col.base} />
           <p className="mt-1 text-[11px] text-[var(--text-faint)]">
-            {power.regionIds.length} vùng · {compactPeople(power.population)} dân · gọi được ~{num(power.levy)} đinh tráng
+            {power.regionIds.length} vùng · {compactPeople(power.population)} dân · huy động ~{num(power.levy)} quân
             {power.attitude && !power.isPlayer ? ` · thái độ ${power.attitude}` : ""}
           </p>
         </div>
@@ -360,7 +360,7 @@ function PowerRow({ power, rank, relative, expanded, onToggle, onMap, onSpeak }:
           </div>
 
           <p className="text-[11.5px] text-[var(--text-faint)]">
-            Chư hầu đã biết mặt cam kết {num(power.knownLevy)} quân
+            Lực lượng địa phương đã biết cam kết {num(power.knownLevy)} quân
             {power.faction ? ` · đứng phe ${power.faction}` : ""}
           </p>
 
@@ -380,7 +380,7 @@ function PowerRow({ power, rank, relative, expanded, onToggle, onMap, onSpeak }:
           ) : (
             !power.isPlayer && (
               <p className="text-[11.5px] italic text-[var(--text-faint)]">
-                Chưa có bản ghi ngoại giao nào với Nhà này — chưa sứ giả nào qua lại, chưa giọt máu nào đổ.
+                Chưa có bản ghi ngoại giao nào với thế lực này — chưa sứ giả nào qua lại, chưa giọt máu nào đổ.
               </p>
             )
           )}
@@ -407,13 +407,13 @@ function PowerRow({ power, rank, relative, expanded, onToggle, onMap, onSpeak }:
   );
 }
 
-// ── Chín Vùng ────────────────────────────────────────────────────────────────
+// ── Các Vùng ────────────────────────────────────────────────────────────────
 function RegionsTab({ board, onMap }: { board: KingdomsBoard; onMap: (id: string) => void }) {
   const [openId, setOpenId] = useState<string | null>(null);
   return (
     <div className="space-y-2">
       <p className="mb-1 text-[11px] italic text-[var(--text-faint)]">
-        Bắc xuống Nam. Bấm một vùng để xem các nhà chư hầu ở đó — họ là đám quân mà chủ vùng phải đi xin, không phải sai.
+        Các vùng thuộc {board.scopeLabel.toLowerCase()}. Bấm một vùng để xem chủ quyền, quân lực và lực lượng địa phương đã biết.
       </p>
       {board.regions.map((r) => (
         <RegionRow
@@ -461,8 +461,8 @@ function RegionRow({ region: r, expanded, onToggle, onMap }: {
 
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
           <Stat icon={<IconUsers size={13} />} value={compactPeople(r.population)} label="dân" />
-          <Stat icon={<IconShield size={13} />} value={`~${num(r.levy)}`} label="đinh tráng" />
-          <Stat icon={<IconCastle size={13} />} value={String(r.bannermen.length)} label="nhà chư hầu" />
+          <Stat icon={<IconShield size={13} />} value={`~${num(r.levy)}`} label="quân huy động" />
+          <Stat icon={<IconCastle size={13} />} value={String(r.bannermen.length)} label="lực lượng đã biết" />
           {r.ourTroops > 0 ? (
             <Stat icon={<IconCrossedSwords size={13} />} value={num(r.ourTroops)} label="quân ta đóng" tone="var(--accent-text)" />
           ) : (
@@ -508,11 +508,11 @@ function RegionRow({ region: r, expanded, onToggle, onMap }: {
           )}
 
           {r.bannermen.length === 0 ? (
-            <p className="text-[11.5px] italic text-[var(--text-muted)]">Chưa có bảng chư hầu cho vùng này.</p>
+            <p className="text-[11.5px] italic text-[var(--text-muted)]">Chưa có dữ liệu lực lượng địa phương cho vùng này.</p>
           ) : (
             <>
               <p className="font-display text-[11px] uppercase tracking-widest text-[var(--text-faint)]">
-                Chư hầu · cam kết {num(r.knownLevy)} quân
+                Lực lượng địa phương · cam kết {num(r.knownLevy)} quân
               </p>
               <div className="space-y-1">
                 {r.bannermen.map((b) => (
@@ -549,8 +549,8 @@ function WarTab({ board, onMap, onSpeak }: {
   if (quiet) {
     return (
       <p className="text-[13px] italic leading-relaxed text-[var(--text-muted)]">
-        Không có chiến tuyến nào đang mở, không thành nào bị vây, chín vùng đều yên. Ở Westeros thứ đó gọi là
-        khoảng lặng giữa hai cuộc chiến — hãy dùng nó để tích lương và đếm lại chư hầu.
+        Không có chiến tuyến nào đang mở, không thành nào bị vây; {board.scopeRegionCount} vùng của {board.scopeContinentName} đều yên.
+        Đây là khoảng lặng giữa hai cuộc chiến — hãy dùng nó để tích lương và kiểm lại lực lượng.
       </p>
     );
   }

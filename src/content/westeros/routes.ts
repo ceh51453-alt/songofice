@@ -81,6 +81,30 @@ export const ROADS: MapPath[] = [
     id: "greenblood-road", name: "Đường Lục Huyết Hà",
     points: [[810, 1240], [740, 1270], [635, 1325], [545, 1290]],
   },
+  {
+    id: "valyrian-coast-road", name: "Valyrian Coast Road", main: true,
+    points: [[1320, 535], [1460, 650], [1600, 760], [1660, 920], [1810, 1160], [2000, 1380]],
+  },
+  {
+    id: "rhoyne-road", name: "Rhoyne Road", main: true,
+    points: [[1600, 435], [1770, 570], [1810, 720], [1740, 845], [1660, 920]],
+  },
+  {
+    id: "dothraki-road", name: "Dothraki Road", main: true,
+    points: [[1800, 480], [2000, 580], [2250, 390], [2470, 620], [2580, 1020], [2790, 1180]],
+  },
+  {
+    id: "slavers-bay-road", name: "Slaver's Bay Road",
+    points: [[1660, 920], [1900, 1000], [2110, 1280], [2190, 1190], [2320, 1080], [2390, 970]],
+  },
+  {
+    id: "bone-mountains-road", name: "Bone Mountains Road", main: true,
+    points: [[2470, 620], [2690, 650], [2910, 720], [3120, 650], [3320, 720]],
+  },
+  {
+    id: "five-forts-road", name: "Five Forts Road",
+    points: [[3120, 650], [3260, 430], [3400, 300]],
+  },
 ];
 
 /** Tuyến hàng hải — thương mại xuyên lục địa (Tầng 2 + Tầng 3). */
@@ -95,11 +119,23 @@ export const SEA_LANES: MapPath[] = [
   },
   {
     id: "essos-trade", name: "Tuyến Đông Hải (Essos)",
-    points: [[690, 770], [800, 720], [900, 620], [960, 560]],
+    points: [[690, 770], [980, 690], [1240, 260], [1320, 535], [1360, 880], [1660, 920]],
   },
   {
     id: "summer-sea", name: "Tuyến Nam Hải",
-    points: [[250, 1120], [420, 1330], [580, 1440], [720, 1400], [860, 1290]],
+    points: [[250, 1120], [420, 1330], [820, 1700], [1260, 1730], [1620, 1550], [2110, 1280]],
+  },
+  {
+    id: "jade-sea", name: "Jade Sea Route",
+    points: [[2110, 1280], [2450, 1350], [2790, 1180], [2910, 720], [3120, 650], [3330, 1080]],
+  },
+  {
+    id: "shivering-sea", name: "Shivering Sea Route",
+    points: [[1240, 260], [1510, 215], [1900, 150], [2250, 120], [2800, 190], [3400, 300]],
+  },
+  {
+    id: "sothoryos-passage", name: "Sothoryos Passage",
+    points: [[1660, 920], [1770, 1350], [1880, 1480], [1620, 1550], [2180, 1700], [3100, 1680]],
   },
 ];
 
@@ -110,6 +146,9 @@ export const RIVERS: MapPath[] = [
   { id: "blackwater", name: "Sông Nước Đen", points: [[520, 770], [610, 750], [690, 770]] },
   { id: "mander", name: "Sông Mander", points: [[520, 770], [420, 850], [390, 965], [280, 1030], [180, 1070]] },
   { id: "greenblood", name: "Sông Lục Huyết", points: [[360, 1180], [540, 1280], [720, 1400]] },
+  { id: "rhoyne", name: "Rhoyne", points: [[1770, 570], [1810, 720], [1740, 845], [1660, 920]] },
+  { id: "sarne", name: "Sarne", points: [[2090, 285], [2020, 390], [2000, 580], [2100, 700]] },
+  { id: "skahazadhan", name: "Skahazadhan", points: [[2390, 970], [2350, 1020], [2320, 1080]] },
 ];
 
 /** Dải khí hậu vĩ mô (Tầng 3) — y1..y2 theo px ảnh gốc. */
@@ -127,6 +166,7 @@ export const CLIMATE_BANDS: ClimateBand[] = [
   { id: "temperate", name: "Ôn Hoà", y1: 640, y2: 1000, tint: "#8fa86a" },
   { id: "warm", name: "Cận Nhiệt", y1: 1000, y2: 1200, tint: "#c2a35c" },
   { id: "arid", name: "Khô Hạn", y1: 1200, y2: 1500, tint: "#c98f52" },
+  { id: "tropical", name: "Nhiệt Đới", y1: 1500, y2: 2200, tint: "#5f8f62" },
 ];
 
 export function pathD(points: [number, number][]): string {

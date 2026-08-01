@@ -17,7 +17,7 @@ import type { PatchOp } from "../mvu/patchEngine";
 import { registerDailyListener, registerMonthlyListener } from "../mvu/effects";
 import { turnsToDays } from "../mvu/calendar";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
-import { recruitableTroopsForEra, type TroopTypeAll, troopMeta, branchAllows } from "../content/westeros/troopTypes";
+import { recruitableTroopsForBranch, type TroopTypeAll, troopMeta, branchAllows } from "../content/westeros/troopTypes";
 import { branchMeta } from "../content/westeros/armyBranches";
 import { canControlHolding, hasPrivilege } from "../character/roleplay";
 import { MORALE_SCORE, moraleEnumFromScore } from "../combat/scales";
@@ -250,8 +250,11 @@ export function recruitUnit(
   }
 
   const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
-  if (!o.storyGranted && !recruitableTroopsForEra(eraId).includes(troopType)) {
-    return { ok: false, error: `${troopType} không tuyển được ở thời kỳ này`, ops: [] };
+  if (!o.storyGranted && !recruitableTroopsForBranch(eraId, branch, {
+    regionId: territoryId,
+    cultureId: state["Thông Tin Nhân Vật"]["Văn Hoá"],
+  }).includes(troopType)) {
+    return { ok: false, error: `${troopType} không tuyển được tại vùng hoặc văn hoá này`, ops: [] };
   }
   if (count <= 0) return { ok: false, error: "Số lượng không hợp lệ", ops: [] };
   const cap = recruitCapFor(state, territoryId, branch);
@@ -395,11 +398,79 @@ export function extendService(state: StatData, unitName: string, days = 60): { o
 const PX_PER_MONTH = 260; // quãng đường 1 tháng hành quân (px ảnh gốc)
 
 /** Khoảng cách 2 vùng theo px trọng trấn (9.2) → dùng quy ra số ngày hành quân. */
-export function calcMapDistance(fromId: string, toId: string): number {
+export function calcMapDistance(fromId: string, toId: string, mode: "direct" | "land" | "sea" | "any" = "direct"): number {
   const a = REGIONS_BY_ID[fromId];
   const b = REGIONS_BY_ID[toId];
   if (!a || !b) return 3;
+  if (mode !== "direct") {
+    const path = findRegionPath(fromId, toId, mode);
+    if (!path) return Number.POSITIVE_INFINITY;
+    let total = 0;
+    for (let i = 1; i < path.length; i++) {
+      const prev = REGIONS_BY_ID[path[i - 1]];
+      const next = REGIONS_BY_ID[path[i]];
+      total += Math.hypot(prev.seatXY[0] - next.seatXY[0], prev.seatXY[1] - next.seatXY[1]);
+    }
+    return total;
+  }
   return Math.hypot(a.seatXY[0] - b.seatXY[0], a.seatXY[1] - b.seatXY[1]);
+}
+
+/**
+ * Đường đi hợp lệ trên graph địa lý. Quân bộ chỉ dùng `land`; hạm đội/tuyến
+ * cảng dùng `sea`; `any` dành cho truy vấn tin tức. Dijkstra giữ đường ngắn
+ * nhưng tuyệt đối không tự nối hai điểm chỉ vì chúng gần nhau qua mặt biển.
+ */
+export function findRegionPath(
+  fromId: string,
+  toId: string,
+  mode: "land" | "sea" | "any" = "land",
+): string[] | null {
+  if (!REGIONS_BY_ID[fromId] || !REGIONS_BY_ID[toId]) return null;
+  if (fromId === toId) return [fromId];
+  const distances = new Map<string, number>([[fromId, 0]]);
+  const previous = new Map<string, string>();
+  const unvisited = new Set(Object.keys(REGIONS_BY_ID));
+
+  while (unvisited.size > 0) {
+    let current: string | null = null;
+    let best = Number.POSITIVE_INFINITY;
+    for (const id of unvisited) {
+      const score = distances.get(id) ?? Number.POSITIVE_INFINITY;
+      if (score < best) { best = score; current = id; }
+    }
+    if (!current || !Number.isFinite(best)) break;
+    unvisited.delete(current);
+    if (current === toId) break;
+    const region = REGIONS_BY_ID[current];
+    const neighbors = mode === "land"
+      ? region.landConnections
+      : mode === "sea"
+        ? region.seaConnections
+        : region.neighbors;
+    for (const neighborId of neighbors) {
+      if (!unvisited.has(neighborId) || !REGIONS_BY_ID[neighborId]) continue;
+      const neighbor = REGIONS_BY_ID[neighborId];
+      const step = Math.hypot(
+        region.seatXY[0] - neighbor.seatXY[0],
+        region.seatXY[1] - neighbor.seatXY[1],
+      );
+      const candidate = best + step;
+      if (candidate < (distances.get(neighborId) ?? Number.POSITIVE_INFINITY)) {
+        distances.set(neighborId, candidate);
+        previous.set(neighborId, current);
+      }
+    }
+  }
+
+  if (!distances.has(toId)) return null;
+  const path = [toId];
+  while (path[0] !== fromId) {
+    const prev = previous.get(path[0]);
+    if (!prev) return null;
+    path.unshift(prev);
+  }
+  return path;
 }
 
 export function distanceToDays(px: number): number {
@@ -408,7 +479,9 @@ export function distanceToDays(px: number): number {
 
 /** Ngày hành quân của MỘT đơn vị — binh chủng chậm thì đi lâu (M19). */
 export function marchDaysFor(unit: MilitaryUnit, fromId: string, toId: string): number {
-  const base = distanceToDays(calcMapDistance(fromId, toId));
+  const distance = calcMapDistance(fromId, toId, "land");
+  if (!Number.isFinite(distance)) return Number.POSITIVE_INFINITY;
+  const base = distanceToDays(distance);
   const speed = troopMeta(unit["Loại Quân"]).speed || 1;
   // hậu cần kiệt quệ thì lê lết
   const logi = unit["Hậu Cần"] === "Cực Kỳ Thiếu Thốn" ? 1.3 : unit["Hậu Cần"] === "Dồi Dào" ? 0.95 : 1;
@@ -428,8 +501,13 @@ export function moveArmy(state: StatData, unitName: string, targetTerritoryId: s
   if (unit["Ngày Tập Hợp Còn Lại"] > 0) return { ok: false, error: "Đơn vị chưa tập hợp xong", ops: [] };
   if (unit["Ngày Huấn Luyện"] > 0) return { ok: false, error: "Đơn vị đang huấn luyện", ops: [] };
   if (!REGIONS_BY_ID[targetTerritoryId]) return { ok: false, error: "Đích không hợp lệ", ops: [] };
-  const from = unit["Lãnh Địa Đồn Trú"] || (unit["Đang Di Chuyển Đến"] ?? "");
+  const rawFrom = unit["Lãnh Địa Đồn Trú"] || (unit["Đang Di Chuyển Đến"] ?? "");
+  const from = REGIONS_BY_ID[rawFrom] ? rawFrom : state["Lãnh Địa"][rawFrom]?.["Thuộc Vùng"] ?? rawFrom;
+  if (!REGIONS_BY_ID[from]) return { ok: false, error: "Không xác định được vùng xuất phát", ops: [] };
   if (from === targetTerritoryId && !unit["Đang Di Chuyển Đến"]) return { ok: false, error: "Đơn vị đã ở đó", ops: [] };
+  if (!findRegionPath(from, targetTerritoryId, "land")) {
+    return { ok: false, error: "Không có hành lang đường bộ liên tục; cần vận tải hạm đội qua biển", ops: [] };
+  }
   const days = marchDaysFor(unit, from, targetTerritoryId);
   return {
     ok: true, days,

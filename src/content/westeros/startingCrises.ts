@@ -12,6 +12,9 @@ export interface StartingCrisis {
   origins: string[]; // rỗng = mọi xuất thân
   eras?: string[];
   houses?: string[];
+  /** Phạm vi địa lý; rỗng/không có = mọi nơi. */
+  continentIds?: string[];
+  regionIds?: string[];
   tags: string[];
   initialStateHint?: string;
 }
@@ -169,14 +172,64 @@ export const STARTING_CRISES: StartingCrisis[] = [
   { id: "army-approaching", title: "Đại Quân Áp Sát",
     desc: "Một trong năm đạo quân đang tiến về vùng của ngươi; khói đốt làng đã thấy được từ tường thành.",
     origins: [], eras: ["war-of-five-kings"], tags: ["quân sự", "sinh tồn"] },
+  // ── Essos và các lục địa khác ──
+  { id: "free-city-coup", title: "Đêm Đảo Chính",
+    desc: "Các cổng thành bị khoá, đội lính canh đổi phù hiệu và những magister đối địch đều tuyên bố mình đang cứu nền cộng hoà.",
+    origins: [], continentIds: ["essos"],
+    regionIds: ["braavos", "pentos", "lorath", "norvos", "qohor", "volantis", "myr", "tyrosh", "lys"],
+    tags: ["chính trị", "mưu đồ"], initialStateHint: "hội đồng thành phố chia phe" },
+  { id: "khalasar-demand", title: "Cống Lễ Cho Khalasar",
+    desc: "Một khalasar hùng mạnh dựng trại ngoài chân trời. Sứ giả của khal đòi ngựa, lương thực và con tin trước bình minh.",
+    origins: [], continentIds: ["essos"], regionIds: ["dothraki-sea", "lhazar", "sarnor", "vaes-dothrak"],
+    tags: ["quân sự", "sinh tồn"], initialStateHint: "khalasar áp sát" },
+  { id: "broken-chains", title: "Thành Phố Bẻ Xiềng",
+    desc: "Nô lệ nổi dậy, chủ nô cố thủ trong kim tự tháp và các đoàn lính đánh thuê đang chờ xem bên nào trả nhiều hơn.",
+    origins: [], continentIds: ["essos"], regionIds: ["astapor", "yunkai", "meereen", "new-ghis", "slavers-bay"],
+    tags: ["chính trị", "quân sự"], initialStateHint: "trật tự Ghiscari sụp đổ" },
+  { id: "qarth-guild-war", title: "Chiến Tranh Các Phường Hội Qarth",
+    desc: "Ba phường hội thương nhân và Hội Đồng Mười Ba cùng tranh quyền kiểm soát cổng thành; các kho gia vị bắt đầu bốc cháy.",
+    origins: [], continentIds: ["essos"], regionIds: ["qarth"],
+    tags: ["tài chính", "mưu đồ"], initialStateHint: "thương hội phong toả kho hàng" },
+  { id: "shadow-curse", title: "Bóng Tối Từ Asshai",
+    desc: "Một món đồ từ Asshai mang theo những giấc mơ giống hệt nhau cho mọi người trong đoàn; rồi người đầu tiên biến mất.",
+    origins: [], continentIds: ["essos"], regionIds: ["asshai", "shadow-lands"],
+    tags: ["siêu nhiên", "sinh tồn"], initialStateHint: "lời nguyền chưa rõ nguồn" },
+  { id: "yi-ti-succession", title: "Chiếu Chỉ Của Hai Hoàng Đế",
+    desc: "Hai triều đình cùng ban chiếu gọi người tới phục vụ, mỗi bên đóng ấn hoàng gia và xem sự im lặng là phản nghịch.",
+    origins: [], continentIds: ["essos"], regionIds: ["yi-ti", "leng", "jogos-nhai"],
+    tags: ["chính trị", "quân sự"], initialStateHint: "nội chiến ở cực đông" },
+  { id: "basilisk-captive", title: "Con Tin Của Hải Tặc Basilisk",
+    desc: "Một người thân bị hải tặc Quần Đảo Basilisk bắt giữ. Chúng đòi tiền chuộc trước khi chiếc thuyền nô lệ rời bến.",
+    origins: [], continentIds: ["sothoryos", "summer-isles"],
+    tags: ["sinh tồn", "tài chính"], initialStateHint: "hạn trả tiền chuộc rất ngắn" },
+  { id: "green-fever-expedition", title: "Đoàn Thám Hiểm Sốt Xanh",
+    desc: "Dịch bệnh quét qua trại thám hiểm Sothoryos trong khi hoa tiêu mất tích và nước sạch chỉ còn đủ vài ngày.",
+    origins: [], continentIds: ["sothoryos"],
+    tags: ["sinh tồn"], initialStateHint: "dịch bệnh và thiếu tiếp tế" },
+  { id: "summer-isles-feud", title: "Mối Thù Giữa Các Đảo",
+    desc: "Hai hoàng tử đảo cùng đòi quyền bảo hộ tuyến biển và buộc người chọn phe trước khi các thiên nga thuyền khai chiến.",
+    origins: [], continentIds: ["summer-isles"],
+    tags: ["chính trị", "quân sự"], initialStateHint: "tuyến hàng hải bị đe doạ" },
 ];
 
 /** Lọc khủng hoảng khớp hồ sơ (8.5b) — wizard hiện 4-6 mục + "yên bình" + "AI tự gieo". */
-export function availableCrises(opts: { originId: string; eraId: string; houseId?: string }): StartingCrisis[] {
+export function availableCrises(opts: {
+  originId: string;
+  eraId: string;
+  houseId?: string;
+  continentId?: string;
+  regionId?: string;
+}): StartingCrisis[] {
+  const continent = opts.continentId?.toLocaleLowerCase("vi").replace(/[\s_]+/g, "-");
   return STARTING_CRISES.filter((c) => {
     if (c.origins.length > 0 && !c.origins.includes(opts.originId)) return false;
     if (c.eras && c.eras.length > 0 && !c.eras.includes(opts.eraId)) return false;
     if (c.houses && c.houses.length > 0 && (!opts.houseId || !c.houses.includes(opts.houseId))) return false;
+    if (c.continentIds?.length && (!continent || !c.continentIds.some((id) => id.toLocaleLowerCase("vi").replace(/[\s_]+/g, "-") === continent))) return false;
+    if (c.regionIds?.length && opts.regionId && !c.regionIds.includes(opts.regionId)) return false;
+    // Các khủng hoảng theo thời kỳ cũ mô tả chiến tranh Westeros; không phát
+    // toàn cầu chỉ vì người chơi chọn cùng mốc niên đại ở Essos.
+    if (continent && continent !== "westeros" && c.eras?.length && !c.continentIds?.length) return false;
     return true;
   });
 }

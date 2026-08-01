@@ -5,6 +5,7 @@
 // trong skills.ts) + GÓI TÀI SẢN ánh xạ thẳng vào state lúc initvar (8.6b).
 // ============================================================================
 import type { CoreStat } from "./skills";
+import { resolveRegionId } from "../world/geography";
 
 export interface AssetPackage {
   vang: number;
@@ -29,6 +30,10 @@ export interface OriginDef {
   id: string;
   name: string;
   desc: string;
+  /** Geography ids used to scope this background in the character wizard. */
+  continentIds: string[];
+  regionIds?: string[];
+  cultureIds?: string[];
   /** bonus chỉ số nền — cộng SAU point-buy (8.5 Bước 2). */
   statBonus: Partial<Record<CoreStat, number>>;
   /** điểm point-buy cộng thêm. */
@@ -44,10 +49,57 @@ export interface OriginDef {
   reputation: { vinhDu?: number; nhanTu?: number; uyDung?: number; xaoQuyet?: number };
   ghiChu: string;
   /** Tước vị mặc định khi khởi đầu bằng xuất thân này. */
-  tuocVi: "Thường Dân" | "Hiệp Sĩ" | "Lãnh Chúa Thành Trì" | "Lãnh Chúa" | "Đại Lãnh Chúa" | "Quốc Vương" | "Vua" | "Vua Bảy Vương Quốc" | "Hoàng Đế";
+  tuocVi: string;
 }
 
-export const ORIGINS: OriginDef[] = [
+type OriginSeed = Omit<OriginDef, "continentIds"> & Partial<Pick<OriginDef, "continentIds">>;
+
+function worldOrigin(opts: {
+  id: string;
+  name: string;
+  desc: string;
+  continentIds: string[];
+  regionIds?: string[];
+  cultureIds?: string[];
+  statBonus: Partial<Record<CoreStat, number>>;
+  talent?: string;
+  weapon?: string;
+  gold?: number;
+  reputation?: OriginDef["reputation"];
+  tuocVi?: string;
+}): OriginSeed {
+  return {
+    id: opts.id,
+    name: opts.name,
+    desc: opts.desc,
+    continentIds: opts.continentIds,
+    regionIds: opts.regionIds,
+    cultureIds: opts.cultureIds,
+    statBonus: opts.statBonus,
+    extraPointBuy: 0,
+    giftTalentIds: opts.talent ? [opts.talent] : [],
+    equipment: opts.weapon ? [{
+      slot: "Vũ Khí Chính",
+      ten: opts.weapon,
+      phamChat: "Thường",
+      thuocTinh: { "Sát Thương Cận": 2 },
+      moTa: `Dụng cụ gắn với thân phận ${opts.name.toLocaleLowerCase("vi")}`,
+    }] : [],
+    items: [],
+    assets: {
+      vang: opts.gold ?? 100,
+      luongThuc: 40,
+      thuNhapKy: 0,
+      chiPhiKy: 10,
+      moTa: "Tài sản và quan hệ phù hợp với xuất thân địa phương",
+    },
+    reputation: opts.reputation ?? {},
+    ghiChu: `Xuất thân bản địa: ${opts.continentIds.join(", ")}`,
+    tuocVi: opts.tuocVi ?? "Thường Dân",
+  };
+}
+
+const ORIGIN_SEEDS: OriginSeed[] = [
   {
     id: "lord-heir", name: "Lãnh Chúa Kế Vị",
     desc: "Ngươi thừa kế một lãnh địa cùng chư hầu — quyền lực thật, và gánh nặng thật.",
@@ -380,7 +432,135 @@ export const ORIGINS: OriginDef[] = [
     reputation: {},
     ghiChu: "Nên chọn kèm một xuất thân thông thường. Bật đặc quyền thuần phục nhiều rồng.",
     tuocVi: "Thường Dân",
-  }
+  },
+
+  // ── Essos: thành bang, đế quốc, thảo nguyên và vùng Bóng Tối ──
+  worldOrigin({
+    id: "free-city-artisan", name: "Nghệ Nhân Thành Phố Tự Do",
+    desc: "Một thợ thủ công lành nghề của Cửu Thành Phố Tự Do, sống nhờ phường hội, bí quyết nghề và các tuyến buôn qua Biển Hẹp.",
+    continentIds: ["essos"], cultureIds: ["braavosi", "pentoshi", "myrish", "tyroshi", "lysene", "volantene", "lorathi", "norvoshi", "qohorik"],
+    statBonus: { "Trí Tuệ": 2, "Tinh Tường": 1 }, talent: "learned", weapon: "Búa nghề chắc tay", gold: 450,
+  }),
+  worldOrigin({
+    id: "iron-bank-envoy", name: "Sứ Giả Ngân Hàng Sắt",
+    desc: "Người mang khế ước và uy tín Braavos đến tận cung điện các vua; con số, bí mật và lời hứa trả nợ là vũ khí của ngươi.",
+    continentIds: ["essos"], regionIds: ["braavos"], cultureIds: ["braavosi"],
+    statBonus: { "Trí Tuệ": 2, "Uy Tín": 1 }, talent: "merchant-fortune", weapon: "Đoản kiếm Braavos", gold: 2500, reputation: { xaoQuyet: 6 },
+  }),
+  worldOrigin({
+    id: "unsullied-veteran", name: "Cựu Binh Unsullied",
+    desc: "Được rèn trong kỷ luật tàn khốc của Astapor rồi giành lại quyền tự quyết, ngươi chiến đấu như một phần của đội hình không thể lay chuyển.",
+    continentIds: ["essos"], regionIds: ["astapor", "yunkai", "meereen"], cultureIds: ["ghiscari"],
+    statBonus: { "Thể Chất": 2, "Tinh Tường": 1 }, talent: "iron-constitution", weapon: "Giáo Unsullied", reputation: { vinhDu: 6, uyDung: 5 },
+  }),
+  worldOrigin({
+    id: "freedperson", name: "Người Được Giải Phóng",
+    desc: "Xiềng xích đã vỡ nhưng quá khứ vẫn đeo bám; ngươi hiểu đường hầm, chợ lao động và giá thật của tự do ở các thành Ghiscari.",
+    continentIds: ["essos"], regionIds: ["astapor", "yunkai", "meereen", "volantis"], cultureIds: ["ghiscari", "volantene"],
+    statBonus: { "Thể Chất": 1, "Tinh Tường": 2 }, talent: "tireless", weapon: "Dao lao động", gold: 20, reputation: { nhanTu: 4 },
+  }),
+  worldOrigin({
+    id: "ghiscari-noble", name: "Hậu Duệ Đại Chủ Nô Ghiscari",
+    desc: "Sinh trong một gia đình kim tự tháp cổ, ngươi được dạy cai trị, mặc cả và điều khiển các phe phái dưới biểu tượng Harpy.",
+    continentIds: ["essos"], regionIds: ["astapor", "yunkai", "meereen", "new-ghis"], cultureIds: ["ghiscari"],
+    statBonus: { "Uy Tín": 2, "Trí Tuệ": 1 }, talent: "schemer", weapon: "Dao găm Harpy", gold: 6000, tuocVi: "Đại Chủ Nô", reputation: { xaoQuyet: 8, vinhDu: -5 },
+  }),
+  worldOrigin({
+    id: "qartheen-pureborn", name: "Pureborn Qarth",
+    desc: "Một người thuộc tầng lớp Pureborn giữa Qarth hoa lệ, quen với nghi lễ, hội thương nhân và những cuộc thương lượng được che sau lụa mỏng.",
+    continentIds: ["essos"], regionIds: ["qarth"], cultureIds: ["qartheen"],
+    statBonus: { "Uy Tín": 2, "Trí Tuệ": 1 }, talent: "silver-tongue", weapon: "Dao ngọc Qarth", gold: 5000, tuocVi: "Pureborn", reputation: { xaoQuyet: 5 },
+  }),
+  worldOrigin({
+    id: "lhazareen-healer", name: "Thầy Thuốc Lhazar",
+    desc: "Ngươi chữa bệnh cho những cộng đồng chăn cừu hiền hòa, hiểu thảo dược đồng cỏ và biết cách giữ sự sống qua những cuộc cướp phá.",
+    continentIds: ["essos"], regionIds: ["lhazar"], cultureIds: ["lhazareen"],
+    statBonus: { "Tinh Tường": 2, "Uy Tín": 1 }, talent: "beloved", weapon: "Gậy chăn cừu", gold: 60, reputation: { nhanTu: 10 },
+  }),
+  worldOrigin({
+    id: "sellsword-officer", name: "Sĩ Quan Đại Đội Tự Do",
+    desc: "Ngươi đã sống sót đủ nhiều hợp đồng để chỉ huy lính đánh thuê đa ngôn ngữ, đọc chiến trường và nhận ra một chủ thuê sắp quỵt tiền.",
+    continentIds: ["essos", "westeros"], cultureIds: [],
+    statBonus: { "Sức Mạnh": 1, "Uy Tín": 2 }, talent: "commander-instinct", weapon: "Trường kiếm lính đánh thuê", gold: 700, tuocVi: "Sĩ Quan", reputation: { uyDung: 7, xaoQuyet: 3 },
+  }),
+  worldOrigin({
+    id: "shadowbinder", name: "Kẻ Trói Bóng Asshai",
+    desc: "Một học giả huyền thuật từ thành phố dưới bóng đêm; tri thức của ngươi khiến cả thuyền trưởng lẫn tư tế phải dè chừng.",
+    continentIds: ["essos"], regionIds: ["asshai", "shadow-lands"], cultureIds: ["asshaii"],
+    statBonus: { "Trí Tuệ": 2, "Tinh Tường": 1 }, talent: "rhllor-chosen", weapon: "Dao thủy tinh đen", gold: 300, reputation: { uyDung: 6, xaoQuyet: 5 },
+  }),
+  worldOrigin({
+    id: "yi-ti-courtier", name: "Quan Lại Yi Ti",
+    desc: "Được đào luyện bằng điển lễ, thư pháp và luật lệ hoàng triều, ngươi biết một con dấu đúng chỗ có thể thắng cả một đội quân.",
+    continentIds: ["essos"], regionIds: ["yi-ti"], cultureIds: ["yi-tish"],
+    statBonus: { "Trí Tuệ": 2, "Uy Tín": 1 }, talent: "perfect-memory", weapon: "Kiếm nghi lễ", gold: 1800, tuocVi: "Quan Lại", reputation: { vinhDu: 4, xaoQuyet: 3 },
+  }),
+  worldOrigin({
+    id: "jogos-nhai-rider", name: "Kỵ Sĩ Jogos Nhai",
+    desc: "Ngươi trưởng thành trên lưng zorse giữa đồng bằng phương đông, theo jhat và moonsinger qua chiến tranh bộ tộc lẫn mùa khắc nghiệt.",
+    continentIds: ["essos"], regionIds: ["jogos-nhai"], cultureIds: ["jogos-nhai"],
+    statBonus: { "Nhanh Nhẹn": 2, "Thể Chất": 1 }, talent: "fleet-footed", weapon: "Cung sừng Jogos Nhai", gold: 40, reputation: { uyDung: 6 },
+  }),
+
+  // ── Các lục địa và quần đảo ngoài Westeros/Essos ──
+  worldOrigin({
+    id: "ibbenese-whaler", name: "Thợ Săn Cá Voi Ibben",
+    desc: "Thủy thủ xứ lạnh quen những chuyến đi dài trên Biển Rùng Mình, lưỡi lao nặng và kỷ luật của một thủy đoàn săn cá voi.",
+    continentIds: ["ibben"], regionIds: ["ibben"], cultureIds: ["ibbenese"],
+    statBonus: { "Sức Mạnh": 2, "Thể Chất": 1 }, talent: "iron-constitution", weapon: "Lao săn cá voi", gold: 180, reputation: { uyDung: 4 },
+  }),
+  worldOrigin({
+    id: "summer-isles-archer", name: "Cung Thủ Goldenheart",
+    desc: "Một cung thủ kiêm thủy thủ của Quần Đảo Mùa Hè, mang cung gỗ goldenheart và truyền thống bảo vệ những con tàu thiên nga.",
+    continentIds: ["summer-isles"], regionIds: ["summer-islands"], cultureIds: ["summer-islander"],
+    statBonus: { "Nhanh Nhẹn": 2, "Tinh Tường": 1 }, talent: "eagle-archer", weapon: "Cung goldenheart", gold: 220, reputation: { vinhDu: 6 },
+  }),
+  worldOrigin({
+    id: "naathi-healer", name: "Người Chữa Lành Naath",
+    desc: "Một người gìn giữ sự sống từ Đảo Bướm, kiên định với hòa bình dù thế giới bên ngoài luôn thèm muốn dân Naath làm nô lệ.",
+    continentIds: ["sothoryos"], regionIds: ["naath"], cultureIds: ["naathi"],
+    statBonus: { "Uy Tín": 2, "Tinh Tường": 1 }, talent: "beloved", gold: 40, reputation: { nhanTu: 12, vinhDu: 4 },
+  }),
+  worldOrigin({
+    id: "basilisk-pirate", name: "Hải Tặc Quần Đảo Basilisk",
+    desc: "Ngươi sống giữa các vịnh độc, tàn tích và lá cờ đổi chủ liên tục; bản năng sinh tồn quan trọng hơn mọi lời thề trên bờ.",
+    continentIds: ["sothoryos"], regionIds: ["basilisk-isles", "gogossos"], cultureIds: ["basilisk-islander"],
+    statBonus: { "Nhanh Nhẹn": 1, "Tinh Tường": 2 }, talent: "keen-eye", weapon: "Mã tấu hải tặc", gold: 160, reputation: { uyDung: 5, xaoQuyet: 8, vinhDu: -5 },
+  }),
+  worldOrigin({
+    id: "sothoryi-guide", name: "Người Dẫn Đường Sothoryos",
+    desc: "Ngươi biết đọc dòng nước, dấu thú và những vùng khí độc trong rừng sâu nơi hải đồ của người ngoài chỉ là phỏng đoán.",
+    continentIds: ["sothoryos"], regionIds: ["sothoryos-interior"], cultureIds: ["sothoryi"],
+    statBonus: { "Thể Chất": 2, "Tinh Tường": 1 }, talent: "tireless", weapon: "Giáo săn rừng", gold: 30, reputation: { uyDung: 4 },
+  }),
+  worldOrigin({
+    id: "ulthos-wanderer", name: "Lữ Khách Ulthos",
+    desc: "Một trong số rất ít người bước ra từ bờ rừng Ulthos; ngươi hiểu những lối đi mà bản đồ phương tây chưa từng ghi tên.",
+    continentIds: ["ulthos"], regionIds: ["ulthos-coast"], cultureIds: ["ulthosi"],
+    statBonus: { "Tinh Tường": 2, "Thể Chất": 1 }, talent: "keen-eye", weapon: "Đoản giáo Ulthos", gold: 20, reputation: { uyDung: 3 },
+  }),
+  worldOrigin({
+    id: "rhoynar-river-sailor", name: "Thủy Thủ Rhoyne",
+    desc: "Ngươi lớn lên cùng những dòng sông lớn của Essos, thuộc luồng nước, bến bí mật và di sản của các thành Rhoynar đã mất.",
+    continentIds: ["essos"], regionIds: ["rhoyne"], cultureIds: ["rhoynar"],
+    statBonus: { "Nhanh Nhẹn": 1, "Tinh Tường": 2 }, talent: "catlike", weapon: "Giáo sông", gold: 120, reputation: { vinhDu: 3 },
+  }),
 ];
 
+const ALL_CONTINENT_IDS = ["westeros", "essos", "ibben", "summer-isles", "sothoryos", "ulthos"];
+const MULTI_CONTINENT_ORIGIN_IDS = new Set(["sellsword", "merchant", "commoner", "spy-assassin", "old-blood", "red-priest", "time-traveler"]);
+const ESSOS_ORIGIN_IDS = new Set(["dothraki-rider", "braavosi-bravo", "magister-heir"]);
+
+export const ORIGINS: OriginDef[] = ORIGIN_SEEDS.map((origin) => ({
+  ...origin,
+  regionIds: origin.regionIds?.map(resolveRegionId),
+  continentIds: origin.continentIds
+    ?? (MULTI_CONTINENT_ORIGIN_IDS.has(origin.id) ? [...ALL_CONTINENT_IDS]
+      : ESSOS_ORIGIN_IDS.has(origin.id) ? ["essos"] : ["westeros"]),
+}));
+
 export const ORIGINS_BY_ID: Record<string, OriginDef> = Object.fromEntries(ORIGINS.map((o) => [o.id, o]));
+
+export function originsForContinent(continentId: string): OriginDef[] {
+  return ORIGINS.filter((origin) => origin.continentIds.includes(continentId));
+}

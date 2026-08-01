@@ -30,7 +30,7 @@ export function MainMenu({
         <div className="text-center">
           <IconCrossedSwords size={52} color="var(--accent-text)" strokeWidth={1.1} className="mx-auto mb-4" />
           <h1 className="font-display text-3xl tracking-[0.12em] text-[var(--text-soft)]">A SONG OF ICE AND FIRE</h1>
-          <p className="mt-2 text-[13px] tracking-[0.3em] text-[var(--text-faint)]">NHẬP VAI WESTEROS</p>
+          <p className="mt-2 text-[13px] tracking-[0.3em] text-[var(--text-faint)]">NHẬP VAI THẾ GIỚI BĂNG VÀ LỬA</p>
         </div>
 
         <div className="space-y-3">

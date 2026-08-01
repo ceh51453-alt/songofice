@@ -3,6 +3,8 @@
  * chỉ số phái sinh thế nào. Nhận StatData đã dựng (wizard draft hoặc canon).
  */
 import type { StatData } from "../../mvu/schema";
+import { CONTINENTS } from "../../content/world/geography";
+import { CULTURES_BY_ID } from "../../content/westeros/cultures";
 
 /** State vẫn giữ lãnh địa NPC cho bản đồ, nhưng preview chỉ hiển thị đất của người chơi. */
 export function playerHoldings(state: StatData) {
@@ -21,6 +23,11 @@ export function CharacterPreview({ state, title }: { state: StatData; title?: st
   const totalFood = lands.reduce((sum, [, t]) => sum + (t["Tài Nguyên"]?.["Lương Thực"] ?? 0), 0);
   const npcs = Object.entries(state["Mối Quan Hệ"]["NPC Chính"]);
   const dragons = Object.entries(state["Rồng"]);
+  const continentName = CONTINENTS.find((continent) =>
+    continent.id === info["Lục Địa"].toLocaleLowerCase("en-US")
+    || continent.name.toLocaleLowerCase("vi") === info["Lục Địa"].toLocaleLowerCase("vi"),
+  )?.name ?? info["Lục Địa"];
+  const cultureName = CULTURES_BY_ID[info["Văn Hoá"]]?.name ?? info["Văn Hoá"];
 
   return (
     <div className="glass-strong space-y-3 p-4 text-[12.5px]">
@@ -32,7 +39,7 @@ export function CharacterPreview({ state, title }: { state: StatData; title?: st
           {info["Tước Vị"] !== "Thường Dân" ? `[${info["Tước Vị"]}] ` : ""}Nhà {info["Nhà"]}{info["Xuất Thân"] ? ` · ${info["Xuất Thân"]}` : ""} · Vàng {info["Ngân Khố"].toLocaleString("vi-VN")}
         </p>
         <p className="text-[var(--text-faint)] mt-1">
-          {info["Lục Địa"]} · {info["Văn Hoá"]} · {info["Tôn Giáo"]}
+          {continentName} · {cultureName} · {info["Tôn Giáo"]}
         </p>
         {state.Persona["Đặc Điểm"]?.["Màu Mắt"] && (
           <p className="text-[var(--text-faint)] mt-0.5 text-[11px]">

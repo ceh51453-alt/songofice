@@ -125,7 +125,7 @@ export function DiplomacyPanel({ open, onClose }: { open: boolean; onClose: () =
   );
 }
 
-/** Uy tín cam kết — tài sản đắt nhất của một lãnh chúa. */
+/** Uy tín cam kết — tài sản đắt nhất của một người cầm quyền. */
 function CredibilityBar({ stat }: { stat: Stat }) {
   const v = stat["Ngoại Giao"]["Uy Tín Cam Kết"];
   const label = v >= 70 ? "Lời ngươi đáng giá" : v >= 40 ? "Người ta còn dè dặt" : "Không ai tin lời ngươi";
@@ -139,7 +139,7 @@ function CredibilityBar({ stat }: { stat: Stat }) {
       <div className="h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.3)]">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${v}%`, background: color }} />
       </div>
-      <p className="mt-1 text-[11px] italic text-[var(--text-faint)]">{label} — xé một tờ giấy là mọi Nhà đều bớt tin.</p>
+      <p className="mt-1 text-[11px] italic text-[var(--text-faint)]">{label} — xé một tờ giấy là mọi thế lực đều bớt tin.</p>
     </div>
   );
 }
@@ -149,7 +149,7 @@ function RelationsTab({ rows }: { rows: DiploSummary[] }) {
   if (rows.length === 0) {
     return (
       <p className="text-[13px] italic leading-relaxed text-[var(--text-muted)]">
-        Ngươi chưa có quan hệ ngoại giao chính thức với Nhà nào. Quan hệ nảy sinh khi có sứ giả qua lại,
+        Ngươi chưa có quan hệ ngoại giao chính thức với thế lực nào. Quan hệ nảy sinh khi có sứ giả qua lại,
         có giấy tờ ký kết, hoặc có máu đã đổ.
       </p>
     );
@@ -270,8 +270,8 @@ function GrievancesTab({ stat }: { stat: Stat }) {
   if (entries.length === 0) {
     return (
       <p className="text-[13px] italic leading-relaxed text-[var(--text-muted)]">
-        Sổ ân oán còn trắng. Một lãnh chúa Westeros không ra quân vì ghét — hắn cần một CỚ nói được
-        ra trước mặt người khác.
+        Sổ ân oán còn trắng. Một người cầm quyền không ra quân chỉ vì ghét — họ cần một CỚ nói được
+        trước mặt các thế lực khác.
       </p>
     );
   }
@@ -300,7 +300,7 @@ function GrievancesTab({ stat }: { stat: Stat }) {
     <div className="space-y-4">
       {ours.length > 0 && (
         <List items={ours} tone="var(--accent-text)" title="Cớ của ta"
-          hint="Ta ra quân với những cớ này thì các Nhà khác im lặng." />
+          hint="Ta ra quân với những cớ này thì các thế lực khác khó phản đối." />
       )}
       {theirs.length > 0 && (
         <List items={theirs} tone="var(--danger)" title="Cớ của họ"

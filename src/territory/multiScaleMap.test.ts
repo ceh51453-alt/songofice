@@ -925,7 +925,7 @@ describe("Chuẩn hoá dữ liệu cũ — bố cục hợp lệ + khoá Nhà đ
   it("lãnh địa thường trong vùng giáp biển được đánh dấu ven biển (mở Bến Cảng)", () => {
     const s = lordState();
     s["Lãnh Địa"]["trang-vien-bac"] = {
-      ...s["Lãnh Địa"]["the-north-seat"], "Mô Tả": "Trang viên Bắc", "Ven Biển": false,
+      ...s["Lãnh Địa"]["the-north-seat"], "Mô Tả": "Trang viên Bắc", "Thuộc Vùng": "north-white-knife", "Ven Biển": false,
     };
     repairAllHoldings(s);
     expect(s["Lãnh Địa"]["trang-vien-bac"]["Ven Biển"]).toBe(true);

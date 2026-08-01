@@ -104,7 +104,7 @@ export function GameScreen() {
     { key: "economy", label: "Kinh Tế", icon: <IconCoin size={18} />, enabled: hasHoldings, active: economyOpen, onClick: toggleEconomy },
     { key: "court", label: t("game.navCourt"), icon: <IconCrown size={18} />, enabled: courtActive, active: courtOpen, onClick: () => setCourtOpen(true) },
     { key: "intrigue", label: t("game.navIntrigue"), icon: <IconMask size={18} />, enabled: intrigueActive, active: intrigueOpen, onClick: () => setIntrigueOpen(true) },
-    { key: "kingdoms", label: "Bảy Vương Quốc (bàn cờ quyền lực)", icon: <IconBanner size={18} />, enabled: true, active: kingdomsOpen, onClick: () => setKingdomsOpen(true) },
+    { key: "kingdoms", label: "Bàn Cờ Thế Giới (cán cân quyền lực)", icon: <IconBanner size={18} />, enabled: true, active: kingdomsOpen, onClick: () => setKingdomsOpen(true) },
     { key: "relationship", label: "Quan Hệ", icon: <IconUsers size={18} />, enabled: true, active: relationshipOpen, onClick: () => setRelationshipOpen(true) },
     { key: "codex", label: "So Tay", icon: <IconCodex size={18} />, enabled: true, active: codexOpen, onClick: () => setCodexOpen(true) },
     { key: "journal", label: t("game.navJournal"), icon: <IconBook size={18} />, enabled: true, active: journalOpen, onClick: () => setJournalOpen(true) },
@@ -197,7 +197,7 @@ export function GameScreen() {
         {courtActive && <MobileNavBtn label={t("game.navCourt")} icon={<IconCrown size={17} />} active={courtOpen} onClick={() => setCourtOpen(true)} />}
         {diplomacyActive && <MobileNavBtn label="Ngoại Giao" icon={<IconScroll size={17} />} active={diplomacyOpen} onClick={() => setDiplomacyOpen(true)} />}
         {intrigueActive && <MobileNavBtn label={t("game.navIntrigue")} icon={<IconMask size={17} />} active={intrigueOpen} onClick={() => setIntrigueOpen(true)} />}
-        <MobileNavBtn label="Bảy Vương Quốc" icon={<IconBanner size={17} />} active={kingdomsOpen} onClick={() => setKingdomsOpen(true)} />
+        <MobileNavBtn label="Bàn Cờ" icon={<IconBanner size={17} />} active={kingdomsOpen} onClick={() => setKingdomsOpen(true)} />
         <MobileNavBtn label="So Tay" icon={<IconCodex size={17} />} active={codexOpen} onClick={() => setCodexOpen(true)} />
         <MobileNavBtn label={t("game.statusTitle")} icon={<IconUsers size={17} />} active={sheetOpen} onClick={() => setSheetOpen(true)} />
       </div>

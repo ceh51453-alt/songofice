@@ -16,6 +16,11 @@ export type ConditionType =
   | "at_war"         // đang chiến tranh với bất kỳ Nhà nào
   | "season"         // mùa hiện tại === value
   | "era"            // eraId === value
+  | "continent"      // lục địa hiện tại === value (hoặc nằm trong value[])
+  | "region"         // vị trí/tiểu vùng hiện tại === value (hoặc nằm trong value[])
+  | "culture"        // văn hoá nhân vật === value (hoặc nằm trong value[])
+  | "religion"       // tôn giáo nhân vật === value (hoặc nằm trong value[])
+  | "coastal"        // đang ở/đang nắm ít nhất một tiểu vùng ven biển
   | "has_spy"        // có ít nhất 1 điệp viên
   | "no_active_event" // không có sự kiện đang chờ xử lý
   | "custom";        // hàm kiểm tra tùy chỉnh
@@ -56,6 +61,19 @@ export interface GameEvent {
   weight: number;
   /** Điều kiện — chỉ đủ mới vào pool. */
   conditions: EventCondition[];
+  /**
+   * Phạm vi địa lý mềm, tách khỏi các điều kiện chỉ số. ID không phân biệt
+   * hoa/thường; mảng rỗng nghĩa là không giới hạn. Dữ liệu cũ không có scope
+   * vẫn hoạt động trên toàn thế giới.
+   */
+  scope?: {
+    continentIds?: string[];
+    excludeContinentIds?: string[];
+    regionIds?: string[];
+    cultureIds?: string[];
+    religions?: string[];
+    coastalOnly?: boolean;
+  };
   /** Render qua thẻ ngữ nghĩa nào (mục 5.6). */
   narrativeTag?: "event_popup" | "raven_scroll";
   /** 2-4 lựa chọn phản ứng. */

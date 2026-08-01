@@ -11,6 +11,10 @@ export interface TimelineBeat {
   year: number;
   title: string;
   description: string;
+  /** Phạm vi diễn ra để UI/AI phân biệt lịch sử địa phương và tin thế giới. */
+  continentIds?: string[];
+  locationIds?: string[];
+  factionIds?: string[];
   /** Patch áp tự động khi beat xảy ra (tuỳ chọn). */
   autoPatch?: PatchOp[];
 }
@@ -411,6 +415,58 @@ const ERA3_BEATS: TimelineBeat[] = [
   },
 ];
 
+/** Tuyến Essos chạy song song, để cùng mốc 298–300 AC không chỉ có Westeros. */
+const ERA3_ESSOS_BEATS: TimelineBeat[] = [
+  {
+    id: "dragons-return-essos",
+    eraId: "war-of-five-kings",
+    year: 299,
+    title: "Rồng Trở Lại Thế Giới",
+    description: "Ba con rồng của Daenerys nở sau cái chết của Khal Drogo; tin đồn lan theo mọi tuyến buôn từ Biển Dothraki tới các Thành Phố Tự Do.",
+    continentIds: ["essos"], locationIds: ["dothraki-sea"], factionIds: ["targaryen-essos", "dothraki"],
+  },
+  {
+    id: "astapor-liberated",
+    eraId: "war-of-five-kings",
+    year: 299,
+    title: "Astapor Bẻ Xiềng",
+    description: "Daenerys giành quyền chỉ huy Unsullied, lật đổ các Good Masters và giải phóng nô lệ Astapor, làm rung chuyển nền thương mại của Vịnh Nô Lệ.",
+    continentIds: ["essos"], locationIds: ["astapor"], factionIds: ["targaryen-essos", "astapor"],
+  },
+  {
+    id: "yunkai-yields",
+    eraId: "war-of-five-kings",
+    year: 299,
+    title: "Yunkai Mở Cổng",
+    description: "Quân Yunkai và các đoàn lính đánh thuê thất bại; những người bị nô dịch rời thành và gọi Daenerys là Mhysa.",
+    continentIds: ["essos"], locationIds: ["yunkai"], factionIds: ["targaryen-essos", "yunkai"],
+  },
+  {
+    id: "meereen-falls",
+    eraId: "war-of-five-kings",
+    year: 299,
+    title: "Meereen Thất Thủ",
+    description: "Nô lệ nổi dậy từ bên trong khi quân Daenerys công phá cổng; nàng ở lại Đại Kim Tự Tháp để học cách cai trị thay vì lập tức đi về tây.",
+    continentIds: ["essos"], locationIds: ["meereen"], factionIds: ["targaryen-essos", "meereen"],
+  },
+  {
+    id: "astapor-second-fall",
+    eraId: "war-of-five-kings",
+    year: 300,
+    title: "Astapor Sụp Đổ Lần Nữa",
+    description: "Liên quân Yunkai và New Ghis phá Astapor; người sống sót chạy về phía Meereen trong khi dịch lỵ lan giữa các trại tị nạn.",
+    continentIds: ["essos"], locationIds: ["astapor", "meereen"], factionIds: ["astapor", "yunkai", "new-ghis"],
+  },
+  {
+    id: "meereen-blockaded",
+    eraId: "war-of-five-kings",
+    year: 300,
+    title: "Liên Minh Chủ Nô Vây Meereen",
+    description: "Yunkai, New Ghis và các đoàn lính đánh thuê siết vòng vây trên bộ lẫn biển; Sons of the Harpy tiếp tục chiến tranh bóng tối trong thành.",
+    continentIds: ["essos"], locationIds: ["meereen", "yunkai", "new-ghis"], factionIds: ["meereen", "yunkai", "new-ghis", "mercenary"],
+  },
+];
+
 /** Toàn bộ cột mốc lịch sử. */
 export const ALL_TIMELINE_BEATS: TimelineBeat[] = [
   ...ERA0_BEATS,
@@ -421,6 +477,7 @@ export const ALL_TIMELINE_BEATS: TimelineBeat[] = [
   ...ERA2_BEATS,
   ...ERA2B_BEATS,
   ...ERA3_BEATS,
+  ...ERA3_ESSOS_BEATS,
 ];
 
 /** Lấy beats theo eraId. */

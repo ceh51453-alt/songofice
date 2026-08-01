@@ -14,8 +14,11 @@ import { useMvuStore } from "./mvuStore";
 import { useChatStore, type UiChatMessage } from "./chatStore";
 import { StatDataSchema, makeDefaultState, type StatData } from "../mvu/schema";
 import { normalizeCalendar } from "../mvu/calendar";
-import { normalizeHouseIds, repairPlayerSovereignty } from "../territory/territoryEngine";
+import {
+  normalizeHouseIds, repairPlayerSovereignty, repairRegionControl,
+} from "../territory/territoryEngine";
 import { repairAllHoldings } from "../territory/localMap";
+import { ensureRegionalEconomy } from "../content/westeros/regionalResources";
 import { migrateDragonUnits, repairDragons } from "../strategy/dragons";
 import { seedVassals } from "../strategy/muster";
 import { seedDiplomacy } from "../strategy/diplomacy";
@@ -25,7 +28,7 @@ import { createLogger } from "../lib/log";
 const log = createLogger("state/saveEngine");
 
 /** Phiên bản schema hiện tại — bump khi StatData đổi cấu trúc. */
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 
 /** Giới hạn save slot (tránh phình DB). */
 export const MAX_SAVE_SLOTS = 20;
@@ -55,7 +58,9 @@ function extractMeta(stat: StatData): SaveSlotMeta {
 function migrateMapData(state: StatData): void {
   // khoá Nhà đúng định dạng (save cũ ghi "Lannister" thay vì "lannister")
   normalizeHouseIds(state);
+  repairRegionControl(state, { mode: "legacy-migration" });
   repairPlayerSovereignty(state);
+  ensureRegionalEconomy(state["Kinh Tế Vùng"]);
   // bố cục Tầng 1: save cũ đặt công trình theo hệ lưới trước đây (mọi thứ dồn
   // quanh ô 750, kích thước 1-2 ô) — dời về ô hợp lệ theo khuôn viên & địa hình
   const moved = repairAllHoldings(state);
@@ -77,7 +82,7 @@ function migrateMilitary(state: StatData): void {
   seedDiplomacy(state);
 }
 
-function migrateState(raw: unknown): StatData {
+export function migrateState(raw: unknown): StatData {
   const defaults = makeDefaultState();
 
   // Parse qua Zod — nếu thành công, trả luôn
@@ -100,6 +105,7 @@ function migrateState(raw: unknown): StatData {
     }
   }
 
+  migrateMapData(defaults);
   log.warn("Migration: không thể parse save — dùng state mặc định");
   return defaults;
 }
@@ -263,7 +269,7 @@ export async function importSave(file: File | Blob): Promise<string> {
 
   // Validate state có parse được không
   const rawState = JSON.parse(data.slot.mvuStateJson);
-  migrateState(rawState); // sẽ throw nếu hoàn toàn không hợp lệ — nhưng migrateState trả default thay vì throw
+  const migratedState = migrateState(rawState);
 
   // Ghi slot
   const id = genId();
@@ -271,10 +277,10 @@ export async function importSave(file: File | Blob): Promise<string> {
   const record: SaveSlotRecord = {
     id,
     slotName: data.slot.slotName || `Import ${new Date().toLocaleDateString("vi-VN")}`,
-    mvuStateJson: data.slot.mvuStateJson,
+    mvuStateJson: JSON.stringify(migratedState),
     messagesJson: data.slot.messagesJson || "[]",
     meta: data.slot.meta,
-    schemaVersion: data._version,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     createdAt: now,
     updatedAt: now,
   };

@@ -23,6 +23,16 @@ function makeState(overrides: Record<string, unknown> = {}) {
   if (overrides.era !== undefined) {
     s["Cài Đặt Ván"]["Thời Kỳ"] = overrides.era as string;
   }
+  if (overrides.continent !== undefined) {
+    s["Thông Tin Nhân Vật"]["Lục Địa"] = overrides.continent as typeof s["Thông Tin Nhân Vật"]["Lục Địa"];
+  }
+  if (overrides.culture !== undefined) {
+    s["Thông Tin Nhân Vật"]["Văn Hoá"] = overrides.culture as string;
+  }
+  if (overrides.religion !== undefined) {
+    s["Thông Tin Nhân Vật"]["Tôn Giáo"] = overrides.religion as typeof s["Thông Tin Nhân Vật"]["Tôn Giáo"];
+  }
+  if (overrides.location !== undefined) s["Thế Giới"]["Vị Trí"] = overrides.location as string;
   if (overrides.holding) {
     s["Lãnh Địa"]["test-region"] = {} as any;
   }
@@ -128,6 +138,14 @@ describe("eventEngine (17.1)", () => {
       const s = makeState({ hasSpy: true });
       expect(evaluateCondition({ type: "has_spy" }, s)).toBe(true);
     });
+
+    it("continent/culture/religion hỗ trợ một hoặc nhiều giá trị", () => {
+      const s = makeState({ continent: "Essos", culture: "Braavosi", religion: "Đa Diện Thần" });
+      expect(evaluateCondition({ type: "continent", value: ["essos", "ulthos"] }, s)).toBe(true);
+      expect(evaluateCondition({ type: "culture", value: "braavosi" }, s)).toBe(true);
+      expect(evaluateCondition({ type: "religion", value: ["Thất Diện Thần", "Đa Diện Thần"] }, s)).toBe(true);
+      expect(evaluateCondition({ type: "continent", value: "Westeros" }, s)).toBe(false);
+    });
   });
 
   describe("evaluateConditions", () => {
@@ -177,6 +195,21 @@ describe("eventEngine (17.1)", () => {
       const s = makeState({ atWar: true });
       const pool = buildEventPool([sampleEvent, warEvent], s);
       expect(pool).toHaveLength(2);
+    });
+
+    it("không để sự kiện Westeros rò sang Essos", () => {
+      const westerosOnly: GameEvent = {
+        ...sampleEvent,
+        id: "westeros-only",
+        scope: { continentIds: ["westeros"] },
+      };
+      const essosOnly: GameEvent = {
+        ...sampleEvent,
+        id: "essos-only",
+        scope: { continentIds: ["essos"] },
+      };
+      const s = makeState({ continent: "Essos" });
+      expect(buildEventPool([westerosOnly, essosOnly], s).map((e) => e.id)).toEqual(["essos-only"]);
     });
   });
 

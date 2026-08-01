@@ -60,7 +60,7 @@ describe("Luồng New Game hoàn chỉnh (8.6/8.6b)", () => {
       eraId: era.id, houseId: "stark", originId: "lord-heir",
       narrativeMode: "Theo Sát Nguyên Tác", scenarioMode: "Người Chơi Là Bối Cảnh", difficulty: "Cân Bằng",
       name: "Torrhen Snow", age: 25,
-      continent: "Westeros", culture: "", religion: "", patronGod: "", bloodline: "none", startingLocation: "",
+      continent: "westeros", culture: "", religion: "", patronGod: "", bloodline: "none", startingLocation: "",
       pointBuy: { ...Object.fromEntries(CORE_STATS.map((s) => [s, STAT_BASE])), "Uy Tín": 12 } as Record<CoreStat, number>,
       talentIds: ["warrior-blood"], skillAllocations: { "persuasion": 2 },
       dragon: null,

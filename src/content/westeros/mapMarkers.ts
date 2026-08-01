@@ -1,5 +1,7 @@
 // content/westeros/mapMarkers.ts
 // ============================================================================
+
+import { REGIONS, REGIONS_BY_ID, resolveRegionId } from "../world/geography";
 // ĐỊA DANH TRÊN BẢN ĐỒ (9.2) — thành phố/địa danh phụ + mốc Essos (9.6.1).
 // Trọng trấn của 9 vùng dựng động từ regions.ts (seat/seatXY). File này giữ
 // các marker bổ sung (thành trì, thành phố lớn, Essos), gắn deep-link wiki (9.4).
@@ -113,8 +115,29 @@ export const MAP_MARKERS: MapMarker[] = [
   { id: "ghost-hill", name: "Ghost Hill", type: "castle", x: 700, y: 1305, wikiSlug: "Ghost_Hill", population: 5000, regionId: "dorne" },
 
   // ── Mốc Essos ──
-  { id: "braavos", name: "Braavos", type: "city", x: 950, y: 300, wikiSlug: "Braavos", population: 500000 },
-  { id: "pentos", name: "Pentos", type: "city", x: 960, y: 560, wikiSlug: "Pentos", population: 200000 },
+  { id: "braavos", name: "Braavos", type: "city", x: 1240, y: 260, wikiSlug: "Braavos", population: 500000, regionId: "braavos" },
+  { id: "pentos", name: "Pentos", type: "city", x: 1320, y: 535, wikiSlug: "Pentos", population: 200000, regionId: "pentos" },
+  { id: "lorath", name: "Lorath", type: "city", x: 1510, y: 215, wikiSlug: "Lorath", population: 40000, regionId: "lorath" },
+  { id: "norvos", name: "Norvos", type: "city", x: 1600, y: 435, wikiSlug: "Norvos", population: 100000, regionId: "norvos" },
+  { id: "qohor", name: "Qohor", type: "city", x: 1800, y: 480, wikiSlug: "Qohor", population: 100000, regionId: "qohor" },
+  { id: "volantis", name: "Volantis", type: "city", x: 1660, y: 920, wikiSlug: "Volantis", population: 800000, regionId: "volantis" },
+  { id: "myr", name: "Myr", type: "city", x: 1360, y: 880, wikiSlug: "Myr", population: 300000, regionId: "myr" },
+  { id: "tyrosh", name: "Tyrosh", type: "city", x: 1160, y: 1020, wikiSlug: "Tyrosh", population: 200000, regionId: "tyrosh" },
+  { id: "lys", name: "Lys", type: "city", x: 1390, y: 1110, wikiSlug: "Lys", population: 200000, regionId: "lys" },
+  { id: "vaes-dothrak", name: "Vaes Dothrak", type: "landmark", x: 2250, y: 390, wikiSlug: "Vaes_Dothrak", population: 80000, regionId: "vaes-dothrak" },
+  { id: "astapor", name: "Astapor", type: "city", x: 2110, y: 1280, wikiSlug: "Astapor", population: 180000, regionId: "astapor" },
+  { id: "yunkai", name: "Yunkai", type: "city", x: 2190, y: 1190, wikiSlug: "Yunkai", population: 140000, regionId: "yunkai" },
+  { id: "meereen", name: "Meereen", type: "city", x: 2320, y: 1080, wikiSlug: "Meereen", population: 300000, regionId: "meereen" },
+  { id: "new-ghis", name: "New Ghis", type: "city", x: 2290, y: 1390, wikiSlug: "New_Ghis", population: 80000, regionId: "new-ghis" },
+  { id: "qarth", name: "Qarth", type: "city", x: 2790, y: 1180, wikiSlug: "Qarth", population: 400000, regionId: "qarth" },
+  { id: "valyria", name: "Valyria", type: "landmark", x: 1770, y: 1350, wikiSlug: "Valyria", regionId: "valyria" },
+  { id: "yi-ti", name: "Yi Ti", type: "city", x: 3120, y: 650, wikiSlug: "Yi_Ti", population: 500000, regionId: "yi-ti" },
+  { id: "asshai", name: "Asshai", type: "city", x: 3330, y: 1080, wikiSlug: "Asshai", population: 500000, regionId: "asshai" },
+  { id: "ibben", name: "Ib", type: "city", x: 2250, y: 120, wikiSlug: "Ibben", population: 100000, regionId: "ibben-ib" },
+  { id: "lotus-port", name: "Lotus Port", type: "city", x: 820, y: 1700, wikiSlug: "Lotus_Port", population: 90000, regionId: "summer-walano" },
+  { id: "gogossos", name: "Gogossos", type: "landmark", x: 1620, y: 1550, wikiSlug: "Gogossos", regionId: "sothoryos-basilisk-isles" },
+  { id: "yeen", name: "Yeen", type: "landmark", x: 2180, y: 1700, wikiSlug: "Yeen", regionId: "sothoryos-yeen" },
+  { id: "ulthos-harbour", name: "Bến Cảng Ulthos", type: "landmark", x: 3100, y: 1680, regionId: "ulthos-west-coast" },
 
   // ── Đêm Trường — địa danh cổ đại ──
   { id: "old-winterfell", name: "Winterfell Cổ Đại", type: "landmark", x: 470, y: 310, onlyEras: ["long-night"], wikiSlug: "Winterfell" },
@@ -138,6 +161,63 @@ export const MAP_MARKERS: MapMarker[] = [
   { id: "great-wyk", name: "Great Wyk", type: "landmark", x: 120, y: 510, onlyEras: ["greyjoy-rebellion"], wikiSlug: "Great_Wyk" },
   { id: "fair-isle", name: "Fair Isle", type: "landmark", x: 130, y: 650, onlyEras: ["greyjoy-rebellion"], wikiSlug: "Fair_Isle" },
 ];
+
+/** Canonical leaf province for landmarks whose old data only named a great region. */
+const MARKER_REGION_OVERRIDES: Record<string, string> = {
+  "the-wall": "the-north", "castle-black": "the-north", "shadow-tower": "north-wolfswood", eastwatch: "north-last-hearth",
+  dreadfort: "north-dreadfort", karhold: "north-karhold", "white-harbor": "north-white-knife",
+  "bear-island": "north-bear-island", "moat-cailin": "north-neck", barrowton: "north-barrowlands",
+  "deepwood-motte": "north-wolfswood", "torrhens-square": "north-stony-shore", "winter-town": "the-north", hornwood: "north-dreadfort",
+  harlaw: "iron-harlaw", "old-wyk": "iron-old-wyk", lordsport: "the-iron-islands", pebbleton: "the-iron-islands",
+  gulltown: "vale-gulltown", runestone: "vale-gulltown", "bloody-gate": "vale-mountains",
+  "hearts-home": "vale-snakewood", "gates-of-the-moon": "vale-mountains", wickenden: "vale-gulltown",
+  harrenhal: "riverlands-gods-eye", "the-twins": "riverlands-twins", seagard: "riverlands-seagard",
+  maidenpool: "riverlands-maidenpool", "stone-hedge": "riverlands-bracken", "raventree-hall": "riverlands-blackwood",
+  fairmarket: "riverlands-twins", saltpans: "riverlands-maidenpool", "stoney-sept": "the-riverlands",
+  "lords-harroways-town": "riverlands-trident",
+  lannisport: "the-westerlands", "golden-tooth": "westerlands-golden-tooth", crakehall: "westerlands-crakehall",
+  castamere: "westerlands-castamere", ashemark: "westerlands-castamere", faircastle: "westerlands-fair-isle", silverhill: "westerlands-castamere",
+  dragonstone: "crownlands-dragonstone", duskendale: "crownlands-duskendale", driftmark: "crownlands-driftmark",
+  "claw-isle": "crownlands-driftmark", rosby: "the-crownlands", stokeworth: "crownlands-kingswood",
+  hayford: "crownlands-kingswood", spicetown: "crownlands-driftmark",
+  oldtown: "reach-oldtown", "the-arbor": "reach-arbor", "horn-hill": "reach-horn-hill",
+  bitterbridge: "reach-bitterbridge", brightwater: "reach-western", ashford: "reach-upper-mander",
+  tumbleton: "reach-tumbleton", honeyholt: "reach-oldtown",
+  "evenfall-hall": "stormlands-tarth", "griffins-roost": "stormlands-rainwood",
+  blackhaven: "stormlands-dornish-marches", nightsong: "stormlands-dornish-marches",
+  "weeping-town": "stormlands-cape-wrath", summerhall: "stormlands-dornish-marches",
+  yronwood: "dorne-yronwood", starfall: "dorne-starfall", "water-gardens": "dorne",
+  lemonwood: "dorne-greenblood", "planky-town": "dorne-greenblood", godsgrace: "dorne-greenblood", "ghost-hill": "dorne",
+  "old-winterfell": "the-north", "children-grove": "north-last-hearth", "the-fist": "beyond-haunted-forest",
+  "rooks-rest": "crownlands-duskendale", "gods-eye": "riverlands-gods-eye", dragonpit: "the-crownlands",
+  "redgrass-field": "crownlands-kingswood", "ashford-meadow": "reach-upper-mander",
+  whitewalls: "riverlands-trident", pennytree: "riverlands-trident",
+  "great-wyk": "iron-great-wyk", "fair-isle": "westerlands-fair-isle",
+};
+
+const LEGACY_REALMS = new Set([
+  "the-north", "the-iron-islands", "the-vale", "the-riverlands", "the-westerlands",
+  "the-crownlands", "the-reach", "the-stormlands", "dorne",
+]);
+
+for (const marker of MAP_MARKERS) {
+  const override = MARKER_REGION_OVERRIDES[marker.id];
+  const supplied = resolveRegionId(override ?? marker.regionId ?? "");
+  if (supplied && REGIONS_BY_ID[supplied] && !LEGACY_REALMS.has(supplied)) {
+    marker.regionId = supplied;
+    continue;
+  }
+  const candidates = supplied && LEGACY_REALMS.has(supplied)
+    ? REGIONS.filter((region) => region.realmId === supplied)
+    : REGIONS;
+  const nearest = candidates.reduce<(typeof REGIONS)[number] | null>((best, region) => {
+    if (!best) return region;
+    const distance = Math.hypot(region.seatXY[0] - marker.x, region.seatXY[1] - marker.y);
+    const bestDistance = Math.hypot(best.seatXY[0] - marker.x, best.seatXY[1] - marker.y);
+    return distance < bestDistance ? region : best;
+  }, null);
+  marker.regionId = supplied && REGIONS_BY_ID[supplied] ? supplied : nearest?.id;
+}
 
 export function markersForEra(eraId: string): MapMarker[] {
   return MAP_MARKERS.filter((m) => !m.onlyEras || m.onlyEras.includes(eraId));

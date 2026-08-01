@@ -1,3 +1,56 @@
+import type { StatData } from "./schema";
+import {
+  CONTINENTS_BY_ID, MACRO_REGIONS_BY_ID, REGIONS, regionForLocation,
+} from "../content/world/geography";
+
+/** Danh sách id luôn sinh từ catalog geography, không phải chuỗi viết tay. */
+export const VALID_WORLD_REGION_IDS = REGIONS.map((region) => region.id);
+const VALID_REGION_IDS_TEXT = VALID_WORLD_REGION_IDS.join(", ");
+
+const FREE_CITY_REALMS = new Set([
+  "free-cities", "braavos", "pentos", "myr", "tyrosh", "lys", "volantis", "lorath", "norvos", "qohor",
+]);
+const NOMADIC_REALMS = new Set(["dothraki", "jogos-nhai"]);
+const GHISCARI_REALMS = new Set(["astapor", "yunkai", "meereen", "new-ghis", "ghiscar"]);
+
+/**
+ * Guardrail địa phương cho từng lượt, tránh áp luật lãnh chúa/chư hầu của
+ * Westeros lên mọi chính thể trong thế giới.
+ */
+export function geographyContextPrompt(state: StatData): string {
+  const location = state["Thế Giới"]["Vị Trí"];
+  const region = regionForLocation(location);
+  if (!region) {
+    return `# BỐI CẢNH ĐỊA LÝ & CHÍNH THỂ\n- Vị trí hiện tại: ${location || "không rõ"}. Không ánh xạ được vùng; KHÔNG mặc định nơi này thuộc Westeros hay vận hành theo phong kiến.`;
+  }
+
+  const continent = CONTINENTS_BY_ID[region.continentId];
+  const macro = MACRO_REGIONS_BY_ID[region.parentId];
+  const politicalKeys = new Set([
+    region.id, region.realmId, region.parentId, region.defaultHouse, ...region.cultureIds,
+  ]);
+  let government: string;
+  if (region.continentId === "westeros") {
+    government = "Phong kiến theo Nhà, lãnh chúa và chư hầu là mô hình phổ biến; vẫn tôn trọng ngoại lệ địa phương.";
+  } else if ([...politicalKeys].some((key) => FREE_CITY_REALMS.has(key))) {
+    government = "Thành bang tự trị do magister, hội đồng hoặc thiết chế đô thị cai quản; không tự gọi họ là chư hầu phong kiến.";
+  } else if ([...politicalKeys].some((key) => NOMADIC_REALMS.has(key))) {
+    government = "Xã hội du mục/khalasar dựa trên khal, huyết kỵ và uy quyền cá nhân; không có hệ ban đất–chư hầu kiểu Westeros.";
+  } else if ([...politicalKeys].some((key) => GHISCARI_REALMS.has(key))) {
+    government = "Thành bang Ghiscari do tầng lớp chủ nhân/tinh hoa đô thị và quân đội thành phố chi phối; không áp luật phong kiến Westeros.";
+  } else if (region.realmId === "qarth" || region.id === "qarth") {
+    government = "Thành bang thương mại với nhiều hội quyền lực cạnh tranh; thương hội và kiểm soát cảng quan trọng hơn chư hầu.";
+  } else {
+    government = "Chính thể ngoài Westeros: dựa vào văn hoá và dữ liệu địa phương; không mặc định có Nhà, chư hầu, levy hay luật phong kiến.";
+  }
+
+  return `# BỐI CẢNH ĐỊA LÝ & CHÍNH THỂ
+- Vị trí hiện tại: ${location || region.name} → ${region.name} (regionId: ${region.id}).
+- Lục địa: ${continent?.name ?? region.continentId}; vùng lớn/chính thể: ${macro?.name ?? region.realmId ?? region.parentId}.
+- Mô hình quyền lực phù hợp: ${government}
+- Khi di chuyển, tuyển quân, đánh thuế, ngoại giao hoặc xưng hô, ưu tiên luật địa phương này.`;
+}
+
 /**
  * Prompt hướng dẫn AI cập nhật Bảng Trạng Thái (mục 5.4b) — entry [mvu_update],
  * luôn có mặt mọi lượt (constant). Đi CẶP với khối render state (5.7.3):
@@ -140,7 +193,7 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
 
 ## THỜI GIAN TRÔI
 
-LỊCH WESTEROS: 12 tháng × 30 ngày = 360 ngày/năm. Ba field: Thế Giới.Ngày (1-30),
+LỊCH TRÒ CHƠI: 12 tháng × 30 ngày = 360 ngày/năm. Ba field: Thế Giới.Ngày (1-30),
 Thế Giới.Tháng (1-12), Thế Giới.Năm (AC). Cỗ máy TỰ chuẩn hoá khi tràn
 (Ngày > 30 → sang tháng sau; Tháng > 12 → sang năm sau) — ngươi chỉ cần báo delta.
 
@@ -194,22 +247,24 @@ viết bình thường, không JSON):
   NGHIÊM CẤM: tự kể kết quả trận, ai thắng, thương vong. DỪNG lời kể ngay sau thẻ —
   cỗ máy sẽ phân giải, ngươi tường thuật kết quả ở lượt sau.
 - Một vùng đổi chủ (chiếm được sau vây thành, liên minh sáp nhập, thừa kế lãnh thổ):
-  <territory_change region="regionId (vd the-north, the-riverlands)" house="houseId Nhà mới nắm
-    (vd stark, lannister; rỗng nếu thành vô chủ)">bối cảnh đổi chủ ngắn</territory_change>
-  Cỗ máy sẽ đổi màu bản đồ + mở/đóng quản trị lãnh địa. regionId hợp lệ: the-north, the-vale,
-  the-riverlands, the-westerlands, the-crownlands, the-reach, the-stormlands, dorne, the-iron-islands.
+  <territory_change region="regionId (vd the-north, braavos)" house="id thế lực/chính thể mới nắm
+    (vd stark, braavos; rỗng nếu thành vô chủ)">bối cảnh đổi chủ ngắn</territory_change>
+  Cỗ máy sẽ đổi màu bản đồ + mở/đóng quản trị lãnh địa. regionId hợp lệ (sinh trực tiếp từ
+  geography hiện tại): ${VALID_REGION_IDS_TEXT}.
 - TUYỂN QUÂN / GỌI LÍNH (khi lời kể có việc chiêu binh, gọi dân đi lính, lập đội mới):
   <recruit territory="regionId nơi tuyển" type="binh chủng" ngach="Chính Quy|Phục Dịch"
     count="số quân" commander="tên chủ tướng (nếu có)" name="tên đội (nếu có)">bối cảnh chiêu binh</recruit>
   Cỗ máy sẽ TRỪ vàng/lương/dân và dựng đội quân đang tập hợp. Nếu không đủ điều kiện (không có
   Doanh Trại cho quân chính quy, không cai quản lãnh địa đó, hết vàng), việc tuyển THẤT BẠI —
   hãy kể lại thất bại đó ở lượt sau thay vì cứ cho quân xuất hiện.
-- HIỆU TRIỆU CHƯ HẦU (lãnh chúa phất cờ gọi bannermen — việc lớn, không làm hằng ngày):
+- HIỆU TRIỆU CHƯ HẦU (CHỈ chính thể phong kiến có bannermen; việc lớn, không làm hằng ngày):
   <banner_call region="regionId (bỏ trống = gọi toàn bộ chư hầu)" house="houseId một nhà cụ thể (tuỳ chọn)">
   bối cảnh: quạ bay đi, cờ hiệu dựng lên</banner_call>
   Cỗ máy gieo phản ứng từng nhà theo LÒNG TRUNG: nhà trung thành dốc sạch quân, nhà bất mãn gửi
   lấy lệ, nhà đang tính chuyện khác thì TỪ CHỐI. Quân tới nơi sau nhiều ngày hành quân.
   Lượt sau ngươi kể lại đúng những hồi đáp đó (đọc mục Chư hầu trong bảng trạng thái).
+  Ở Thành Phố Tự Do, khalasar, Ghiscari hoặc chính thể không phong kiến, KHÔNG phát thẻ này trừ
+  khi state thật sự có chư hầu; dùng tuyển quân/lính thuê hay cơ chế địa phương phù hợp.
 - ĐOÀN ĐÁNH THUÊ XUẤT HIỆN (một đội lính đánh thuê tới chào giá — chỉ hợp lý ở bến cảng lớn,
   Thành Phố Tự Do, hoặc khi đoàn đó đang đóng trại gần đấy):
   <sellsword_offer company="Tên đoàn" location="nơi đang đóng" size="quân số"
@@ -224,7 +279,7 @@ viết bình thường, không JSON):
   <dragon_order dragon="tên rồng" action="fly|feed|rest" target="regionId (fly/feed)">bối cảnh</dragon_order>
   Cảm hóa chỉ là một lời thỉnh cầu tới engine, không phải lệnh: <dragon_order dragon="tên rồng" action="tame" rider="tên người" method="feeding|patience|rescue|ritual">diễn biến dài, cụ thể, không kể sẵn kết quả</dragon_order>.
   Rồng bay vẫn mất ngày. Rồng đói thì bất trị và tự đi săn gia súc của dân.
-- NGOẠI GIAO — ĐỔI TRẠNG THÁI PHÁP LÝ giữa ta và một Nhà (tuyên chiến, cầu hoà, kết đồng minh,
+- NGOẠI GIAO — ĐỔI TRẠNG THÁI PHÁP LÝ giữa ta và một thế lực (tuyên chiến, cầu hoà, kết đồng minh,
   thần phục, nhận thần phục). Đây là việc TRỌNG ĐẠI, chỉ phát khi lời kể thật sự có nghi thức đó:
   <diplomacy house="houseId" status="Hoà Bình|Chiến Tranh|Đình Chiến|Liên Minh|Thần Phục Ta|Ta Thần Phục"
     reason="cớ/lý do">bối cảnh</diplomacy>
@@ -299,7 +354,8 @@ NHIỆM VỤ CỦA NGƯƠI:
 RÀNG BUỘC:
 - Số liệu hoà vào văn ("tổn hơn ba trăm nhân mã"), KHÔNG đọc lại bảng phán định trong văn xuôi.
 - GIỮ ĐÚNG kết quả cỗ máy — không được kể thắng khi báo cáo ghi bại.
-- Chất Westeros: bùn tuyết, tù và, huy hiệu Nhà tung bay, sự tàn khốc không tô hồng.
+- Chất Thế Giới Băng và Lửa: địa hình, khí hậu, quân kỳ và văn hoá phải đúng nơi đang đánh;
+  tàn khốc nhưng không tô hồng, không biến mọi chiến trường thành bùn tuyết Westeros.
 - Cuối phản hồi vẫn trả khối <UpdateVariable> như thường lệ (hệ quả NGOÀI các con số trận đánh
    — hảo cảm, ký ức NPC, thời gian trôi; số quân/thương vong cỗ máy ĐÃ ghi, đừng ghi lại).`;
 
@@ -395,14 +451,13 @@ NGƯƠI PHẢI BẢO VỆ TÍNH CHÂN THỰC CỦA THẾ GIỚI BẰNG MỌI GI�
    - Nếu người chơi cố tình viết ra kết quả (Ví dụ: "Tôi đâm chết hắn", "Tôi thuyết phục thành công bá tước"), NGƯƠI CÓ QUYỀN VÔ HIỆU HÓA KẾT QUẢ ĐÓ. Ngươi tung xúc xắc ngầm (DICE ROLL) để quyết định họ thành công hay bị phản đòn. Đừng bao giờ chiều chuộng một người chơi thích làm thần thánh!`;
 
 /**
- * Luật quân sự phong kiến (M19) — dạy AI kể đúng chất trung cổ phân quyền:
- * không có "quân đội quốc gia", chỉ có thân binh, dân phục dịch, chư hầu và
- * lính đánh thuê; và thứ gì cũng mất thời gian.
+ * Luật quân sự theo chính thể (M19). Phong kiến là hồ sơ của Westeros, không
+ * phải định luật chung áp lên Thành Phố Tự Do, khalasar hay Ghiscari.
  */
-export const FEUDAL_WARFARE_PROMPT = `# HỆ THỐNG QUÂN SỰ PHONG KIẾN (bắt buộc tuân thủ khi kể chuyện binh đao)
+export const FEUDAL_WARFARE_PROMPT = `# HỆ THỐNG QUÂN SỰ THEO CHÍNH THỂ (bắt buộc tuân thủ khi kể chuyện binh đao)
 
-Westeros KHÔNG có quân đội thường trực kiểu hiện đại. Một lãnh chúa có bốn nguồn quân, mỗi
-nguồn một luật chơi — hãy kể cho đúng:
+ĐỌC khối BỐI CẢNH ĐỊA LÝ & CHÍNH THỂ của lượt này trước. Bốn nguồn quân bên dưới mô tả
+Westeros và các lãnh địa phong kiến; CHỈ áp dụng đầy đủ khi nhân vật đang ở chính thể phù hợp:
 
 1. QUÂN CHÍNH QUY (thân binh): ăn lương quanh năm, cần Doanh Trại để nuôi. Ít người, tinh
    nhuệ, luôn có mặt. Đây là đám vệ binh mặc áo màu nhà, không phải hàng vạn quân.
@@ -415,6 +470,13 @@ nguồn một luật chơi — hãy kể cho đúng:
    mùa gặt mà ở nhà. Quân tới sau hàng tuần hành quân, và giữ quá lâu là mất lòng.
 4. LÍNH ĐÁNH THUÊ: chỉ thuê được ở nơi có đoàn đang đóng — bến cảng lớn, Thành Phố Tự Do.
    Trung thành đúng bằng lần trả lương gần nhất. Hết vàng là chúng xé khế ước giữa chiến dịch.
+
+Ngoài mô hình phong kiến:
+- Thành Phố Tự Do có vệ binh đô thị, hạm đội, quân tư nhân và lính đánh thuê theo ngân khố/hội đồng.
+- Dothraki huy động khalasar và khalas theo uy tín của khal, chiến lợi phẩm và quan hệ huyết kỵ.
+- Thành bang Ghiscari dựa vào quân thành phố, binh đoàn chuyên biệt và quyền lực tầng lớp chủ nhân.
+- Qarth và các trung tâm thương mại dựa nhiều vào hội quyền lực, tiền, cảng và lực lượng thuê.
+Đừng tự đổi các lực lượng này thành "chư hầu" hay "dân phục dịch" nếu state/lore không nói vậy.
 
 RÀNG BUỘC KỂ CHUYỆN:
 - MỌI THỨ TỐN THỜI GIAN. Gọi quân mất hàng tuần tập hợp; tân binh mất hàng tháng huấn luyện;
@@ -429,7 +491,7 @@ RÀNG BUỘC KỂ CHUYỆN:
   hàng tháng. Rồng đang bị xích hoặc đang dưỡng thương KHÔNG ra trận được.`;
 
 /**
- * Luật ngoại giao & bóng tối (M20) — dạy AI cách chơi ván cờ chính trị Westeros:
+ * Luật ngoại giao & bóng tối (M20) — dạy AI cách chơi ván cờ chính trị thế giới:
  * ba trục khác nhau (pháp lý / tình cảm / lòng tin), uy tín cam kết là tài sản
  * đắt nhất, và mọi việc trong bóng tối đều có cái giá lộ ra ánh sáng.
  */
@@ -440,13 +502,13 @@ export const DIPLOMACY_INTRIGUE_PROMPT = `# NGOẠI GIAO & BÓNG TỐI (bắt bu
    đánh ai mà không mất mặt. Đây là chuyện của giấy tờ và lời thề trước các vị thần.
 2. THÁI ĐỘ (họ có THÍCH ta không): tình cảm, thay đổi theo cách ta đối xử.
 3. LÒNG TIN (họ có TIN LỜI ta không): thay đổi theo việc ta có giữ lời hay không.
-Một Nhà có thể vừa Liên Minh với ta, vừa ghét ta, vừa không tin ta một chữ. Hãy kể đúng như thế.
+Một thế lực có thể vừa Liên Minh với ta, vừa ghét ta, vừa không tin ta một chữ. Hãy kể đúng như thế.
 
 ## UY TÍN CAM KẾT LÀ TÀI SẢN ĐẮT NHẤT
-- Xé một tờ hiệp ước thì MỌI Nhà đều bớt tin, không riêng gì Nhà bị xé. Đó là lý do người ta
+- Xé một tờ hiệp ước thì MỌI thế lực đều bớt tin, không riêng gì bên bị xé. Đó là lý do người ta
   nhớ tên kẻ bội ước qua nhiều thế hệ.
 - Kẻ có uy tín thấp thì đề nghị gì cũng bị nghi là bẫy; sứ giả của hắn bị coi như kẻ bán rong.
-- Khi bảng trạng thái ghi uy tín cam kết thấp, các Nhà PHẢI cư xử dè dặt: đòi con tin làm bảo
+- Khi bảng trạng thái ghi uy tín cam kết thấp, các bên PHẢI cư xử dè dặt: đòi con tin làm bảo
   đảm, đòi trả trước, hoặc thẳng thừng không tiếp.
 
 ## MỌI VIỆC NGOẠI GIAO ĐỀU MẤT THỜI GIAN
@@ -456,10 +518,11 @@ Một Nhà có thể vừa Liên Minh với ta, vừa ghét ta, vừa không tin
 - Đình chiến CÓ KỲ HẠN. Hết hạn là gươm lại có thể rút — hãy nhắc người chơi trước khi hết.
 
 ## ÂN OÁN LÀ CỚ, KHÔNG PHẢI CẢM XÚC
-- Một lãnh chúa Westeros không đánh nhau vì "ghét"; hắn cần một CỚ nói được ra trước mặt người
-  khác: máu chưa trả, của hồi môn chưa giao, con tin bị hành quyết, khách bị giết dưới mái nhà.
-- Đọc mục "Ân oán" trong bảng trạng thái. Ta có cớ thì các Nhà khác im lặng khi ta ra quân;
-  không có cớ thì cả những Nhà trung lập cũng thấy ta là kẻ hiếu chiến.
+- Một người cai trị không chỉ đánh nhau vì "ghét"; họ cần lý do có sức nặng trong chính văn hoá
+  của mình: quyền kế vị/lãnh thổ ở Westeros, hợp đồng và thương lộ ở thành bang, chiến lợi phẩm
+  và uy danh trong khalasar, hoặc máu chưa trả, con tin bị giết, lời thề bị phá.
+- Đọc mục "Ân oán" trong bảng trạng thái. Ta có cớ thì các thế lực khác im lặng khi ta ra quân;
+  không có cớ thì cả những bên trung lập cũng thấy ta là kẻ hiếu chiến.
 
 ## BÓNG TỐI CÓ GIÁ CỦA NÓ
 - Tai mắt có VỎ BỌC: làm việc bẩn thì vỏ bọc mòn, mòn hết là bị bắt. "Nằm Vùng" là cách vá lại.
@@ -474,7 +537,7 @@ Một Nhà có thể vừa Liên Minh với ta, vừa ghét ta, vừa không tin
 Người chơi không có bảng điều khiển ngoại giao hay mưu đồ để bấm. Họ NÓI RA ý mình trong cuộc
 chơi ("gửi quạ tới Casterly Rock cầu hoà", "cài một con hầu vào phòng Cersei"). Việc của ngươi:
 kể diễn biến hợp lý (kể cả THẤT BẠI và TỪ CHỐI), rồi phát thẻ tương ứng để cỗ máy chốt số.
-Nếu điều họ đòi là bất khả (không có sứ giả, không có vàng, Nhà kia đang thù ta tới xương), hãy
+Nếu điều họ đòi là bất khả (không có sứ giả, không có vàng, phía kia đang thù ta tới xương), hãy
 kể ra sự bất khả đó thay vì phát thẻ.`;
 
 export const DRAGON_MECHANICS_PROMPT = `# CƠ CHẾ TƯƠNG TÁC VÀ THU PHỤC RỒNG (DRAGON TAMING)
@@ -501,7 +564,7 @@ Ngươi phải quản lý việc tương tác, ấp trứng và thu phục rồn
 export const WORLD_ENGINE_PROMPT = `# NGUYÊN TẮC THẾ GIỚI SỐNG (World Background Engine)
 
 ## Thế giới TỰ QUAY — không xoay quanh người chơi
-- Westeros/Essos vận hành BẤT KỂ người chơi có mặt hay không.
+- Westeros, Essos và những lục địa/đảo xa hơn vận hành BẤT KỂ người chơi có mặt hay không.
 - NPC có lịch trình riêng: buổi sáng luyện kiếm, chiều hội đàm, tối tiệc rượu.
 - Thời tiết, mùa vụ, lễ hội, chiến tranh diễn ra theo dòng thời gian riêng.
 - Khi nhiều lượt trôi qua, thế giới PHẢI THAY ĐỔI nhìn thấy được.

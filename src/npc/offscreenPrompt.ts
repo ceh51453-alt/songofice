@@ -9,10 +9,11 @@ import type { StatData } from "../mvu/schema";
 import type { Npc } from "../mvu/npcSchema";
 import type { ApiChatMessage } from "../types/connection";
 import type { InteractionCandidate } from "./interactionPreview";
+import { geographyContextPrompt } from "../mvu/mvuPrompt";
 
 // ── System Prompt ────────────────────────────────────────────────────────────
 
-const OFFSCREEN_SYSTEM_PROMPT = `You are the RECORDER — an invisible, omniscient observer of a Westeros RPG world.
+const OFFSCREEN_SYSTEM_PROMPT = `You are the RECORDER — an invisible, omniscient observer of a World of Ice and Fire RPG spanning Westeros, Essos, and the wider known world.
 Your job is to simulate what off-screen NPCs are doing WHILE THE PLAYER IS NOT WATCHING.
 
 ## Core Principles
@@ -148,7 +149,7 @@ Trước khi output, hãy suy luận (trong <think> nếu model hỗ trợ):
 Bây giờ hãy output <OffscreenResult> JSON.`;
 
   return [
-    { role: "system", content: OFFSCREEN_SYSTEM_PROMPT },
+    { role: "system", content: `${OFFSCREEN_SYSTEM_PROMPT}\n\n${geographyContextPrompt(stat)}` },
     { role: "user", content: userContent },
   ];
 }

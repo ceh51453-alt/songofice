@@ -8,8 +8,9 @@ import type { StatData } from "./schema";
 import type { ApiChatMessage } from "../types/connection";
 import { renderTablesForAI } from "./tableBridge";
 import { useExtraModelStore } from "../state/extraModelStore";
+import { geographyContextPrompt } from "./mvuPrompt";
 
-const EXTRA_MODEL_SYSTEM_JSON = `You are a state-analysis engine for a Westeros RPG game.
+const EXTRA_MODEL_SYSTEM_JSON = `You are a state-analysis engine for a World of Ice and Fire RPG spanning Westeros, Essos, and the wider known world.
 Your ONLY job is to read the AI narrator's latest reply and determine what game state variables changed.
 
 You receive:
@@ -38,7 +39,7 @@ RULES:
 - ONLY output the JSON block. NO prose, NO explanation.
 - Only update what ACTUALLY changed based on the narrator's text. Do not fabricate changes.`;
 
-const EXTRA_MODEL_SYSTEM_SQL = `You are a state-analysis engine for a Westeros RPG game.
+const EXTRA_MODEL_SYSTEM_SQL = `You are a state-analysis engine for a World of Ice and Fire RPG spanning Westeros, Essos, and the wider known world.
 Your ONLY job is to read the AI narrator's latest reply and determine what game database tables changed.
 
 You receive:
@@ -77,7 +78,7 @@ export function buildExtraModelMessages(
   if (engine === "auto-database") {
     const tablesText = renderTablesForAI(currentState);
     return [
-      { role: "system", content: EXTRA_MODEL_SYSTEM_SQL },
+      { role: "system", content: `${EXTRA_MODEL_SYSTEM_SQL}\n\n${geographyContextPrompt(currentState)}` },
       {
         role: "user",
         content: `## CURRENT DATABASE STATE\n${tablesText}\n\n## NARRATOR'S LATEST REPLY\n${aiRawOutput}\n\nAnalyze the reply and output the <tableEdit> SQL block.`,
@@ -91,7 +92,7 @@ export function buildExtraModelMessages(
   );
 
   return [
-    { role: "system", content: EXTRA_MODEL_SYSTEM_JSON },
+    { role: "system", content: `${EXTRA_MODEL_SYSTEM_JSON}\n\n${geographyContextPrompt(currentState)}` },
     {
       role: "user",
       content: `## CURRENT GAME STATE\n\`\`\`json\n${JSON.stringify(compactState, null, 0)}\n\`\`\`\n\n## NARRATOR'S LATEST REPLY\n${aiRawOutput}\n\nAnalyze the reply and output the mvu_update JSON block.`,

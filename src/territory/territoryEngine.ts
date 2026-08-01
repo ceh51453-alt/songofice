@@ -8,13 +8,18 @@
  */
 import type { StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
-import { REGIONS, REGIONS_BY_ID, regionControlForYear, factionsForYear, FACTION_COLORS_MAP, type MapRegion } from "../content/westeros/regions";
+import {
+  REGIONS, REGIONS_BY_ID, MACRO_REGIONS_BY_ID, regionControlForYear,
+  factionsForYear, FACTION_COLORS_MAP, REGION_ID_ALIASES,
+} from "../content/world/geography";
 import { HOUSES_DATA, HOUSES_BY_ID } from "../content/westeros/houses";
 import { houseColor, ATTITUDE_HEAT, PLAYER_HEAT_COLOR, NEUTRAL_COLOR } from "../content/westeros/houseColors";
 import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 import { eventSeed } from "../probability/rng";
 import { loreSeatFor } from "../content/westeros/loreSeats";
 import { defaultJobSplit } from "../content/westeros/buildings";
+
+type MapRegion = (typeof REGIONS)[number];
 
 /** schemaName ("Stark") → houseId ("stark"). */
 export const HOUSE_ID_BY_SCHEMA: Record<string, string> = Object.fromEntries(
@@ -67,12 +72,74 @@ export function toHouseId(name: string): string {
  * Chỉ đổi ĐỊNH DẠNG khoá, không đụng tới ai làm chủ cái gì.
  */
 export function normalizeHouseIds(state: StatData): void {
-  for (const sov of Object.values(state["Chủ Quyền Lãnh Thổ"])) {
+  for (const sov of Object.values(state["Chủ Quyền Lãnh Thổ"] ?? {})) {
     sov["Nhà Kiểm Soát"] = toHouseId(sov["Nhà Kiểm Soát"]);
   }
   for (const holding of Object.values(state["Lãnh Địa"])) {
     holding["Nhà Kiểm Soát"] = toHouseId(holding["Nhà Kiểm Soát"]);
   }
+}
+
+export type RegionControlRepairMode = "fresh-seed" | "legacy-migration";
+
+export interface RepairRegionControlOptions {
+  /**
+   * `fresh-seed`: entry có sẵn là claim chính xác của một leaf trong ván mới.
+   * `legacy-migration`: entry 9 vùng cũ đại diện cả macro và phải trải xuống các leaf.
+   */
+  mode: RegionControlRepairMode;
+  year?: number;
+}
+
+/**
+ * Bù các vùng lá còn thiếu mà không ghi đè entry đã có.
+ *
+ * Chỉ luồng migration được phép hiểu id 9 vùng cũ là cả macro. Ván mới
+ * có thể claim đúng leaf mang id legacy (ví dụ `the-north`), nên sao chép claim đó
+ * sang các leaf anh em sẽ trao cho người chơi cả miền một cách sai lệch.
+ * Alias draft → canonical vẫn là quan hệ một-một và an toàn trong cả hai mode.
+ */
+export function repairRegionControl(state: StatData, options: RepairRegionControlOptions): number {
+  const year = options.year ?? state["Thế Giới"]["Năm"] ?? 298;
+  const sovereignty = state["Chủ Quyền Lãnh Thổ"];
+  const control = regionControlForYear(year);
+  const pHouse = playerHouseId(state);
+  let added = 0;
+
+  for (const region of REGIONS) {
+    if (Object.prototype.hasOwnProperty.call(sovereignty, region.id)) continue;
+
+    const macro = MACRO_REGIONS_BY_ID[region.parentId];
+    const legacyId = macro?.legacyRegionId;
+    const aliasId = Object.entries(REGION_ID_ALIASES)
+      .find(([alias, canonical]) => canonical === region.id && sovereignty[alias])?.[0];
+    const inheritedAlias = aliasId ? sovereignty[aliasId] : undefined;
+    const inheritedLegacy = options.mode === "legacy-migration" && legacyId
+      ? sovereignty[legacyId]
+      : undefined;
+    const inherited = inheritedAlias ?? inheritedLegacy;
+    if (inherited) {
+      sovereignty[region.id] = structuredClone(inherited);
+    } else {
+      const controller = control[region.id] ?? region.defaultHouse ?? "";
+      sovereignty[region.id] = {
+        "Nhà Kiểm Soát": controller,
+        "Người Kiểm Soát": "",
+        "Tình Trạng": "Ổn Định",
+        "Là Của Người Chơi": !!pHouse && controller === pHouse,
+        "_Ngày Đổi Chủ": 0,
+      };
+    }
+    added++;
+  }
+  return added;
+}
+
+/** Tên tương thích cho các luồng migration gọi bước chuẩn hoá world state. */
+export function normalizeRegionControl(state: StatData): number {
+  const added = repairRegionControl(state, { mode: "legacy-migration" });
+  repairPlayerSovereignty(state);
+  return added;
 }
 
 /** Vùng "quê nhà" của 1 Nhà: khớp trọng trấn (houses.seat === region.seat), fallback Nhà mặc định. */
@@ -172,33 +239,28 @@ export function seedMissingTerrain(state: StatData, day = 0): number {
  */
 export function seedRegionControl(state: StatData, _eraId: string, opts?: { createIfMissing?: boolean }): void {
   const currentYear = state["Thế Giới"]["Năm"] ?? 298;
-  const control = regionControlForYear(currentYear);
+  repairRegionControl(state, { mode: "fresh-seed", year: currentYear });
   const pHouse = playerHouseId(state);
-  const sovereignty = state["Chủ Quyền Lãnh Thổ"] as Record<string, unknown>;
-
-  for (const region of REGIONS) {
-    const house = control[region.id] ?? "";
-    sovereignty[region.id] = {
-      "Nhà Kiểm Soát": house,
-      "Tình Trạng": "Ổn Định",
-      "Là Của Người Chơi": !!pHouse && house === pHouse,
-      "_Ngày Đổi Chủ": 0,
-    };
-  }
+  repairPlayerSovereignty(state);
 
   const home = homeRegionForHouse(pHouse);
   const holdings = state["Lãnh Địa"] as Record<string, unknown>;
-  const playerControlsHome = home && control[home.id] === pHouse;
+  const playerControlsHome = home &&
+    state["Chủ Quyền Lãnh Thổ"][home.id]?.["Nhà Kiểm Soát"] === pHouse;
   if (!home || !playerControlsHome) return;
 
   // MIGRATE: Đặt "Thuộc Vùng" cho holding gói xuất thân. Nếu là nhân vật canon, tạo Lãnh Địa cho trọng trấn.
   const genericKeys = Object.keys(holdings);
   if (genericKeys.length > 0) {
-    // Nếu có Lãnh địa tổ truyền, thiết lập nó thuộc vùng quê nhà (không đổi key để giữ tính độc lập)
+    // Nếu holding đã trỏ tới một vùng hợp lệ do wizard/người chơi chọn thì GIỮ
+    // nguyên. Chỉ save/gói xuất thân cũ chưa có vị trí mới được bù về vùng quê.
     const src = holdings[genericKeys[0]] as Record<string, unknown>;
-    src["Thuộc Vùng"] = home.id;
-    if (!src["Địa Hình"]) src["Địa Hình"] = home.terrain;
-    if (src["Ven Biển"] === undefined) src["Ven Biển"] = home.coastal;
+    const selectedId = String(src["Thuộc Vùng"] ?? "");
+    const selectedRegion = REGIONS_BY_ID[selectedId];
+    const holdingRegion = selectedRegion ?? home;
+    if (!selectedRegion) src["Thuộc Vùng"] = home.id;
+    if (!src["Địa Hình"]) src["Địa Hình"] = holdingRegion.terrain;
+    if (src["Ven Biển"] === undefined) src["Ven Biển"] = holdingRegion.coastal;
   } else if (opts?.createIfMissing) {
     // Tạo Lãnh Địa cho trọng trấn (seat) của vùng nếu là canon player
     if (home.seat) {

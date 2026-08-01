@@ -29,7 +29,7 @@ import {
 import { ensureMarket, tickMarkets, quoteOrder, executeOrder, marketRows } from "../economy/market";
 import { GOODS, GOODS_BY_ID } from "../content/westeros/goods";
 import { EXCHANGE_RATES } from "../economy/currency";
-import { REGIONS_BY_ID } from "../content/westeros/regions";
+import { regionsForMacro } from "../content/westeros/regions";
 
 const GOLD = EXCHANGE_RATES.GOLD_TO_COPPER;
 const ID = "the-north-seat";
@@ -217,7 +217,7 @@ describe("M18 · Thuế khoá hợp lý trở lại", () => {
     expect(dragons).toBeLessThan(20000);
     // và luôn nhỏ hơn tổng sản phẩm của vùng — không ai thu quá cái dân làm ra
     expect(total).toBeLessThan(regionGrossProduct(s, "the-north"));
-    expect(REGIONS_BY_ID["the-north"].population).toBe(4000000);
+    expect(regionsForMacro("macro-the-north").reduce((sum, region) => sum + region.population, 0)).toBe(4000000);
   });
 
   it("mức thuế cao thu nhiều hơn nhưng đổi bằng lòng dân", () => {

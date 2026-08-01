@@ -18,6 +18,10 @@ export const SEASONS = ["Xuân", "Hạ", "Thu", "Đông"] as const;
 export const RELIGIONS = [
   "Thất Diện Thần", "Cựu Thần", "Thần Ánh Sáng (R'hllor)", 
   "Đa Diện Thần", "Thần Chết Chìm", "Đại Mã Thần", 
+  "Quý Bà Than Khóc", "Thần Mù Boash", "Thần Vô Danh của Norvos",
+  "Hắc Sơn Dương Qohor", "Harpy của Ghis", "Đại Mục Đồng",
+  "Sư Tử Bóng Đêm và Nữ Nhân Ánh Sáng", "Cổ Thần Leng",
+  "Các Thần Mùa Hè", "Chúa Hòa Hợp",
   "Không Tín Ngưỡng", "Khác..."
 ] as const;
 
@@ -1104,13 +1108,17 @@ export const StatDataSchema = z
     "Thông Tin Nhân Vật": z
       .object({
         "Họ Tên": safeString().prefault("Vô Danh"),
-        "Lục Địa": z.enum(["Westeros", "Essos"]).catch("Westeros").prefault("Westeros"),
-        "Văn Hoá": safeString().prefault("First Men"),
+        // Stable geography id (westeros, essos, sothoryos, ...). A free string
+        // keeps old saves and future map expansions lossless.
+        "Lục Địa": safeString().prefault("westeros"),
+        "Văn Hoá": safeString().prefault("first-men"),
         "Tôn Giáo": safeString().prefault("Thất Diện Thần"),
         "Thần Bảo Hộ": safeString().prefault(""),
         "Đức Tin": safeInt(30),
         "Ân Sủng": safeInt(10),
-        "Nhà": z.enum(HOUSES).catch("Không Nhà").prefault("Không Nhà"),
+        // Houses, city-states, khalasars and world institutions share this field.
+        // Do not coerce new political entities to "Không Nhà" during validation.
+        "Nhà": safeString().prefault("Không Nhà"),
         "Huyết Mạch": safeString().prefault("Không Rõ Huyết Mạch"),
         "Tên Gia Tộc Tùy Chỉnh": safeString().optional(),
         "Khẩu Hiệu": safeString().optional(),
@@ -1126,7 +1134,7 @@ export const StatDataSchema = z
         "Tuổi": safeInt(25),
         "Năm Sinh": z.coerce.number().int().optional(),
         "Giai Đoạn Đời": z.enum(LIFE_STAGES).catch("Trưởng Thành").prefault("Trưởng Thành"),
-        "Tước Vị": z.enum(["Thường Dân", "Người Thừa Kế", "Hiệp Sĩ", "Lãnh Chúa Thành Trì", "Lãnh Chúa", "Đại Lãnh Chúa", "Quốc Vương", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế", "Hoàng Tử", "Vương Hậu", "Công Chúa", "Tiểu Thư", "Vương Thân", "Vương phi"]).catch("Thường Dân").prefault("Thường Dân"),
+        "Tước Vị": safeString().prefault("Thường Dân"),
         "Đã Chết": z.boolean().catch(false).prefault(false),
         "Nguyên Nhân Cái Chết": safeString().optional(),
         "Các Loại Bệnh": z.array(CharacterDiseaseSchema).catch([]).prefault([]),

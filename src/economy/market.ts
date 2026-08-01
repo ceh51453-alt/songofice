@@ -111,11 +111,13 @@ export function equilibriumPrice(
   const season = state["Thế Giới"]?.["Mùa"] ?? "Hạ";
   const base = basePriceOf(good.id);
   let p = base * regionPriceFactor(good, regionId) * seasonPriceFactor(good, season) * crisisFactor(state, regionId, good);
-  // hàng ngoại chỉ rẻ khi thương đoàn Essos đang neo ở cảng
-  if (good.foreign) {
+  // Hàng nhập khẩu chỉ rẻ hơn khi có thương đoàn đường xa đang neo ở cảng.
+  // Essos không còn tự coi lụa Myr hay thảm Qohor là "hàng ngoại".
+  if (isGoodImportedAt(good, regionId)) {
     const merchant = state["Thị Trường Khu Vực"]?.[regionId]?.["Đang Có Thương Nhân"];
     p *= merchant ? 1.15 : 2.4;
   }
+  if (good.relic) p *= 2.2;
   return Math.max(1, Math.round(p));
 }
 
@@ -124,9 +126,34 @@ export function equilibriumPrice(
  * phải nhập thì thiếu. Cộng thêm phần THẶNG DƯ thật từ các lãnh địa người chơi
  * quản trị trong vùng — sản xuất ở Tầng 1 chảy thẳng vào giá chợ ở Tầng 2.
  */
+export function isGoodHomeAt(good: GoodDef, regionId: string): boolean {
+  const region = REGIONS_BY_ID[regionId] as (typeof REGIONS_BY_ID[string] & {
+    parentId?: string;
+    realmId?: string;
+    continentId?: string;
+  }) | undefined;
+  const geographyIds = [
+    regionId,
+    region?.parentId,
+    region?.parentId?.replace(/^macro-/, ""),
+    region?.realmId,
+    region?.continentId,
+  ].filter(Boolean) as string[];
+  return !!good.homeRegions?.some((id) => geographyIds.includes(id));
+}
+
+export function isGoodImportedAt(good: GoodDef, regionId: string): boolean {
+  if (isGoodHomeAt(good, regionId)) return false;
+  const region = REGIONS_BY_ID[regionId] as (typeof REGIONS_BY_ID[string] & { continentId?: string }) | undefined;
+  const continentId = region?.continentId ?? (region ? "westeros" : "");
+  if (good.originContinentIds?.length) return !good.originContinentIds.includes(continentId);
+  return !!good.foreign;
+}
+
 function regionalSupply(state: StatData, regionId: string, good: GoodDef, demand: number): number {
-  const home = good.homeRegions?.includes(regionId);
-  let supply = demand * (home ? 1.3 : good.foreign ? 0.25 : 0.86);
+  const home = isGoodHomeAt(good, regionId);
+  const imported = isGoodImportedAt(good, regionId);
+  let supply = demand * (good.relic ? 0.02 : home ? 1.3 : imported ? 0.25 : 0.86);
 
   // thặng dư thật từ các lãnh địa trong vùng — sản xuất Tầng 1 chảy thẳng vào
   // giá chợ Tầng 2. Xây thêm nông trại là giá lúa ở vùng đó hạ xuống.

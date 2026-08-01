@@ -2,7 +2,7 @@
  * RelationshipNetworkPanel — Mạng Lưới Quan Hệ Nhân Vật & Gia Tộc.
  * 
  * Hiển thị sơ đồ mạng lưới lực/quỹ đạo (Orbital Force Graph) biểu diễn mối quan hệ
- * giữa Người Chơi, các NPC Chính, Thành Viên Gia Tộc, và các Đại Gia Tộc Westeros.
+ * giữa Người Chơi, các NPC Chính, Thành Viên Gia Tộc và các thế lực trên thế giới.
  * Hỗ trợ zoom/pan, kéo thả node, lọc theo phe/thái độ, và xem inspector chi tiết.
  */
 import { useState, useMemo, useRef, useCallback } from "react";
@@ -398,7 +398,7 @@ export function RelationshipNetworkPanel({ open, onClose }: { open: boolean; onC
                 Mạng Lưới Quan Hệ & Trung Thành
               </h2>
               <p className="text-[11px] text-[var(--text-faint)]">
-                Theo dõi tương tác, mức độ tin cậy và ân oán với {metrics.total} nhân vật Westeros
+                Theo dõi tương tác, mức độ tin cậy và ân oán với {metrics.total} nhân vật trong thế giới
               </p>
             </div>
           </div>

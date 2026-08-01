@@ -14,6 +14,7 @@ import { getTimelineContext } from "../content/westeros/timeline";
 import { getTourneyHint } from "../content/westeros/tourneyData";
 import { formatCurrencyFull } from "../economy/currency";
 import { monthlyBudget } from "../economy/budget";
+import { REGIONS_BY_ID } from "../content/westeros/regions";
 
 const MAX_NPC_RENDERED = 10;
 
@@ -24,7 +25,10 @@ function fmtNpc(name: string, npc: Npc): string {
     `• ${name}${npc["Tuổi"] ? ` (${npc["Tuổi"]} tuổi, ${npc["Giai Đoạn Đời"]})` : ""} — Quan hệ: ${stage} (${npc["Độ Hảo Cảm"]}), Tin Cậy: ${npc["Tin Cậy"]}.`,
   ];
   if (npc["Chức Vụ"]) parts.push(`Chức: ${npc["Chức Vụ"]}.`);
-  if (npc["Nhà"]) parts.push(`Nhà ${npc["Nhà"]}.`);
+  if (npc["Nhà"]) parts.push(`Thế lực/gia tộc: ${npc["Nhà"]}.`);
+  if (npc["Lục Địa"] || npc["Văn Hoá"] || npc["Tôn Giáo"]) {
+    parts.push(`Bản sắc: ${[npc["Lục Địa"], npc["Văn Hoá"], npc["Tôn Giáo"]].filter(Boolean).join(" · ")}.`);
+  }
   if (npc["Tình Trạng"] !== "Bình Thường") parts.push(`[${npc["Tình Trạng"]}]`);
   if (!npc["Còn Sống"]) parts.push(`[ĐÃ MẤT${npc["Nguyên Nhân Nếu Mất"] ? ` — ${npc["Nguyên Nhân Nếu Mất"]}` : ""}]`);
   lines.push(parts.join(" "));
@@ -379,10 +383,17 @@ export function renderStateForAI(state: StatData): string {
     }
   }
   lines.push(
-    `Nhân vật: ${info["Họ Tên"]}, ${info["Tuổi"]} tuổi (${info["Giai Đoạn Đời"]}), Nhà ${info["Nhà"]}. Cấp ${info["Cấp Độ"]} (EXP ${info["Kinh Nghiệm"]}). ` +
+    `Nhân vật: ${info["Họ Tên"]}, ${info["Tuổi"]} tuổi (${info["Giai Đoạn Đời"]})` +
+      (info["Nhà"] && info["Nhà"] !== "Không Nhà" ? `, thế lực/gia tộc ${info["Nhà"]}` : "") +
+      `. Cấp ${info["Cấp Độ"]} (EXP ${info["Kinh Nghiệm"]}). ` +
       `HP ${vitals["HP"]}/${derived["_HP Tối Đa"]}. Thể Lực ${vitals["Thể Lực"]}/${derived["_Thể Lực Tối Đa"]}.` +
       (vitals["Pháp Lực"] > 0 ? ` Pháp Lực ${vitals["Pháp Lực"]}.` : "") +
       ` Ngân khố ${formatCurrencyFull(info["Ngân Khố"])}.`,
+  );
+  lines.push(
+    `Bản sắc: ${info["Lục Địa"]} · văn hoá ${info["Văn Hoá"] || "chưa rõ"} · ` +
+      `tôn giáo ${info["Tôn Giáo"] || "chưa rõ"}` +
+      (info["Xuất Thân"] ? ` · xuất thân ${info["Xuất Thân"]}` : "") + ".",
   );
   lines.push(
     `Chỉ số: Sức Mạnh ${core["Sức Mạnh"]} · Nhanh Nhẹn ${core["Nhanh Nhẹn"]} · Thể Chất ${core["Thể Chất"]} · ` +
@@ -487,10 +498,10 @@ export function renderStateForAI(state: StatData): string {
     }
   }
 
-  // thái độ các Nhà
+  // thái độ các gia tộc/chính thể/tổ chức
   const houses = Object.entries(state["Thái Độ Các Nhà"]);
   if (houses.length > 0) {
-    lines.push("", `Các Nhà: ${houses.map(([name, h]) => `${name} → ${h["Thái Độ"].toUpperCase()}`).join(" · ")}.`);
+    lines.push("", `Các thế lực: ${houses.map(([name, h]) => `${name} → ${h["Thái Độ"].toUpperCase()}`).join(" · ")}.`);
   }
 
   // chủ quyền lãnh thổ của người chơi (9.5.1) — chỉ liệt kê vùng của ta cho gọn
@@ -498,7 +509,7 @@ export function renderStateForAI(state: StatData): string {
   if (owned.length > 0) {
     lines.push(
       "",
-      `Lãnh thổ của ngươi: ${owned.map(([id, s]) => `${id}${s["Tình Trạng"] !== "Ổn Định" ? ` [${s["Tình Trạng"]}]` : ""}`).join(", ")}.`,
+      `Lãnh thổ của ngươi: ${owned.map(([id, s]) => `${REGIONS_BY_ID[id]?.name ?? id}${s["Tình Trạng"] !== "Ổn Định" ? ` [${s["Tình Trạng"]}]` : ""}`).join(", ")}.`,
     );
   }
 

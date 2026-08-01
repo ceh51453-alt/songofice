@@ -11,11 +11,15 @@ import { applyPatch, parsePath, type PatchOp } from "../mvu/patchEngine";
 import { runCascadeEffects, recomputeDerived, type EffectEvent } from "../mvu/effects";
 import { newRootSeed } from "../probability/rng";
 import { absoluteDay, normalizeCalendar } from "../mvu/calendar";
-import { normalizeHouseIds } from "../territory/territoryEngine";
+import { normalizeHouseIds, repairRegionControl } from "../territory/territoryEngine";
 import { repairAllHoldings } from "../territory/localMap";
+import { ensureRegionalEconomy } from "../content/westeros/regionalResources";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("mvu/store");
+
+/** Phiên bản của blob Zustand trong localStorage. */
+export const MVU_PERSIST_VERSION = 11;
 
 export interface AppliedTurn {
   events: EffectEvent[];
@@ -85,13 +89,17 @@ function deepMergeStateDefaults(target: Record<string, unknown>, source: Record<
   return merged;
 }
 
-function repairPersistedStat(raw: unknown): StatData {
+export function repairPersistedStat(raw: unknown): StatData {
   const defaults = makeDefaultState();
   const merged = raw !== null && typeof raw === "object" && !Array.isArray(raw)
     ? deepMergeStateDefaults(defaults as unknown as Record<string, unknown>, raw as Record<string, unknown>)
     : defaults;
   const parsed = StatDataSchema.safeParse(merged);
-  if (parsed.success) return parsed.data;
+  if (parsed.success) {
+    repairRegionControl(parsed.data, { mode: "legacy-migration" });
+    ensureRegionalEconomy(parsed.data["Kinh Tế Vùng"]);
+    return parsed.data;
+  }
   log.warn("Không thể sửa state đã lưu; tạo state mặc định", parsed.error.flatten());
   return defaults;
 }
@@ -111,9 +119,9 @@ export const useMvuStore = create<MvuState>()(
       getSnapshot: () => structuredClone(get().stat),
 
       restoreSnapshot: (snapshot) => {
-        // validate snapshot qua schema (an toàn khi load save cũ)
-        const parsed = StatDataSchema.safeParse(snapshot);
-        set({ stat: parsed.success ? parsed.data : get().stat, pendingEvents: [], lastChangedPaths: [] });
+        // Mọi đường restore (wizard, load/import, rollback) cùng đi qua một bước
+        // validate + bù geography để không có save hợp lệ nhưng thiếu vùng mới.
+        set({ stat: repairPersistedStat(snapshot), pendingEvents: [], lastChangedPaths: [] });
       },
 
       applyAiOps: (ops) => {
@@ -138,8 +146,15 @@ export const useMvuStore = create<MvuState>()(
     }),
     {
       name: "asoiaf-mvu",
-      version: 10,
+      version: MVU_PERSIST_VERSION,
       partialize: (s) => ({ stat: s.stat }),
+      // `migrate` chỉ chạy khi version đổi; `merge` bảo đảm cả blob v11 hiện tại
+      // (hoặc save do mod chỉnh) vẫn được bù vùng/thị trường thiếu khi hydrate.
+      merge: (persisted, current) => {
+        const saved = persisted as Partial<MvuState> | undefined;
+        if (!saved?.stat) return current;
+        return { ...current, ...saved, stat: repairPersistedStat(saved.stat) };
+      },
       /**
        * v1 → v2: ván cũ dùng lịch 1 field (Ngày = 1-360 trong năm, chưa có
        * Tháng) — normalizeCalendar tách lại đúng (Ngày 250 → tháng 9 ngày 10).
@@ -158,6 +173,8 @@ export const useMvuStore = create<MvuState>()(
        * cho mỗi trọng trấn), gồm marker, nhà ở, kinh tế hoặc hạ tầng phòng thủ.
        * v9 → v10: chừa khoảng trống thật cho khuôn viên/silhouette, gộp các
        * kỳ quan là chính toà thành vào Lâu Đài và chuẩn hoá hiệu ứng canon.
+       * v10 → v11: mở rộng bản đồ ra toàn thế giới; giữ nguyên 9 entry legacy,
+       * chỉ bù chủ quyền và kinh tế cho các vùng lá còn thiếu.
        */
       migrate: (persisted, version) => {
         const s = persisted as { stat?: unknown } | undefined;
@@ -196,6 +213,11 @@ export const useMvuStore = create<MvuState>()(
         if (version < 10) {
           repairAllHoldings(stat);
           log.info(`Migrate save v${version} → v10: dời công trình giãn cách và gộp kỳ quan trùng Lâu Đài`);
+        }
+        if (version < 11) {
+          const regionsAdded = repairRegionControl(stat, { mode: "legacy-migration" });
+          const marketsAdded = ensureRegionalEconomy(stat["Kinh Tế Vùng"]);
+          log.info(`Migrate save v${version} → v11: thêm ${regionsAdded} vùng chủ quyền và ${marketsAdded} thị trường thế giới`);
         }
         return { stat };
       },

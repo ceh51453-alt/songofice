@@ -17,6 +17,8 @@ import { GearBodyPanel } from "./GearBodyPanel";
 import { EquipmentModal } from "./EquipmentModal";
 import { DragonCard } from "../../military/DragonCard";
 import { playerDragons } from "../../../strategy/dragons";
+import { CONTINENTS } from "../../../content/world/geography";
+import { CULTURES_BY_ID } from "../../../content/westeros/cultures";
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -70,6 +72,11 @@ export function StatusPanel() {
   const dragons = playerDragons(stat);
 
   const canClaimThrone = canClaimIronThrone(stat);
+  const continentName = CONTINENTS.find((continent) =>
+    continent.id === info["Lục Địa"].toLocaleLowerCase("en-US")
+    || continent.name.toLocaleLowerCase("vi") === info["Lục Địa"].toLocaleLowerCase("vi"),
+  )?.name ?? info["Lục Địa"];
+  const cultureName = CULTURES_BY_ID[info["Văn Hoá"]]?.name ?? info["Văn Hoá"];
 
   return (
     <div className="space-y-3">
@@ -104,7 +111,7 @@ export function StatusPanel() {
               </p>
             )}
             <p className="text-[11.5px] text-[var(--text-faint)] mt-0.5 truncate">
-              {info["Lục Địa"]} · {info["Văn Hoá"]} · {info["Tôn Giáo"]}
+              {continentName} · {cultureName} · {info["Tôn Giáo"]}
             </p>
           </div>
         </div>

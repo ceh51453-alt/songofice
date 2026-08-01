@@ -7,8 +7,9 @@ import { describe, expect, it } from "vitest";
 import { EXCHANGE_RATES } from "../economy/currency";
 import {
   BUDGETS, CORE_STATS, STAT_BASE, buildStateFromCanon, buildStateFromWizard,
-  buildInitLoreEntry, buildOpeningMessage, flawRefund, pointBuySpent, resolveCrisisDesc,
-  talentSlots, validatePointBuy, npcAffinityOffset, mergeWizardData, selectedOriginIds, type WizardData,
+  buildInitLoreEntry, buildOpeningMessage, canonLabel, flawRefund, pointBuySpent, resolveCrisisDesc,
+  talentSlots, validatePointBuy, npcAffinityOffset, mergeWizardData, selectedOriginIds,
+  wizardPatchForContinent, type WizardData,
 } from "./characterInit";
 import { ERAS, ERAS_BY_ID } from "../content/westeros/eras";
 import { availableTalents } from "../content/westeros/talents";
@@ -17,6 +18,7 @@ import { availableSkills } from "../content/westeros/skills";
 import { availableCrises } from "../content/westeros/startingCrises";
 import { resolveCheck } from "../probability/resolveCheck";
 import type { CoreStat } from "../content/westeros/skills";
+import { regionForLocation } from "../content/world/geography";
 
 const MODES = {
   narrativeMode: "Diễn Giải Tự Do" as const,
@@ -29,7 +31,7 @@ function makeWizard(partial?: Partial<WizardData>): WizardData {
     eraId: "war-of-five-kings", houseId: "stark", originId: "knight",
     ...MODES,
     name: "Ser Duncan", age: 25,
-    continent: "Westeros", culture: "", religion: "", patronGod: "", bloodline: "none", startingLocation: "",
+    continent: "westeros", culture: "", religion: "", patronGod: "", bloodline: "none", startingLocation: "",
     pointBuy: Object.fromEntries(CORE_STATS.map((s) => [s, STAT_BASE])) as Record<CoreStat, number>,
     talentIds: [], skillAllocations: {},
     dragon: null,
@@ -61,6 +63,20 @@ describe("AI wizard patch", () => {
 
     const state = buildStateFromWizard(generated);
     expect(state["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["ai-family-1"]["Họ Tên"]).toBe("Arya");
+  });
+
+  it("đổi lục địa xoá lựa chọn phụ thuộc và lấy văn hóa tương thích", () => {
+    expect(wizardPatchForContinent("essos")).toMatchObject({
+      continent: "essos",
+      houseId: null,
+      originId: "",
+      originIds: [],
+      startingLocation: "",
+    });
+    expect(wizardPatchForContinent("ibben")).toMatchObject({
+      continent: "ibben",
+      culture: "ibbenese",
+    });
   });
 });
 
@@ -189,6 +205,66 @@ describe("buildStateFromWizard (8.6b)", () => {
     const pauper = buildStateFromWizard(makeWizard({ originId: "commoner" }));
     expect(pauper["Thông Tin Nhân Vật"]["Ngân Khố"]).toBe(10 * EXCHANGE_RATES.GOLD_TO_COPPER);
     expect(Object.keys(pauper["Lãnh Địa"])).toHaveLength(0);
+  });
+
+  it("tách tên địa điểm hiển thị khỏi region id dùng cho chủ quyền", () => {
+    const meereen = regionForLocation("Meereen")!;
+    const state = buildStateFromWizard(makeWizard({
+      continent: "essos",
+      culture: "ghiscari",
+      religion: "Harpy của Ghis",
+      houseId: "meereen",
+      houseRole: "Đại Chủ Nô",
+      originId: "ghiscari-noble",
+      startingLocation: meereen.id,
+      hasCustomTerritory: true,
+      customTerritoryName: "Kim Tự Tháp Đồng",
+      customTerritoryLevel: 2,
+    }));
+
+    expect(state["Thế Giới"]["Vị Trí"]).toBe("Meereen");
+    expect(state["Thông Tin Nhân Vật"]["Nhà"]).toBe("Meereen");
+    expect(state["Lãnh Địa"]["Kim Tự Tháp Đồng"]["Thuộc Vùng"]).toBe(meereen.id);
+    expect(state["Chủ Quyền Lãnh Thổ"][meereen.id]["Là Của Người Chơi"]).toBe(true);
+  });
+
+  it("địa điểm mặc định theo era không tạo khóa chủ quyền ma bằng tên thủ phủ", () => {
+    const state = buildStateFromWizard(makeWizard({ originId: "lord-heir", startingLocation: "" }));
+    expect(state["Thế Giới"]["Vị Trí"]).toBe("Winterfell");
+    expect(state["Chủ Quyền Lãnh Thổ"]["Winterfell"]).toBeUndefined();
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-north"]["Là Của Người Chơi"]).toBe(true);
+  });
+
+  it("dữ liệu Essos thiếu location vẫn fallback trong đúng lục địa", () => {
+    const state = buildStateFromWizard(makeWizard({
+      continent: "essos", culture: "braavosi", houseId: "braavos",
+      originId: "braavosi-bravo", startingLocation: "",
+    }));
+    const resolved = regionForLocation(state["Thế Giới"]["Vị Trí"]);
+    expect(resolved?.continentId).toBe("essos");
+    expect(state["Thế Giới"]["Vị Trí"]).not.toBe("Winterfell");
+  });
+
+  it("người thân và tâm phúc kế thừa bản sắc cùng vị trí của nhân vật", () => {
+    const braavos = regionForLocation("Braavos")!;
+    const state = buildStateFromWizard(makeWizard({
+      continent: "essos", culture: "braavosi", religion: "Đa Diện Thần",
+      houseId: "braavos", originId: "braavosi-bravo", startingLocation: braavos.id,
+      companionId: "loyal-guard", companionName: "Syrio",
+      familyMembers: [{
+        id: "kin-1", name: "Mara", relation: "Chị gái", age: 30,
+        persona: { ngoaiHinh: "Tóc đen", tinhCach: "Điềm tĩnh" },
+      }],
+    }));
+    for (const npc of [
+      state["Mối Quan Hệ"]["NPC Chính"]["Syrio"],
+      state["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["kin-1"],
+    ]) {
+      expect(npc).toMatchObject({
+        "Nhà": "Braavos", "Văn Hoá": "braavosi", "Lục Địa": "essos",
+        "Vị Trí Hiện Tại": "Braavos",
+      });
+    }
   });
 
   it("phái sinh tự tính từ cốt lõi + trang bị; HP/Thể Lực = trần (8.6b bước 5)", () => {
@@ -326,16 +402,15 @@ describe("buildStateFromCanon (8.4b)", () => {
 
   it("các quan hệ với nhân vật lịch sử ngoài roster vẫn hiện tên đọc được", () => {
     for (const currentEra of ERAS) {
-      const player = currentEra.canonCharacters[0]!;
-      if (!player) continue;
-      const state = buildStateFromCanon(player, currentEra, MODES);
-      const everyone = [
-        ...Object.values(state["Mối Quan Hệ"]["Thành Viên Gia Tộc"]),
-        ...Object.values(state["Mối Quan Hệ"]["NPC Chính"]),
-      ];
-      for (const npc of everyone) {
-        for (const targetName of Object.keys(npc["Mạng Lưới Quan Hệ"] ?? {})) {
-          expect(targetName, `${currentEra.id}:${npc["Họ Tên"]}`).not.toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)+$/);
+      for (const character of currentEra.canonCharacters) {
+        const targetIds = new Set([
+          character.father, character.mother, character.spouse, character.liege,
+          ...(character.children ?? []), ...(character.siblings ?? []),
+          ...(character.allies ?? []), ...(character.rivals ?? []),
+          ...Object.keys(character.relationshipDetails ?? {}),
+        ].filter((id): id is string => Boolean(id)));
+        for (const targetId of targetIds) {
+          expect(canonLabel(currentEra, targetId), `${currentEra.id}:${character.name}`).not.toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)+$/);
         }
       }
     }

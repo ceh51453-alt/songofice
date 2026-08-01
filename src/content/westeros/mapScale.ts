@@ -17,8 +17,6 @@
 // → toàn bộ lưới 1 lãnh địa ≈ 2.3 px trên bản đồ thế giới: đúng bản chất "một
 //   chấm" ở Tầng 3, và là cả một vùng quy hoạch ở Tầng 1.
 // ============================================================================
-import { MAP_H } from "./regions";
-
 /** 3 tầng bản đồ. Tầng nào cũng đọc cùng 1 nguồn dữ liệu (stat_data). */
 export type MapTier = "world" | "region" | "local";
 
@@ -58,7 +56,9 @@ export const LOCAL_SPAN_M = LOCAL_GRID_CELLS * LOCAL_CELL_M; // 7 500 m
 /** Chiều dài Westeros từ Tường Thành tới mũi Dorne (km, canon ≈ 3000 dặm). */
 export const WESTEROS_LENGTH_KM = 4800;
 /** 1 px ảnh gốc = bao nhiêu km thật. */
-export const WORLD_KM_PER_PX = WESTEROS_LENGTH_KM / MAP_H;
+/** Stable Westeros height reference; expanding the world canvas must not rescale travel. */
+export const WESTEROS_REFERENCE_HEIGHT_PX = 1500;
+export const WORLD_KM_PER_PX = WESTEROS_LENGTH_KM / WESTEROS_REFERENCE_HEIGHT_PX;
 /** Bề rộng 1 lưới lãnh địa quy ra px thế giới (≈ 2.3 px). */
 export const LOCAL_SPAN_WORLD_PX = LOCAL_SPAN_M / 1000 / WORLD_KM_PER_PX;
 

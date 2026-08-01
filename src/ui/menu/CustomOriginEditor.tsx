@@ -16,14 +16,17 @@ const TITLES = [
 export function CustomOriginEditor({
   origin,
   onChange,
+  continentId,
 }: {
   origin?: OriginDef;
   onChange: (o: OriginDef) => void;
+  continentId: string;
 }) {
   const current: OriginDef = origin || {
     id: "custom",
     name: "Tùy Chỉnh",
     desc: "",
+    continentIds: [continentId],
     statBonus: {},
     extraPointBuy: 0,
     giftTalentIds: [],

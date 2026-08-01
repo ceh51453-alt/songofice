@@ -6,6 +6,8 @@
  */
 import type { Npc } from "../mvu/npcSchema";
 import { createLogger } from "../lib/log";
+import { REGIONS } from "../content/westeros/regions";
+import { MAP_MARKERS } from "../content/westeros/mapMarkers";
 
 const log = createLogger("npc/interaction");
 
@@ -40,38 +42,63 @@ function isIncapacitated(npc: Npc): boolean {
 // ── Khoảng Cách ──────────────────────────────────────────────────────────────
 
 /**
- * Ước lượng khoảng cách giữa 2 NPC dựa trên vị trí text.
- * Đơn giản: cùng string → "cùng vùng"; cùng chứa key region → "lân cận"; khác hẳn → "xa".
+ * Ước lượng khoảng cách bằng registry địa lý chung. Tên thành, seat và regionId
+ * đều được resolve về cùng một tiểu vùng; quan hệ cha/láng giềng và toạ độ thay
+ * cho nhóm keyword thô từng coi Braavos, Meereen và Qarth là "lân cận".
  */
-function estimateDistance(locA?: string, locB?: string): "same" | "nearby" | "far" | "unknown" {
+export function estimateDistance(locA?: string, locB?: string): "same" | "nearby" | "far" | "unknown" {
   if (!locA || !locB) return "unknown";
-  const a = locA.toLowerCase().trim();
-  const b = locB.toLowerCase().trim();
+  const a = normalizeLocation(locA);
+  const b = normalizeLocation(locB);
 
   if (a === b) return "same";
+  const regionA = resolveLocationRegion(a);
+  const regionB = resolveLocationRegion(b);
+  if (!regionA || !regionB) return "far";
+  if (regionA.id === regionB.id) return "same";
 
-  // Nhóm vùng: nếu chứa cùng keyword lớn → lân cận
-  const regionKeywords = [
-    ["king's landing", "vương đô", "red keep", "hồng bảo", "flea bottom"],
-    ["winterfell", "bình nguyên đông", "the north", "phương bắc"],
-    ["casterly rock", "tây cảnh", "lannisport"],
-    ["highgarden", "the reach", "hà vực"],
-    ["dorne", "sunspear", "dornish"],
-    ["the wall", "castle black", "trường thành"],
-    ["essos", "pentos", "braavos", "meereen", "volantis", "qarth"],
-    ["iron islands", "pyke", "quần đảo sắt"],
-    ["riverlands", "riverrun", "hà giang"],
-    ["stormlands", "storm's end", "bão địa"],
-    ["the vale", "eyrie", "ưng sào"],
-  ];
-
-  for (const group of regionKeywords) {
-    const aMatch = group.some((kw) => a.includes(kw));
-    const bMatch = group.some((kw) => b.includes(kw));
-    if (aMatch && bMatch) return "nearby";
-  }
-
+  const aMeta = regionA as typeof regionA & { parentId?: string; continentId?: string; neighbors?: string[] };
+  const bMeta = regionB as typeof regionB & { parentId?: string; continentId?: string; neighbors?: string[] };
+  if (aMeta.neighbors?.includes(regionB.id) || bMeta.neighbors?.includes(regionA.id)) return "nearby";
+  if (aMeta.parentId && aMeta.parentId === bMeta.parentId) return "nearby";
+  const continentA = aMeta.continentId ?? "westeros";
+  const continentB = bMeta.continentId ?? "westeros";
+  if (continentA !== continentB) return "far";
+  const distance = Math.hypot(
+    regionA.seatXY[0] - regionB.seatXY[0],
+    regionA.seatXY[1] - regionB.seatXY[1],
+  );
+  if (distance <= 280) return "nearby";
   return "far";
+}
+
+function normalizeLocation(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("vi")
+    .replace(/[’']/g, "")
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function resolveLocationRegion(location: string) {
+  const exact = REGIONS.find((region) => [region.id, region.name, region.seat]
+    .map(normalizeLocation)
+    .includes(location));
+  if (exact) return exact;
+
+  const marker = MAP_MARKERS.find((item) => {
+    const label = normalizeLocation(item.name);
+    return label === location || (label.length >= 5 && location.includes(label));
+  });
+  if (marker?.regionId) return REGIONS.find((region) => region.id === marker.regionId);
+
+  // NPC cũ thường lưu "Tên thành, Tên vùng" hoặc câu vị trí dài hơn.
+  return REGIONS.find((region) => [region.id, region.name, region.seat]
+    .map(normalizeLocation)
+    .some((key) => key.length >= 4 && location.includes(key)));
 }
 
 // ── Kênh Thông Tin ───────────────────────────────────────────────────────────

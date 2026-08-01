@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "A Song of Ice and Fire",
-    "subtitle": "Westeros Roleplay"
+    "subtitle": "World of Ice and Fire Roleplay"
   },
   "chat": {
     "placeholder": "Your action...",
@@ -12,7 +12,7 @@
     "retrying": "Retrying... (attempt {n}/{total})",
     "waiting": "Waiting for response...",
     "stoppedNote": "— stopped midway —",
-    "emptyTitle": "The mists of Westeros await",
+    "emptyTitle": "The mists of the known world await",
     "emptyBody": "Configure your API connection in Settings, then send the first message to begin. Later milestones add Eras, character creation and the status panel.",
     "clear": "Clear conversation",
     "reasoningLabel": "Model reasoning",

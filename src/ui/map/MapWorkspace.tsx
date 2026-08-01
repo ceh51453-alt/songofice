@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { useTerritoryStore } from "../../state/territoryStore";
 import { useMilitaryStore } from "../../state/militaryStore";
-import { REGIONS, MAP_W, MAP_H } from "../../content/westeros/regions";
+import { MAP_W, MAP_H, regionForLocation } from "../../content/westeros/regions";
 import { markersForEra } from "../../content/westeros/mapMarkers";
 import { MAP_CONFIG } from "../../content/westeros/mapConfig";
 import { MAP_TIERS, TIER_HINT, TIER_LABEL, TIER_ZOOM, tierForZoom, worldPxToKm, type MapTier } from "../../content/westeros/mapScale";
@@ -34,8 +34,8 @@ interface View {
 
 /** Mức zoom đại diện khi bấm thẳng vào một tầng trên thanh chuyển tầng. */
 const TIER_ENTRY_ZOOM: Record<Exclude<MapTier, "local">, number> = {
-  world: 0.45,
-  region: 1.1,
+  world: 0.22,
+  region: 0.85,
 };
 
 export function MapWorkspace() {
@@ -97,7 +97,7 @@ export function MapWorkspace() {
   }, []);
 
   const centerOnPlayer = useCallback(() => {
-    const seat = REGIONS.find((r) => r.seat === playerLoc);
+    const seat = regionForLocation(playerLoc);
     const marker = markersForEra("").find((m) => m.name === playerLoc);
     const xy: [number, number] | null = seat ? seat.seatXY : marker ? [marker.x, marker.y] : null;
     if (xy) centerOn(xy, 1.2);
@@ -216,7 +216,7 @@ export function MapWorkspace() {
   const holdingCount = Object.keys(stat["Lãnh Địa"]).length;
 
   return (
-    <div className="relative h-full min-h-0 w-full overflow-hidden bg-[var(--bg-base)]">
+    <div className="relative h-full min-h-0 w-full overflow-hidden bg-[#17140f]">
       {shownTier === "local" && focusHoldingId ? (
         <LocalTier holdingId={focusHoldingId} onExit={exitLocal} />
       ) : (
@@ -233,26 +233,42 @@ export function MapWorkspace() {
           <div style={{ transform: `translate(${view.tx}px, ${view.ty}px) scale(${view.z})`, transformOrigin: "0 0", width: MAP_W, height: MAP_H }}>
             <svg width={MAP_W} height={MAP_H} viewBox={`0 0 ${MAP_W} ${MAP_H}`} style={{ display: "block" }}>
               <defs>
-                <radialGradient id="sea" cx="50%" cy="35%" r="80%">
-                  <stop offset="0%" stopColor="#12202b" />
-                  <stop offset="100%" stopColor="#0a1016" />
+                <radialGradient id="parchmentSea" cx="48%" cy="38%" r="82%">
+                  <stop offset="0%" stopColor="#315a69" />
+                  <stop offset="58%" stopColor="#1d4252" />
+                  <stop offset="100%" stopColor="#102c3b" />
                 </radialGradient>
                 <pattern id="contested" width="14" height="14" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
-                  <rect width="14" height="14" fill="#4a4a4a" />
-                  <rect width="7" height="14" fill="#5f5f5f" />
+                  <rect width="14" height="14" fill="#59696c" />
+                  <rect width="7" height="14" fill="#748487" />
+                </pattern>
+                <pattern id="paperGrain" width="92" height="92" patternUnits="userSpaceOnUse">
+                  <circle cx="12" cy="18" r="1.2" fill="#c8d9dc" opacity="0.07" />
+                  <circle cx="67" cy="38" r="0.9" fill="#8fb0b8" opacity="0.08" />
+                  <circle cx="40" cy="76" r="1.4" fill="#d8e4e5" opacity="0.05" />
+                  <path d="M2 55 Q25 48 48 56 T94 54" fill="none" stroke="#bad1d6" strokeWidth="1" opacity="0.08" />
+                </pattern>
+                <pattern id="seaEtching" width="120" height="52" patternUnits="userSpaceOnUse">
+                  <path d="M0 22 Q15 12 30 22 T60 22 T90 22 T120 22" fill="none" stroke="#8bb4c0" strokeWidth="1.2" opacity="0.2" />
+                  <path d="M15 40 Q30 31 45 40 T75 40 T105 40" fill="none" stroke="#6f9daa" strokeWidth="0.8" opacity="0.16" />
                 </pattern>
                 <filter id="softshadow" x="-20%" y="-20%" width="140%" height="140%">
                   <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.5" />
                 </filter>
+                <filter id="inkLabelShadow" x="-25%" y="-30%" width="150%" height="160%">
+                  <feDropShadow dx="0" dy="1" stdDeviation="1.8" floodColor="#fffdf0" floodOpacity="0.65" />
+                </filter>
               </defs>
 
-              <rect x="0" y="0" width={MAP_W} height={MAP_H} fill="url(#sea)" />
+              <rect x="0" y="0" width={MAP_W} height={MAP_H} fill="url(#parchmentSea)" />
+              <rect x="0" y="0" width={MAP_W} height={MAP_H} fill="url(#seaEtching)" opacity={0.42} />
+              <rect x="0" y="0" width={MAP_W} height={MAP_H} fill="url(#paperGrain)" />
               {MAP_CONFIG.assetUrl && (
                 <image href={MAP_CONFIG.assetUrl} x="0" y="0" width={MAP_W} height={MAP_H} preserveAspectRatio="xMidYMid slice" />
               )}
 
               {shownTier === "world" ? (
-                <WorldLayer stat={stat} eraId={eraId} showTerritory={showTerritory} onRealmClick={onRegionClick} />
+                <WorldLayer stat={stat} eraId={eraId} zoom={view.z} showTerritory={showTerritory} onRealmClick={onRegionClick} />
               ) : (
                 <RegionLayer
                   stat={stat}
@@ -266,6 +282,7 @@ export function MapWorkspace() {
                   onSettlementClick={onSettlementClick}
                 />
               )}
+
             </svg>
           </div>
         </div>

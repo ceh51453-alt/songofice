@@ -13,6 +13,7 @@
 // Thêm binh chủng = thêm 1 dòng, engine không đổi.
 // ============================================================================
 import { TROOP_TYPES, TROOP_TYPES_ALL, ARMY_BRANCHES, type ArmyBranch } from "../../mvu/schema";
+import { REGIONS_BY_ID } from "./regions";
 
 export type TroopTypeAll = (typeof TROOP_TYPES_ALL)[number];
 export type BaseTroop = (typeof TROOP_TYPES)[number];
@@ -44,6 +45,10 @@ export interface TroopMeta {
   supernatural: boolean; // Rồng / Người Chết / Others (gate Era 7.15)
   /** tuyển được tại Doanh Trại (11.3). Binh chủng đặc biệt/siêu nhiên: false (đến qua cốt truyện). */
   recruitable: boolean;
+  /** Chỉ tuyển tại vùng/văn hoá bản địa; không xuất hiện trong roster chung. */
+  localOnly?: boolean;
+  homeRegions?: string[];
+  homeCultures?: string[];
   /** chi phí tuyển / 100 quân: Vàng + Lương Thực (11.3). */
   costPer100: { "Ngân Khố": number; "Lương Thực": number };
   /** số THÁNG huấn luyện trước khi sẵn sàng chiến đấu (11.3). */
@@ -93,7 +98,7 @@ export const TROOP_META: Record<TroopTypeAll, TroopMeta> = {
   // ── binh chủng thường (tuyển được) ──
   "Bộ Binh": M("bộ", "Bộ Binh", 100, 50, 2,
     S(50, 0, 20, 50, 45, 55, 25), 1.0, 10,
-    "Thương ngắn, khiên gỗ bọc da, mũ sắt. Xương sống mọi đạo quân Westeros.",
+    "Thương ngắn, khiên gỗ bọc da, mũ sắt. Xương sống của nhiều đạo quân định cư.",
     { recruitable: true, branches: LEVY_BRANCHES }),
   "Trường Thương": M("bộ", "Trường Thương", 120, 50, 2,
     S(45, 0, 10, 72, 40, 62, 15), 0.95, 12,
@@ -135,34 +140,34 @@ export const TROOP_META: Record<TroopTypeAll, TroopMeta> = {
     { recruitable: true, branches: REGULAR_ONLY }),
 
   // ── binh chủng đặc biệt (đến qua cốt truyện/liên minh) ──
-  "Kỵ Sĩ Dothraki": M("kỵ", "Kỵ Binh Nhẹ", 0, 0, 0,
+  "Kỵ Sĩ Dothraki": M("kỵ", "Kỵ Binh Nhẹ", 160, 45, 1,
     S(55, 45, 70, 25, 15, 30, 0), 1.7, 8,
     "Khalasar thảo nguyên: cung ngựa, arakh cong, không giáp. Bão cát trên đồng trống.",
-    { special: true, branches: STORY_BRANCHES }),
-  "Unsullied": M("bộ", "Trường Thương", 0, 0, 0,
+    { special: true, recruitable: true, localOnly: true, homeRegions: ["dothraki-sea", "vaes-dothrak"], homeCultures: ["dothraki"], branches: ["Chính Quy", "Phục Dịch", "Chư Hầu"] }),
+  "Unsullied": M("bộ", "Trường Thương", 800, 35, 1,
     S(60, 0, 15, 85, 55, 100, 10), 0.95, 5,
     "Nô lệ chiến binh Astapor. Không biết sợ, không phá hàng, không bỏ chạy — kể cả khi nên chạy.",
-    { special: true, fearless: true, branches: STORY_BRANCHES }),
-  "Người Sắt (Ironborn)": M("bộ", "Bộ Binh", 0, 0, 0,
+    { special: true, recruitable: true, localOnly: true, homeRegions: ["astapor"], homeCultures: ["ghiscari"], fearless: true, branches: REGULAR_ONLY }),
+  "Người Sắt (Ironborn)": M("bộ", "Bộ Binh", 120, 45, 1,
     S(65, 10, 35, 40, 35, 40, 15), 1.05, 8,
     "Cướp biển Quần Đảo Sắt: rìu, lưới, cuồng nộ đổ bộ. Trên bộ lâu thì đuối.",
-    { special: true, branches: STORY_BRANCHES }),
-  "Bọn Man Tộc (Free Folk)": M("bộ", "Bộ Binh", 0, 0, 0,
+    { special: true, recruitable: true, localOnly: true, homeRegions: ["the-iron-islands"], homeCultures: ["ironborn"], branches: ["Chính Quy", "Phục Dịch", "Chư Hầu"] }),
+  "Bọn Man Tộc (Free Folk)": M("bộ", "Bộ Binh", 70, 55, 0,
     S(55, 25, 40, 30, 15, 20, 10), 1.15, 15,
     "Dân tự do bên kia Tường: gậy chuỳ, da thú, đánh theo bầy chứ không theo hàng.",
-    { special: true, branches: STORY_BRANCHES }),
-  "Dân Sơn Cước (Vale Mountain Clans)": M("bộ", "Bộ Binh", 0, 0, 0,
+    { special: true, recruitable: true, localOnly: true, homeRegions: ["beyond-wall", "beyond-the-wall"], homeCultures: ["free-folk"], branches: ["Chính Quy", "Phục Dịch", "Chư Hầu"] }),
+  "Dân Sơn Cước (Vale Mountain Clans)": M("bộ", "Bộ Binh", 80, 50, 0,
     S(50, 15, 30, 35, 20, 25, 5), 1.1, 12,
     "Bộ tộc Núi Trăng: phục kích khe hẹp, cướp rồi rút. Ra đồng bằng là thành mồi cho kỵ binh.",
-    { special: true, branches: STORY_BRANCHES }),
+    { special: true, recruitable: true, localOnly: true, homeRegions: ["the-vale", "mountains-of-the-moon"], branches: ["Chính Quy", "Phục Dịch", "Chư Hầu"] }),
   "Lính Đánh Thuê": M("bộ", "Bộ Binh", 300, 40, 1,
     S(55, 25, 25, 45, 45, 50, 30), 1.05, 3,
     "Khế ước, không phải lời thề. Đánh giỏi khi được trả lương — và chỉ khi đó.",
     { special: true, recruitable: true, mercenary: true, branches: ["Đánh Thuê"] }),
-  "Nồi Đất (Braavosi)": M("bộ", "Bộ Binh", 0, 0, 0,
+  "Nồi Đất (Braavosi)": M("bộ", "Bộ Binh", 220, 45, 2,
     S(50, 30, 20, 45, 40, 55, 20), 1.0, 5,
     "Vệ binh Braavos: kiếm mảnh, đội hình gọn, được Ngân Hàng Sắt chống lưng.",
-    { special: true, branches: STORY_BRANCHES }),
+    { special: true, recruitable: true, localOnly: true, homeRegions: ["braavos"], homeCultures: ["braavosi"], branches: REGULAR_ONLY }),
 
   // ── siêu nhiên (gate Era 7.15) ──
   "Rồng": M("cung", "Kỵ Binh", 0, 0, 0,
@@ -252,10 +257,26 @@ export function availableTroopsForEra(eraId: string): TroopTypeAll[] {
 /** Binh chủng TUYỂN được tại Doanh Trại trong Era này (11.3 + gate 11.2b). */
 export function recruitableTroopsForEra(eraId: string): TroopTypeAll[] {
   const avail = new Set(availableTroopsForEra(eraId));
-  return TROOP_TYPES_ALL.filter((t) => avail.has(t) && TROOP_META[t].recruitable);
+  return TROOP_TYPES_ALL.filter((t) => avail.has(t) && TROOP_META[t].recruitable && !TROOP_META[t].localOnly);
 }
 
 /** Binh chủng tuyển được trong Era này THEO NGẠCH (M19). */
-export function recruitableTroopsForBranch(eraId: string, branch: ArmyBranch): TroopTypeAll[] {
-  return recruitableTroopsForEra(eraId).filter((t) => branchAllows(t, branch));
+export function recruitableTroopsForBranch(
+  eraId: string,
+  branch: ArmyBranch,
+  context?: { regionId?: string; cultureId?: string },
+): TroopTypeAll[] {
+  const available = new Set(availableTroopsForEra(eraId));
+  const region = context?.regionId ? REGIONS_BY_ID[context.regionId] as (typeof REGIONS_BY_ID[string] & { parentId?: string; realmId?: string }) | undefined : undefined;
+  const regionIds = [context?.regionId, region?.parentId, region?.realmId].filter(Boolean) as string[];
+  const culture = (context?.cultureId ?? "").toLocaleLowerCase("vi");
+
+  return TROOP_TYPES_ALL.filter((type) => {
+    const meta = TROOP_META[type];
+    if (!available.has(type) || !meta.recruitable || !branchAllows(type, branch)) return false;
+    if (!meta.localOnly) return true;
+    const atHome = !!meta.homeRegions?.some((id) => regionIds.includes(id));
+    const ofCulture = !!meta.homeCultures?.some((id) => id.toLocaleLowerCase("vi") === culture);
+    return atHome || ofCulture;
+  });
 }

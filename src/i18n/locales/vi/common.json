@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "A Song of Ice and Fire",
-    "subtitle": "Nhập vai Westeros"
+    "subtitle": "Nhập vai Thế Giới Băng và Lửa"
   },
   "chat": {
     "placeholder": "Hành động của ngươi...",
@@ -12,7 +12,7 @@
     "retrying": "Đang thử lại... (lần {n}/{total})",
     "waiting": "Đang chờ phản hồi...",
     "stoppedNote": "— đã dừng giữa chừng —",
-    "emptyTitle": "Màn sương Westeros đang chờ",
+    "emptyTitle": "Màn sương của thế giới đang chờ",
     "emptyBody": "Cấu hình kết nối API trong Cài đặt, rồi gửi tin nhắn đầu tiên để bắt đầu. Các milestone sau sẽ thêm Thời Kỳ, tạo nhân vật và bảng trạng thái.",
     "clear": "Xoá hội thoại",
     "reasoningLabel": "Suy nghĩ của model",

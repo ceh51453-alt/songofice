@@ -1,78 +1,77 @@
-import { MapContainer, CircleMarker, Popup, useMapEvents } from "react-leaflet";
+import { useEffect, useMemo } from "react";
+import { CircleMarker, MapContainer, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { REGION_COORDINATES } from "../../content/westeros/mapCoordinates";
-import { REGIONS } from "../../content/westeros/regions";
+import {
+  MAP_H,
+  MAP_W,
+  macroForRegion,
+  regionsForContinent,
+  type ContinentId,
+  type MapRegion,
+} from "../../content/world/geography";
 import { QuartermaesterTileLayer } from "../map/QuartermaesterTileLayer";
 
-import { useState } from "react";
+type LatLngTuple = [number, number];
 
-function MapClickLogger() {
-  const [coords, setCoords] = useState<{lat: number, lng: number} | null>(null);
-  useMapEvents({
-    click(e) {
-      setCoords(e.latlng);
-    },
-  });
-  
-  if (!coords) return null;
-  return (
-    <div style={{
-      position: 'absolute',
-      bottom: 20,
-      left: 20,
-      zIndex: 1000,
-      background: 'white',
-      padding: '10px',
-      color: 'black',
-      fontWeight: 'bold',
-      borderRadius: '4px',
-      boxShadow: '0 0 10px rgba(0,0,0,0.5)'
-    }}>
-      Toạ độ: [{coords.lat.toFixed(2)}, {coords.lng.toFixed(2)}]
-    </div>
-  );
+/** Convert the shared world-map pixel registry to Leaflet's bounded CRS. */
+function regionLatLng(region: MapRegion): LatLngTuple {
+  const [x, y] = region.seatXY;
+  return [80 - (y / MAP_H) * 160, -170 + (x / MAP_W) * 340];
+}
+
+function FitRegions({ regions }: { regions: MapRegion[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!regions.length) return;
+    const points = regions.map(regionLatLng);
+    if (points.length === 1) map.setView(points[0], 5, { animate: false });
+    else map.fitBounds(points, { padding: [28, 28], maxZoom: 5, animate: false });
+  }, [map, regions]);
+
+  return null;
 }
 
 interface Props {
+  continentId: ContinentId;
   selectedLocation: string;
   onSelect: (regionId: string) => void;
 }
 
-export function StartingLocationMap({ selectedLocation, onSelect }: Props) {
+export function StartingLocationMap({ continentId, selectedLocation, onSelect }: Props) {
+  const regions = useMemo(() => regionsForContinent(continentId), [continentId]);
+
   return (
-    <div className="w-full h-[400px] border border-[var(--glass-border)] rounded overflow-hidden">
+    <div className="h-[400px] w-full overflow-hidden rounded border-2 border-[#8c7853] bg-[#f3eacb] shadow-[inset_0_0_24px_rgba(76,56,31,0.3)]">
       <MapContainer
-        center={[30, -120]}
-        zoom={3}
-        style={{ width: "100%", height: "100%", background: "#0a1016" }}
-        maxBounds={[[-90, -180], [90, 180]]}
+        center={[15, 0]}
+        zoom={2}
+        style={{ width: "100%", height: "100%", background: "#f3eacb" }}
+        maxBounds={[[-85, -175], [85, 175]]}
+        minZoom={1}
       >
         <QuartermaesterTileLayer />
-        <MapClickLogger />
-        {REGIONS.map((region) => {
-          const coords = REGION_COORDINATES[region.id];
-          if (!coords) return null;
-          
-          const isSelected = selectedLocation === region.id;
-
+        <FitRegions regions={regions} />
+        {regions.map((region) => {
+          const selected = selectedLocation === region.id;
+          const macro = macroForRegion(region);
           return (
             <CircleMarker
               key={region.id}
-              center={coords}
-              radius={isSelected ? 10 : 6}
+              center={regionLatLng(region)}
+              radius={selected ? 9 : Math.max(4, Math.min(7, region.labelPriority + 2))}
               pathOptions={{
-                color: isSelected ? "#eab308" : "#aaaaaa",
-                fillColor: isSelected ? "#eab308" : "#444444",
-                fillOpacity: isSelected ? 0.8 : 0.4,
-                weight: isSelected ? 3 : 1
+                color: selected ? "#fff8dc" : "#654321",
+                fillColor: selected ? "#d4af37" : "#b89342",
+                fillOpacity: selected ? 0.96 : 0.82,
+                weight: selected ? 3 : 1.5,
               }}
-              eventHandlers={{
-                click: () => onSelect(region.id)
-              }}
+              eventHandlers={{ click: () => onSelect(region.id) }}
             >
               <Popup>
-                <div className="text-center font-bold text-sm">{region.name}</div>
-                <div className="text-xs text-gray-600 mt-1">Bấm để chọn nơi này làm Vị Trí Khởi Đầu</div>
+                <div className="text-center text-sm font-bold">{region.name}</div>
+                <div className="mt-1 text-xs text-gray-600">{region.seat}{macro ? ` · ${macro.name}` : ""}</div>
+                <div className="mt-1 max-w-[220px] text-xs text-gray-500">{region.description}</div>
               </Popup>
             </CircleMarker>
           );

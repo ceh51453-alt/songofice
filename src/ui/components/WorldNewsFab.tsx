@@ -57,7 +57,7 @@ function NewsPanel() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
         <h3 className="font-display text-[15px] font-semibold text-[var(--text)]">
-          Tin Tức Westeros
+          Tin Tức Thế Giới
         </h3>
         <div className="flex gap-1.5">
           <button

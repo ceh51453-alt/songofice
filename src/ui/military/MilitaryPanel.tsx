@@ -492,14 +492,17 @@ function RaiseBox({ stat, branch }: { stat: Stat; branch: ArmyBranch }) {
   const recruit = useMilitaryStore((s) => s.recruit);
   const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
   const holdings = recruitableHoldings(stat, branch);
-  const troops = recruitableTroopsForBranch(eraId, branch);
   const [terr, setTerr] = useState(holdings[0] ?? "");
-  const [type, setType] = useState<TroopTypeAll>(troops[0] ?? "Bộ Binh");
+  const [type, setType] = useState<TroopTypeAll>("Bộ Binh");
   const [count, setCount] = useState(200);
   const [msg, setMsg] = useState<string | null>(null);
 
   // lãnh địa/binh chủng có thể đổi khi ngạch đổi — bám lại lựa chọn hợp lệ
   const territory = holdings.includes(terr) ? terr : holdings[0] ?? "";
+  const troops = recruitableTroopsForBranch(eraId, branch, {
+    regionId: territory,
+    cultureId: stat["Thông Tin Nhân Vật"]["Văn Hoá"],
+  });
   const troopType = troops.includes(type) ? type : troops[0] ?? "Bộ Binh";
 
   if (holdings.length === 0) {

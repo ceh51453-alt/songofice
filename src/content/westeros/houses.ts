@@ -3,20 +3,75 @@
 // CÁC NHÀ LỚN (8.7) — data dùng chung mọi Era (Era tham chiếu qua availableHouses).
 // themeColor GIẢM BÃO HOÀ theo ràng buộc mỹ thuật (điểm 4 đầu prompt).
 // ============================================================================
+import { resolveRegionId } from "../world/geography";
+
+export type PoliticalEntityKind = "house" | "polity" | "khalasar" | "company" | "order" | "people";
+export type GovernmentKind = "feudal" | "city-state" | "khalasar" | "slave-city" | "monarchy" | "tribal" | "company" | "religious-order" | "institution";
 
 export interface HouseData {
   id: string;
   name: string;
-  /** id enum trong StatDataSchema.HOUSES. */
+  /** Stable display/state name retained for old saves. */
   schemaName: string;
   sigil: string; // mô tả huy hiệu (SVG vẽ theo ở ui/sigils — M7+)
   words: string;
   seat: string;
   region: string;
   themeColor: { primary: string; secondary: string };
+  continentIds: string[];
+  regionIds: string[];
+  cultureIds: string[];
+  kind: PoliticalEntityKind;
+  government: GovernmentKind;
+  roles: string[];
+  /** Optional era/year gate for powers whose historical lifetime is known. */
+  availableEras?: string[];
+  activeFromYear?: number;
+  activeToYear?: number;
 }
 
-export const HOUSES_DATA: HouseData[] = [
+type HouseSeed = Omit<HouseData, "continentIds" | "regionIds" | "cultureIds" | "kind" | "government" | "roles"> &
+  Partial<Pick<HouseData, "continentIds" | "regionIds" | "cultureIds" | "kind" | "government" | "roles">>;
+
+const FEUDAL_ROLES = ["Trực hệ", "Nhánh phụ", "Bề tôi", "Kẻ đánh thuê"];
+const CITY_ROLES = ["Magister / Quý tộc", "Công dân", "Thuộc hạ", "Kẻ đánh thuê"];
+const KHALASAR_ROLES = ["Khal / Khaleesi", "Huyết Kỵ", "Ko", "Kỵ sĩ"];
+const SLAVE_CITY_ROLES = ["Đại Chủ Nô", "Người Tự Do", "Nô Lệ", "Kẻ đánh thuê"];
+const MONARCHY_ROLES = ["Hoàng tộc", "Quan lại", "Chư hầu", "Kẻ đánh thuê"];
+const TRIBAL_ROLES = ["Thủ lĩnh", "Chiến binh", "Thành viên", "Khách"];
+const COMPANY_ROLES = ["Chỉ huy", "Sĩ quan", "Thành viên", "Người theo trại"];
+const ORDER_ROLES = ["Lãnh đạo", "Thành viên cấp cao", "Thành viên", "Người liên hệ"];
+
+const WESTEROS_REGION_IDS: Record<string, string[]> = {
+  "Phương Bắc": ["the-north"], "Phương Tây": ["the-westerlands"], "Vịnh Xoáy Nước": ["the-crownlands"],
+  "Vùng Bão Tố": ["the-stormlands"], "Vùng Bão": ["the-stormlands"], "Quần Đảo Sắt": ["the-iron-islands"],
+  "Vùng Reach": ["the-reach"], Reach: ["the-reach"], Dorne: ["dorne"], "Thung Lũng": ["the-vale"],
+  "Vùng Sông Nước": ["the-riverlands"], "Vùng Sông": ["the-riverlands"], "Đất Vương Thất": ["the-crownlands"],
+  "Quần Đảo Xoáy Nước": ["the-crownlands"], Westeros: [],
+};
+
+const ALL_ERA_IDS = [
+  "long-night", "aegon-conquest", "dance-of-dragons", "blackfyre-rebellion",
+  "dunk-and-egg", "roberts-rebellion", "greyjoy-rebellion", "war-of-five-kings", "winds-of-winter",
+];
+const POST_LONG_NIGHT_ERA_IDS = ALL_ERA_IDS.filter((eraId) => eraId !== "long-night");
+const ANCIENT_WORLD_ENTITY_IDS = new Set([
+  "qarth", "lhazar", "sarnor", "yi-ti", "jogos-nhai", "asshai", "ibben",
+  "summer-islands", "naath", "basilisk-isles", "gogossos", "ulthos-peoples", "custom",
+]);
+
+function rolesForGovernment(government: GovernmentKind): string[] {
+  if (government === "city-state") return [...CITY_ROLES];
+  if (government === "khalasar") return [...KHALASAR_ROLES];
+  if (government === "slave-city") return [...SLAVE_CITY_ROLES];
+  if (government === "monarchy") return [...MONARCHY_ROLES];
+  if (government === "tribal") return [...TRIBAL_ROLES];
+  if (government === "company") return [...COMPANY_ROLES];
+  if (government === "religious-order" || government === "institution") return [...ORDER_ROLES];
+  return [...FEUDAL_ROLES];
+}
+
+const HOUSE_SEEDS: HouseSeed[] = [
   { id: "stark", name: "Nhà Stark", schemaName: "Stark", sigil: "Sói tuyết xám trên nền trắng",
     words: "Mùa đông đang đến", seat: "Winterfell", region: "Phương Bắc",
     themeColor: { primary: "#7d8a99", secondary: "#3d4a59" } },
@@ -77,6 +132,14 @@ export const HOUSES_DATA: HouseData[] = [
   { id: "children", name: "Trẻ Con Rừng", schemaName: "Trẻ Con Rừng", sigil: "Cây Lòng Đỏ mặt khóc",
     words: "Bài Ca Của Đất", seat: "Bên Trong Rừng Thẳm", region: "Westeros",
     themeColor: { primary: "#4a5d23", secondary: "#78866b" } },
+  { id: "others", name: "Bóng Trắng và Đội Quân Tử Thi", schemaName: "Others", sigil: "Tinh thể băng xanh trên nền đêm",
+    words: "Đêm thuộc về chúng ta", seat: "Vùng Đất Luôn Đông", region: "Ngoài Tường Thành",
+    themeColor: { primary: "#8bb8c9", secondary: "#1d3442" }, continentIds: ["westeros"], regionIds: ["beyond-the-wall"],
+    cultureIds: [], kind: "people", government: "tribal", availableEras: ["long-night", "winds-of-winter"] },
+  { id: "bolton", name: "Nhà Bolton", schemaName: "Bolton", sigil: "Người bị lột da màu đỏ trên nền hồng",
+    words: "Lưỡi Dao Của Chúng Ta Sắc Bén", seat: "Dreadfort", region: "Phương Bắc",
+    themeColor: { primary: "#9f5f62", secondary: "#4b252d" }, continentIds: ["westeros"], regionIds: ["north-dreadfort"],
+    cultureIds: ["first-men"], kind: "house", government: "feudal", activeFromYear: -1000 },
   { id: "frey", name: "Nhà Frey", schemaName: "Frey", sigil: "Hai tháp lam trên nền xám",
     words: "Chúng Ta Đứng Vững", seat: "The Twins", region: "Vùng Sông Nước",
     themeColor: { primary: "#5d6d7e", secondary: "#85929e" } },
@@ -95,31 +158,97 @@ export const HOUSES_DATA: HouseData[] = [
   // --- Essos Factions ---
   { id: "targaryen-essos", name: "Targaryen (Lưu Vong)", schemaName: "Targaryen (Essos)", sigil: "Rồng ba đầu đỏ trên nền đen",
     words: "Lửa và Máu", seat: "Pentos", region: "Thành Phố Tự Do",
-    themeColor: { primary: "#9a5a5f", secondary: "#2e2a33" } },
+    themeColor: { primary: "#9a5a5f", secondary: "#2e2a33" }, continentIds: ["essos"], regionIds: ["essos-pentos"], cultureIds: ["valyrian", "pentoshi"], kind: "house", government: "feudal", activeFromYear: 283 },
   { id: "dothraki", name: "Khalasar Dothraki", schemaName: "Khalasar", sigil: "Ngựa hoang trên nền cỏ úa",
     words: "Huyết Mạch Trực Thiết", seat: "Vaes Dothrak", region: "Biển Dothraki",
-    themeColor: { primary: "#8f6b45", secondary: "#4a331a" } },
+    themeColor: { primary: "#8f6b45", secondary: "#4a331a" }, continentIds: ["essos"], regionIds: ["essos-western-dothraki-sea", "essos-vaes-dothrak", "essos-central-dothraki-sea", "essos-eastern-dothraki-sea"], cultureIds: ["dothraki"], kind: "khalasar", government: "khalasar" },
   { id: "braavos", name: "Thành Bang Braavos", schemaName: "Braavos", sigil: "Khổng tượng Titan trên biển",
     words: "Valar Morghulis", seat: "Braavos", region: "Thành Phố Tự Do",
-    themeColor: { primary: "#4a687a", secondary: "#1a2c38" } },
+    themeColor: { primary: "#4a687a", secondary: "#1a2c38" }, continentIds: ["essos"], regionIds: ["essos-braavos"], cultureIds: ["braavosi"], kind: "polity", government: "city-state" },
   { id: "mercenary", name: "Hội Lính Đánh Thuê", schemaName: "Hội Lính Đánh Thuê", sigil: "Đồng tiền vàng và gươm giáo",
     words: "Vàng quyết định tất cả", seat: "Di động", region: "Essos",
-    themeColor: { primary: "#8a7d3b", secondary: "#3d3615" } },
+    themeColor: { primary: "#8a7d3b", secondary: "#3d3615" }, continentIds: ["essos"], regionIds: [], cultureIds: [], kind: "company", government: "company" },
   { id: "ghiscar", name: "Thành Quốc Ghiscar", schemaName: "Ghiscar", sigil: "Nữ thần Harpy",
     words: "Xiềng xích và Quyền lực", seat: "Astapor/Yunkai/Meereen", region: "Vịnh Nô Lệ",
-    themeColor: { primary: "#9e7751", secondary: "#4f351e" } },
+    themeColor: { primary: "#9e7751", secondary: "#4f351e" }, continentIds: ["essos"], regionIds: ["essos-astapor", "essos-yunkai", "essos-meereen", "essos-new-ghis", "essos-ghiscari-hinterland"], cultureIds: ["ghiscari"], kind: "people", government: "slave-city" },
   { id: "qarth", name: "Thành Quốc Qarth", schemaName: "Qarth", sigil: "Cổng thành nạm ngọc",
     words: "Trung tâm của Thế giới", seat: "Qarth", region: "Eo Biển Ngọc",
-    themeColor: { primary: "#69968b", secondary: "#2c4a43" } },
+    themeColor: { primary: "#69968b", secondary: "#2c4a43" }, continentIds: ["essos"], regionIds: ["essos-qarth", "essos-jade-gates"], cultureIds: ["qartheen"], kind: "polity", government: "city-state" },
   { id: "free-cities", name: "Công Dân Thành Phố Tự Do", schemaName: "Thành Phố Tự Do", sigil: "Đồng xu vàng",
     words: "Tiền bạc mở mọi cánh cửa", seat: "Thành Phố Tự Do", region: "Essos",
-    themeColor: { primary: "#8c7e61", secondary: "#363228" } },
+    themeColor: { primary: "#8c7e61", secondary: "#363228" }, continentIds: ["essos"], regionIds: ["essos-braavos", "essos-pentos", "essos-myr", "essos-tyrosh", "essos-lys", "essos-volantis", "essos-lorath", "essos-norvos", "essos-qohor"], cultureIds: ["braavosi", "pentoshi", "myrish", "tyroshi", "lysene", "volantene", "lorathi", "norvoshi", "qohorik"], kind: "people", government: "city-state" },
+
+  // Nine Free Cities are separate powers; `free-cities` above remains a legacy umbrella.
+  { id: "pentos", name: "Thành Bang Pentos", schemaName: "Pentos", sigil: "Tháp gạch và cổng đồng", words: "Thương mại giữ thành", seat: "Pentos", region: "Thành Phố Tự Do", themeColor: { primary: "#9b7653", secondary: "#4d3323" }, continentIds: ["essos"], regionIds: ["essos-pentos"], cultureIds: ["pentoshi"], kind: "polity", government: "city-state" },
+  { id: "myr", name: "Thành Bang Myr", schemaName: "Myr", sigil: "Mắt xanh sau thấu kính", words: "Tinh xảo sinh thịnh vượng", seat: "Myr", region: "Đất Tranh Chấp", themeColor: { primary: "#7c8d78", secondary: "#35453c" }, continentIds: ["essos"], regionIds: ["essos-myr"], cultureIds: ["myrish"], kind: "polity", government: "city-state" },
+  { id: "tyrosh", name: "Thành Bang Tyrosh", schemaName: "Tyrosh", sigil: "Tháp đỏ trên biển", words: "Màu sắc, vàng và thép", seat: "Tyrosh", region: "Đất Tranh Chấp", themeColor: { primary: "#8b4f79", secondary: "#3f2440" }, continentIds: ["essos"], regionIds: ["essos-tyrosh"], cultureIds: ["tyroshi"], kind: "polity", government: "city-state" },
+  { id: "lys", name: "Thành Bang Lys", schemaName: "Lys", sigil: "Mặt trời bạc trên sóng", words: "Hương thơm che lưỡi dao", seat: "Lys", region: "Đất Tranh Chấp", themeColor: { primary: "#c0a4ad", secondary: "#6b5364" }, continentIds: ["essos"], regionIds: ["essos-lys"], cultureIds: ["lysene", "valyrian"], kind: "polity", government: "city-state" },
+  { id: "volantis", name: "Thành Bang Volantis", schemaName: "Volantis", sigil: "Hổ và voi hai bờ Rhoyne", words: "Cổ Huyết không quên", seat: "Volantis", region: "Hạ Rhoyne", themeColor: { primary: "#8c493f", secondary: "#3d2925" }, continentIds: ["essos"], regionIds: ["essos-volantis"], cultureIds: ["volantene", "valyrian"], kind: "polity", government: "city-state" },
+  { id: "lorath", name: "Thành Bang Lorath", schemaName: "Lorath", sigil: "Mê cung trắng trên nền xám", words: "Mọi lối đều để lại dấu", seat: "Lorath", region: "Bắc Essos", themeColor: { primary: "#7f8589", secondary: "#30363a" }, continentIds: ["essos"], regionIds: ["essos-lorath"], cultureIds: ["lorathi"], kind: "polity", government: "city-state" },
+  { id: "norvos", name: "Thành Bang Norvos", schemaName: "Norvos", sigil: "Ba chiếc chuông đen", words: "Chuông gọi, râu phán", seat: "Norvos", region: "Đồi Norvos", themeColor: { primary: "#725d4b", secondary: "#312a25" }, continentIds: ["essos"], regionIds: ["essos-norvos"], cultureIds: ["norvoshi"], kind: "polity", government: "religious-order" },
+  { id: "qohor", name: "Thành Bang Qohor", schemaName: "Qohor", sigil: "Sơn dương đen", words: "Thép nhớ lửa", seat: "Qohor", region: "Rừng Qohor", themeColor: { primary: "#405043", secondary: "#171d18" }, continentIds: ["essos"], regionIds: ["essos-qohor"], cultureIds: ["qohorik"], kind: "polity", government: "city-state" },
+
+  // Ghiscari successor cities.
+  { id: "astapor", name: "Astapor", schemaName: "Astapor", sigil: "Harpy đỏ cầm xiềng", words: "Kỷ luật được rèn bằng đau đớn", seat: "Astapor", region: "Vịnh Nô Lệ", themeColor: { primary: "#a14f3c", secondary: "#4a211b" }, continentIds: ["essos"], regionIds: ["essos-astapor"], cultureIds: ["ghiscari"], kind: "polity", government: "slave-city" },
+  { id: "yunkai", name: "Yunkai", schemaName: "Yunkai", sigil: "Harpy vàng cầm roi", words: "Khôn ngoan giữ xiềng", seat: "Yunkai", region: "Vịnh Nô Lệ", themeColor: { primary: "#b19145", secondary: "#5b4520" }, continentIds: ["essos"], regionIds: ["essos-yunkai"], cultureIds: ["ghiscari"], kind: "polity", government: "slave-city" },
+  { id: "meereen", name: "Meereen", schemaName: "Meereen", sigil: "Harpy đồng trên kim tự tháp", words: "Vĩ đại trên những bậc đá", seat: "Meereen", region: "Vịnh Nô Lệ", themeColor: { primary: "#9a7650", secondary: "#493522" }, continentIds: ["essos"], regionIds: ["essos-meereen"], cultureIds: ["ghiscari"], kind: "polity", government: "slave-city" },
+  { id: "new-ghis", name: "Tân Ghis", schemaName: "Tân Ghis", sigil: "Harpy sắt trên nền đỏ", words: "Ghis sống lại", seat: "New Ghis", region: "Vịnh Ghis", themeColor: { primary: "#884a38", secondary: "#38201a" }, continentIds: ["essos"], regionIds: ["essos-new-ghis"], cultureIds: ["ghiscari"], kind: "polity", government: "slave-city" },
+
+  // Further world powers and institutions.
+  { id: "lhazar", name: "Các Cộng Đồng Lhazar", schemaName: "Lhazar", sigil: "Cừu trắng trên đồng cỏ", words: "Đại Mục Đồng che chở", seat: "Lhazosh", region: "Lhazar", themeColor: { primary: "#a79b69", secondary: "#514a31" }, continentIds: ["essos"], regionIds: ["essos-lhazar"], cultureIds: ["lhazareen"], kind: "people", government: "tribal" },
+  { id: "sarnor", name: "Tàn Dân Sarnor", schemaName: "Sarnor", sigil: "Vương miện bạc trên nền xanh", words: "Người Cao vẫn đứng", seat: "Saath", region: "Sarnor", themeColor: { primary: "#71858d", secondary: "#303d43" }, continentIds: ["essos"], regionIds: ["essos-sarnor"], cultureIds: ["sarnori"], kind: "people", government: "monarchy" },
+  { id: "yi-ti", name: "Đế Quốc Yi Ti", schemaName: "Yi Ti", sigil: "Rồng ngọc quanh mặt trời", words: "Hoàng thiên trường cửu", seat: "Yin", region: "Yi Ti", themeColor: { primary: "#a98b43", secondary: "#2e533f" }, continentIds: ["essos"], regionIds: ["essos-yi-ti-west", "essos-yi-ti-central", "essos-yi-ti-east", "essos-grey-waste"], cultureIds: ["yi-tish"], kind: "polity", government: "monarchy" },
+  { id: "jogos-nhai", name: "Các Bộ Tộc Jogos Nhai", schemaName: "Jogos Nhai", sigil: "Zorse dưới trăng khuyết", words: "Đồng cỏ không có tường", seat: "Shrinking Sea", region: "Đồng Bằng Jogos Nhai", themeColor: { primary: "#77694a", secondary: "#35301f" }, continentIds: ["essos"], regionIds: ["essos-jogos-nhai"], cultureIds: ["jogos-nhai"], kind: "people", government: "tribal" },
+  { id: "asshai", name: "Asshai Bên Bóng Tối", schemaName: "Asshai", sigil: "Mặt nạ đen trước trăng đỏ", words: "Trong bóng tối có tri thức", seat: "Asshai", region: "Vùng Đất Bóng Tối", themeColor: { primary: "#4d3f50", secondary: "#151218" }, continentIds: ["essos"], regionIds: ["essos-asshai", "essos-shadow-lands"], cultureIds: ["asshaii"], kind: "polity", government: "city-state" },
+  { id: "ibben", name: "Ibben", schemaName: "Ibben", sigil: "Cá voi đen trên băng", words: "Biển lạnh nuôi người cứng", seat: "Port of Ibben", region: "Ibben", themeColor: { primary: "#526c73", secondary: "#243238" }, continentIds: ["ibben"], regionIds: ["ibben-ib", "ibben-ib-sar"], cultureIds: ["ibbenese"], kind: "polity", government: "city-state" },
+  { id: "summer-islands", name: "Các Thân Vương Quần Đảo Mùa Hè", schemaName: "Quần Đảo Mùa Hè", sigil: "Thiên nga đen trên biển ngọc", words: "Gió ấm đưa cánh buồm xa", seat: "Tall Trees Town", region: "Quần Đảo Mùa Hè", themeColor: { primary: "#2f7d72", secondary: "#a1743e" }, continentIds: ["summer-isles"], regionIds: ["summer-walano", "summer-jhala", "summer-omboru", "summer-koj"], cultureIds: ["summer-islander"], kind: "polity", government: "monarchy" },
+  { id: "naath", name: "Cộng Đồng Naath", schemaName: "Naath", sigil: "Bướm vàng trên lá xanh", words: "Hòa hợp là sức mạnh", seat: "Butterfly Vale", region: "Naath", themeColor: { primary: "#7e9b55", secondary: "#d1a94c" }, continentIds: ["sothoryos"], regionIds: ["naath"], cultureIds: ["naathi"], kind: "people", government: "tribal" },
+  { id: "basilisk-isles", name: "Hải Tặc Quần Đảo Basilisk", schemaName: "Quần Đảo Basilisk", sigil: "Rắn biển quấn xương", words: "Không cờ nào tồn tại lâu", seat: "Gogossos", region: "Quần Đảo Basilisk", themeColor: { primary: "#5e7155", secondary: "#392b25" }, continentIds: ["sothoryos"], regionIds: ["sothoryos-basilisk-isles"], cultureIds: ["basilisk-islander"], kind: "people", government: "tribal" },
+  { id: "gogossos", name: "Tàn Tích Gogossos", schemaName: "Gogossos", sigil: "Tháp đen trên sóng độc", words: "Tàn tích vẫn có chủ", seat: "Gogossos", region: "Sothoryos", themeColor: { primary: "#48533f", secondary: "#241e1b" }, continentIds: ["sothoryos"], regionIds: ["sothoryos-basilisk-isles"], cultureIds: ["basilisk-islander"], kind: "polity", government: "tribal" },
+  { id: "ulthos-peoples", name: "Các Cộng Đồng Ulthos", schemaName: "Ulthos", sigil: "Tán rừng đen dưới sao", words: "Ngoài rìa hải đồ", seat: "Unknown Harbour", region: "Ulthos", themeColor: { primary: "#334c3f", secondary: "#17221d" }, continentIds: ["ulthos"], regionIds: ["ulthos-west-coast", "ulthos-interior"], cultureIds: ["ulthosi"], kind: "people", government: "tribal" },
+  { id: "iron-bank", name: "Ngân Hàng Sắt Braavos", schemaName: "Ngân Hàng Sắt", sigil: "Cánh cửa sắt và đồng tiền", words: "Ngân Hàng Sắt sẽ lấy lại phần của mình", seat: "Braavos", region: "Braavos", themeColor: { primary: "#66737a", secondary: "#262d31" }, continentIds: ["essos"], regionIds: ["essos-braavos"], cultureIds: ["braavosi"], kind: "order", government: "institution" },
+  { id: "golden-company", name: "Đại Đội Vàng", schemaName: "Golden Company", sigil: "Sọ vàng trên giáo", words: "Dưới vàng, thép cay đắng", seat: "Di động", region: "Essos", themeColor: { primary: "#a88b3f", secondary: "#3b2e19" }, continentIds: ["essos"], regionIds: [], cultureIds: ["valyrian", "andals"], kind: "company", government: "company", activeFromYear: 212 },
   { id: "custom", name: "Tự Tạo Thế Lực Mới", schemaName: "Tùy Chỉnh", sigil: "Tùy chọn",
     words: "Tùy chọn", seat: "Tùy chọn", region: "Tùy chọn",
-    themeColor: { primary: "#a0a0a0", secondary: "#404040" } }
+    themeColor: { primary: "#a0a0a0", secondary: "#404040" }, continentIds: ["westeros", "essos", "ibben", "sothoryos", "summer-isles", "ulthos"], regionIds: [], cultureIds: [], kind: "polity", government: "feudal" }
 ];
 
+export const HOUSES_DATA: HouseData[] = HOUSE_SEEDS.map((seed) => {
+  const kind = seed.kind ?? (seed.id === "first-men" || seed.id === "children" ? "people" : "house");
+  const government = seed.government ?? (kind === "people" ? "tribal" : "feudal");
+  return {
+    ...seed,
+    continentIds: seed.continentIds ?? ["westeros"],
+    regionIds: (seed.regionIds ?? WESTEROS_REGION_IDS[seed.region] ?? []).map(resolveRegionId),
+    cultureIds: seed.cultureIds ?? [],
+    kind,
+    government,
+    roles: seed.roles ? [...seed.roles] : rolesForGovernment(government),
+    availableEras: seed.availableEras
+      ?? (seed.continentIds?.some((continentId) => continentId !== "westeros")
+        ? (ANCIENT_WORLD_ENTITY_IDS.has(seed.id) ? [...ALL_ERA_IDS] : [...POST_LONG_NIGHT_ERA_IDS])
+        : undefined),
+  };
+});
+
 export const HOUSES_BY_ID: Record<string, HouseData> = Object.fromEntries(HOUSES_DATA.map((h) => [h.id, h]));
+
+export function housesForContinent(
+  continentId: string,
+  opts: { eraId?: string; year?: number } = {},
+): HouseData[] {
+  return HOUSES_DATA.filter((house) => {
+    if (!house.continentIds.includes(continentId)) return false;
+    if (opts.eraId && house.availableEras?.length && !house.availableEras.includes(opts.eraId)) return false;
+    if (opts.year !== undefined && house.activeFromYear !== undefined && opts.year < house.activeFromYear) return false;
+    if (opts.year !== undefined && house.activeToYear !== undefined && opts.year > house.activeToYear) return false;
+    return true;
+  });
+}
+
+export function rolesForHouse(houseId: string | null | undefined): string[] {
+  return houseId && HOUSES_BY_ID[houseId] ? [...HOUSES_BY_ID[houseId].roles] : [...FEUDAL_ROLES];
+}
 
 /** Địa danh chính (8.7) — cho lore mặc định + bản đồ M7. */
 export const MAJOR_LOCATIONS = [

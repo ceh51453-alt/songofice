@@ -21,7 +21,7 @@ import { useMvuStore, currentSeedInfo } from "../state/mvuStore";
 import { useCombatStore } from "../state/combatStore";
 import { renderStateForAI } from "../mvu/stateRenderer";
 import { renderTablesForAI } from "../mvu/tableBridge";
-import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT, ANTI_OMNISCIENCE_PROMPT, DRAGON_MECHANICS_PROMPT, FEUDAL_WARFARE_PROMPT, DIPLOMACY_INTRIGUE_PROMPT, WORLD_ENGINE_PROMPT, COT_INSTRUCTION_PROMPT, DEATH_AND_DOOM_PROMPT } from "../mvu/mvuPrompt";
+import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_UPDATE_PROMPT, DICE_ROLL_PROMPT, ANTI_OMNISCIENCE_PROMPT, DRAGON_MECHANICS_PROMPT, FEUDAL_WARFARE_PROMPT, DIPLOMACY_INTRIGUE_PROMPT, WORLD_ENGINE_PROMPT, COT_INSTRUCTION_PROMPT, DEATH_AND_DOOM_PROMPT, geographyContextPrompt } from "../mvu/mvuPrompt";
 import { useExtraModelStore } from "../state/extraModelStore";
 import { streamRng } from "../probability/rng";
 import { countTokens } from "./tokenizer";
@@ -106,7 +106,7 @@ ${narrativeState}`
     { role: "system", content: DICE_ROLL_PROMPT },
     { role: "system", content: ANTI_OMNISCIENCE_PROMPT },
     { role: "system", content: DRAGON_MECHANICS_PROMPT },
-    { role: "system", content: FEUDAL_WARFARE_PROMPT }, // M19: luật quân sự phong kiến
+    { role: "system", content: `${geographyContextPrompt(stat)}\n\n${FEUDAL_WARFARE_PROMPT}` }, // M19: luật quân sự theo chính thể
     { role: "system", content: DIPLOMACY_INTRIGUE_PROMPT }, // M20: ngoại giao & bóng tối
     { role: "system", content: worldPrompt },           // GĐ2: World Background Engine
     { role: "system", content: COT_INSTRUCTION_PROMPT }, // GĐ2: CoT 4-bước
@@ -196,7 +196,7 @@ export async function buildPipeline(history: ApiChatMessage[]): Promise<Pipeline
     ["(app) dice_roll", "Luật gieo xúc xắc"],
     ["(app) anti_omniscience", "Chống toàn tri (5.8)"],
     ["(app) dragon_mechanics", "Cơ chế rồng"],
-    ["(app) feudal_warfare", "Luật quân sự phong kiến (M19)"],
+    ["(app) polity_warfare", "Địa lý & luật quân sự theo chính thể (M19)"],
     ["(app) diplomacy_intrigue", "Luật ngoại giao & mưu đồ (M20)"],
     ["(app) world_engine", "Thế Giới Sống (GĐ2)"],
     ["(app) cot_instruction", "Suy Luận CoT (GĐ2)"],

@@ -6,9 +6,13 @@
 import { useMemo, useRef, useState } from "react";
 import { ERAS, ERAS_BY_ID, parseHookYear, type CanonCharacter, type StartingHook } from "../../content/westeros/eras";
 import { humanAgeLabel } from "../../character/ageSystem";
-import { HOUSES_BY_ID } from "../../content/westeros/houses";
-import { ORIGINS } from "../../content/westeros/origins";
-import { REGIONS } from "../../content/westeros/regions";
+import { housesForContinent, rolesForHouse } from "../../content/westeros/houses";
+import { originsForContinent } from "../../content/westeros/origins";
+import {
+  CONTINENTS,
+  MACRO_REGIONS,
+  regionsForContinent,
+} from "../../content/world/geography";
 import { availableTalents, TALENTS_BY_ID, type TalentDef } from "../../content/westeros/talents";
 import { availableSkills, type SkillDef } from "../../content/westeros/skills";
 import { availableCrises } from "../../content/westeros/startingCrises";
@@ -18,12 +22,13 @@ import {
   DRAGON_STAT_BASE, DRAGON_STAT_BUDGET, DRAGON_STAT_MAX_CREATE, DRAGON_STAT_MIN_CREATE,
   DRAGON_SKILL_BUDGET, DRAGON_SKILL_MAX_CREATE,
   buildStateFromCanon, buildStateFromWizard, flawRefund, pointBuySpent, resolveCrisisDesc, talentSlots,
-  mergeWizardData, resolveWizardOrigins, selectedOriginIds, type Difficulty, type WizardData, type DragonWizardData,
+  mergeWizardData, resolveWizardOrigins, selectedOriginIds, wizardPatchForContinent,
+  type Difficulty, type WizardData, type DragonWizardData,
 } from "../../character/characterInit";
 import { DRAGON_STATS, DRAGON_SKILLS, DRAGON_SIZES, RELIGIONS, PATRON_GODS, BLOODLINES, type DragonStat, type DragonSkill } from "../../mvu/schema";
 import { startNewGame } from "../../character/startGame";
 import { savePortrait } from "../../state/db";
-import { CULTURES } from "../../content/westeros/cultures";
+import { CULTURES, culturesForContinent } from "../../content/westeros/cultures";
 import { genId } from "../../lib/id";
 import { useUiStore } from "../../state/uiStore";
 import { CharacterPreview } from "./CharacterPreview";
@@ -45,7 +50,7 @@ function freshWizard(): WizardData {
   return {
     eraId: "", houseId: null, houseRole: "Trực hệ", originId: "", originIds: [],
     narrativeMode: "Diễn Giải Tự Do", scenarioMode: "Người Chơi Là Trung Tâm", difficulty: "Cân Bằng",
-    continent: "Westeros", culture: "First Men", religion: "Thất Diện Thần", patronGod: "", bloodline: "none", startingLocation: "",
+    continent: "westeros", culture: "first-men", religion: "Cựu Thần", patronGod: "", bloodline: "none", startingLocation: "",
     name: "", age: 25, pointBuy: Object.fromEntries(CORE_STATS.map((s) => [s, STAT_BASE])) as Record<CoreStat, number>,
     talentIds: [], skillAllocations: {}, customForce: { npcs: [], units: [] }, familyMembers: [],
     persona: { ngoaiHinh: "", tinhCach: "", tieuSu: "", mauMat: "", mauToc: "", chieuCao: "" },
@@ -444,19 +449,36 @@ export function NewGameFlow() {
 
     switch (stepNum) {
       case 1: {
+        const cultureOptions = culturesForContinent(wiz.continent);
+        const factionOptions = housesForContinent(wiz.continent, { eraId: era?.id, year: era?.startYear }).filter((house) =>
+          house.id === "custom"
+          || wiz.continent !== "westeros"
+          || (era?.id === "long-night" && house.kind === "people")
+          || Boolean(era?.id && house.availableEras?.includes(era.id))
+          || (era?.availableHouses ?? []).includes(house.id),
+        );
+        const originOptions = originsForContinent(wiz.continent);
+        const locationOptions = regionsForContinent(wiz.continent);
+        const locationMacros = MACRO_REGIONS.filter((macro) => macro.continentId === wiz.continent);
         return (
           <div>
             <StepHeader step={stepLabel} title="Nhà & Xuất Thân" hint="Xuất thân là 'class nền' — bonus chỉ số, kỹ năng, gói tài sản thật." />
             <div className="grid gap-4 sm:grid-cols-2 mb-4">
               <div>
                 <span className="block mb-1.5 text-[13px] text-[var(--text-muted)]">Lục Địa</span>
-                <div className="flex gap-2">
-                  <Card selected={wiz.continent === "Westeros"} onClick={() => patch({ continent: "Westeros" })}>
-                    <span className="text-[13px]">Westeros</span>
-                  </Card>
-                  <Card selected={wiz.continent === "Essos"} onClick={() => patch({ continent: "Essos" })}>
-                    <span className="text-[13px]">Essos</span>
-                  </Card>
+                <div className="grid grid-cols-2 gap-2">
+                  {CONTINENTS.map((continent) => (
+                    <Card
+                      key={continent.id}
+                      selected={wiz.continent === continent.id}
+                      onClick={() => patch(wizardPatchForContinent(continent.id))}
+                    >
+                      <span className="text-[13px]">{continent.name}</span>
+                      <span className="mt-0.5 block text-[10.5px] text-[var(--text-faint)]">
+                        {continent.playable ? "Có thể khởi nghiệp" : "Khởi nghiệp thám hiểm"}
+                      </span>
+                    </Card>
+                  ))}
                 </div>
               </div>
               <div>
@@ -473,7 +495,7 @@ export function NewGameFlow() {
                       });
                     }}
                   >
-                    {CULTURES.map((c) => (
+                    {cultureOptions.map((c) => (
                       <option key={c.id} value={c.id} className="bg-[var(--bg-panel)]">{c.name}</option>
                     ))}
                   </select>
@@ -546,29 +568,23 @@ export function NewGameFlow() {
               <Card selected={wiz.houseId === null} onClick={() => patch({ houseId: null })}>
                 <span className="text-[13px]">Không thuộc Nhà lớn</span>
               </Card>
-              {(() => {
-                const essosIds = ["targaryen-essos", "dothraki", "braavos", "mercenary", "ghiscar", "qarth", "free-cities"];
-                const baseIds = era?.availableHouses ?? [];
-                const renderIds = wiz.continent === "Westeros" 
-                  ? [...baseIds.filter((id) => !essosIds.includes(id)), "custom"]
-                  : [...baseIds.filter((id) => id === "targaryen"), ...essosIds, "custom"];
-                return renderIds.map((hid) => {
-                  const h = HOUSES_BY_ID[hid];
-                  if (!h) return null;
-                  return (
-                    <Card key={hid} selected={wiz.houseId === hid} onClick={() => patch({ houseId: hid })}>
-                      <span className="text-[13px]" style={{ color: h.themeColor.primary }}>{h.name}</span>
-                    </Card>
-                  );
-                });
-              })()}
+              {factionOptions.map((h) => (
+                <Card
+                  key={h.id}
+                  selected={wiz.houseId === h.id}
+                  onClick={() => patch({ houseId: h.id, houseRole: rolesForHouse(h.id)[0], canonRelation: undefined })}
+                >
+                  <span className="text-[13px]" style={{ color: h.themeColor.primary }}>{h.name}</span>
+                  <span className="block text-[10.5px] text-[var(--text-faint)]">{h.seat} · {h.region}</span>
+                </Card>
+              ))}
             </div>
             
             {wiz.houseId && (
               <div className="mb-4 glass p-3 space-y-3">
                 <span className="block text-[13px] text-[var(--text-muted)] border-b border-[var(--glass-border)] pb-1">Vị Thế Trong Nhà</span>
                 <div className="flex gap-2">
-                  {(["Trực hệ", "Nhánh phụ", "Bề tôi", "Kẻ đánh thuê"] as const).map(role => (
+                  {rolesForHouse(wiz.houseId).map(role => (
                     <Card key={role} selected={wiz.houseRole === role} onClick={() => patch({ houseRole: role })}>
                       <span className="text-[13px]">{role}</span>
                     </Card>
@@ -643,13 +659,7 @@ export function NewGameFlow() {
               <span className="text-[11.5px] text-[var(--accent-text)]">Chọn tối đa 2 · xuất thân đầu là chính</span>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              {ORIGINS.filter((o) => {
-                const essosOrigins = ["dothraki-rider", "braavosi-bravo", "magister-heir"];
-                const westerosOnly = ["north-clansman", "ironborn-reaver", "wildling"];
-                if (wiz.continent === "Westeros" && essosOrigins.includes(o.id)) return false;
-                if (wiz.continent === "Essos" && westerosOnly.includes(o.id)) return false;
-                return true;
-              }).map((o) => (
+              {originOptions.map((o) => (
                 <Card key={o.id} selected={originIds.includes(o.id)} onClick={() => toggleOrigin(o.id)}>
                   <span className="text-[14px] text-[var(--text-soft)]">{o.name} <span className="text-[12px] opacity-70">[{o.tuocVi}]</span></span>
                   <span className="block mt-0.5 text-[12px] leading-relaxed text-[var(--text-faint)]">{o.desc}</span>
@@ -674,6 +684,7 @@ export function NewGameFlow() {
             {originIds.includes("custom") && (
               <CustomOriginEditor
                 origin={wiz.customOrigin}
+                continentId={wiz.continent}
                 onChange={(o) => patch({ customOrigin: o })}
               />
             )}
@@ -701,10 +712,20 @@ export function NewGameFlow() {
                   onChange={(e) => patch({ startingLocation: e.target.value })}
                   className="bg-[rgba(0,0,0,0.4)] text-[13px] border border-[var(--glass-border)] rounded px-2 py-1.5 flex-1"
                 >
-                  <option value="">(Mặc định theo Kịch Bản)</option>
-                  {REGIONS.map((r) => (
-                    <option key={r.id} value={r.id}>{r.name}</option>
-                  ))}
+                  <option value="">Chọn một tỉnh / thành...</option>
+                  {locationMacros.map((macro) => {
+                    const regions = locationOptions.filter((region) => region.parentId === macro.id);
+                    if (!regions.length) return null;
+                    return (
+                      <optgroup key={macro.id} label={macro.name}>
+                        {regions.map((region) => (
+                          <option key={region.id} value={region.id}>
+                            {region.name} · {region.seat}
+                          </option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
                 </select>
                 <GlassButton
                   onClick={() => setMapOpen(!isMapOpen)}
@@ -715,13 +736,18 @@ export function NewGameFlow() {
               </div>
               {isMapOpen && (
                 <StartingLocationMap
+                  continentId={wiz.continent}
                   selectedLocation={wiz.startingLocation || ""}
                   onSelect={(id) => patch({ startingLocation: id })}
                 />
               )}
             </div>
 
-            <NavButtons onBack={back} onNext={originIds.length > 0 ? next : undefined} blockedReason="Hãy chọn ít nhất một Xuất Thân" />
+            <NavButtons
+              onBack={back}
+              onNext={originIds.length > 0 && Boolean(wiz.startingLocation) ? next : undefined}
+              blockedReason={originIds.length === 0 ? "Hãy chọn ít nhất một Xuất Thân" : "Hãy chọn Nơi Bắt Đầu"}
+            />
           </div>
         );
       }
@@ -1233,7 +1259,13 @@ export function NewGameFlow() {
         );
 
       case 9: {
-        const crises = availableCrises({ originId: wiz.originId, eraId: wiz.eraId, houseId: wiz.houseId ?? undefined });
+        const crises = availableCrises({
+          originId: wiz.originId,
+          eraId: wiz.eraId,
+          houseId: wiz.houseId ?? undefined,
+          continentId: wiz.continent,
+          regionId: wiz.startingLocation || undefined,
+        });
         return (
           <div>
             <StepHeader step={stepLabel} title="Khủng Hoảng Khởi Đầu"

@@ -34,9 +34,9 @@ export interface DiploResult {
 const rel = (state: StatData, houseId: string) => state["Quan Hệ Ngoại Giao"]?.[houseId];
 const path = (houseId: string, field: string) => `stat_data.Quan Hệ Ngoại Giao.${houseId}.${field}`;
 
-/** Tên Nhà cho lời kể (rơi về houseId nếu không có trong bảng canon). */
+/** Tên thế lực cho lời kể (gia tộc, thành bang, khalasar hay tổ chức). */
 export function houseLabel(houseId: string): string {
-  return HOUSES_BY_ID[houseId]?.name ?? `Nhà ${houseId}`;
+  return HOUSES_BY_ID[houseId]?.name ?? houseId;
 }
 
 /**
@@ -307,7 +307,7 @@ export function addOfferOps(
     deadlineDays?: string; bearer?: string;
   },
 ): DiploResult {
-  if (!offer.house) return { ok: false, error: "Lời đề nghị cần biết từ Nhà nào", ops: [] };
+  if (!offer.house) return { ok: false, error: "Lời đề nghị cần biết từ thế lực nào", ops: [] };
   const today = absoluteDay(state["Thế Giới"]);
   const deadline = Number(offer.deadlineDays) || 30;
   const type = (TREATY_TYPES as readonly string[]).includes(offer.type ?? "") ? offer.type : "Hoà Ước";

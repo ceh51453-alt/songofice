@@ -54,8 +54,9 @@ describe("startConstruction (10.3)", () => {
 
   it("Bến Cảng chỉ xây ở lãnh địa ven biển (10.2)", () => {
     const s = lordState(500);
-    // the-north-seat ven biển → ok
-    expect(startConstruction(s, "the-north-seat", "Bến Cảng").ok).toBe(true);
+    // Winterfell ở nội địa; chiếm White Knife mới có một province ven biển.
+    const coastal = applyPatch(s, captureRegionOps(s, "north-white-knife", "stark", 1)).state;
+    expect(startConstruction(coastal, "white-harbor", "Bến Cảng").ok).toBe(true);
     // chiếm the-riverlands (KHÔNG ven biển) → tạo holding ven biển=false
     const { state } = applyPatch(s, captureRegionOps(s, "the-riverlands", "stark", 1));
     const r = startConstruction(state, "the-riverlands-seat", "Bến Cảng");

@@ -21,6 +21,7 @@ export const MAP_CONFIG: MapConfig = {
   width: MAP_W,
   height: MAP_H,
   assetUrl: null, // chưa có ảnh thật → placeholder
-  minZoom: 0.4,
-  maxZoom: 4,
+  // The canvas now contains the known world, not only Westeros.
+  minZoom: 0.12,
+  maxZoom: 5,
 };

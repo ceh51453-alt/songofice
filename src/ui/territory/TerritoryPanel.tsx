@@ -9,7 +9,7 @@
 import { useMvuStore } from "../../state/mvuStore";
 import { useUiStore } from "../../state/uiStore";
 import { useTerritoryStore } from "../../state/territoryStore";
-import { REGIONS_BY_ID } from "../../content/westeros/regions";
+import { REGIONS_BY_ID, continentForRegion, macroForRegion } from "../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { houseColor, ATTITUDE_HEAT } from "../../content/westeros/houseColors";
 import { summarizeRegion, type Settlement } from "../../territory/mapAggregate";
@@ -32,6 +32,8 @@ export function TerritoryPanel() {
   if (!selectedRegionId) return null;
   const region = REGIONS_BY_ID[selectedRegionId];
   if (!region) return null;
+  const macro = macroForRegion(region);
+  const continent = continentForRegion(region);
 
   const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
   const summary = summarizeRegion(stat, selectedRegionId, eraId);
@@ -56,8 +58,14 @@ export function TerritoryPanel() {
                 <h2 className="font-display truncate text-[19px] tracking-wide text-[var(--text-soft)]">{region.name}</h2>
               </div>
               <p className="mt-0.5 text-[12px] text-[var(--text-faint)]">
+                {[continent?.name, macro?.name].filter(Boolean).join(" · ")}
+              </p>
+              <p className="mt-0.5 text-[12px] text-[var(--text-faint)]">
                 {t("terr.seat")}: {region.seat} · {region.terrain}
                 {region.coastal ? ` · ${t("terr.coastal")}` : ""}
+              </p>
+              <p className="mt-1 max-w-sm text-[11.5px] leading-relaxed text-[var(--text-muted)]">
+                {region.description}
               </p>
               <p className="mt-0.5 text-[12px]" style={{ color: col.light }}>
                 {controller ? controller.name : t("terr.unclaimed")}
