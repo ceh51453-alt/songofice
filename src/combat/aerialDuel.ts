@@ -89,8 +89,11 @@ export function unitControlled(u: AerialUnit): boolean {
 }
 
 const SIZE_HP: Record<Dragon["Kích Cỡ"], number> = {
+  "Mới Nở": 160,
+  "Ấu Long": 260,
   "Non": 420,
   "Trưởng Thành": 1000,
+  "Cổ Long": 1450,
   "Khổng Lồ (Balerion-class)": 1800,
 };
 

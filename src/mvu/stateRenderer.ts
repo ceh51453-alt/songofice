@@ -440,8 +440,9 @@ export function renderStateForAI(state: StatData): string {
       const affinity = Object.entries(drg["Độ Hảo Cảm"] || {}).map(([n, a]) => `${n}(${a})`).join(", ");
       
       lines.push(
-        `• ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi, sải cánh ~${drg["_Sải Cánh"]}m, ${drg["Trạng Thái Thu Phục"]}). ` +
+        `• ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi, ${drg["Số Đầu"]} đầu, sải cánh ~${drg["_Sải Cánh"]}m, ${drg["Trạng Thái Thu Phục"]}). ` +
           `HP ${drg["_HP"]}/${drg["_HP Tối Đa"]}. Tình Trạng: ${drg["Tình Trạng"]}. ` +
+          (drg["Năng Lực Đặc Biệt"] ? `Năng lực đặc biệt: ${drg["Năng Lực Đặc Biệt"]}. ` : "") +
           (drg["Đang Bị Xích"] ? `ĐANG BỊ XÍCH (${drg["Nơi Ổ"] || "Chưa rõ"}). ` : "") +
           (drg["Kỵ Sĩ"] ? ` Kỵ Sĩ: ${drg["Kỵ Sĩ"]}. ` : ` Mức Độ Thuần Hóa: ${drg["Mức Độ Thuần Hóa"]}/100. `) +
           (affinity ? ` Hảo cảm: ${affinity}. ` : "")
@@ -480,7 +481,7 @@ export function renderStateForAI(state: StatData): string {
   if (eggs.length > 0) {
     lines.push("", "Trứng rồng:");
     for (const [id, egg] of eggs) {
-      lines.push(`• ${egg["Tên"] || id} (Màu: ${egg["Màu Sắc"]}) — Nhiệt độ: ${egg["Nhiệt Độ"]}, Tình trạng: ${egg["Tình Trạng"]}${egg["Chủ Nhân"] ? `, Chủ nhân: ${egg["Chủ Nhân"]}` : ""}. ${egg["Mô Tả"]}`);
+      lines.push(`• ${egg["Tên"] || id} (Màu: ${egg["Màu Sắc"]}) — Nhiệt độ: ${egg["Nhiệt Độ"]}, Tình trạng: ${egg["Tình Trạng"]}, tiến độ ấp ${egg["Tiến Độ Ấp"]}/100, dự kiến ${egg["Số Đầu Dự Kiến"]} đầu${egg["Năng Lực Dự Kiến"] ? `, năng lực ${egg["Năng Lực Dự Kiến"]}` : ""}${egg["Chủ Nhân"] ? `, Chủ nhân: ${egg["Chủ Nhân"]}` : ""}. ${egg["Mô Tả"]}`);
     }
   }
 

@@ -390,21 +390,41 @@ export const ResourceNodeSchema = z
     "Mã": safeString().prefault(""),
     /** khoá hàng hoá khai thác được (Quặng Sắt, Gỗ, Đá, Than Đá, Muối…). */
     "Tài Nguyên": safeString().prefault("Gỗ"),
+    /** Tỷ trọng 0–1 của từng sản vật nằm bên trong vùng tài nguyên chính. */
+    "Thành Phần": z.record(safeString(), z.coerce.number().min(0).max(1).catch(0)).optional(),
     /** 0 = cạn kiệt · 1 = nghèo · 2 = khá · 3 = giàu. */
     "Trữ Lượng": z.coerce.number().int().min(0).max(3).catch(2).prefault(2),
     /** tổng sản lượng còn rút được ở BẬC hiện tại (tụt bậc khi về 0). */
     "Còn Lại": safeInt(0),
     "Tọa Độ X": safeInt(0),
     "Tọa Độ Y": safeInt(0),
-    "Kích Thước": safeInt(8),
+    /** bán kính quy ước của vùng tài nguyên, dùng làm dự phòng cho save cũ. */
+    "Kích Thước": safeInt(80),
+    /**
+     * Biên vùng tài nguyên bám theo các mảng địa hình phù hợp. Không còn hiểu
+     * điểm tài nguyên như một vòng tròn phình ra lấn lên mọi loại địa hình.
+     */
+    "Vùng Bao Phủ": z.array(z.object({ x: safeInt(0), y: safeInt(0) })).catch([]).prefault([]),
     /** chưa khám phá thì không hiện trên bản đồ và không khai thác được. */
     "Đã Khám Phá": z.boolean().catch(true).prefault(true),
-    /** tên công trình đang hút điểm này (rỗng = bỏ hoang). */
+    /** tên công trình đầu tiên (giữ tương thích save/AI cũ). */
     "Công Trình": safeString().prefault(""),
+    /** mọi công trình cùng khai thác vùng; sức chứa tối đa bằng bậc trữ lượng. */
+    "Công Trình Khai Thác": z.array(safeString()).catch([]).prefault([]),
     "Mô Tả": safeString().prefault(""),
   })
   .prefault({});
 export type ResourceNode = z.infer<typeof ResourceNodeSchema>;
+
+export const RoadLineSchema = z.object({
+  "Mã": safeString().prefault(""),
+  "Tên": safeString().prefault("Đường thủ công"),
+  /** Save cũ chưa có trường này được giữ nguyên hình thức đường lớn. */
+  "Loại": z.enum(["Đường Nhỏ", "Đường Lớn"]).catch("Đường Lớn").prefault("Đường Lớn"),
+  "Điểm": z.array(z.object({ x: safeInt(0), y: safeInt(0) })).catch([]).prefault([]),
+  "Bề Rộng": z.coerce.number().int().min(1).max(3).catch(1).prefault(1),
+});
+export type RoadLine = z.infer<typeof RoadLineSchema>;
 
 /**
  * MỘT TUYẾN TƯỜNG THÀNH do người chơi tự vạch (M18) — chuỗi điểm nối nhau trên
@@ -619,7 +639,25 @@ export const TerritorySchema = z
     "Pháp Lệnh": z.record(safeString(), DecreeSchema).catch({}).prefault({}),
     // Tường thành do người chơi tự vạch — độc lập với cấp Lâu Đài (M18).
     "Tường Thành": z.array(WallLineSchema).catch([]).prefault([]),
-    "Đường Đi": z.array(z.object({ x1: safeInt(0), y1: safeInt(0), x2: safeInt(0), y2: safeInt(0) })).catch([]).prefault([]),
+    "Đường Đi": z.preprocess((value) => {
+      if (!Array.isArray(value)) return [];
+      // Nâng save cũ gồm các đoạn rời thành các tuyến hai điểm có mã ổn định.
+      return value.map((road, index) => {
+        if (road && typeof road === "object" && "Điểm" in road) return road;
+        const legacy = road as { x1?: number; y1?: number; x2?: number; y2?: number };
+        return {
+          "Mã": `road-legacy-${index}`,
+          "Tên": `Đường cũ ${index + 1}`,
+          "Loại": "Đường Lớn",
+          "Điểm": [{ x: legacy?.x1 ?? 0, y: legacy?.y1 ?? 0 }, { x: legacy?.x2 ?? 0, y: legacy?.y2 ?? 0 }],
+          "Bề Rộng": 1,
+        };
+      });
+    }, z.array(RoadLineSchema).catch([])).prefault([]),
+    /** Ảnh chụp một lần của mạng quan lộ/ngõ cũ; công trình xây sau không tạo thêm đường. */
+    "Đường Tự Động Cố Định": z.array(RoadLineSchema).optional(),
+    /** Mã ổn định của quan lộ/ngõ tự sinh mà người chơi đã chọn xoá khỏi bản đồ. */
+    "Đường Tự Động Đã Xoá": z.array(safeString()).catch([]).optional(),
     /**
      * GỢI Ý ĐỊA THẾ do lời kể quyết định (M18). Khi input/output của AI nhắc
      * "dựng thành bên sông" hay "vùng này lắm quặng sắt", engine ghi vào đây và
@@ -884,16 +922,42 @@ export type DragonStat = (typeof DRAGON_STATS)[number];
 export const DRAGON_SKILLS = ["Phun Lửa", "Lượn Gió", "Bổ Nhào", "Gầm Hống", "Chiến Đấu Trên Không"] as const;
 export type DragonSkill = (typeof DRAGON_SKILLS)[number];
 
-/** Kích cỡ rồng — gate HP base + hiệu ứng chiến trường. */
-export const DRAGON_SIZES = ["Non", "Trưởng Thành", "Khổng Lồ (Balerion-class)"] as const;
+/**
+ * Giai đoạn phát triển của rồng. Giữ các tên cũ để save/preset trước đây vẫn
+ * đọc được, đồng thời chen thêm các nấc đủ nhỏ để tuổi và kích thước không còn
+ * nhảy thẳng từ rồng non sang rồng trưởng thành.
+ */
+export const DRAGON_SIZES = [
+  "Mới Nở",
+  "Ấu Long",
+  "Non",
+  "Trưởng Thành",
+  "Cổ Long",
+  "Khổng Lồ (Balerion-class)",
+] as const;
 export type DragonSize = (typeof DRAGON_SIZES)[number];
 
 /** HP cơ bản theo kích cỡ (trước bonus Giáp Vảy). */
 export const DRAGON_SIZE_HP: Record<DragonSize, number> = {
+  "Mới Nở": 80,
+  "Ấu Long": 130,
   "Non": 200,
   "Trưởng Thành": 500,
+  "Cổ Long": 760,
   "Khổng Lồ (Balerion-class)": 1000,
 };
+
+/** Năng lực huyết mạch hiếm — một rồng chỉ mang tối đa một năng lực lúc tạo. */
+export const DRAGON_SPECIAL_POWERS = [
+  "Hỏa Ngục",
+  "Băng Diệm",
+  "Lôi Tức",
+  "Độc Vụ",
+  "Ảnh Diệm",
+  "Long Uy",
+  "Tái Sinh",
+] as const;
+export type DragonSpecialPower = (typeof DRAGON_SPECIAL_POWERS)[number];
 
 
 /** Trứng rồng (Hóa đá, đang ấp, chuẩn bị nở) */
@@ -902,8 +966,13 @@ export const DragonEggSchema = z
     "Tên": safeString().optional(),
     "Màu Sắc": safeString().prefault("Đen Tuyền"),
     "Nhiệt Độ": z.enum(["Nguội Lạnh", "Ấm", "Nóng Rực"]).catch("Nguội Lạnh").prefault("Nguội Lạnh"),
-    "Tình Trạng": z.enum(["Hóa Đá", "Đang Ấp", "Nứt Vỏ"]).catch("Hóa Đá").prefault("Hóa Đá"),
+    "Tình Trạng": z.enum(["Hóa Đá", "Ngủ Yên", "Đang Ấp", "Nứt Vỏ"]).catch("Hóa Đá").prefault("Hóa Đá"),
     "Chủ Nhân": safeString().optional(),
+    "Nơi Ấp": safeString().prefault(""),
+    "Tiến Độ Ấp": clampedStat(0, 100, 0),
+    "Số Ngày Ấp": safeInt(0),
+    "Số Đầu Dự Kiến": z.coerce.number().int().min(1).max(3).catch(1).prefault(1),
+    "Năng Lực Dự Kiến": z.enum(DRAGON_SPECIAL_POWERS).optional(),
     "Mô Tả": safeString().prefault("Một quả trứng to bằng đầu người."),
   })
   .prefault({});
@@ -930,6 +999,9 @@ export const DragonSchema = z
     "_HP Tối Đa": safeInt(200),
     "Màu Sắc": safeString().prefault("Đen"),
     "Tuổi": safeInt(1),
+    /** Đột biến nhiều đầu rất hiếm; mỗi đầu có thể phun hơi thở riêng. */
+    "Số Đầu": z.coerce.number().int().min(1).max(3).catch(1).prefault(1),
+    "Năng Lực Đặc Biệt": z.enum(DRAGON_SPECIAL_POWERS).optional(),
     // ── chỉ số rồng (thang 1-20) ──
     "Chỉ Số": z
       .object({

@@ -5,7 +5,7 @@
  */
 import { useMemo, useRef, useState } from "react";
 import { ERAS, ERAS_BY_ID, parseHookYear, type CanonCharacter, type StartingHook } from "../../content/westeros/eras";
-import { humanAgeLabel } from "../../character/ageSystem";
+import { dragonAgeLabel, humanAgeLabel } from "../../character/ageSystem";
 import { housesForContinent, rolesForHouse } from "../../content/westeros/houses";
 import { originsForContinent } from "../../content/westeros/origins";
 import {
@@ -25,7 +25,7 @@ import {
   mergeWizardData, resolveWizardOrigins, selectedOriginIds, wizardPatchForContinent,
   type Difficulty, type WizardData, type DragonWizardData,
 } from "../../character/characterInit";
-import { DRAGON_STATS, DRAGON_SKILLS, DRAGON_SIZES, RELIGIONS, PATRON_GODS, BLOODLINES, type DragonStat, type DragonSkill } from "../../mvu/schema";
+import { DRAGON_STATS, DRAGON_SKILLS, DRAGON_SIZES, DRAGON_SPECIAL_POWERS, RELIGIONS, PATRON_GODS, BLOODLINES, type DragonStat, type DragonSkill, type DragonSize, type DragonSpecialPower } from "../../mvu/schema";
 import { startNewGame } from "../../character/startGame";
 import { savePortrait } from "../../state/db";
 import { CULTURES, culturesForContinent } from "../../content/westeros/cultures";
@@ -45,6 +45,27 @@ import type { CoreStat } from "../../content/westeros/skills";
 type Stage = "era" | "modes" | "path" | "canon-char" | "canon-hook" | "canon-confirm" | `w${number}` | "starting";
 
 const WIZARD_STEPS = 14;
+
+const DRAGON_STAGE_DETAILS: Record<DragonSize, {
+  ageMin: number; ageMax: number; defaultAge: number; dimensions: string; ride: string; note: string;
+}> = {
+  "Mới Nở": { ageMin: 0, ageMax: 1, defaultAge: 0, dimensions: "dài 0,8–1,5m · sải cánh 1–2m", ride: "Không thể cưỡi", note: "Cần chăm sóc, lửa chỉ là tia nhỏ." },
+  "Ấu Long": { ageMin: 2, ageMax: 5, defaultAge: 3, dimensions: "dài 2–4m · sải cánh 3–6m", ride: "Không thể cưỡi", note: "Đang tập bay, dễ hình thành liên kết." },
+  "Non": { ageMin: 6, ageMax: 15, defaultAge: 8, dimensions: "dài 5–12m · sải cánh 7–16m", ride: "Kỵ sĩ nhẹ có thể cưỡi", note: "Nhanh nhẹn, lửa đã dùng được trong chiến đấu." },
+  "Trưởng Thành": { ageMin: 16, ageMax: 59, defaultAge: 30, dimensions: "dài 15–30m · sải cánh 20–38m", ride: "Có thể cưỡi", note: "Cân bằng giữa tốc độ, giáp vảy và hỏa lực." },
+  "Cổ Long": { ageMin: 60, ageMax: 99, defaultAge: 75, dimensions: "dài 30–48m · sải cánh 40–62m", ride: "Có thể cưỡi · khó kiểm soát", note: "Vảy dày, hơi thở đủ nung nứt đá." },
+  "Khổng Lồ (Balerion-class)": { ageMin: 100, ageMax: 220, defaultAge: 120, dimensions: "dài 50m+ · sải cánh 65–85m+", ride: "Có thể cưỡi · cực kỳ khó kiểm soát", note: "Một vũ khí công thành sống, rất tốn lương thực." },
+};
+
+const DRAGON_POWER_DETAILS: Record<DragonSpecialPower, string> = {
+  "Hỏa Ngục": "Lửa nóng và bền hơn, gây sát thương chiến trường lớn nhất.",
+  "Băng Diệm": "Hơi thở xanh trắng gây bỏng lạnh, hữu hiệu trong mưa tuyết.",
+  "Lôi Tức": "Phóng hồ quang điện, mạnh trong không chiến và làm rối đội hình.",
+  "Độc Vụ": "Mây độc lan rộng, nguy hiểm với quân đông nhưng khó kiểm soát.",
+  "Ảnh Diệm": "Hơi lửa tối khó nhìn, giúp phục kích và gieo hoảng loạn.",
+  "Long Uy": "Tiếng gầm siêu nhiên nghiền nát sĩ khí trước khi giao chiến.",
+  "Tái Sinh": "Khả năng hồi phục hiếm có, tăng sức bền qua nhiều trận đánh.",
+};
 
 function freshWizard(): WizardData {
   return {
@@ -1057,13 +1078,16 @@ export function NewGameFlow() {
         if (!canHaveDragon) {
           return null; // Được skip qua logic next()/back()
         }
-        const freshDragon = (): DragonWizardData => ({
-          name: "", color: "Đen", size: "Non",
+        const freshDragon = (kind: "egg" | "dragon"): DragonWizardData => ({
+          kind, name: "", color: "Đen", size: kind === "egg" ? "Mới Nở" : "Non",
+          age: kind === "egg" ? 0 : DRAGON_STAGE_DETAILS.Non.defaultAge,
+          heads: 1, specialPower: undefined, eggState: "Ngủ Yên",
           stats: Object.fromEntries(DRAGON_STATS.map((s) => [s, DRAGON_STAT_BASE])) as Record<DragonStat, number>,
           skillAllocations: Object.fromEntries(DRAGON_SKILLS.map((s) => [s, 0])) as Record<DragonSkill, number>,
           description: "",
         });
         const dragon = wiz.dragon;
+        const dragonKind = dragon?.kind ?? "dragon";
         const drgStatSpent = dragon ? Object.values(dragon.stats).reduce((s, v) => s + (v - DRAGON_STAT_BASE), 0) : 0;
         const drgSkillSpent = dragon ? Object.values(dragon.skillAllocations).reduce((s, v) => s + v, 0) : 0;
         const setDragonStat = (s: DragonStat, delta: number) => {
@@ -1081,29 +1105,33 @@ export function NewGameFlow() {
           patch({ dragon: { ...dragon, skillAllocations: { ...dragon.skillAllocations, [s]: v } } });
         };
         const DRAGON_COLORS = ["Đen", "Đỏ", "Vàng", "Xanh Dương", "Xanh Lá", "Trắng", "Bạc", "Vàng Kem"];
+        const stage = dragon ? DRAGON_STAGE_DETAILS[dragon.size] : null;
         return (
           <div>
-            <StepHeader step={stepLabel} title="Rồng Của Ngươi"
-              hint="Thời kỳ này có rồng. Ngươi có thể chọn có rồng hay không — sở hữu rồng là lợi thế khổng lồ nhưng cũng mang nhiều rủi ro." />
-            <div className="grid gap-2 sm:grid-cols-2 mb-4">
+            <StepHeader step={stepLabel} title="Di Sản Rồng Của Ngươi"
+              hint="Chọn bắt đầu không có rồng, giữ một quả trứng, hoặc sở hữu rồng đã nở. Trứng là hành trình nuôi dưỡng; rồng lớn cho sức mạnh sớm nhưng tốn kém và khó kiểm soát." />
+            <div className="grid gap-2 sm:grid-cols-3 mb-4">
               <Card selected={wiz.dragon === null} onClick={() => patch({ dragon: null })}>
                 <span className="text-[13.5px] text-[var(--text-soft)]">Không có rồng</span>
                 <span className="block text-[12px] text-[var(--text-faint)]">Phàm nhân với kiếm và mưu lược</span>
               </Card>
-              <Card selected={wiz.dragon !== null} onClick={() => { if (!wiz.dragon) patch({ dragon: freshDragon() }); }}>
-                <span className="text-[13.5px] text-[var(--accent-text)]">Có rồng</span>
-                <span className="block text-[12px] text-[var(--text-faint)]">Sở hữu một con rồng — sức mạnh vượt trội</span>
+              <Card selected={dragon?.kind === "egg"} onClick={() => patch({ dragon: dragon?.kind === "egg" ? dragon : freshDragon("egg") })}>
+                <span className="text-[13.5px] text-[var(--accent-text)]">Giữ một quả trứng</span>
+                <span className="block text-[12px] text-[var(--text-faint)]">Chưa chiến đấu · có thể ấp nở và gắn bó từ đầu</span>
+              </Card>
+              <Card selected={!!dragon && dragonKind === "dragon"} onClick={() => patch({ dragon: dragon && dragonKind === "dragon" ? dragon : freshDragon("dragon") })}>
+                <span className="text-[13.5px] text-[var(--accent-text)]">Rồng đã nở</span>
+                <span className="block text-[12px] text-[var(--text-faint)]">Chọn tuổi và giai đoạn khởi đầu</span>
               </Card>
             </div>
             {dragon && (
               <div className="space-y-4">
-                {/* Tên + Màu + Kích cỡ */}
                 <div className="flex gap-2">
-                  <GlassInput placeholder="Tên rồng *" value={dragon.name}
+                  <GlassInput placeholder={dragonKind === "egg" ? "Tên quả trứng *" : "Tên rồng *"} value={dragon.name}
                     onChange={(e) => patch({ dragon: { ...dragon, name: e.target.value } })} />
                 </div>
                 <div>
-                  <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Màu sắc</span>
+                  <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">{dragonKind === "egg" ? "Màu vỏ và đường vân" : "Màu vảy"}</span>
                   <div className="flex flex-wrap gap-1.5">
                     {DRAGON_COLORS.map((c) => (
                       <Card key={c} selected={dragon.color === c} onClick={() => patch({ dragon: { ...dragon, color: c } })}>
@@ -1112,58 +1140,113 @@ export function NewGameFlow() {
                     ))}
                   </div>
                 </div>
+                {dragonKind === "egg" && (
+                  <div>
+                    <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Trạng thái quả trứng</span>
+                    <div className="grid gap-2 sm:grid-cols-4">
+                      {(["Hóa Đá", "Ngủ Yên", "Đang Ấp", "Nứt Vỏ"] as const).map((state) => (
+                        <Card key={state} selected={(dragon.eggState ?? "Ngủ Yên") === state}
+                          onClick={() => patch({ dragon: { ...dragon, eggState: state } })}>
+                          <span className="text-[12.5px] text-[var(--text-soft)]">{state}</span>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {dragonKind === "dragon" && (
+                  <div>
+                    <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Giai đoạn và kích thước khởi đầu</span>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {DRAGON_SIZES.map((sz) => {
+                        const detail = DRAGON_STAGE_DETAILS[sz];
+                        return (
+                          <Card key={sz} selected={dragon.size === sz}
+                            onClick={() => patch({ dragon: { ...dragon, size: sz, age: detail.defaultAge } })}>
+                            <span className="block text-[13px] text-[var(--text-soft)]">{sz} · {detail.ageMin}–{detail.ageMax} tuổi</span>
+                            <span className="block mt-0.5 text-[11.5px] text-[var(--accent-text)]">{detail.dimensions}</span>
+                            <span className="block text-[11px] text-[var(--text-faint)]">{detail.ride}</span>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                    {stage && (
+                      <div className="glass mt-2 px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <label className="text-[12px] text-[var(--text-muted)]" htmlFor="dragon-start-age">Tuổi lúc bắt đầu</label>
+                          <GlassInput id="dragon-start-age" type="number" min={stage.ageMin} max={stage.ageMax}
+                            value={dragon.age ?? stage.defaultAge}
+                            onChange={(e) => patch({ dragon: { ...dragon, age: Math.max(stage.ageMin, Math.min(stage.ageMax, Number(e.target.value) || 0)) } })} />
+                        </div>
+                        <p className="mt-2 text-[11.5px] text-[var(--text-faint)]">{stage.note} {dragonAgeLabel(dragon.age ?? stage.defaultAge)}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div>
-                  <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Kích cỡ khởi đầu</span>
-                  <div className="grid gap-2 sm:grid-cols-3">
-                    {DRAGON_SIZES.map((sz) => (
-                      <Card key={sz} selected={dragon.size === sz}
-                        onClick={() => patch({ dragon: { ...dragon, size: sz } })}>
-                        <span className="text-[13px] text-[var(--text-soft)]">{sz}</span>
+                  <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Số đầu {dragonKind === "egg" ? "dự kiến" : ""}</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([1, 2, 3] as const).map((heads) => (
+                      <Card key={heads} selected={(dragon.heads ?? 1) === heads} onClick={() => patch({ dragon: { ...dragon, heads } })}>
+                        <span className="block text-[13px] text-[var(--text-soft)]">{heads} đầu</span>
+                        <span className="block text-[10.5px] text-[var(--text-faint)]">{heads === 1 ? "Nhanh và ổn định" : heads === 2 ? "Hai hướng tấn công" : "Uy lực lớn · đột biến cực hiếm"}</span>
                       </Card>
                     ))}
                   </div>
                 </div>
-                {/* Chỉ số rồng */}
                 <div>
-                  <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">
-                    Chỉ số rồng · Quỹ: {DRAGON_STAT_BUDGET - drgStatSpent}/{DRAGON_STAT_BUDGET} điểm còn lại
-                  </span>
-                  <div className="space-y-1.5">
-                    {DRAGON_STATS.map((s) => {
-                      const v = dragon.stats[s] ?? DRAGON_STAT_BASE;
-                      return (
-                        <div key={s} className="glass flex items-center gap-3 px-4 py-2">
-                          <span className="w-28 text-[12.5px] text-[var(--text-soft)]">{s}</span>
-                          <GlassButton size="sm" onClick={() => setDragonStat(s, -1)} disabled={v <= DRAGON_STAT_MIN_CREATE}>−</GlassButton>
-                          <span className="w-6 text-center font-mono text-[14px] text-[var(--text-soft)]">{v}</span>
-                          <GlassButton size="sm" onClick={() => setDragonStat(s, 1)}
-                            disabled={v >= DRAGON_STAT_MAX_CREATE || drgStatSpent >= DRAGON_STAT_BUDGET}>+</GlassButton>
-                        </div>
-                      );
-                    })}
+                  <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">Năng lực đặc biệt {dragonKind === "egg" ? "sẽ thức tỉnh" : ""}</span>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Card selected={!dragon.specialPower} onClick={() => patch({ dragon: { ...dragon, specialPower: undefined } })}>
+                      <span className="text-[12.5px] text-[var(--text-soft)]">Không có · huyết mạch thuần</span>
+                    </Card>
+                    {DRAGON_SPECIAL_POWERS.map((power) => (
+                      <Card key={power} selected={dragon.specialPower === power} onClick={() => patch({ dragon: { ...dragon, specialPower: power } })}>
+                        <span className="block text-[12.5px] text-[var(--accent-text)]">{power}</span>
+                        <span className="block text-[11px] text-[var(--text-faint)]">{DRAGON_POWER_DETAILS[power]}</span>
+                      </Card>
+                    ))}
                   </div>
                 </div>
-                {/* Kỹ năng rồng */}
-                <div>
-                  <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">
-                    Kỹ năng rồng · Quỹ: {DRAGON_SKILL_BUDGET - drgSkillSpent}/{DRAGON_SKILL_BUDGET} điểm còn lại
-                  </span>
-                  <div className="space-y-1.5">
-                    {DRAGON_SKILLS.map((s) => {
-                      const v = dragon.skillAllocations[s] ?? 0;
-                      return (
-                        <div key={s} className="glass flex items-center gap-3 px-4 py-2">
-                          <span className="w-40 text-[12.5px] text-[var(--text-soft)]">{s}</span>
-                          <GlassButton size="sm" onClick={() => setDragonSkill(s, -1)} disabled={v <= 0}>−</GlassButton>
-                          <span className="w-6 text-center font-mono text-[14px] text-[var(--text-soft)]">{v}</span>
-                          <GlassButton size="sm" onClick={() => setDragonSkill(s, 1)}
-                            disabled={v >= DRAGON_SKILL_MAX_CREATE || drgSkillSpent >= DRAGON_SKILL_BUDGET}>+</GlassButton>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                {/* Mô tả */}
+                {dragonKind === "dragon" && (
+                  <>
+                    <div>
+                      <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">
+                        Chỉ số rồng · Quỹ: {DRAGON_STAT_BUDGET - drgStatSpent}/{DRAGON_STAT_BUDGET} điểm còn lại
+                      </span>
+                      <div className="space-y-1.5">
+                        {DRAGON_STATS.map((s) => {
+                          const v = dragon.stats[s] ?? DRAGON_STAT_BASE;
+                          return (
+                            <div key={s} className="glass flex items-center gap-3 px-4 py-2">
+                              <span className="w-28 text-[12.5px] text-[var(--text-soft)]">{s}</span>
+                              <GlassButton size="sm" onClick={() => setDragonStat(s, -1)} disabled={v <= DRAGON_STAT_MIN_CREATE}>−</GlassButton>
+                              <span className="w-6 text-center font-mono text-[14px] text-[var(--text-soft)]">{v}</span>
+                              <GlassButton size="sm" onClick={() => setDragonStat(s, 1)} disabled={v >= DRAGON_STAT_MAX_CREATE || drgStatSpent >= DRAGON_STAT_BUDGET}>+</GlassButton>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block mb-1.5 text-[12px] text-[var(--text-muted)]">
+                        Kỹ năng rồng · Quỹ: {DRAGON_SKILL_BUDGET - drgSkillSpent}/{DRAGON_SKILL_BUDGET} điểm còn lại
+                      </span>
+                      <div className="space-y-1.5">
+                        {DRAGON_SKILLS.map((s) => {
+                          const v = dragon.skillAllocations[s] ?? 0;
+                          return (
+                            <div key={s} className="glass flex items-center gap-3 px-4 py-2">
+                              <span className="w-40 text-[12.5px] text-[var(--text-soft)]">{s}</span>
+                              <GlassButton size="sm" onClick={() => setDragonSkill(s, -1)} disabled={v <= 0}>−</GlassButton>
+                              <span className="w-6 text-center font-mono text-[14px] text-[var(--text-soft)]">{v}</span>
+                              <GlassButton size="sm" onClick={() => setDragonSkill(s, 1)} disabled={v >= DRAGON_SKILL_MAX_CREATE || drgSkillSpent >= DRAGON_SKILL_BUDGET}>+</GlassButton>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
                 <GlassTextarea rows={2} placeholder="Mô tả rồng (tuỳ chọn — AI dùng để tường thuật)..."
                   value={dragon.description}
                   onChange={(e) => patch({ dragon: { ...dragon, description: e.target.value } })} />

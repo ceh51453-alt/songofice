@@ -19,7 +19,10 @@ import {
   startConstruction, tickTerritoryIncome, buildingLedgers, estimateTerritoryYield,
 } from "../territory/construction";
 import { analysePopulation, applyPopulation, housingCapacity } from "../territory/population";
-import { ensureResourceNodes, NODE_GRADE_MULT, depleteNode } from "../territory/resourceNodes";
+import {
+  ensureResourceNodes, NODE_GRADE_MULT, depleteNode, nodeContainsResource,
+  nodeResources, RESOURCE_ZONE_TYPES,
+} from "../territory/resourceNodes";
 import { terrainOf, nodesOf, canPlace } from "../territory/localMap";
 import { buildWall, wallDefense } from "../territory/walls";
 import { monthlyBudget } from "../economy/budget";
@@ -27,7 +30,7 @@ import {
   INCOME_PER_CAPITA, commonerTax, vassalLevy, grossProduct, regionGrossProduct,
 } from "../economy/taxation";
 import { ensureMarket, tickMarkets, quoteOrder, executeOrder, marketRows } from "../economy/market";
-import { GOODS, GOODS_BY_ID } from "../content/westeros/goods";
+import { GOODS } from "../content/westeros/goods";
 import { EXCHANGE_RATES } from "../economy/currency";
 import { regionsForMacro } from "../content/westeros/regions";
 
@@ -66,7 +69,8 @@ describe("M18 · Điểm tài nguyên: thuật toán sinh, state lưu, mỏ khai
 
     for (const n of nodes) {
       expect(n["Mã"]).toBeTruthy();
-      expect(GOODS_BY_ID[n["Tài Nguyên"]]).toBeTruthy(); // trỏ đúng vào danh mục hàng hoá
+      expect(RESOURCE_ZONE_TYPES).toContain(n["Tài Nguyên"]);
+      expect(Object.values(nodeResources(n)).reduce((sum, share) => sum + share, 0)).toBeCloseTo(1, 8);
       expect(n["Trữ Lượng"]).toBeGreaterThanOrEqual(0);
       expect(n["Trữ Lượng"]).toBeLessThanOrEqual(3); // 0 cạn … 3 giàu
     }
@@ -78,7 +82,7 @@ describe("M18 · Điểm tài nguyên: thuật toán sinh, state lưu, mỏ khai
     const s = lordState();
     const h = s["Lãnh Địa"][ID];
     const nodes = nodesOf(ID, h);
-    const iron = nodes.find((n) => n["Tài Nguyên"] === "Quặng Sắt" && n["Trữ Lượng"] > 0);
+    const iron = nodes.find((n) => nodeContainsResource(n, "Quặng Sắt") && n["Trữ Lượng"] > 0);
     if (!iron) return; // lãnh địa này không có mạch sắt — chính là điều hợp lệ
 
     // ô TRONG vùng quy hoạch nhưng lệch khỏi mạch → bị chặn, kèm lý do đọc được
@@ -392,7 +396,7 @@ describe("M18 · Lời kể và bản đồ nói cùng một chuyện", () => {
     const h = s["Lãnh Địa"][ID];
     h["Gợi Ý Địa Thế"]["Tài Nguyên Sẵn Có"] = ["Hắc Diện Thạch"];
     const nodes = nodesOf(ID, h);
-    expect(nodes.some((n) => n["Tài Nguyên"] === "Hắc Diện Thạch")).toBe(true);
+    expect(nodes.some((n) => nodeContainsResource(n, "Hắc Diện Thạch"))).toBe(true);
   });
 });
 

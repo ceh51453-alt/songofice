@@ -148,6 +148,37 @@ describe("Gate thiên phú + kỹ năng (8.5 Bước 3-4)", () => {
 });
 
 describe("buildStateFromWizard (8.6b)", () => {
+  it("khởi đầu bằng trứng giữ màu, số đầu và năng lực dự kiến thay vì sinh rồng sẵn", () => {
+    const s = buildStateFromWizard(makeWizard({
+      dragon: {
+        kind: "egg", name: "Hồng Ngọc", color: "Đỏ", size: "Mới Nở", age: 0,
+        heads: 3, specialPower: "Lôi Tức", eggState: "Đang Ấp",
+        stats: { "Sức Lửa": 3, "Sức Bay": 3, "Giáp Vảy": 3, "Hung Dữ": 3, "Trung Thành": 3 },
+        skillAllocations: { "Phun Lửa": 0, "Lượn Gió": 0, "Bổ Nhào": 0, "Gầm Hống": 0, "Chiến Đấu Trên Không": 0 },
+        description: "Vỏ đỏ có ba đường gân sáng.",
+      },
+    }));
+    expect(Object.keys(s["Rồng"])).toHaveLength(0);
+    expect(s["Trứng Rồng"]["Hồng Ngọc"]).toMatchObject({
+      "Tình Trạng": "Đang Ấp", "Số Đầu Dự Kiến": 3, "Năng Lực Dự Kiến": "Lôi Tức",
+    });
+  });
+
+  it("rồng tùy chỉnh giữ đúng giai đoạn, tuổi, nhiều đầu và năng lực đặc biệt", () => {
+    const s = buildStateFromWizard(makeWizard({
+      dragon: {
+        kind: "dragon", name: "Tam Diệm", color: "Đen", size: "Cổ Long", age: 77,
+        heads: 3, specialPower: "Hỏa Ngục",
+        stats: { "Sức Lửa": 8, "Sức Bay": 3, "Giáp Vảy": 5, "Hung Dữ": 4, "Trung Thành": 3 },
+        skillAllocations: { "Phun Lửa": 2, "Lượn Gió": 0, "Bổ Nhào": 0, "Gầm Hống": 0, "Chiến Đấu Trên Không": 1 },
+        description: "Ba cổ rồng phủ vảy đen.",
+      },
+    }));
+    expect(s["Rồng"]["Tam Diệm"]).toMatchObject({
+      "Kích Cỡ": "Cổ Long", "Tuổi": 77, "Số Đầu": 3, "Năng Lực Đặc Biệt": "Hỏa Ngục",
+    });
+  });
+
   it("cho phép năm tự nhập và gộp tối đa hai xuất thân, kể cả Người Xuyên Không", () => {
     const s = buildStateFromWizard(makeWizard({
       originId: "knight",

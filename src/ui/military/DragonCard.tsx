@@ -46,6 +46,7 @@ export function dragonReadiness(d: Dragon): { ready: boolean; reason: string } {
   if (d["Đang Bị Xích"]) return { ready: false, reason: "Đang bị xích" };
   if ((d["Ngày Hồi Phục Còn Lại"] ?? 0) > 0) return { ready: false, reason: `Dưỡng thương ${formatDuration(d["Ngày Hồi Phục Còn Lại"])}` };
   if (d["Tình Trạng"] === "Đang Hồi Phục") return { ready: false, reason: "Đang hồi phục" };
+  if (d["Kích Cỡ"] === "Mới Nở" || d["Kích Cỡ"] === "Ấu Long") return { ready: false, reason: "Còn quá nhỏ để ra trận" };
   if (d["Sẵn Sàng Chiến Đấu"] === false) return { ready: false, reason: "Chưa chịu ra trận" };
   if (!d["Kỵ Sĩ"] && d["Mức Độ Thuần Hóa"] < DRAGON_TAMING_THRESHOLD) return { ready: false, reason: `Chưa đủ liên kết để cưỡi (cần ${DRAGON_TAMING_THRESHOLD})` };
   return { ready: true, reason: "Sẵn sàng" };
@@ -83,7 +84,7 @@ export function DragonCard({
             {d["Tên"] || dragonKey}
           </p>
           <p className="text-[12px] text-[var(--text-muted)]">
-            {d["Kích Cỡ"]} · màu {d["Màu Sắc"]} · {d["Tuổi"]} tuổi · sải cánh ~{d["_Sải Cánh"]}m
+            {d["Kích Cỡ"]} · màu {d["Màu Sắc"]} · {d["Tuổi"]} tuổi · {d["Số Đầu"]} đầu · sải cánh ~{d["_Sải Cánh"]}m
           </p>
         </div>
         <span className="shrink-0 text-right">
@@ -97,6 +98,7 @@ export function DragonCard({
         <Chip text={readiness.reason} tone={readiness.ready ? "ok" : "danger"} />
         <Chip text={d["Trạng Thái Thu Phục"]} />
         {d["Kỵ Sĩ"] ? <Chip text={`Kỵ sĩ: ${d["Kỵ Sĩ"]}`} tone="warn" /> : <Chip text={`Thuần hoá ${d["Mức Độ Thuần Hóa"]}/100`} />}
+        {d["Năng Lực Đặc Biệt"] && <Chip text={d["Năng Lực Đặc Biệt"]} tone="warn" />}
         {d["Đang Bị Xích"] && <Chip text="Bị xích" tone="danger" />}
       </div>
 

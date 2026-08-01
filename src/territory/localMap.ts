@@ -15,7 +15,9 @@ import type { BuildResult } from "./construction";
 import { startConstruction, castleLevel, planningRadiusCells } from "./construction";
 import { BUILDING_CATALOG, type BuildingType } from "../content/westeros/buildings";
 import { isBuildable, isWater, type LocalTerrain } from "../content/westeros/terrain";
-import { ensureResourceNodes, generateNodes, bestNodeFor, NODE_GRADE_LABEL } from "./resourceNodes";
+import {
+  ensureResourceNodes, generateNodes, bestNodeFor, NODE_GRADE_LABEL, nodeWorkers,
+} from "./resourceNodes";
 import type { ResourceNode, CustomBuilding } from "../mvu/schema";
 import { REGIONS_BY_ID, type MapRegion } from "../content/westeros/regions";
 import { loreSeatFor, type LoreSeat } from "../content/westeros/loreSeats";
@@ -220,18 +222,18 @@ export function checkSpot(
     return { ok: false, error: `${type} phải dựng sát mép nước`, terrains };
   }
 
-  // 5. ĐIỂM TÀI NGUYÊN: mỏ phải nằm trên mạch. Không có mạch thì đào ra đá vụn.
+  // 5. VÙNG TÀI NGUYÊN: công trình phải nằm trong vùng có đúng sản vật cần khai thác.
   if (def.requiresNode) {
     const node = bestNodeFor(nodes, def.requiresNode, x, y, size);
     if (!node) {
       return {
         ok: false,
-        error: `${type} phải dựng đè lên điểm ${def.requiresNode.join(" / ")} — chỗ này không có mạch nào`,
+        error: `${type} phải nằm trong vùng có ${def.requiresNode.join(" / ")} — chỗ này không có tài nguyên phù hợp`,
         terrains,
       };
     }
     if (node["Trữ Lượng"] <= 0) {
-      return { ok: false, error: `Mạch ${node["Tài Nguyên"]} ở đây đã cạn kiệt`, terrains };
+      return { ok: false, error: `Vùng ${node["Tài Nguyên"]} ở đây đã cạn kiệt`, terrains };
     }
     return { ok: true, terrains, node };
   }
@@ -338,11 +340,14 @@ export function placeBuilding(
   });
   // ghi cờ hai chiều điểm ↔ công trình ngay sau khi ops được áp
   if (result.ok && check.node) {
+    const workers = [...nodeWorkers(check.node), name];
     result.ops.push({
       op: "replace",
       path: `stat_data.Lãnh Địa.${territoryId}.Điểm Tài Nguyên`,
       value: (holding["Điểm Tài Nguyên"] ?? []).map((n) =>
-        n["Mã"] === check.node!["Mã"] ? { ...n, "Công Trình": name } : n),
+        n["Mã"] === check.node!["Mã"]
+          ? { ...n, "Công Trình": workers[0] ?? "", "Công Trình Khai Thác": workers }
+          : n),
     });
   }
   return result;
@@ -408,7 +413,11 @@ export function layoutHolding(
     const name = index === 0 ? baseName : `${baseName} ${index + 1}`;
     // mỏ dựng sẵn thì bám luôn vào mạch nằm dưới nó
     const node = def.requiresNode ? bestNodeFor(nodes, def.requiresNode, x, y, def.footprint) : null;
-    if (node) node["Công Trình"] = name;
+    if (node) {
+      const workers = [...nodeWorkers(node), name];
+      node["Công Trình Khai Thác"] = workers;
+      node["Công Trình"] = workers[0] ?? "";
+    }
     out[name] = {
       "Loại": type, "Cấp Độ": Math.max(1, level), "Đang Xây": false, "Ngày Xây Còn Lại": 0,
       "Đang Phá": false, "Ngày Phá Còn Lại": 0,
@@ -510,7 +519,10 @@ export function repairHoldingLayout(holding: Holding, holdingId: string): number
   // Điểm tài nguyên có thể đã bị đẩy ra khỏi sân thành khi nâng cấp dữ liệu cũ.
   // Ràng buộc mỏ ↔ công trình phải được dựng lại từ vị trí thực tế, nếu không UI
   // sẽ chỉ vào một mạch đã không còn nằm dưới khu khai thác.
-  for (const node of nodes) node["Công Trình"] = "";
+  for (const node of nodes) {
+    node["Công Trình"] = "";
+    node["Công Trình Khai Thác"] = [];
+  }
   for (const [name, b] of Object.entries(buildings)) {
     const def = BUILDING_CATALOG[b["Loại"]];
     if (!def?.requiresNode) continue;
@@ -520,7 +532,11 @@ export function repairHoldingLayout(holding: Holding, holdingId: string): number
       b["Điểm Tài Nguyên"] = nextId;
       moved++;
     }
-    if (node) node["Công Trình"] = name;
+    if (node) {
+      const workers = [...nodeWorkers(node), name];
+      node["Công Trình Khai Thác"] = workers;
+      node["Công Trình"] = workers[0] ?? "";
+    }
   }
   return moved;
 }

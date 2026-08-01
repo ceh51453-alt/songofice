@@ -64,6 +64,8 @@ export interface BuildingDef {
   yield?: Partial<Record<ResourceKey, number>>;
   /** nguyên liệu ăn vào mỗi THÁNG để chạy (×Cấp Độ). Thiếu thì xưởng đứng máy. */
   consume?: Partial<Record<ResourceKey, number>>;
+  /** tổng sản vật/tháng được chia theo đúng tỷ lệ thành phần của vùng tài nguyên. */
+  harvestRate?: number;
   /** phí DUY TRÌ mỗi THÁNG dù có sản xuất hay không (×Cấp Độ). */
   upkeep?: Partial<Record<ResourceKey, number>>;
 
@@ -276,14 +278,18 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
   "Bến Cá": {
     type: "Bến Cá", category: "Lương Thực",
     desc: "Bến thuyền chài — lưới cá quanh năm, không phụ thuộc mùa vụ.",
-    effectSummary: "50 dân chài → +150 Lương Thực, +90 Cá Khô/tháng",
+    effectSummary: "50 dân chài → +150 Lương Thực và 90 thủy/hải sản theo tỷ lệ vùng/tháng",
     cost: { "Ngân Khố": 120 * G, "Gỗ": 140 }, buildMonths: 2,
     labour: { "Dân Phu": 80, "Thợ Mộc": 25 },
     jobs: { "Nông Dân": 50, "Thợ Thủ Công": 12 }, housing: 40,
-    yield: { "Lương Thực": 150, "Cá Khô": 90 },
-    consume: { "Muối": 12 },
+    yield: { "Lương Thực": 150 },
+    harvestRate: 90,
     upkeep: { "Ngân Khố": 3 * G },
-    footprint: 12, nearWater: true, requiresCoastal: true,
+    footprint: 12, nearWater: true,
+    requiresNode: [
+      "Cá Nước Ngọt", "Thủy Sản Nước Ngọt", "Rong Nước Ngọt", "Dược Liệu Thủy Sinh",
+      "Cá Nước Mặn", "Hải Sản", "Rong Biển", "Ngọc Trai", "Cá Khô",
+    ],
   },
   "Ruộng Muối": {
     type: "Ruộng Muối", category: "Lương Thực",
@@ -294,7 +300,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Nông Dân": 45 },
     yield: { "Muối": 90 },
     upkeep: { "Ngân Khố": 2 * G },
-    footprint: 18, nearWater: true, requiresCoastal: true,
+    footprint: 18, nearWater: true, requiresCoastal: true, requiresNode: ["Muối"],
   },
   "Trại Chăn Nuôi": {
     type: "Trại Chăn Nuôi", category: "Lương Thực",
@@ -337,24 +343,26 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
   "Xưởng Cưa": {
     type: "Xưởng Cưa", category: "Khai Thác",
     desc: "Trại đốn gỗ và xưởng xẻ — phải dựng ngay trên một khoảnh rừng đã thăm dò.",
-    effectSummary: "60 tiều phu + mạch Gỗ → +120 Gỗ/tháng (×bậc trữ lượng)",
+    effectSummary: "60 tiều phu → 120 lâm sản/tháng, chia theo tỷ lệ vùng",
     cost: { "Ngân Khố": 110 * G, "Gỗ": 40, "Quặng Sắt": 30 }, buildMonths: 2,
     labour: { "Dân Phu": 90, "Thợ Mộc": 30 },
     jobs: { "Tiều Phu": 60, "Thợ Mộc": 18 }, housing: 30,
-    yield: { "Gỗ": 120 },
+    harvestRate: 120,
     upkeep: { "Ngân Khố": 3 * G },
-    footprint: 14, terrain: ["Rừng Rậm"], requiresNode: ["Gỗ"],
+    footprint: 14, terrain: ["Rừng Rậm"],
+    requiresNode: ["Gỗ", "Da Thú", "Sáp Ong", "Thảo Dược", "Lanh"],
   },
   "Mỏ Đá": {
     type: "Mỏ Đá", category: "Khai Thác",
-    desc: "Công trường đục đá — mở đúng chỗ vỉa đá lộ thiên.",
-    effectSummary: "70 thợ mỏ + vỉa Đá → +110 Đá/tháng (×bậc trữ lượng)",
+    desc: "Khu mỏ tổng hợp — đá và các loại quặng được phân loại ngay tại công trường.",
+    effectSummary: "70 thợ mỏ → 110 khoáng sản/tháng, chia theo tỷ lệ vùng",
     cost: { "Ngân Khố": 140 * G, "Gỗ": 90, "Quặng Sắt": 40 }, buildMonths: 3,
     labour: { "Dân Phu": 130, "Thợ Đá": 50 },
     jobs: { "Thợ Mỏ": 70, "Thợ Đá": 20 }, housing: 30,
-    yield: { "Đá": 110 },
+    harvestRate: 110,
     upkeep: { "Ngân Khố": 4 * G },
-    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], overrideTerrain: ["Hẻm Núi"], requiresNode: ["Đá"],
+    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi", "Sa Mạc", "Tuyết/Băng Giá"], overrideTerrain: ["Hẻm Núi"],
+    requiresNode: ["Quặng Sắt", "Than Đá", "Đồng", "Thiếc", "Đá", "Hắc Diện Thạch"],
   },
   "Mỏ Sắt": {
     type: "Mỏ Sắt", category: "Khai Thác",
@@ -365,7 +373,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Thợ Mỏ": 80, "Kỹ Sư": 2 }, housing: 40,
     yield: { "Quặng Sắt": 80 },
     upkeep: { "Ngân Khố": 6 * G, "Gỗ": 10 },
-    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], overrideTerrain: ["Hẻm Núi"], requiresNode: ["Quặng Sắt"],
+    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi", "Sa Mạc", "Tuyết/Băng Giá"], overrideTerrain: ["Hẻm Núi"], requiresNode: ["Quặng Sắt"],
   },
   "Mỏ Than": {
     type: "Mỏ Than", category: "Khai Thác",
@@ -376,7 +384,7 @@ export const BUILDING_CATALOG: Record<BuildingType, BuildingDef> = {
     jobs: { "Thợ Mỏ": 85, "Kỹ Sư": 2 }, housing: 40,
     yield: { "Than Đá": 100 },
     upkeep: { "Ngân Khố": 6 * G, "Gỗ": 10 },
-    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi"], overrideTerrain: ["Hẻm Núi"], requiresNode: ["Than Đá"],
+    footprint: 16, terrain: ["Đồi Núi", "Hẻm Núi", "Sa Mạc", "Tuyết/Băng Giá"], overrideTerrain: ["Hẻm Núi"], requiresNode: ["Than Đá"],
   },
 
   // ── CHẾ TÁC ───────────────────────────────────────────────────────────────

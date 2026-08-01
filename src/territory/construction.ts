@@ -35,7 +35,8 @@ import {
   type PopulationReport,
 } from "./population";
 import {
-  ensureResourceNodes, nodeById, nodeMultiplier, depleteNode,
+  ensureResourceNodes, nodeById, nodeMultiplier, nodeResourceShare,
+  nodeContainsResource, nodeResources, depleteNode, nodeWorkers,
 } from "./resourceNodes";
 import { EXCHANGE_RATES } from "../economy/currency";
 import { TAX_BRACKETS, grossProduct } from "../economy/taxation";
@@ -250,6 +251,15 @@ export function cancelConstruction(state: StatData, territoryId: string, buildin
     ops.push({ op: "replace", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}.Ngày Xây Còn Lại`, value: 0 });
   } else {
     ops.push({ op: "remove", path: `stat_data.Lãnh Địa.${territoryId}.Công Trình.${buildingName}` });
+    const territory = state["Lãnh Địa"][territoryId];
+    ops.push({
+      op: "replace",
+      path: `stat_data.Lãnh Địa.${territoryId}.Điểm Tài Nguyên`,
+      value: (territory["Điểm Tài Nguyên"] ?? []).map((node) => {
+        const workers = nodeWorkers(node).filter((name) => name !== buildingName);
+        return { ...node, "Công Trình": workers[0] ?? "", "Công Trình Khai Thác": workers };
+      }),
+    });
   }
   return ops;
 }
@@ -500,7 +510,9 @@ export function buildingLedgers(
     const staffing = staff ? staff.ratio : 1;
     const levelFactor = b["Tuỳ Chỉnh"]?.["Nhân Theo Cấp"] === false ? 1 : lvl;
     const node = nodeById(nodes, b["Điểm Tài Nguyên"]);
-    const nMult = def.requiresNode ? nodeMultiplier(node) : 1;
+    const nMult = def.requiresNode
+      ? nodeMultiplier(node) * (def.harvestRate ? 1 : nodeResourceShare(node, def.requiresNode))
+      : 1;
 
     // nguyên liệu đầu vào phải đủ cho phần thật sự chạy được
     const scale = staffing * nMult;
@@ -517,6 +529,12 @@ export function buildingLedgers(
       for (const [k, v] of Object.entries(spec.produce)) {
         const amount = (v ?? 0) * levelFactor * scale * mining;
         produce[k] = Math.round(k === "Ngân Khố" ? amount * tradeMult : amount);
+      }
+      if (def.harvestRate && node) {
+        for (const [resource, share] of Object.entries(nodeResources(node))) {
+          const amount = def.harvestRate * share * levelFactor * scale * mining;
+          produce[resource] = (produce[resource] ?? 0) + Math.round(amount);
+        }
       }
     }
 
@@ -589,7 +607,11 @@ export function tickConstruction(state: StatData): void {
         b["Ngày Phá Còn Lại"] = Math.max(0, (b["Ngày Phá Còn Lại"] ?? 0) - 1);
         if ((b["Ngày Phá Còn Lại"] ?? 0) <= 0) {
           const node = (territory["Điểm Tài Nguyên"] ?? []).find((n) => n["Mã"] === b["Điểm Tài Nguyên"]);
-          if (node?.["Công Trình"] === name) node["Công Trình"] = "";
+          if (node) {
+            const workers = nodeWorkers(node).filter((worker) => worker !== name);
+            node["Công Trình Khai Thác"] = workers;
+            node["Công Trình"] = workers[0] ?? "";
+          }
           delete territory["Công Trình"][name];
         }
       }
@@ -653,7 +675,7 @@ export function tickTerritoryIncome(state: StatData): void {
       for (const [k, v] of Object.entries(led.produce)) {
         if (k === "Ngân Khố") continue;
         stock[k] = (stock[k] ?? 0) + v;
-        if (led.node && led.node["Tài Nguyên"] === k) extracted += v;
+        if (led.node && nodeContainsResource(led.node, k)) extracted += v;
       }
       for (const [k, v] of Object.entries(led.upkeep)) {
         if (k === "Ngân Khố") continue;

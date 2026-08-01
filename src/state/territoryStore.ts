@@ -17,8 +17,12 @@ import {
 } from "../territory/construction";
 import { placeBuilding, placeRing, terrainOf } from "../territory/localMap";
 import { buildWall, upgradeWall, demolishWall, type WallPoint } from "../territory/walls";
+import {
+  buildRoad, freezeAutoRoads as freezeAutoRoadsOps, removeRoad, removeAutoRoad, restoreAutoRoads,
+  type RoadPoint,
+} from "../territory/roads";
 import { executeOrder, type OrderSide } from "../economy/market";
-import type { CustomBuilding, WallMaterial } from "../mvu/schema";
+import type { CustomBuilding, RoadLine, WallMaterial } from "../mvu/schema";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
 import { BUILDING_CATALOG, type BuildingType } from "../content/westeros/buildings";
@@ -83,6 +87,15 @@ interface TerritoryState {
   raiseWall: (territoryId: string, wallId: string) => { ok: boolean; error?: string };
   /** Phá bỏ một tuyến tường (thu hồi 30% đá). */
   razeWall: (territoryId: string, wallId: string) => void;
+
+  /** Vạch và xoá đường thủ công trên Tầng 1; engine không tự nối công trình. */
+  drawRoad: (
+    territoryId: string, points: RoadPoint[], opts?: { name?: string; width?: number; kind?: "Đường Nhỏ" | "Đường Lớn" },
+  ) => { ok: boolean; error?: string };
+  freezeAutoRoads: (territoryId: string, roads: RoadLine[]) => void;
+  razeRoad: (territoryId: string, roadId: string) => void;
+  razeAutoRoad: (territoryId: string, roadId: string) => void;
+  restoreAutoRoads: (territoryId: string) => void;
 
   /** Đặt lệnh mua/bán trên sàn giao dịch của một vùng. */
   tradeOrder: (
@@ -168,6 +181,29 @@ export const useTerritoryStore = create<TerritoryState>()(
 
       razeWall: (territoryId, wallId) => {
         applyEngineOps(demolishWall(useMvuStore.getState().stat, territoryId, wallId));
+      },
+
+      drawRoad: (territoryId, points, opts) => {
+        const result = buildRoad(useMvuStore.getState().stat, territoryId, points, opts);
+        if (!result.ok) return { ok: false, error: result.error };
+        applyEngineOps(result.ops);
+        return { ok: true };
+      },
+
+      freezeAutoRoads: (territoryId, roads) => {
+        applyEngineOps(freezeAutoRoadsOps(useMvuStore.getState().stat, territoryId, roads));
+      },
+
+      razeRoad: (territoryId, roadId) => {
+        applyEngineOps(removeRoad(useMvuStore.getState().stat, territoryId, roadId));
+      },
+
+      razeAutoRoad: (territoryId, roadId) => {
+        applyEngineOps(removeAutoRoad(useMvuStore.getState().stat, territoryId, roadId));
+      },
+
+      restoreAutoRoads: (territoryId) => {
+        applyEngineOps(restoreAutoRoads(useMvuStore.getState().stat, territoryId));
       },
 
       tradeOrder: (regionId, goodId, quantity, side, destination) => {

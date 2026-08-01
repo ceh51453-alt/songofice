@@ -96,27 +96,43 @@ export interface DragonAgeMod {
 
 const DRAGON_AGE_TABLE: { maxAge: number; mod: DragonAgeMod }[] = [
   {
-    maxAge: 5,
+    maxAge: 1,
     mod: {
-      hpPercent: -50,
-      stats: { "Sức Lửa": -3, "Sức Bay": -2, "Giáp Vảy": -3, "Hung Dữ": -1, "Trung Thành": 3 },
-      label: "Non Nớt — nhỏ bé, dễ thuần, lửa yếu",
+      hpPercent: -60,
+      stats: { "Sức Lửa": -4, "Sức Bay": -4, "Giáp Vảy": -4, "Hung Dữ": -2, "Trung Thành": 4 },
+      label: "Mới Nở — cỡ mèo lớn, chưa thể cưỡi, hơi lửa chỉ là tia lửa",
     },
   },
   {
-    maxAge: 20,
+    maxAge: 5,
+    mod: {
+      hpPercent: -40,
+      stats: { "Sức Lửa": -3, "Sức Bay": -2, "Giáp Vảy": -3, "Hung Dữ": -1, "Trung Thành": 3 },
+      label: "Ấu Long — cỡ chó săn, đang tập bay và hình thành liên kết",
+    },
+  },
+  {
+    maxAge: 15,
     mod: {
       hpPercent: 0,
       stats: { "Sức Lửa": 0, "Sức Bay": 0, "Giáp Vảy": 0, "Hung Dữ": 0, "Trung Thành": 1 },
-      label: "Non — đang phát triển, lửa vừa phải",
+      label: "Rồng Non — cỡ ngựa đến voi, đã bay xa và có thể chở kỵ sĩ nhẹ",
     },
   },
   {
-    maxAge: 100,
+    maxAge: 59,
     mod: {
       hpPercent: 0,
       stats: { "Sức Lửa": 2, "Sức Bay": 1, "Giáp Vảy": 2, "Hung Dữ": 1, "Trung Thành": 0 },
       label: "Trưởng Thành — mạnh mẽ, lửa nóng, vảy dày",
+    },
+  },
+  {
+    maxAge: 99,
+    mod: {
+      hpPercent: 10,
+      stats: { "Sức Lửa": 3, "Sức Bay": 1, "Giáp Vảy": 4, "Hung Dữ": 2, "Trung Thành": -1 },
+      label: "Cổ Long — thân như chiến thuyền, lửa đủ nung nứt đá và vảy rất dày",
     },
   },
   {

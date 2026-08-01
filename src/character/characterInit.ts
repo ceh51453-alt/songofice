@@ -5,7 +5,7 @@
  * trang bị/tài sản → engine tính phái sinh → HP/Thể Lực = trần.
  * Kèm: lore entry khởi tạo (constant) + tin nhắn mở đầu + tự trigger AI.
  */
-import { makeDefaultState, DRAGON_SIZE_HP, DRAGON_STATS, DRAGON_SKILLS, type StatData, type DragonStat, type DragonSkill, type DragonSize, type WallLine, PATRON_GODS, BLOODLINES } from "../mvu/schema";
+import { makeDefaultState, DRAGON_SIZE_HP, DRAGON_STATS, DRAGON_SKILLS, type StatData, type DragonStat, type DragonSkill, type DragonSize, type DragonSpecialPower, type WallLine, PATRON_GODS, BLOODLINES } from "../mvu/schema";
 import { NpcSchema, lifeStage, type Npc } from "../mvu/npcSchema";
 import { parseEffect, recomputeDerived } from "../mvu/effects";
 import { clamp } from "../mvu/helpers";
@@ -200,11 +200,17 @@ export function talentSlots(difficulty: Difficulty, talentIds: string[]): { used
 // ---------------------------------------------------------------------------
 // Dựng state
 // ---------------------------------------------------------------------------
-/** Dữ liệu rồng từ wizard — null = không có rồng. */
+/** Dữ liệu rồng/trứng từ wizard — null = không sở hữu di sản rồng. */
 export interface DragonWizardData {
+  /** Save cũ không có kind được hiểu là rồng đã nở. */
+  kind?: "egg" | "dragon";
   name: string;
   color: string;
   size: DragonSize;
+  age?: number;
+  heads?: 1 | 2 | 3;
+  specialPower?: DragonSpecialPower;
+  eggState?: "Hóa Đá" | "Ngủ Yên" | "Đang Ấp" | "Nứt Vỏ";
   stats: Record<DragonStat, number>;
   skillAllocations: Record<DragonSkill, number>;
   description: string;
@@ -792,6 +798,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
       "Pháp Lệnh": {},
       "Tường Thành": [],
       "Đường Đi": [],
+      "Đường Tự Động Đã Xoá": [],
       "Khủng Hoảng": [],
       "Thuộc Vùng": startRegionId,
       "Ven Biển": startRegion?.coastal ?? false,
@@ -861,35 +868,54 @@ export function buildStateFromWizard(d: WizardData): StatData {
     }
   }
 
-  // ---- rồng (nếu có — gate theo Era hasMagic) ----
+  // ---- rồng hoặc trứng (nếu có — gate theo Era hasMagic) ----
   if (d.dragon) {
     const drg = d.dragon;
-    const hpMax = DRAGON_SIZE_HP[drg.size] + (drg.stats["Giáp Vảy"] ?? DRAGON_STAT_BASE) * 20;
-    const skillRecord: Record<string, number> = {};
-    for (const sk of DRAGON_SKILLS) {
-      const lv = drg.skillAllocations[sk] ?? 0;
-      if (lv > 0) skillRecord[sk] = clamp(lv, 0, 10);
-    }
     const riderName = d.name.trim() || "Vô Danh";
-    (state["Rồng"] as Record<string, unknown>)[drg.name || "Rồng Vô Danh"] = newDragon({
-      "Tên": drg.name || "Rồng Vô Danh",
-      "Kích Cỡ": drg.size,
-      "Kỵ Sĩ": riderName,
-      "Tình Trạng": "Khỏe",
-      "_HP": hpMax,
-      "_HP Tối Đa": hpMax,
-      "Màu Sắc": drg.color || "Đen",
-      "Tuổi": drg.size === "Non" ? 1 : drg.size === "Trưởng Thành" ? 30 : 100,
-      "Chỉ Số": Object.fromEntries(DRAGON_STATS.map((s) => [s, clamp(drg.stats[s] ?? DRAGON_STAT_BASE, 1, 20)])) as never,
-      "Kỹ Năng": skillRecord,
-      "Mô Tả": drg.description || "",
-      "Nhà": state["Thông Tin Nhân Vật"]["Nhà"] ?? "",
-      "Đồn Trú": startRegionId,
-      "Trạng Thái Thu Phục": "Đã Có Chủ",
-      // Rồng được chọn lúc tạo là mối liên kết đã hình thành từ trước, nên vượt ngưỡng cưỡi 90.
-      "Mức Độ Thuần Hóa": 92,
-      "Độ Hảo Cảm": { [riderName]: 92 },
-    });
+    if (drg.kind === "egg") {
+      const eggName = drg.name || "Trứng Rồng Vô Danh";
+      state["Trứng Rồng"][eggName] = {
+        "Tên": eggName,
+        "Màu Sắc": drg.color || "Đen Tuyền",
+        "Nhiệt Độ": drg.eggState === "Nứt Vỏ" ? "Nóng Rực" : drg.eggState === "Đang Ấp" ? "Ấm" : "Nguội Lạnh",
+        "Tình Trạng": drg.eggState ?? "Ngủ Yên",
+        "Chủ Nhân": riderName,
+        "Nơi Ấp": startRegionId,
+        "Tiến Độ Ấp": drg.eggState === "Nứt Vỏ" ? 98 : drg.eggState === "Đang Ấp" ? 45 : drg.eggState === "Ngủ Yên" ? 5 : 0,
+        "Số Ngày Ấp": 0,
+        "Số Đầu Dự Kiến": drg.heads ?? 1,
+        "Năng Lực Dự Kiến": drg.specialPower,
+        "Mô Tả": drg.description || "Một quả trứng rồng mang những đường vân như vảy hóa thạch.",
+      };
+    } else {
+      const hpMax = DRAGON_SIZE_HP[drg.size] + (drg.stats["Giáp Vảy"] ?? DRAGON_STAT_BASE) * 20;
+      const skillRecord: Record<string, number> = {};
+      for (const sk of DRAGON_SKILLS) {
+        const lv = drg.skillAllocations[sk] ?? 0;
+        if (lv > 0) skillRecord[sk] = clamp(lv, 0, 10);
+      }
+      (state["Rồng"] as Record<string, unknown>)[drg.name || "Rồng Vô Danh"] = newDragon({
+        "Tên": drg.name || "Rồng Vô Danh",
+        "Kích Cỡ": drg.size,
+        "Kỵ Sĩ": riderName,
+        "Tình Trạng": "Khỏe",
+        "_HP": hpMax,
+        "_HP Tối Đa": hpMax,
+        "Màu Sắc": drg.color || "Đen",
+        "Tuổi": drg.age ?? (drg.size === "Mới Nở" ? 0 : drg.size === "Ấu Long" ? 2 : drg.size === "Non" ? 8 : drg.size === "Trưởng Thành" ? 30 : drg.size === "Cổ Long" ? 75 : 120),
+        "Số Đầu": drg.heads ?? 1,
+        "Năng Lực Đặc Biệt": drg.specialPower,
+        "Chỉ Số": Object.fromEntries(DRAGON_STATS.map((s) => [s, clamp(drg.stats[s] ?? DRAGON_STAT_BASE, 1, 20)])) as never,
+        "Kỹ Năng": skillRecord,
+        "Mô Tả": drg.description || "",
+        "Nhà": state["Thông Tin Nhân Vật"]["Nhà"] ?? "",
+        "Đồn Trú": startRegionId,
+        "Trạng Thái Thu Phục": "Đã Có Chủ",
+        // Rồng được chọn lúc tạo là mối liên kết đã hình thành từ trước, nên vượt ngưỡng cưỡi 90.
+        "Mức Độ Thuần Hóa": 92,
+        "Độ Hảo Cảm": { [riderName]: 92 },
+      });
+    }
   }
 
   // ---- chủ quyền lãnh thổ theo Era (9.6.1); migrate holding gói xuất thân ----
@@ -1502,6 +1528,7 @@ export function buildStateFromCanon(
           "Pháp Lệnh": {},
           "Tường Thành": autoBuildWalls(lvl, sid, era.id),
           "Đường Đi": [],
+          "Đường Tự Động Đã Xoá": [],
           "Khủng Hoảng": [],
           "Ven Biển": REGIONS_BY_ID[regionId]?.coastal ?? false,
           "Địa Hình": REGIONS_BY_ID[regionId]?.terrain,
@@ -1888,7 +1915,10 @@ export function buildInitLoreEntry(state: StatData, era: EraData, hook: Starting
     `Đặc điểm chi tiết: Màu mắt (${persona["Đặc Điểm"]?.["Màu Mắt"] || "không rõ"}), Màu tóc (${persona["Đặc Điểm"]?.["Màu Tóc"] || "không rõ"}), Chiều cao (${persona["Đặc Điểm"]?.["Chiều Cao"] || "không rõ"}).`,
     ...Object.entries(state["Rồng"]).map(([, drg]) =>
       `Rồng: ${drg["Tên"]} (${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}, ${drg["Tuổi"]} tuổi). HP ${drg["_HP"]}/${drg["_HP Tối Đa"]}. ` +
+      `${drg["Số Đầu"] > 1 ? `${drg["Số Đầu"]} đầu. ` : ""}${drg["Năng Lực Đặc Biệt"] ? `Năng lực: ${drg["Năng Lực Đặc Biệt"]}. ` : ""}` +
       `Chỉ số: ${DRAGON_STATS.map((s) => `${s} ${drg["Chỉ Số"][s]}`).join(", ")}.`),
+    ...Object.entries(state["Trứng Rồng"]).map(([, egg]) =>
+      `Trứng rồng: ${egg["Tên"] || "chưa đặt tên"}, màu ${egg["Màu Sắc"]}, ${egg["Tình Trạng"]}, dự kiến ${egg["Số Đầu Dự Kiến"]} đầu${egg["Năng Lực Dự Kiến"] ? `, năng lực ${egg["Năng Lực Dự Kiến"]}` : ""}.`),
     `Năm bắt đầu thực: ${state["Thế Giới"]["Năm"]} AC.`,
     hook ? `Điểm bắt đầu: ${hook.title} (${hook.year}) — ${hook.desc}` : "",
     crisisDesc ? `KHỦNG HOẢNG HIỆN TẠI (khai triển ngay từ lượt đầu): ${crisisDesc}` : "",
@@ -1939,6 +1969,7 @@ export function buildOpeningMessage(state: StatData, era: EraData, hook: Startin
     `[Bắt đầu ván chơi] Ta là ${info["Họ Tên"]}${info["Biệt Danh"] ? ` "${info["Biệt Danh"]}"` : ""}, ${info["Xuất Thân"]}${info["Nhà"] !== "Không Nhà" ? ` của Nhà ${info["Nhà"]}` : ""}.`,
     `Bối cảnh: ${era.name}, năm ${state["Thế Giới"]["Năm"]} AC, tại ${state["Thế Giới"]["Vị Trí"]}.`,
     ...Object.entries(state["Rồng"]).map(([, drg]) => `Ta có rồng tên ${drg["Tên"]} — ${drg["Kích Cỡ"]}, màu ${drg["Màu Sắc"]}.`),
+    ...Object.entries(state["Trứng Rồng"]).map(([, egg]) => `Ta đang giữ ${egg["Tên"] || "một quả trứng rồng"} — màu ${egg["Màu Sắc"]}, ${egg["Tình Trạng"]}.`),
     hook ? `Tình huống mở màn: ${hook.desc}` : "",
     crisisDesc ? `Tình thế của ta: ${crisisDesc}` : "",
     `Hãy mở đầu câu chuyện — dựng cảnh, đưa ta vào khoảnh khắc này, và để diễn biến bắt đầu.`,

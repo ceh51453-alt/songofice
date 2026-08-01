@@ -123,8 +123,11 @@ describe("Rồng tách khỏi biên chế bộ binh (M19)", () => {
 
 describe("Vòng đời rồng (M19)", () => {
   it("kích cỡ đi theo TUỔI, không phải nút bấm", () => {
-    expect(sizeForAge(5)).toBe("Non");
+    expect(sizeForAge(0)).toBe("Mới Nở");
+    expect(sizeForAge(5)).toBe("Ấu Long");
+    expect(sizeForAge(8)).toBe("Non");
     expect(sizeForAge(30)).toBe("Trưởng Thành");
+    expect(sizeForAge(75)).toBe("Cổ Long");
     expect(sizeForAge(120)).toBe("Khổng Lồ (Balerion-class)");
   });
 
@@ -133,6 +136,20 @@ describe("Vòng đời rồng (M19)", () => {
     const huge = newDragon({ "Kích Cỡ": "Khổng Lồ (Balerion-class)", "Tuổi": 120 });
     expect(wingspanOf(huge)).toBeGreaterThan(wingspanOf(young));
     expect(monthlyRation(huge)).toBeGreaterThan(monthlyRation(young));
+  });
+
+  it("trứng nứt vỏ sẽ nở thành rồng con và giữ số đầu cùng năng lực", () => {
+    const s = targaryen();
+    s["Trứng Rồng"]["Tam Lôi"] = {
+      "Tên": "Tam Lôi", "Màu Sắc": "Bạc", "Nhiệt Độ": "Nóng Rực", "Tình Trạng": "Nứt Vỏ",
+      "Chủ Nhân": "Aegon Targaryen", "Nơi Ấp": "dragonstone", "Tiến Độ Ấp": 98, "Số Ngày Ấp": 3,
+      "Số Đầu Dự Kiến": 3, "Năng Lực Dự Kiến": "Lôi Tức", "Mô Tả": "Vỏ rung lên theo từng nhịp sét.",
+    };
+    tickDragonsDaily(s);
+    expect(s["Trứng Rồng"]["Tam Lôi"]).toBeUndefined();
+    expect(s["Rồng"]["Tam Lôi"]).toMatchObject({
+      "Kích Cỡ": "Mới Nở", "Số Đầu": 3, "Năng Lực Đặc Biệt": "Lôi Tức", "Sẵn Sàng Chiến Đấu": false,
+    });
   });
 
   it("mỗi tháng rồng ăn từ kho lãnh địa; kho cạn thì đói và quên lời kỵ sĩ", () => {

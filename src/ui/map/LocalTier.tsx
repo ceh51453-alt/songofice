@@ -4,15 +4,15 @@
  * Đây là tầng dữ liệu GỐC: đặt công trình ở đây thì khu dân cư ở Tầng 2 và cán
  * cân quyền lực ở Tầng 3 đổi theo (mapAggregate.ts).
  *
- * Ba công cụ trên cùng một mặt bản đồ:
+ * Bốn công cụ trên cùng một mặt bản đồ:
  *   XEM     — bấm vào công trình để đọc sổ nhân lực và sản lượng thật của nó.
  *   ĐẶT     — chọn loại công trình rồi bấm ô. Mỏ chỉ đặt được trên mạch tài nguyên.
  *   TƯỜNG   — bấm điểm, bấm điểm nữa, bấm tiếp… xong thì Đồng Ý. Chi phí và thời
  *             gian hiện ngay theo cấp và độ dài đã vạch. Tường là dữ liệu riêng
  *             nên nâng cấp Lâu Đài KHÔNG còn xoá mất bức tường cũ.
+ *   ĐƯỜNG    — quan lộ/ngõ nhỏ có sẵn; người chơi có thể xoá hoặc tự vạch thêm.
  *
- * Quan lộ chạy hết bản đồ chứ không dừng ở cổng thành (localTown.throughRoads),
- * và điểm tài nguyên lấy thẳng từ state để AI và bản đồ luôn nói cùng một chuyện.
+ * Điểm tài nguyên lấy thẳng từ state để AI và bản đồ luôn nói cùng một chuyện.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
@@ -25,7 +25,11 @@ import {
 } from "../../content/westeros/buildings";
 import { availableLabour, buildingLedgers, demolitionDays, planningRadiusCells, type BuildingLedger } from "../../territory/construction";
 import { analysePopulation, buildingDefense } from "../../territory/population";
-import { NODE_GRADE_LABEL, NODE_GRADE_MULT } from "../../territory/resourceNodes";
+import {
+  NODE_GRADE_LABEL, NODE_GRADE_MULT, nodeAreaKm2, nodeCapacity, nodeWorkers,
+  nodeContainsResource, nodeResources, pointInResourceCoverage,
+  RESOURCE_ZONE_COMPOSITION, RESOURCE_ZONE_TYPES, type ResourceZoneType,
+} from "../../territory/resourceNodes";
 import { planWall, WALL_MATERIALS_DEF, wallDefense, type WallPoint } from "../../territory/walls";
 import { TERRAIN_TRAITS } from "../../content/westeros/terrain";
 import {
@@ -43,6 +47,10 @@ import { IconX, IconAlert } from "../icons";
 
 /** Màu chấm điểm tài nguyên theo loại hàng khai thác được. */
 const NODE_COLOR: Record<string, string> = {
+  "Rừng Rậm": "#3f754d",
+  "Khoáng Sản": "#987b57",
+  "Sông Hồ": "#4e91b6",
+  "Biển Cả": "#326f9f",
   "Gỗ": "#4c7a52",
   "Đá": "#9a958c",
   "Quặng Sắt": "#a98a52",
@@ -59,6 +67,24 @@ const NODE_COLOR: Record<string, string> = {
   "Hắc Diện Thạch": "#6b4f8a",
 };
 const NODE_FALLBACK = "#8a8a8a";
+const ALL_RESOURCE_NAMES = [...new Set(
+  Object.values(RESOURCE_ZONE_COMPOSITION).flatMap((composition) => Object.keys(composition)),
+)];
+
+function resourceIcon(resource: string): string {
+  if (resource === "Rừng Rậm") return "♣";
+  if (resource === "Khoáng Sản") return "◆";
+  if (resource === "Sông Hồ") return "≋";
+  if (resource === "Biển Cả") return "⚓";
+  if (resource.includes("Gỗ")) return "♣";
+  if (resource.includes("Sắt") || resource.includes("Đồng") || resource.includes("Thiếc")) return "◆";
+  if (resource.includes("Than") || resource.includes("Thạch")) return "⬟";
+  if (resource.includes("Cá")) return "◈";
+  if (resource.includes("Lương") || resource.includes("Lanh")) return "♧";
+  if (resource.includes("Thảo") || resource.includes("Ong")) return "✤";
+  if (resource.includes("Da")) return "◇";
+  return "●";
+}
 
 /** Bảng màu công trình — mái/tường theo công năng, tránh một sắc vàng đều tăm tắp. */
 const BUILDING_SKIN: Record<BuildingType, { wall: string; roof: string }> = {
@@ -127,6 +153,11 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   const drawWall = useTerritoryStore((s) => s.drawWall);
   const raiseWall = useTerritoryStore((s) => s.raiseWall);
   const razeWall = useTerritoryStore((s) => s.razeWall);
+  const drawRoad = useTerritoryStore((s) => s.drawRoad);
+  const razeRoad = useTerritoryStore((s) => s.razeRoad);
+  const freezeAutoRoads = useTerritoryStore((s) => s.freezeAutoRoads);
+  const razeAutoRoad = useTerritoryStore((s) => s.razeAutoRoad);
+  const restoreAutoRoads = useTerritoryStore((s) => s.restoreAutoRoads);
   const holding = stat["Lãnh Địa"][holdingId];
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -141,6 +172,11 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   const [menuOpen, setMenuOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [resourcePanel, setResourcePanel] = useState(false);
+  const [showResourceCoverage, setShowResourceCoverage] = useState(true);
+  const [showResourceIcons, setShowResourceIcons] = useState(true);
+  const [visibleResourceZones, setVisibleResourceZones] = useState<ResourceZoneType[]>([...RESOURCE_ZONE_TYPES]);
+  const [visibleResourceTypes, setVisibleResourceTypes] = useState<string[]>([...ALL_RESOURCE_NAMES]);
 
   // ── công cụ vạch tường ──
   const [wallMode, setWallMode] = useState(false);
@@ -148,6 +184,12 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   const [wallMaterial, setWallMaterial] = useState<WallMaterial>("Đá");
   const [wallLevel, setWallLevel] = useState(1);
   const [wallPanel, setWallPanel] = useState(false);
+  // ── công cụ vạch đường thủ công ──
+  const [roadMode, setRoadMode] = useState(false);
+  const [roadPoints, setRoadPoints] = useState<WallPoint[]>([]);
+  const [roadKind, setRoadKind] = useState<"Đường Nhỏ" | "Đường Lớn">("Đường Nhỏ");
+  const [roadWidth, setRoadWidth] = useState(1);
+  const [roadPanel, setRoadPanel] = useState(false);
 
   const drag = useRef<{ x: number; y: number; tx: number; ty: number; moved: boolean } | null>(null);
 
@@ -159,12 +201,19 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   const expansionRadius = Math.max(0, radius - buildableRadiusCells(level));
   const buildings = holding?.["Công Trình"] ?? {};
   const walls = holding?.["Tường Thành"] ?? [];
+  const roads = holding?.["Đường Đi"] ?? [];
+  const frozenAutoRoads = holding?.["Đường Tự Động Cố Định"];
+  const deletedAutoRoads = holding?.["Đường Tự Động Đã Xoá"] ?? [];
   const stock = holding?.["Tài Nguyên"] ?? ({} as Record<string, number>);
   const demography = holding?.["Nhân Khẩu"];
   const region = REGIONS_BY_ID[holding?.["Thuộc Vùng"] ?? ""];
   const lore = loreOf(holdingId, holding);
   const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"];
   const seatProfile = seatProfileFor(holdingId, eraId);
+  const visibleResourceNodes = useMemo(() => nodes.filter((node) => (
+    visibleResourceZones.includes(node["Tài Nguyên"] as ResourceZoneType)
+    && Object.keys(nodeResources(node)).some((resource) => visibleResourceTypes.includes(resource))
+  )), [nodes, visibleResourceTypes, visibleResourceZones]);
 
   /** sổ dân cư + sổ sản xuất — cùng nguồn với engine chốt sổ tháng. */
   const population = useMemo(() => (holding ? analysePopulation(holding) : null), [holding]);
@@ -211,6 +260,54 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
     ),
     [terrain, buildings, radius, walls.length, lore, holdingId],
   );
+
+  const generatedAutomaticRoads = useMemo(() => [
+    ...town.throughRoads.map((road, index) => ({
+      id: autoRoadId("main", index, road.points),
+      label: road.name || (road.main ? `Quan lộ ${index + 1}` : `Đường lớn ${index + 1}`),
+      main: road.main,
+      kind: "Quan lộ" as const,
+      points: road.points,
+    })),
+    ...town.lanes.map((points, index) => ({
+      id: autoRoadId("lane", index, points),
+      label: `Ngõ nhỏ ${index + 1}`,
+      main: false,
+      kind: "Ngõ nhỏ" as const,
+      points,
+    })),
+  ], [town]);
+
+  const automaticRoads = useMemo(() => frozenAutoRoads !== undefined
+    ? frozenAutoRoads.map((road) => ({
+      id: road["Mã"],
+      label: road["Tên"],
+      main: road["Loại"] === "Đường Lớn" && road["Bề Rộng"] >= 3,
+      kind: road["Loại"] === "Đường Nhỏ" ? "Ngõ nhỏ" as const : "Quan lộ" as const,
+      points: road["Điểm"].map((point) => [point.x, point.y] as [number, number]),
+    }))
+    : generatedAutomaticRoads,
+  [frozenAutoRoads, generatedAutomaticRoads]);
+
+  // Chụp lại đúng mạng đường đang có. Sau lần này, công trình mới không còn
+  // làm townLayout bổ sung đường vào dữ liệu hiển thị.
+  useEffect(() => {
+    if (!holding || frozenAutoRoads !== undefined) return;
+    freezeAutoRoads(holdingId, generatedAutomaticRoads.map((road) => ({
+      "Mã": road.id,
+      "Tên": road.label,
+      "Loại": road.kind === "Ngõ nhỏ" ? "Đường Nhỏ" : "Đường Lớn",
+      "Điểm": road.points.map(([x, y]) => ({ x: Math.round(x), y: Math.round(y) })),
+      "Bề Rộng": road.kind === "Ngõ nhỏ" ? 1 : road.main ? 3 : 2,
+    })));
+  }, [freezeAutoRoads, frozenAutoRoads, generatedAutomaticRoads, holding, holdingId]);
+
+  const visibleAutomaticRoads = useMemo(
+    () => automaticRoads.filter((road) => !deletedAutoRoads.includes(road.id)),
+    [automaticRoads, deletedAutoRoads],
+  );
+  const visibleThroughRoads = visibleAutomaticRoads.filter((road) => road.kind === "Quan lộ");
+  const visibleLanes = visibleAutomaticRoads.filter((road) => road.kind === "Ngõ nhỏ");
 
   /** nhân công còn rảnh — quyết định có khởi công được không, ngang với vật tư. */
   const freeLabour = useMemo(
@@ -280,11 +377,10 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       ctx.stroke();
     }
 
-    // 3. QUAN LỘ — vẽ TRƯỚC lớp tối vùng ngoài quy hoạch, vì đường cái chạy hết
-    //    bản đồ chứ không dừng ở ranh giới đất mình
-    drawPath(ctx, town.throughRoads.filter((r) => r.main).map((r) => r.points), scale, "rgba(20,17,13,0.32)", Math.max(1.6, 17 * scale));
-    drawPath(ctx, town.throughRoads.filter((r) => r.main).map((r) => r.points), scale, "rgba(190,172,136,0.78)", Math.max(1.2, 12 * scale));
-    drawPath(ctx, town.throughRoads.filter((r) => !r.main).map((r) => r.points), scale, "rgba(168,152,120,0.55)", Math.max(0.9, 8 * scale));
+    // 3. QUAN LỘ — chạy xuyên bản đồ nên được vẽ trước lớp tối ngoài quy hoạch.
+    drawPath(ctx, visibleThroughRoads.filter((road) => road.main).map((road) => road.points), scale, "rgba(20,17,13,0.32)", Math.max(1.6, 17 * scale));
+    drawPath(ctx, visibleThroughRoads.filter((road) => road.main).map((road) => road.points), scale, "rgba(190,172,136,0.78)", Math.max(1.2, 12 * scale));
+    drawPath(ctx, visibleThroughRoads.filter((road) => !road.main).map((road) => road.points), scale, "rgba(168,152,120,0.55)", Math.max(0.9, 8 * scale));
 
     // 4. ngoài vùng quy hoạch = đất hoang chưa khai phá, tối đi
     ctx.save();
@@ -302,22 +398,34 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 5. ngõ nhỏ trong thành (quan lộ đã vẽ liền mạch ở bước 3)
-    drawPath(ctx, town.lanes, scale, "rgba(150,136,110,0.5)", Math.max(0.7, 4 * scale));
+    // 5. NGÕ NHỎ trong thành.
+    drawPath(ctx, visibleLanes.map((road) => road.points), scale, "rgba(150,136,110,0.5)", Math.max(0.7, 4 * scale));
 
-    // 6. cầu — chỉ ở chỗ đường thật sự vượt sông
+    // 6. CẦU — chỉ giữ cầu còn nằm trên ít nhất một tuyến đang hiện.
+    const activePaths = visibleAutomaticRoads.map((road) => road.points);
     for (const br of town.bridges) {
+      if (!activePaths.some((path) => distanceToPolyline(br.at, path) <= Math.max(10, br.width))) continue;
       ctx.save();
       ctx.translate(br.at[0] * scale, br.at[1] * scale);
       ctx.rotate(br.angle);
-      const L = br.span * scale * 1.1;
-      const W = br.width * scale;
+      const length = br.span * scale * 1.1;
+      const width = br.width * scale;
       ctx.fillStyle = "rgba(140,132,118,0.92)";
-      ctx.fillRect(-L / 2, -W / 2, L, W);
+      ctx.fillRect(-length / 2, -width / 2, length, width);
       ctx.strokeStyle = "rgba(40,36,30,0.7)";
       ctx.lineWidth = Math.max(0.6, 1.2 * scale);
-      ctx.strokeRect(-L / 2, -W / 2, L, W);
+      ctx.strokeRect(-length / 2, -width / 2, length, width);
       ctx.restore();
+    }
+
+    // ĐƯỜNG THỦ CÔNG — vẽ các tuyến người chơi đã xác nhận.
+    for (const road of roads) {
+      const path = road["Điểm"].map((point) => [point.x, point.y] as [number, number]);
+      const small = road["Loại"] === "Đường Nhỏ";
+      const outerWidth = small ? 2.2 + road["Bề Rộng"] * 1.5 : 8 + road["Bề Rộng"] * 5;
+      const innerWidth = small ? 1.2 + road["Bề Rộng"] : 5 + road["Bề Rộng"] * 4;
+      drawPath(ctx, [path], scale, "rgba(25,20,15,0.42)", Math.max(small ? 0.9 : 1.8, outerWidth * scale));
+      drawPath(ctx, [path], scale, small ? "rgba(156,140,111,0.76)" : "rgba(185,164,124,0.82)", Math.max(small ? 0.65 : 1.2, innerWidth * scale));
     }
 
     // 7. TƯỜNG THÀNH do người chơi vạch — mỗi tuyến giữ đúng hình đã vẽ, không
@@ -365,7 +473,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       for (const gate of town.gates) drawCityGate(ctx, gate.at[0] * scale, gate.at[1] * scale, gate.angle, scale, gate.main);
     }
 
-    // 8. tuyến đang vạch dở — nét vàng bám theo con trỏ
+    // tuyến tường đang vạch dở — nét vàng bám theo con trỏ
     if (wallMode && wallPoints.length > 0) {
       const pts = hover ? [...wallPoints, { x: hover.x, y: hover.y }] : wallPoints;
       ctx.beginPath();
@@ -384,13 +492,44 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       }
     }
 
-    // 9. TÊN QUAN LỘ — đặt NẰM DỌC trên chính con đường, ngoài tường thành,
-    //    xoay theo hướng đường tại chỗ đó. Trước đây nhãn ghim ở cổng nên nó
-    //    trôi lơ lửng cạnh một con đường khác.
+    // tuyến đường đang vạch dở — màu đất sáng, tách khỏi tường thành.
+    if (roadMode && roadPoints.length > 0) {
+      const pts = hover ? [...roadPoints, { x: hover.x, y: hover.y }] : roadPoints;
+      drawPath(
+        ctx,
+        [pts.map((point) => [point.x, point.y] as [number, number])],
+        scale,
+        "rgba(231,194,126,0.95)",
+        roadKind === "Đường Nhỏ"
+          ? Math.max(0.8, (1.5 + roadWidth) * scale)
+          : Math.max(1.4, (5 + roadWidth * 4) * scale),
+      );
+    }
+
+    // Tên quan lộ và đường thủ công đặt dọc theo chính tuyến.
     if (scale > 0.1) {
-      for (const road of town.throughRoads) {
-        if (!road.name) continue;
+      for (const road of visibleThroughRoads) {
+        if (!road.label || road.label.startsWith("Quan lộ ") || road.label.startsWith("Đường lớn ")) continue;
         const spot = pointAlong(road.points, radius * 1.25);
+        if (!spot) continue;
+        const [px, py, ang] = spot;
+        ctx.save();
+        ctx.translate(px * scale, py * scale);
+        let angle = ang;
+        if (angle > Math.PI / 2 || angle < -Math.PI / 2) angle += Math.PI;
+        ctx.rotate(angle);
+        ctx.font = `${road.main ? 14 : 12}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = "rgba(8,10,14,0.9)";
+        ctx.strokeText(road.label, 0, -Math.max(7, 9 * scale));
+        ctx.fillStyle = road.main ? "#e8d9a8" : "rgba(220,210,186,0.85)";
+        ctx.fillText(road.label, 0, -Math.max(7, 9 * scale));
+        ctx.restore();
+      }
+      for (const road of roads) {
+        const path = road["Điểm"].map((point) => [point.x, point.y] as [number, number]);
+        const spot = pointAlong(path, Math.max(20, pathLength(path) * 0.42));
         if (!spot) continue;
         const [px, py, ang] = spot;
         ctx.save();
@@ -398,48 +537,67 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
         let a = ang;
         if (a > Math.PI / 2 || a < -Math.PI / 2) a += Math.PI; // giữ chữ không lộn ngược
         ctx.rotate(a);
-        ctx.font = `${road.main ? 14 : 12}px sans-serif`;
+        ctx.font = `${11 + road["Bề Rộng"]}px sans-serif`;
         ctx.textAlign = "center";
         ctx.lineWidth = 3.5;
         ctx.strokeStyle = "rgba(8,10,14,0.9)";
-        ctx.strokeText(road.name, 0, -Math.max(7, 9 * scale));
-        ctx.fillStyle = road.main ? "#e8d9a8" : "rgba(220,210,186,0.85)";
-        ctx.fillText(road.name, 0, -Math.max(7, 9 * scale));
+        ctx.strokeText(road["Tên"], 0, -Math.max(7, 9 * scale));
+        ctx.fillStyle = "rgba(232,216,180,0.9)";
+        ctx.fillText(road["Tên"], 0, -Math.max(7, 9 * scale));
         ctx.restore();
       }
       ctx.textAlign = "left";
     }
 
-    // 10. ĐIỂM TÀI NGUYÊN — bậc trữ lượng quyết định độ đậm và số vòng
-    for (const n of nodes) {
+    // 10. VÙNG TÀI NGUYÊN — đa giác bám địa mạo, không còn vòng tròn phình lấn
+    for (const n of visibleResourceNodes) {
       if (!n["Đã Khám Phá"]) continue;
       const nx = n["Tọa Độ X"] * scale;
       const ny = n["Tọa Độ Y"] * scale;
-      if (nx < -tx - 40 || ny < -ty - 40 || nx > w - tx + 40 || ny > h - ty + 40) continue;
+      const margin = n["Kích Thước"] * scale + 40;
+      if (nx < -tx - margin || ny < -ty - margin || nx > w - tx + margin || ny > h - ty + margin) continue;
       const grade = n["Trữ Lượng"];
-      const r = Math.max(2.5, (n["Kích Thước"] * scale) / 2);
       const color = NODE_COLOR[n["Tài Nguyên"]] ?? NODE_FALLBACK;
+      const coverage = n["Vùng Bao Phủ"] ?? [];
 
-      ctx.globalAlpha = grade <= 0 ? 0.28 : 0.55 + grade * 0.15;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(nx, ny, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
       const picked = selectedNode === n["Mã"];
-      ctx.strokeStyle = picked
-        ? "#ffd76a"
-        : n["Công Trình"] ? "rgba(255,215,106,0.9)" : "rgba(0,0,0,0.55)";
-      ctx.lineWidth = picked ? 3 : n["Công Trình"] ? 2 : 1;
-      ctx.stroke();
-      // vòng ngoài đếm bậc: giàu 3 vòng, khá 2, nghèo 1, cạn không vòng nào
-      for (let g = 1; g <= grade; g++) {
-        ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1;
+      const workers = nodeWorkers(n);
+      if (showResourceCoverage) {
+        ctx.globalAlpha = grade <= 0 ? 0.14 : 0.14 + grade * 0.08;
+        ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(nx, ny, r + g * Math.max(2, 3 * scale), 0, Math.PI * 2);
+        if (coverage.length >= 3) {
+          ctx.moveTo(coverage[0].x * scale, coverage[0].y * scale);
+          for (let i = 1; i < coverage.length; i++) ctx.lineTo(coverage[i].x * scale, coverage[i].y * scale);
+          ctx.closePath();
+        } else {
+          ctx.arc(nx, ny, Math.max(2.5, n["Kích Thước"] * scale), 0, Math.PI * 2);
+        }
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = picked
+          ? "#ffd76a"
+          : workers.length > 0 ? "rgba(255,215,106,0.82)" : color;
+        ctx.lineWidth = picked ? 3 : workers.length > 0 ? 1.8 : 1;
+        ctx.setLineDash(picked ? [] : [Math.max(3, 10 * scale), Math.max(2, 7 * scale)]);
         ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // icon neo ở tâm giúp nhận dạng loại tài nguyên nhưng không che địa hình.
+      if (showResourceIcons && scale > 0.12) {
+        ctx.globalAlpha = grade <= 0 ? 0.4 : 0.88;
+        ctx.fillStyle = "rgba(8,10,14,0.72)";
+        ctx.beginPath();
+        ctx.arc(nx, ny, Math.max(7, 11 * scale), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.font = `${Math.max(9, 13 * scale)}px serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(resourceIcon(n["Tài Nguyên"]), nx, ny + 0.5);
+        ctx.textAlign = "left";
+        ctx.textBaseline = "alphabetic";
       }
       ctx.globalAlpha = 1;
     }
@@ -468,7 +626,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
         drawSite(ctx, bx, by, bs, def.footprint, progress, b["Loại"], scale);
       } else {
         if (landmarkName) drawLandmark(ctx, landmarkName, visualX, visualY, visualSize, landmarkGroup);
-        else drawBuilding(ctx, bx, by, bs, b["Loại"], b["Tọa Độ X"] + b["Tọa Độ Y"]);
+        else drawBuildingIcon(ctx, bx, by, bs, b["Loại"]);
         // thiếu người thì công trình mờ đi và có gạch chéo — nhìn là biết ngay
         const ratio = ledgerByName[name]?.staffing ?? 1;
         if (ratio < 0.95) {
@@ -508,8 +666,10 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
 
     ctx.restore();
   }, [
-    size, view, terrain, backdrop, town, buildings, walls, nodes, selected, selectedNode,
-    placing, hover, hoverCheck, radius, wallMode, wallPoints, wallLevel, ledgerByName,
+    size, view, terrain, backdrop, town, buildings, walls, roads, visibleResourceNodes, selected, selectedNode,
+    visibleAutomaticRoads, visibleThroughRoads, visibleLanes,
+    placing, hover, hoverCheck, radius, wallMode, wallPoints, wallLevel, roadMode, roadPoints, roadKind, roadWidth, ledgerByName,
+    showResourceCoverage, showResourceIcons,
   ]);
 
   // ── tương tác ──
@@ -562,7 +722,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       if (d.moved) setView((v) => ({ ...v, tx: d.tx + dx, ty: d.ty + dy }));
       return;
     }
-    if (!placing && !wallMode) return;
+    if (!placing && !wallMode && !roadMode) return;
     const cell = toCell(e.clientX, e.clientY);
     if (cell) setHover(cell);
   };
@@ -579,6 +739,10 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
     // VẠCH TƯỜNG: mỗi lần bấm là thêm một điểm gãy vào tuyến
     if (wallMode) {
       setWallPoints((p) => [...p, { x: cell.x, y: cell.y }]);
+      return;
+    }
+    if (roadMode) {
+      setRoadPoints((points) => [...points, { x: cell.x, y: cell.y }]);
       return;
     }
 
@@ -605,10 +769,10 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
     const grab = Math.max(10, 14 / Math.max(0.05, view.scale));
     let best: string | null = null;
     let bestD = Infinity;
-    for (const n of nodes) {
+    for (const n of visibleResourceNodes) {
       if (!n["Đã Khám Phá"]) continue;
       const d = Math.hypot(n["Tọa Độ X"] - cell.x, n["Tọa Độ Y"] - cell.y);
-      if (d <= n["Kích Thước"] + grab && d < bestD) { bestD = d; best = n["Mã"]; }
+      if ((pointInResourceCoverage(n, cell.x, cell.y) || d <= grab) && d < bestD) { bestD = d; best = n["Mã"]; }
     }
     setSelected(null);
     setSelectedNode(best);
@@ -620,6 +784,8 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
     setCustom(null);
     setWallMode(false);
     setWallPoints([]);
+    setRoadMode(false);
+    setRoadPoints([]);
     setHover(null);
   };
 
@@ -632,6 +798,19 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
       setHover(null);
     } else {
       setNotice(r.error ?? "Không dựng được tuyến này");
+    }
+  };
+
+  const commitRoad = () => {
+    const result = drawRoad(holdingId, roadPoints, { width: roadWidth, kind: roadKind });
+    if (result.ok) {
+      setNotice(`Đã mở ${roadKind.toLocaleLowerCase("vi-VN")} dài ${Math.round(roadPolylineLength(roadPoints) * LOCAL_CELL_M).toLocaleString("vi-VN")} m.`);
+      setRoadPoints([]);
+      setRoadMode(false);
+      setRoadPanel(false);
+      setHover(null);
+    } else {
+      setNotice(result.error ?? "Không mở được tuyến đường này");
     }
   };
 
@@ -648,11 +827,10 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   const selNode = selectedNode ? nodes.find((n) => n["Mã"] === selectedNode) ?? null : null;
   /** công trình nào khai thác được loại tài nguyên đang chọn. */
   const nodeUsers = selNode
-    ? BUILDABLE_LIST.filter((d) => d.requiresNode?.includes(selNode["Tài Nguyên"]))
+    ? BUILDABLE_LIST.filter((d) => d.requiresNode?.some((resource) => nodeContainsResource(selNode, resource)))
     : [];
-  const nodeWorker = selNode?.["Công Trình"]
-    ? ledgerByName[selNode["Công Trình"]] ?? null
-    : null;
+  const selectedNodeWorkers = selNode ? nodeWorkers(selNode) : [];
+  const nodeWorkerLedgers = selectedNodeWorkers.map((name) => ledgerByName[name]).filter(Boolean);
   const hoverTerrain = hover ? terrainAtCell(terrain, hover.x, hover.y) : null;
   const presentTerrains = Object.entries(TERRAIN_TRAITS).filter(([t]) => terrain.grid.includes(t as never));
   const totalWallDefense = wallDefense(holding);
@@ -681,10 +859,22 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
           )}
         </div>
         <div className="flex flex-none items-center gap-2">
+          <button
+            onClick={() => {
+              resetTools();
+              setMenuOpen(false);
+              setWallPanel(false);
+              setRoadPanel(false);
+              setResourcePanel((open) => !open);
+            }}
+            className={`rounded-md px-3 py-1.5 text-[12px] ${resourcePanel ? "bg-[var(--accent-soft)] text-[var(--accent-text)]" : "bg-[rgba(255,255,255,0.06)] text-[var(--text-soft)]"} hover:bg-[var(--glass-bg-hover)]`}
+          >
+            Tài nguyên
+          </button>
           {isOwner ? (
             <>
               <button
-                onClick={() => { resetTools(); setMenuOpen((v) => !v); setWallPanel(false); setNotice(null); }}
+                onClick={() => { resetTools(); setMenuOpen((v) => !v); setWallPanel(false); setRoadPanel(false); setResourcePanel(false); setNotice(null); }}
                 className={`rounded-md px-3 py-1.5 text-[12px] ${menuOpen ? "bg-[var(--accent-soft)] text-[var(--accent-text)]" : "bg-[rgba(255,255,255,0.06)] text-[var(--text-soft)]"} hover:bg-[var(--glass-bg-hover)]`}
               >
                 Xây công trình
@@ -693,6 +883,8 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
                 onClick={() => {
                   resetTools();
                   setMenuOpen(false);
+                  setRoadPanel(false);
+                  setResourcePanel(false);
                   setWallPanel(true);
                   setWallMode(true);
                   setNotice("Bấm từng điểm trên bản đồ để vạch tuyến tường, xong thì bấm Đồng Ý.");
@@ -700,6 +892,20 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
                 className={`rounded-md px-3 py-1.5 text-[12px] ${wallMode ? "bg-[var(--accent-soft)] text-[var(--accent-text)]" : "bg-[rgba(255,255,255,0.06)] text-[var(--text-soft)]"} hover:bg-[var(--glass-bg-hover)]`}
               >
                 Tường thành
+              </button>
+              <button
+                onClick={() => {
+                  resetTools();
+                  setMenuOpen(false);
+                  setWallPanel(false);
+                  setResourcePanel(false);
+                  setRoadPanel(true);
+                  setRoadMode(true);
+                  setNotice("Bấm từng điểm để tự vạch đường, xong thì bấm Đồng Ý.");
+                }}
+                className={`rounded-md px-3 py-1.5 text-[12px] ${roadMode ? "bg-[var(--accent-soft)] text-[var(--accent-text)]" : "bg-[rgba(255,255,255,0.06)] text-[var(--text-soft)]"} hover:bg-[var(--glass-bg-hover)]`}
+              >
+                Đường đi
               </button>
             </>
           ) : (
@@ -720,13 +926,101 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
           ref={canvasRef}
           width={size.w}
           height={size.h}
-          className={`h-full w-full touch-none ${placing || wallMode ? "cursor-crosshair" : "cursor-grab"}`}
+          className={`h-full w-full touch-none ${placing || wallMode || roadMode ? "cursor-crosshair" : "cursor-grab"}`}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerLeave={() => { drag.current = null; if (!wallMode) setHover(null); }}
+          onPointerLeave={() => { drag.current = null; if (!wallMode && !roadMode) setHover(null); }}
           onContextMenu={(e) => e.preventDefault()}
         />
+
+        {/* ── BỘ LỌC VÙNG VÀ SẢN VẬT ── */}
+        {resourcePanel && (
+          <div className="glass-strong anim-in absolute left-3 top-3 max-h-[calc(100%-24px)] w-[330px] overflow-y-auto rounded-[var(--radius-md)] p-3 text-[12px]">
+            <div className="mb-2 flex items-center justify-between border-b border-[var(--glass-border)] pb-2">
+              <span className="font-display text-[12.5px] tracking-wide text-[var(--accent-text)]">HIỂN THỊ TÀI NGUYÊN</span>
+              <button onClick={() => setResourcePanel(false)} className="text-[var(--text-faint)] hover:text-[var(--text-soft)]">
+                <IconX size={14} />
+              </button>
+            </div>
+
+            <div className="mb-2 grid grid-cols-2 gap-1.5 rounded bg-[rgba(0,0,0,0.24)] p-2">
+              <label className="flex cursor-pointer items-center gap-2 text-[11px] text-[var(--text-soft)]">
+                <input type="checkbox" checked={showResourceCoverage} onChange={(event) => setShowResourceCoverage(event.target.checked)} />
+                Vùng bao phủ
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-[11px] text-[var(--text-soft)]">
+                <input type="checkbox" checked={showResourceIcons} onChange={(event) => setShowResourceIcons(event.target.checked)} />
+                Biểu tượng
+              </label>
+            </div>
+
+            <div className="mb-2 flex gap-1.5">
+              <button
+                onClick={() => { setVisibleResourceZones([...RESOURCE_ZONE_TYPES]); setVisibleResourceTypes([...ALL_RESOURCE_NAMES]); }}
+                className="rounded bg-[var(--accent-soft)] px-2 py-1 text-[10.5px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
+              >
+                Chọn tất cả
+              </button>
+              <button
+                onClick={() => { setVisibleResourceZones([]); setVisibleResourceTypes([]); setSelectedNode(null); }}
+                className="rounded bg-[rgba(255,255,255,0.05)] px-2 py-1 text-[10.5px] text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]"
+              >
+                Bỏ tất cả
+              </button>
+            </div>
+
+            {RESOURCE_ZONE_TYPES.map((zone) => {
+              const zoneChecked = visibleResourceZones.includes(zone);
+              const composition = RESOURCE_ZONE_COMPOSITION[zone];
+              const zoneCount = nodes.filter((node) => node["Tài Nguyên"] === zone).length;
+              return (
+                <div key={zone} className="mb-2 rounded border border-[var(--glass-border)] bg-[rgba(0,0,0,0.18)] p-2">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={zoneChecked}
+                      onChange={() => setVisibleResourceZones((zones) => (
+                        zones.includes(zone) ? zones.filter((item) => item !== zone) : [...zones, zone]
+                      ))}
+                    />
+                    <span className="h-2.5 w-2.5 rounded-sm" style={{ background: NODE_COLOR[zone] ?? NODE_FALLBACK }} />
+                    <span className="flex-1 font-medium text-[var(--text-soft)]">{zone}</span>
+                    <span className="font-mono text-[10.5px] text-[var(--text-faint)]">{zoneCount} vùng</span>
+                  </label>
+                  <div className="mt-1.5 space-y-1 border-t border-[var(--glass-border)] pt-1.5">
+                    {Object.entries(composition).map(([resource, share]) => {
+                      const extractors = BUILDABLE_LIST
+                        .filter((definition) => definition.requiresNode?.includes(resource))
+                        .map((definition) => definition.type);
+                      return (
+                        <label key={resource} className="flex cursor-pointer items-start gap-2 text-[10.5px]">
+                          <input
+                            className="mt-0.5"
+                            type="checkbox"
+                            checked={visibleResourceTypes.includes(resource)}
+                            onChange={() => setVisibleResourceTypes((resources) => (
+                              resources.includes(resource)
+                                ? resources.filter((item) => item !== resource)
+                                : [...resources, resource]
+                            ))}
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="text-[var(--text-soft)]">{resource}</span>
+                            <span className="ml-1 font-mono text-[var(--accent-text)]">{Math.round(share * 100)}%</span>
+                            <span className={`block truncate ${extractors.length > 0 ? "text-[var(--text-faint)]" : "text-[var(--danger)]"}`}>
+                              {extractors.length > 0 ? `Khai thác: ${extractors.join(" / ")}` : "Chưa có công trình khai thác"}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* chú giải địa hình */}
         <div className="glass-strong absolute bottom-3 left-3 flex max-w-[52%] flex-wrap gap-x-3 gap-y-1 p-2.5">
@@ -744,6 +1038,123 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
           <div className="mb-1 h-[3px] rounded-sm bg-[var(--text-faint)]" style={{ width: 80 }} />
           {Math.round((80 / view.scale) * LOCAL_CELL_M)} m
         </div>
+
+        {/* ── BẢNG VẠCH ĐƯỜNG THỦ CÔNG ── */}
+        {roadPanel && isOwner && (
+          <div className="glass-strong anim-in absolute right-3 top-3 max-h-[calc(100%-24px)] w-[300px] overflow-y-auto rounded-[var(--radius-md)] p-3 text-[12px]">
+            <div className="mb-2 flex items-center justify-between border-b border-[var(--glass-border)] pb-2">
+              <span className="font-display text-[12.5px] tracking-wide text-[var(--accent-text)]">VẠCH ĐƯỜNG ĐI</span>
+              <button
+                onClick={() => { setRoadPanel(false); setRoadMode(false); setRoadPoints([]); }}
+                className="text-[var(--text-faint)] hover:text-[var(--text-soft)]"
+              >
+                <IconX size={14} />
+              </button>
+            </div>
+            <p className="mb-2 text-[11px] italic text-[var(--text-faint)]">
+              Mạng quan lộ và ngõ hiện tại được giữ cố định. Công trình xây mới sẽ không tự sinh thêm đường.
+            </p>
+            <div className="mb-2">
+              <div className="mb-1 text-[11px] text-[var(--text-faint)]">Loại đường</div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {(["Đường Nhỏ", "Đường Lớn"] as const).map((kind) => (
+                  <button
+                    key={kind}
+                    onClick={() => setRoadKind(kind)}
+                    className={`rounded px-2 py-1.5 text-[11.5px] ${roadKind === kind
+                      ? "bg-[var(--accent-soft)] text-[var(--accent-text)]"
+                      : "bg-[rgba(255,255,255,0.06)] text-[var(--text-soft)] hover:bg-[var(--glass-bg-hover)]"}`}
+                  >
+                    {kind}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-[11px] text-[var(--text-faint)]">Cỡ đường</span>
+              <input
+                type="range" min={1} max={3} value={roadWidth}
+                onChange={(event) => setRoadWidth(Number(event.target.value))}
+                className="flex-1"
+              />
+              <span className="w-6 text-right font-mono text-[var(--accent-text)]">{roadWidth}</span>
+            </div>
+            <div className="mb-2 rounded bg-[rgba(0,0,0,0.28)] p-2">
+              <Row label="Số điểm đã bấm" value={String(roadPoints.length)} />
+              <Row
+                label="Chiều dài"
+                value={`${Math.round(roadPolylineLength(roadPoints) * LOCAL_CELL_M).toLocaleString("vi-VN")} m`}
+              />
+            </div>
+            <div className="flex gap-1.5">
+              <button
+                disabled={roadPoints.length < 2}
+                onClick={commitRoad}
+                className="flex-1 rounded bg-[var(--accent-soft)] px-2 py-1.5 text-[12px] text-[var(--accent-text)] disabled:cursor-not-allowed disabled:opacity-40 hover:bg-[var(--glass-bg-hover)]"
+              >
+                Đồng ý
+              </button>
+              <button
+                disabled={roadPoints.length === 0}
+                onClick={() => setRoadPoints((points) => points.slice(0, -1))}
+                className="rounded bg-[rgba(255,255,255,0.06)] px-2 py-1.5 text-[12px] text-[var(--text-soft)] disabled:opacity-40 hover:bg-[var(--glass-bg-hover)]"
+              >
+                Lùi 1 điểm
+              </button>
+            </div>
+            {roads.length > 0 && (
+              <div className="mt-3 border-t border-[var(--glass-border)] pt-2">
+                <div className="mb-1 text-[10.5px] uppercase tracking-widest text-[var(--text-faint)]">Tuyến đã xây</div>
+                {roads.map((road) => (
+                  <div key={road["Mã"]} className="mb-1 flex items-center gap-1.5 text-[11px]">
+                    <span className="min-w-0 flex-1 truncate text-[var(--text-soft)]">
+                      {road["Loại"]} · {road["Tên"]} · {Math.round(roadPolylineLength(road["Điểm"]) * LOCAL_CELL_M).toLocaleString("vi-VN")} m
+                    </span>
+                    <button
+                      onClick={() => razeRoad(holdingId, road["Mã"])}
+                      className="rounded px-1.5 py-0.5 text-[10.5px] text-[var(--danger)] hover:bg-[var(--glass-bg-hover)]"
+                    >
+                      Xoá
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {automaticRoads.length > 0 && (
+              <div className="mt-3 border-t border-[var(--glass-border)] pt-2">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="text-[10.5px] uppercase tracking-widest text-[var(--text-faint)]">Đường có sẵn</span>
+                  {deletedAutoRoads.length > 0 && (
+                    <button
+                      onClick={() => restoreAutoRoads(holdingId)}
+                      className="rounded px-1.5 py-0.5 text-[10.5px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
+                    >
+                      Khôi phục tất cả
+                    </button>
+                  )}
+                </div>
+                {automaticRoads.map((road) => {
+                  const deleted = deletedAutoRoads.includes(road.id);
+                  return (
+                    <div key={road.id} className="mb-1 flex items-center gap-1.5 text-[11px]">
+                      <span className={`min-w-0 flex-1 truncate ${deleted ? "line-through text-[var(--text-faint)]" : "text-[var(--text-soft)]"}`}>
+                        {road.kind} · {road.label} · {Math.round(pathLength(road.points) * LOCAL_CELL_M).toLocaleString("vi-VN")} m
+                      </span>
+                      {!deleted && (
+                        <button
+                          onClick={() => razeAutoRoad(holdingId, road.id)}
+                          className="rounded px-1.5 py-0.5 text-[10.5px] text-[var(--danger)] hover:bg-[var(--glass-bg-hover)]"
+                        >
+                          Xoá
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── BẢNG VẠCH TƯỜNG ── */}
         {wallPanel && isOwner && (
@@ -910,7 +1321,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
                         const shortLab = LABOUR_LIST.filter((k) => (need[k] ?? 0) > freeLabour[k]);
                         const coastBlocked = def.requiresCoastal && !holding["Ven Biển"];
                         const nodeAvailable = !def.requiresNode
-                          || nodes.some((n) => def.requiresNode!.includes(n["Tài Nguyên"]) && n["Trữ Lượng"] > 0);
+                          || nodes.some((n) => def.requiresNode!.some((resource) => nodeContainsResource(n, resource)) && n["Trữ Lượng"] > 0);
                         const usable = shortRes.length === 0 && shortLab.length === 0 && !coastBlocked && nodeAvailable;
                         return (
                           <button
@@ -970,7 +1381,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
                               {`${def.footprint * LOCAL_CELL_M} × ${def.footprint * LOCAL_CELL_M} m`}
                               {def.overrideTerrain ? ` · DỰNG ĐƯỢC trên ${def.overrideTerrain.join(" / ")}` : ""}
                               {def.terrain && !def.overrideTerrain ? ` · cần ${def.terrain.join(" / ")}` : ""}
-                              {def.requiresNode ? ` · phải đè lên mạch ${def.requiresNode.join(" / ")}` : ""}
+                              {def.requiresNode ? ` · phải nằm trong vùng có ${def.requiresNode.join(" / ")}` : ""}
                               {def.nearWater ? " · sát mép nước" : ""}
                               {coastBlocked ? " · lãnh địa không giáp biển" : ""}
                               {!nodeAvailable ? " · lãnh địa chưa tìm ra mạch nào" : ""}
@@ -1026,7 +1437,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
         )}
 
         {/* ── SỔ CỦA MỘT CÔNG TRÌNH: tên · sản xuất · nhân lực · sản lượng ── */}
-        {selBuilding && !selNode && !placing && !wallMode && (
+        {selBuilding && !selNode && !placing && !wallMode && !roadMode && (
           <div className="glass-strong anim-in absolute left-3 top-3 w-[268px] rounded-[var(--radius-md)] p-3.5 text-[12.5px]">
             <div className="mb-2 flex items-start justify-between border-b border-[var(--glass-border)] pb-2">
               <span className="font-display text-[14px] text-[var(--accent-text)]">
@@ -1123,7 +1534,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
                 {selLedger.node && (
                   <div className="mt-2 rounded bg-[rgba(0,0,0,0.28)] p-2 text-[11px]">
                     <div className="text-[var(--accent-text)]">
-                      Mạch {selLedger.node["Tài Nguyên"]} — {NODE_GRADE_LABEL[selLedger.node["Trữ Lượng"]]}
+                      Vùng {selLedger.node["Tài Nguyên"]} — {NODE_GRADE_LABEL[selLedger.node["Trữ Lượng"]]}
                     </div>
                     <div className="text-[var(--text-faint)]">
                       Còn {selLedger.node["Còn Lại"].toLocaleString("vi-VN")} đơn vị ở bậc này
@@ -1179,11 +1590,11 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
         )}
 
         {/* ── SỔ MỘT ĐIỂM TÀI NGUYÊN ── */}
-        {selNode && !placing && !wallMode && (
+        {selNode && !placing && !wallMode && !roadMode && (
           <div className="glass-strong anim-in absolute left-3 top-3 w-[252px] rounded-[var(--radius-md)] p-3.5 text-[12.5px]">
             <div className="mb-2 flex items-start justify-between border-b border-[var(--glass-border)] pb-2">
               <span className="font-display text-[14px] text-[var(--accent-text)]">
-                Mạch {selNode["Tài Nguyên"]}
+                Vùng {selNode["Tài Nguyên"]}
               </span>
               <button onClick={() => setSelectedNode(null)} className="text-[var(--text-faint)] hover:text-[var(--text-soft)]">
                 <IconX size={14} />
@@ -1219,47 +1630,60 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
             <Row label="Còn lại ở bậc này" value={selNode["Còn Lại"].toLocaleString("vi-VN")} />
             <Row label="Hệ số sản lượng" value={`×${(NODE_GRADE_MULT[selNode["Trữ Lượng"]] ?? 0).toFixed(2)}`} />
             <Row label="Toạ độ ô" value={`(${selNode["Tọa Độ X"]}, ${selNode["Tọa Độ Y"]})`} />
-            <Row label="Bán kính mạch" value={`${selNode["Kích Thước"] * LOCAL_CELL_M} m`} />
+            <Row label="Diện tích vùng" value={`${nodeAreaKm2(selNode).toFixed(2)} km²`} />
+            <Row label="Sức chứa khai thác" value={`${selectedNodeWorkers.length}/${nodeCapacity(selNode)} công trình`} />
             <Row label="Địa hình" value={TERRAIN_TRAITS[terrainAtCell(terrain, selNode["Tọa Độ X"], selNode["Tọa Độ Y"])].label} />
 
             <div className="mt-2 border-t border-[var(--glass-border)] pt-2">
-              {selNode["Công Trình"] ? (
+              <div className="mb-1 text-[10.5px] uppercase tracking-widest text-[var(--text-faint)]">Sản vật bên trong</div>
+              {Object.entries(nodeResources(selNode))
+                .sort((a, b) => b[1] - a[1])
+                .map(([resource, share]) => (
+                  <div key={resource} className="mb-0.5 flex items-center gap-2 text-[11px]">
+                    <span className="min-w-0 flex-1 truncate text-[var(--text-soft)]">{resource}</span>
+                    <span className="font-mono text-[var(--accent-text)]">{Math.round(share * 100)}%</span>
+                  </div>
+                ))}
+            </div>
+
+            <div className="mt-2 border-t border-[var(--glass-border)] pt-2">
+              {selectedNodeWorkers.length > 0 ? (
                 <>
                   <div className="text-[11.5px] text-[var(--text-soft)]">
-                    Đang khai thác bởi <span className="text-[var(--accent-text)]">{selNode["Công Trình"]}</span>
+                    Đang khai thác bởi <span className="text-[var(--accent-text)]">{selectedNodeWorkers.join(", ")}</span>
                   </div>
-                  {nodeWorker && (
-                    <div className="mt-0.5 text-[11px] text-[var(--text-faint)]">
+                  {nodeWorkerLedgers.map((nodeWorker) => (
+                    <div key={nodeWorker.name} className="mt-0.5 text-[11px] text-[var(--text-faint)]">
                       Nhân lực {nodeWorker.haveTotal}/{nodeWorker.needTotal}
                       {Object.entries(nodeWorker.produce).map(([k, v]) => (
                         <span key={k} className="ml-1.5 text-[var(--ok)]">+{v} {k}/tháng</span>
                       ))}
                     </div>
-                  )}
+                  ))}
                 </>
               ) : selNode["Trữ Lượng"] <= 0 ? (
                 <p className="text-[11.5px] italic text-[var(--danger)]">
-                  Mạch đã cạn — không còn gì để đào lên nữa.
+                  Vùng đã cạn — không còn sản vật để thu hoạch.
                 </p>
               ) : nodeUsers.length > 0 ? (
                 <p className="text-[11.5px] italic text-[var(--text-faint)]">
-                  Chưa ai động tới. Dựng {nodeUsers.map((d) => d.type).join(" hoặc ")} đè lên đây
+                  Chưa ai khai thác. Dựng {nodeUsers.map((d) => d.type).join(" hoặc ")} trong vùng này
                   để khai thác.
                 </p>
               ) : (
                 <p className="text-[11.5px] italic text-[var(--text-faint)]">
-                  Chưa có công trình nào khai thác được loại này.
+                  Chưa có công trình phù hợp với các sản vật trong vùng này.
                 </p>
               )}
             </div>
 
-            {isOwner && nodeUsers.length > 0 && selNode["Trữ Lượng"] > 0 && !selNode["Công Trình"] && (
+            {isOwner && nodeUsers.length > 0 && selNode["Trữ Lượng"] > 0 && selectedNodeWorkers.length < nodeCapacity(selNode) && (
               <button
                 onClick={() => {
                   setSelectedNode(null);
                   setMenuOpen(false);
                   setPlacing(nodeUsers[0].type);
-                  setNotice(`Đặt ${nodeUsers[0].type} đè lên mạch ${selNode["Tài Nguyên"]}.`);
+                  setNotice(`Đặt ${nodeUsers[0].type} trong vùng ${selNode["Tài Nguyên"]}.`);
                 }}
                 className="mt-2 w-full rounded bg-[var(--accent-soft)] px-2 py-1.5 text-[12px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
               >
@@ -1270,7 +1694,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
         )}
 
         {/* ── TÓM TẮT DÂN CƯ ── */}
-        {population && !selBuilding && !selNode && !menuOpen && !wallPanel && !customOpen && (
+        {population && !selBuilding && !selNode && !menuOpen && !wallPanel && !roadPanel && !resourcePanel && !customOpen && (
           <div className="glass-strong absolute left-3 top-3 w-[240px] rounded-[var(--radius-md)] p-3 text-[12px]">
             <div className="mb-1.5 text-[10.5px] uppercase tracking-widest text-[var(--text-faint)]">Dân cư</div>
             <Row label="Dân số" value={population.population.toLocaleString("vi-VN")} />
@@ -1478,6 +1902,42 @@ function CustomBuildingEditor({
  * Điểm nằm cách đầu polyline `dist` ô, kèm góc của đoạn chứa nó. Dùng để đặt
  * nhãn NẰM TRÊN con đường thay vì thả nổi bên cạnh.
  */
+function pathLength(pts: [number, number][]): number {
+  let total = 0;
+  for (let i = 0; i < pts.length - 1; i++) total += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+  return total;
+}
+
+/** Mã tuyến ổn định qua các lần mở bản đồ để thao tác xoá được lưu trong save. */
+function autoRoadId(kind: "main" | "lane", index: number, pts: [number, number][]): string {
+  let hash = 2166136261;
+  for (const [x, y] of pts) {
+    hash = Math.imul(hash ^ Math.round(x * 10), 16777619);
+    hash = Math.imul(hash ^ Math.round(y * 10), 16777619);
+  }
+  return `auto-${kind}-${index}-${(hash >>> 0).toString(36)}`;
+}
+
+function distanceToPolyline(point: [number, number], pts: [number, number][]): number {
+  let best = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i];
+    const [bx, by] = pts[i + 1];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const lenSq = dx * dx + dy * dy;
+    const t = lenSq > 0
+      ? Math.max(0, Math.min(1, ((point[0] - ax) * dx + (point[1] - ay) * dy) / lenSq))
+      : 0;
+    best = Math.min(best, Math.hypot(point[0] - (ax + dx * t), point[1] - (ay + dy * t)));
+  }
+  return best;
+}
+
+function roadPolylineLength(pts: WallPoint[]): number {
+  return pathLength(pts.map((point) => [point.x, point.y]));
+}
+
 function pointAlong(pts: [number, number][], dist: number): [number, number, number] | null {
   let run = 0;
   for (let i = 0; i < pts.length - 1; i++) {
@@ -1632,68 +2092,48 @@ function drawLandmark(ctx: CanvasRenderingContext2D, name: string, x: number, y:
   ctx.restore();
 }
 
-/** Công trình đã xong — phác dáng theo công năng, không phải ô vuông tô màu. */
-function drawBuilding(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, type: BuildingType, salt: number): void {
+/** Icon bản đồ nhất quán, thay khối kiến trúc vuông khó đọc ở mức zoom xa. */
+function drawBuildingIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, type: BuildingType): void {
   const skin = BUILDING_SKIN[type] ?? { wall: "#8d8778", roof: "#5c5f6b" };
+  const cx = x + s / 2;
+  const cy = y + s / 2;
+  const radius = Math.max(4, s * 0.46);
   ctx.save();
-  // bóng đổ nhẹ cho khối nổi lên khỏi mặt đất
-  ctx.fillStyle = "rgba(8,10,14,0.35)";
-  ctx.fillRect(x + s * 0.04, y + s * 0.06, s, s);
-
-  if (type === "Nông Trại") {
-    // ruộng: luống cày chạy chéo, bờ đất bao quanh
-    ctx.fillStyle = "#6d6a3c";
-    ctx.fillRect(x, y, s, s);
-    ctx.strokeStyle = "rgba(60,52,30,0.55)";
-    ctx.lineWidth = Math.max(0.5, s * 0.012);
-    const rows = 9;
-    for (let i = 1; i < rows; i++) {
-      ctx.beginPath();
-      ctx.moveTo(x, y + (s * i) / rows);
-      ctx.lineTo(x + s, y + (s * i) / rows - s * 0.06);
-      ctx.stroke();
-    }
-    ctx.strokeStyle = skin.roof;
-    ctx.lineWidth = Math.max(0.8, s * 0.03);
-    ctx.strokeRect(x, y, s, s);
-    ctx.restore();
-    return;
-  }
-
-  if (type === "Lâu Đài") {
-    // pháo đài: sân trong + tháp bốn góc + tháp canh chính
-    ctx.fillStyle = skin.wall;
-    ctx.fillRect(x, y, s, s);
-    ctx.fillStyle = "rgba(30,32,38,0.35)";
-    ctx.fillRect(x + s * 0.2, y + s * 0.2, s * 0.6, s * 0.6);
-    ctx.fillStyle = skin.roof;
-    const t = s * 0.2;
-    for (const [ox, oy] of [[0, 0], [s - t, 0], [0, s - t], [s - t, s - t]]) ctx.fillRect(x + ox, y + oy, t, t);
-    ctx.fillRect(x + s * 0.38, y + s * 0.34, s * 0.24, s * 0.32);
-    ctx.strokeStyle = "rgba(20,20,24,0.7)";
-    ctx.lineWidth = Math.max(0.8, s * 0.02);
-    ctx.strokeRect(x, y, s, s);
-    ctx.restore();
-    return;
-  }
-
-  // còn lại: cụm nhà nhỏ lệch nhau trong khuôn viên
+  ctx.fillStyle = "rgba(6,8,11,0.42)";
+  ctx.beginPath();
+  ctx.arc(cx + Math.max(1, s * 0.035), cy + Math.max(1, s * 0.045), radius * 1.06, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = skin.wall;
-  ctx.fillRect(x, y, s, s);
-  ctx.fillStyle = skin.roof;
-  const n = type === "Chợ" ? 4 : type === "Doanh Trại" ? 3 : 2;
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      const jitter = ((salt + i * 7 + j * 13) % 5) / 20;
-      const cw = (s / n) * (0.58 + jitter);
-      const ch = (s / n) * (0.5 + jitter);
-      ctx.fillRect(x + (s / n) * i + (s / n) * 0.15, y + (s / n) * j + (s / n) * 0.18, cw, ch);
-    }
-  }
-  ctx.strokeStyle = "rgba(20,20,24,0.6)";
-  ctx.lineWidth = Math.max(0.7, s * 0.02);
-  ctx.strokeRect(x, y, s, s);
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = skin.roof;
+  ctx.lineWidth = Math.max(1, s * 0.045);
+  ctx.stroke();
+  ctx.fillStyle = "rgba(22,20,18,0.88)";
+  ctx.font = `600 ${Math.max(8, s * 0.52)}px serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(buildingMapIcon(type), cx, cy + s * 0.025);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
   ctx.restore();
+}
+
+function buildingMapIcon(type: BuildingType): string {
+  if (type === "Lâu Đài" || type.includes("Pháo Đài")) return "♜";
+  if (type.includes("Nông") || type.includes("Ruộng") || type.includes("Nho")) return "♧";
+  if (type.includes("Mỏ") || type === "Xưởng Cưa") return "⚒";
+  if (type.includes("Cảng") || type.includes("Bến") || type.includes("Tàu")) return "⚓";
+  if (type.includes("Ngựa") || type.includes("Chăn Nuôi")) return "♞";
+  if (type.includes("Sept") || type.includes("Học Viện")) return "✦";
+  if (type.includes("Doanh Trại") || type.includes("Vũ Khí") || type.includes("Nỏ")) return "⚔";
+  if (type.includes("Chợ") || type.includes("Quán")) return "¤";
+  if (type.includes("Nhà") || type.includes("Phố")) return "⌂";
+  if (type.includes("Kho")) return "▣";
+  if (type.includes("Cầu") || type.includes("Đê")) return "⌒";
+  if (type.includes("Tháp") || type.includes("Mốc")) return "△";
+  return "✥";
 }
 
 /**

@@ -15,8 +15,11 @@ import type { Dragon } from "../mvu/schema";
 import type { RNG } from "../probability/rng";
 
 const SIZE_POWER: Record<Dragon["Kích Cỡ"], number> = {
+  "Mới Nở": 0.02,
+  "Ấu Long": 0.07,
   "Non": 0.15,
   "Trưởng Thành": 0.55,
+  "Cổ Long": 0.82,
   "Khổng Lồ (Balerion-class)": 1.1,
 };
 const STATUS_MULT: Record<Dragon["Tình Trạng"], number> = { "Khỏe": 1.0, "Bị Thương": 0.4, "Kiệt Sức": 0.2, "Đang Hồi Phục": 0.1 };
@@ -46,6 +49,14 @@ export function dragonQuality(d: Dragon): number {
 
   // đói cồn cào thì bất trị
   if ((d["Độ Đói"] ?? 0) >= 80) q *= 0.75;
+  // Nhiều đầu cho phép quan sát và tấn công nhiều hướng, nhưng được giữ ở mức
+  // vừa phải để rồng ba đầu không tự động thắng mọi cuộc không chiến.
+  q *= 1 + (Math.max(1, d["Số Đầu"] ?? 1) - 1) * 0.16;
+  const powerBonus: Partial<Record<NonNullable<Dragon["Năng Lực Đặc Biệt"]>, number>> = {
+    "Hỏa Ngục": 0.18, "Băng Diệm": 0.13, "Lôi Tức": 0.15, "Độc Vụ": 0.1,
+    "Ảnh Diệm": 0.08, "Long Uy": 0.12, "Tái Sinh": 0.08,
+  };
+  q *= 1 + (d["Năng Lực Đặc Biệt"] ? powerBonus[d["Năng Lực Đặc Biệt"]] ?? 0 : 0);
   return Math.max(0.15, q);
 }
 
@@ -67,7 +78,8 @@ export function dragonSideFactor(dragons: Dragon[]): number {
 /** Rồng khoẻ đủ lớn → đốt cổng thành, bỏ qua biến tường thành khi vây (7.15/12.2). */
 export function dragonBurnsGate(dragons: Dragon[]): boolean {
   return dragons.some(
-    (d) => d["_HP"] > 0 && d["Tình Trạng"] === "Khỏe" && d["Kích Cỡ"] !== "Non" && !d["Đang Bị Xích"],
+    (d) => d["_HP"] > 0 && d["Tình Trạng"] === "Khỏe" &&
+      ["Trưởng Thành", "Cổ Long", "Khổng Lồ (Balerion-class)"].includes(d["Kích Cỡ"]) && !d["Đang Bị Xích"],
   );
 }
 

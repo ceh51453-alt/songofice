@@ -77,6 +77,16 @@ describe("Rồng là thực thể, không phải hệ số", () => {
     expect(storm.damage).toBeLessThan(clear.damage);
   });
 
+  it("năng lực huyết mạch tạo hiệu ứng chiến đấu riêng", () => {
+    const normalSnow = dragonBreath(makeRng(3), bd(), "Bão Tuyết");
+    const frostSnow = dragonBreath(makeRng(3), bd({ specialPower: "Băng Diệm" }), "Bão Tuyết");
+    expect(frostSnow.damage).toBeGreaterThan(normalSnow.damage);
+
+    const normalRoar = dragonBreath(makeRng(9), bd(), "Trời Quang");
+    const dreadRoar = dragonBreath(makeRng(9), bd({ specialPower: "Long Uy" }), "Trời Quang");
+    expect(dreadRoar.moraleShock).toBeGreaterThan(normalRoar.moraleShock);
+  });
+
   it("rồng bị thương và mất máu thì yếu hẳn", () => {
     const healthy = bd();
     const hurt = bd({ hp: 300, wounded: true });

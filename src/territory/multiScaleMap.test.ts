@@ -153,7 +153,8 @@ describe("Tầng 1 — địa hình là hình chiếu tất định của vùng 
       expect(allowed || waterside).toBe(true);
       expect(n["Trữ Lượng"]).toBeGreaterThanOrEqual(0);
       expect(n["Trữ Lượng"]).toBeLessThanOrEqual(3);
-      expect(isWater(t)).toBe(false);
+      const waterZone = n["Tài Nguyên"] === "Sông Hồ" || n["Tài Nguyên"] === "Biển Cả";
+      expect(isWater(t)).toBe(waterZone);
     }
   });
 });
@@ -806,7 +807,8 @@ describe("Tường thành vạch tay (M18)", () => {
 
     const node = s["Lãnh Địa"]["the-north-seat"]["Điểm Tài Nguyên"][0];
     const walls = s["Lãnh Địa"]["the-north-seat"]["Tường Thành"];
-    expect(overlapsWallReserve(walls, node["Tọa Độ X"], node["Tọa Độ Y"], node["Kích Thước"])).toBe(false);
+    expect(overlapsWallReserve(walls, node["Tọa Độ X"], node["Tọa Độ Y"], 10)).toBe(false);
+    expect(node["Vùng Bao Phủ"].every((point) => !overlapsWallReserve(walls, point.x, point.y, 5))).toBe(true);
     expect([node["Tọa Độ X"], node["Tọa Độ Y"]]).not.toEqual([C, C - 130]);
   });
 

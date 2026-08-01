@@ -11,7 +11,7 @@
  * lớn sức mạnh và cần nhiều tháng nằm ổ. Cỗ máy giữ số; AI kể chuyện.
  */
 import type { StatData, Dragon, DragonSize } from "../mvu/schema";
-import { DRAGON_SIZE_HP, DRAGON_STATS } from "../mvu/schema";
+import { DRAGON_SIZE_HP, DRAGON_SIZES, DRAGON_STATS } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import { registerDailyListener, registerMonthlyListener } from "../mvu/effects";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
@@ -37,7 +37,11 @@ export interface DragonTamingContext {
 
 /** Rồng càng lớn, già và hung dữ càng khó để tạo liên kết. */
 export function dragonTamingDifficulty(d: Dragon): number {
-  const size = d["Kích Cỡ"] === "Khổng Lồ (Balerion-class)" ? 30 : d["Kích Cỡ"] === "Trưởng Thành" ? 16 : 0;
+  const sizePenalty: Record<DragonSize, number> = {
+    "Mới Nở": -12, "Ấu Long": -7, "Non": 0, "Trưởng Thành": 16,
+    "Cổ Long": 24, "Khổng Lồ (Balerion-class)": 30,
+  };
+  const size = sizePenalty[d["Kích Cỡ"]] ?? 0;
   const age = Math.min(20, Math.floor((d["Tuổi"] ?? 1) / 8));
   const traits = d["Đặc Tính"] ?? [];
   const temperament = (traits.includes("Hung Dữ") ? 12 : 0)
@@ -158,20 +162,30 @@ export function attemptDragonTaming(
 
 /** Ngưỡng TUỔI để rồng lên kích cỡ kế tiếp (7.15 mở rộng). */
 export const DRAGON_GROWTH_AGE: Record<DragonSize, number> = {
-  "Non": 0,
+  "Mới Nở": 0,
+  "Ấu Long": 2,
+  "Non": 6,
   "Trưởng Thành": 16,
+  "Cổ Long": 60,
   "Khổng Lồ (Balerion-class)": 100,
 };
 
 /** Sải cánh (mét) theo kích cỡ + tuổi — chỉ để lời kể có thước đo thật. */
 export function wingspanOf(d: Dragon): number {
-  const base = d["Kích Cỡ"] === "Khổng Lồ (Balerion-class)" ? 40 : d["Kích Cỡ"] === "Trưởng Thành" ? 18 : 4;
-  return Math.round(base + Math.min(40, (d["Tuổi"] ?? 1) * 0.25));
+  const base: Record<DragonSize, number> = {
+    "Mới Nở": 1, "Ấu Long": 2, "Non": 5, "Trưởng Thành": 18,
+    "Cổ Long": 30, "Khổng Lồ (Balerion-class)": 42,
+  };
+  return Math.round((base[d["Kích Cỡ"]] ?? 5) + Math.min(36, (d["Tuổi"] ?? 1) * 0.18));
 }
 
 /** Số gia súc rồng ngốn mỗi tháng. */
 export function monthlyRation(d: Dragon): number {
-  const base = d["Kích Cỡ"] === "Khổng Lồ (Balerion-class)" ? 90 : d["Kích Cỡ"] === "Trưởng Thành" ? 35 : 8;
+  const ration: Record<DragonSize, number> = {
+    "Mới Nở": 2, "Ấu Long": 4, "Non": 8, "Trưởng Thành": 35,
+    "Cổ Long": 62, "Khổng Lồ (Balerion-class)": 90,
+  };
+  const base = ration[d["Kích Cỡ"]] ?? 8;
   return Math.round(base * (1 + (d["Chỉ Số"]?.["Hung Dữ"] ?? 5) / 40));
 }
 
@@ -200,6 +214,8 @@ export function newDragon(fields: Partial<Dragon> = {}): Dragon {
     "_HP Tối Đa": hpMax,
     "Màu Sắc": "Đen",
     "Tuổi": 1,
+    "Số Đầu": 1,
+    "Năng Lực Đặc Biệt": undefined,
     "Chỉ Số": stats,
     "Kỹ Năng": {},
     "Mô Tả": "",
@@ -245,7 +261,8 @@ export function battleReadyDragonEntries(state: StatData): [string, Dragon][] {
       d["Sẵn Sàng Chiến Đấu"] !== false &&
       !d["Đang Bị Xích"] &&
       d["Ngày Hồi Phục Còn Lại"] <= 0 &&
-      d["Tình Trạng"] !== "Đang Hồi Phục",
+      d["Tình Trạng"] !== "Đang Hồi Phục" &&
+      d["Kích Cỡ"] !== "Mới Nở" && d["Kích Cỡ"] !== "Ấu Long",
   );
 }
 
@@ -259,7 +276,8 @@ export function battleReadyDragons(state: StatData): Dragon[] {
         d["Sẵn Sàng Chiến Đấu"] !== false &&
         !d["Đang Bị Xích"] &&
         d["Ngày Hồi Phục Còn Lại"] <= 0 &&
-        d["Tình Trạng"] !== "Đang Hồi Phục",
+        d["Tình Trạng"] !== "Đang Hồi Phục" &&
+        d["Kích Cỡ"] !== "Mới Nở" && d["Kích Cỡ"] !== "Ấu Long",
     );
 }
 
@@ -322,9 +340,11 @@ export function feedDragon(state: StatData, dragonKey: string, territoryId: stri
 
 /** Kích cỡ đúng theo tuổi — rồng nuôi tốt thì lớn, không ai "nâng cấp" bằng nút bấm. */
 export function sizeForAge(age: number): DragonSize {
-  if (age >= DRAGON_GROWTH_AGE["Khổng Lồ (Balerion-class)"]) return "Khổng Lồ (Balerion-class)";
-  if (age >= DRAGON_GROWTH_AGE["Trưởng Thành"]) return "Trưởng Thành";
-  return "Non";
+  for (let i = DRAGON_SIZES.length - 1; i >= 0; i -= 1) {
+    const size = DRAGON_SIZES[i];
+    if (age >= DRAGON_GROWTH_AGE[size]) return size;
+  }
+  return "Mới Nở";
 }
 
 export function tickDragonsDaily(state: StatData): void {
@@ -354,6 +374,42 @@ export function tickDragonsDaily(state: StatData): void {
 
     // đói dần: cơn đói là đồng hồ đếm ngược của sự ngoan ngoãn
     d["Độ Đói"] = Math.min(100, (d["Độ Đói"] ?? 0) + 1);
+    if (d["Năng Lực Đặc Biệt"] === "Tái Sinh" && d["_HP"] < d["_HP Tối Đa"]) {
+      d["_HP"] = Math.min(d["_HP Tối Đa"], d["_HP"] + Math.max(1, Math.round(d["_HP Tối Đa"] / 100)));
+    }
+  }
+
+  // Trứng chỉ tiến triển khi thực sự được ấp. Quả đã nứt vỏ nở rất nhanh;
+  // trứng hóa đá/ngủ yên được bảo toàn cho tới khi diễn biến trong truyện làm
+  // thay đổi trạng thái hoặc nhiệt độ.
+  for (const [eggKey, egg] of Object.entries(state["Trứng Rồng"] ?? {})) {
+    if (egg["Tình Trạng"] !== "Đang Ấp" && egg["Tình Trạng"] !== "Nứt Vỏ") continue;
+    const gain = egg["Tình Trạng"] === "Nứt Vỏ" ? 10 : egg["Nhiệt Độ"] === "Nóng Rực" ? 2 : 1;
+    egg["Số Ngày Ấp"] = (egg["Số Ngày Ấp"] ?? 0) + 1;
+    egg["Tiến Độ Ấp"] = Math.min(100, (egg["Tiến Độ Ấp"] ?? 0) + gain);
+    if (egg["Tiến Độ Ấp"] < 100) continue;
+
+    const hatchlingName = egg["Tên"] || eggKey;
+    const owner = egg["Chủ Nhân"];
+    state["Rồng"][hatchlingName] = newDragon({
+      "Tên": hatchlingName,
+      "Kích Cỡ": "Mới Nở",
+      "Màu Sắc": egg["Màu Sắc"],
+      "Tuổi": 0,
+      "Số Đầu": egg["Số Đầu Dự Kiến"],
+      "Năng Lực Đặc Biệt": egg["Năng Lực Dự Kiến"],
+      "Nhà": String(playerHouseId(state) ?? ""),
+      "Đồn Trú": egg["Nơi Ấp"] ?? "",
+      "Nơi Ổ": egg["Nơi Ấp"] || undefined,
+      "Trạng Thái Thu Phục": "Đang Cảm Hóa",
+      "Mức Độ Thuần Hóa": owner ? 70 : 0,
+      "Độ Hảo Cảm": owner ? { [owner]: 80 } : {},
+      "Sẵn Sàng Chiến Đấu": false,
+      "Mô Tả": `Vừa nở từ ${eggKey}; còn non nớt và chưa thể cưỡi.`,
+    });
+    delete state["Trứng Rồng"][eggKey];
+    state["Thế Giới"]["_Tin Nóng Off-screen"] =
+      `${hatchlingName} đã phá vỏ chào đời — một rồng con ${egg["Số Đầu Dự Kiến"]} đầu màu ${egg["Màu Sắc"]}.`;
   }
 }
 
@@ -363,10 +419,11 @@ export function tickDragonsMonthly(state: StatData): void {
 
     // lớn theo tuổi — CHỈ lớn lên, không bao giờ teo lại: một con rồng nguyên
     // tác đã trưởng thành mà bảng ghi tuổi nhỏ thì vẫn là rồng trưởng thành
-    const order: DragonSize[] = ["Non", "Trưởng Thành", "Khổng Lồ (Balerion-class)"];
+    const order: readonly DragonSize[] = DRAGON_SIZES;
     const size = sizeForAge(d["Tuổi"] ?? 1);
     if (order.indexOf(size) > order.indexOf(d["Kích Cỡ"])) {
       d["Kích Cỡ"] = size;
+      if (order.indexOf(size) >= order.indexOf("Non")) d["Sẵn Sàng Chiến Đấu"] = true;
       state["Thế Giới"]["_Tin Nóng Off-screen"] =
         `${d["Tên"]} đã lớn thành ${size} — sải cánh phủ kín sân thành.`;
     }

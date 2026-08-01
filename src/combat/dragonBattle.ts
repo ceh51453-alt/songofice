@@ -38,6 +38,8 @@ export interface BattleDragon {
   name: string;
   rider?: string;
   size: Dragon["Kích Cỡ"];
+  heads: number;
+  specialPower?: Dragon["Năng Lực Đặc Biệt"];
   /** sức chiến đấu quy đổi (combat/dragon.dragonPower). */
   power: number;
   hp: number;
@@ -59,6 +61,8 @@ export function makeBattleDragon(key: string, d: Dragon, altitude: DragonAltitud
     name: d["Tên"] || key,
     rider: d["Kỵ Sĩ"] || undefined,
     size: d["Kích Cỡ"],
+    heads: d["Số Đầu"] ?? 1,
+    specialPower: d["Năng Lực Đặc Biệt"],
     power: dragonPower(d),
     hp: d["_HP"],
     maxHp: Math.max(1, d["_HP Tối Đa"]),
@@ -86,8 +90,11 @@ export function effectivePower(d: BattleDragon): number {
 
 /** Số vòng phải chờ giữa hai lần khạc lửa — rồng càng lớn càng lâu nạp. */
 const BREATH_COOLDOWN: Record<Dragon["Kích Cỡ"], number> = {
+  "Mới Nở": 1,
+  "Ấu Long": 1,
   "Non": 1,
   "Trưởng Thành": 2,
+  "Cổ Long": 2,
   "Khổng Lồ (Balerion-class)": 2,
 };
 
@@ -135,10 +142,16 @@ export function dragonBreath(
   const altF = d.altitude === "Thấp" ? 1.0 : 0.4;
   const wx = WEATHER_FIRE[weather] ?? 1;
   const roll = 0.8 + rng() * 0.4;
-  const base = effectivePower(d) * 900 * altF * wx * roll;
+  const specialF = d.specialPower === "Băng Diệm" && (weather === "Bão Tuyết" || weather === "Mưa Lớn") ? 1.45
+    : d.specialPower === "Lôi Tức" && weather === "Mưa Lớn" ? 1.35
+      : d.specialPower === "Độc Vụ" && !opts.vsWall ? 1.12
+        : d.specialPower === "Hỏa Ngục" && opts.vsWall ? 1.25
+          : 1;
+  const base = effectivePower(d) * 900 * altF * wx * roll * specialF;
   // tường đá không cháy như hàng quân — lửa rồng phá cổng và tháp, không phá đá
   const damage = Math.round(opts.vsWall ? base * 0.45 : base);
-  const moraleShock = Math.round((d.altitude === "Thấp" ? 22 : 9) * (0.6 + effectivePower(d)));
+  const moraleShock = Math.round((d.altitude === "Thấp" ? 22 : 9) * (0.6 + effectivePower(d)) *
+    (d.specialPower === "Long Uy" ? 1.5 : d.specialPower === "Ảnh Diệm" ? 1.25 : 1));
 
   d.breathCooldown = BREATH_COOLDOWN[d.size] ?? 2;
 
@@ -147,8 +160,8 @@ export function dragonBreath(
     damage,
     moraleShock,
     log: d.altitude === "Thấp"
-      ? `🔥 ${d.name} sà xuống sát ngọn giáo và quét một vệt lửa dọc hàng quân — ${damage} người thành tro.`
-      : `🔥 ${d.name} thả lửa từ trên cao; phần lớn rơi vào đất trống, ${damage} người trúng.`,
+      ? `🔥 ${d.name}${d.heads > 1 ? ` đồng loạt há ${d.heads} miệng` : ""} sà xuống sát ngọn giáo và quét ${d.specialPower ? `hơi thở ${d.specialPower}` : "một vệt lửa"} dọc hàng quân — ${damage} người gục xuống.`
+      : `🔥 ${d.name} thả ${d.specialPower ? `hơi thở ${d.specialPower}` : "lửa"} từ trên cao; phần lớn rơi vào đất trống, ${damage} người trúng.`,
   };
 }
 
@@ -156,8 +169,11 @@ export function dragonBreath(
 
 /** Rồng càng to càng dễ trúng — mục tiêu lớn hơn, xoay chậm hơn. */
 const SIZE_HIT_BONUS: Record<Dragon["Kích Cỡ"], number> = {
+  "Mới Nở": -0.12,
+  "Ấu Long": -0.09,
   "Non": -0.06,
   "Trưởng Thành": 0.0,
+  "Cổ Long": 0.04,
   "Khổng Lồ (Balerion-class)": 0.07,
 };
 
