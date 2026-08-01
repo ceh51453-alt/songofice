@@ -81,6 +81,70 @@ export const HOUSE_COLORS: Record<string, HouseColor> = {
   pirates: { base: "#4f5550", light: "#7d857f", label: "Xám Hải Tặc" },
   "free-folk": { base: "#59645d", light: "#87948b", label: "Xám Dân Tự Do" },
   "night-watch": { base: "#252a2d", light: "#596166", label: "Đen Tuần Đêm" },
+
+  // ── CHƯ HẦU WESTEROS ──────────────────────────────────────────────────
+  // Bắc
+  karstark: { base: "#4a4a50", light: "#7a7a82", label: "Xám Mặt Trời" },
+  umber: { base: "#7a4520", light: "#a87048", label: "Cam Khổng Lồ" },
+  mormont: { base: "#2e5030", light: "#5a8a5e", label: "Lục Đảo Gấu" },
+  manderly: { base: "#2a6080", light: "#5a90b0", label: "Lam Cá Nhân Ngư" },
+  glover: { base: "#5a2828", light: "#8a5555", label: "Đỏ Bàn Tay Sắt" },
+  reed: { base: "#405040", light: "#708070", label: "Xám Xanh Đầm Lầy" },
+  dustin: { base: "#604820", light: "#907848", label: "Vàng Rìu" },
+  tallhart: { base: "#406030", light: "#70a060", label: "Lục Lính Canh" },
+  // Quần Đảo Sắt
+  harlaw: { base: "#404048", light: "#707078", label: "Xám Lưỡi Hái" },
+  goodbrother: { base: "#504020", light: "#806848", label: "Vàng Sừng" },
+  drumm: { base: "#602020", light: "#904848", label: "Đỏ Xương" },
+  blacktyde: { base: "#204050", light: "#487080", label: "Xanh Sóng Đen" },
+  // Thung Lũng
+  grafton: { base: "#706020", light: "#a09048", label: "Vàng Tháp" },
+  corbray: { base: "#582020", light: "#884848", label: "Đỏ Quạ" },
+  sunderland: { base: "#305060", light: "#588090", label: "Lam Ba Chị Em" },
+  waynwood: { base: "#305030", light: "#588058", label: "Lục Bánh Xe" },
+  hunter: { base: "#585020", light: "#888048", label: "Nâu Mũi Tên" },
+  // Vùng Sông
+  mallister: { base: "#483060", light: "#785888", label: "Tím Đại Bàng" },
+  whent: { base: "#505020", light: "#808048", label: "Vàng Dơi" },
+  mooton: { base: "#704030", light: "#a06858", label: "Đỏ Cá" },
+  blackwood: { base: "#303030", light: "#606060", label: "Đen Cây Tâm" },
+  darry: { base: "#584830", light: "#887858", label: "Nâu Darry" },
+  // Vùng Tây
+  lefford: { base: "#385878", light: "#6088a8", label: "Lam Răng Vàng" },
+  westerling: { base: "#706848", light: "#a09878", label: "Cát Vỏ Sò" },
+  crakehall: { base: "#484030", light: "#787058", label: "Nâu Lợn Rừng" },
+  farman: { base: "#305068", light: "#588098", label: "Lam Buồm" },
+  marbrand: { base: "#704820", light: "#a07848", label: "Cam Lửa" },
+  // Đất Vương Thất
+  celtigar: { base: "#703030", light: "#a05858", label: "Đỏ Cua" },
+  stokeworth: { base: "#585858", light: "#888888", label: "Xám Chuông" },
+  rykker: { base: "#304050", light: "#587080", label: "Lam Búa" },
+  sunglass: { base: "#707040", light: "#a0a068", label: "Vàng Mặt Trời" },
+  // Reach
+  redwyne: { base: "#582040", light: "#884868", label: "Tím Nho" },
+  tarly: { base: "#305020", light: "#588048", label: "Lục Thợ Săn" },
+  rowan: { base: "#605820", light: "#908848", label: "Vàng Sồi" },
+  oakheart: { base: "#405820", light: "#688848", label: "Lục Lá Sồi" },
+  florent: { base: "#604020", light: "#906848", label: "Cam Cáo" },
+  caswell: { base: "#585830", light: "#888858", label: "Vàng Centaur" },
+  crane: { base: "#305058", light: "#588088", label: "Lam Hạc" },
+  // Vùng Bão
+  connington: { base: "#682020", light: "#984848", label: "Đỏ Ưng" },
+  tarth: { base: "#306068", light: "#589098", label: "Lam Sapphire" },
+  dondarrion: { base: "#402058", light: "#684888", label: "Tím Sét" },
+  swann: { base: "#383838", light: "#686868", label: "Đen Trắng Thiên Nga" },
+  penrose: { base: "#584820", light: "#887848", label: "Vàng Quill" },
+  estermont: { base: "#205048", light: "#488078", label: "Lục Rùa" },
+  wylde: { base: "#304048", light: "#587078", label: "Xám Bão" },
+  // Dorne
+  dayne: { base: "#483060", light: "#785888", label: "Tím Sao Rơi" },
+  fowler: { base: "#405060", light: "#688090", label: "Lam Ưng Fowler" },
+  uller: { base: "#704820", light: "#a07848", label: "Cam Thằn Lằn" },
+  manwoody: { base: "#404038", light: "#706860", label: "Xám Sọ" },
+  blackmont: { base: "#303020", light: "#606048", label: "Đen Kền Kền" },
+  toland: { base: "#585820", light: "#888848", label: "Vàng Rồng Tròn" },
+  wyl: { base: "#404020", light: "#686848", label: "Vàng Rắn" },
+
   "vô-chủ": { base: "#4a4a4a", light: "#707070", label: "Vô Chủ / Tranh Chấp" },
 };
 

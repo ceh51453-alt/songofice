@@ -95,14 +95,20 @@ describe("registry địa lý thế giới", () => {
 describe("chủ quyền và trọng trấn theo thời kỳ", () => {
   it("trải controller lịch sử xuống mọi tỉnh con Westeros", () => {
     const aegon = regionControlForEra("aegon-conquest");
+    // aegon-conquest → year -2 (trước chinh phục): Bảy Vương Quốc còn độc lập
     for (const region of regionsForMacro("macro-the-north")) expect(aegon[region.id]).toBe("stark");
     for (const region of regionsForMacro("macro-reach")) expect(aegon[region.id]).toBe("gardener");
     for (const region of regionsForMacro("macro-stormlands")) expect(aegon[region.id]).toBe("durrandon");
-    for (const region of regionsForMacro("macro-crownlands")) expect(aegon[region.id]).toBe("");
+    // Trước chinh phục: khu vực Crownlands do Darklyn kiểm soát (chưa có KL)
+    // Dragonstone: Targaryen, Driftmark: Velaryon
+    expect(aegon["the-crownlands"]).toBe("darklyn");
+    expect(aegon["crownlands-dragonstone"]).toBe("targaryen");
+    expect(aegon["crownlands-driftmark"]).toBe("velaryon");
   });
 
   it("Crownlands đổi triều đại, còn King's Landing ẩn trước khi tồn tại", () => {
-    expect(regionControlForEra("war-of-five-kings")["the-crownlands"]).toBe("baratheon");
+    // WotFK: Lannister cầm quyền qua Joffrey (danh nghĩa Baratheon nhưng thực tế Lannister)
+    expect(regionControlForEra("war-of-five-kings")["the-crownlands"]).toBe("lannister");
     expect(regionControlForEra("roberts-rebellion")["the-crownlands"]).toBe("targaryen");
     expect(seatVisible(REGIONS_BY_ID["the-crownlands"], "aegon-conquest")).toBe(false);
     expect(seatVisible(REGIONS_BY_ID["the-crownlands"], "war-of-five-kings")).toBe(true);

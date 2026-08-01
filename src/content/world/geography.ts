@@ -244,88 +244,88 @@ function leaf(
 const WESTEROS_REGIONS: MapRegion[] = [
   // Phương Bắc — giữ `the-north` làm province thủ phủ tương thích save cũ.
   leaf("the-north", "Đất Winterfell", "macro-the-north", "Winterfell", [470, 300], [400, 250, 145, 125], 650_000, { coastal: false, seatPopulation: 15_000, seatHiddenEras: ["long-night"], labelPriority: 5 }),
-  leaf("north-wolfswood", "Wolfswood", "macro-the-north", "Deepwood Motte", [315, 220], [245, 150, 150, 155], 350_000, { coastal: true, terrain: "Rừng Rậm" }),
-  leaf("north-barrowlands", "Barrowlands", "macro-the-north", "Barrowton", [350, 385], [285, 330, 155, 125], 450_000, { coastal: true, terrain: "Đồng Bằng" }),
-  leaf("north-white-knife", "White Knife", "macro-the-north", "White Harbor", [660, 430], [555, 350, 150, 125], 650_000, { coastal: true, terrain: "Sông/Lối Vượt Sông", seatPopulation: 80_000, labelPriority: 3 }),
+  leaf("north-wolfswood", "Wolfswood", "macro-the-north", "Deepwood Motte", [315, 220], [245, 150, 150, 155], 350_000, { coastal: true, terrain: "Rừng Rậm", defaultHouse: "glover" }),
+  leaf("north-barrowlands", "Barrowlands", "macro-the-north", "Barrowton", [350, 385], [285, 330, 155, 125], 450_000, { coastal: true, terrain: "Đồng Bằng", defaultHouse: "dustin" }),
+  leaf("north-white-knife", "White Knife", "macro-the-north", "White Harbor", [660, 430], [555, 350, 150, 125], 650_000, { coastal: true, terrain: "Sông/Lối Vượt Sông", seatPopulation: 80_000, labelPriority: 3, defaultHouse: "manderly" }),
   leaf("north-dreadfort", "Đất Dreadfort", "macro-the-north", "Dreadfort", [590, 250], [540, 185, 135, 145], 450_000, { defaultHouse: "bolton" }),
-  leaf("north-karhold", "Karhold", "macro-the-north", "Karhold", [735, 190], [675, 120, 125, 145], 300_000),
-  leaf("north-last-hearth", "Last Hearth", "macro-the-north", "Last Hearth", [650, 120], [540, 95, 135, 95], 250_000),
-  leaf("north-neck", "Eo Cổ", "macro-the-north", "Greywater Watch", [455, 455], [395, 410, 125, 80], 250_000, { terrain: "Đầm Lầy", coastal: true, labelPriority: 3 }),
-  leaf("north-bear-island", "Đảo Gấu", "macro-the-north", "Mormont Keep", [225, 165], [180, 105, 90, 115], 120_000, { coastal: true, island: true }),
+  leaf("north-karhold", "Karhold", "macro-the-north", "Karhold", [735, 190], [675, 120, 125, 145], 300_000, { defaultHouse: "karstark" }),
+  leaf("north-last-hearth", "Last Hearth", "macro-the-north", "Last Hearth", [650, 120], [540, 95, 135, 95], 250_000, { defaultHouse: "umber" }),
+  leaf("north-neck", "Eo Cổ", "macro-the-north", "Greywater Watch", [455, 455], [395, 410, 125, 80], 250_000, { terrain: "Đầm Lầy", coastal: true, labelPriority: 3, defaultHouse: "reed" }),
+  leaf("north-bear-island", "Đảo Gấu", "macro-the-north", "Mormont Keep", [225, 165], [180, 105, 90, 115], 120_000, { coastal: true, island: true, defaultHouse: "mormont" }),
   leaf("north-skagos", "Skagos", "macro-the-north", "Kingshouse", [800, 185], [770, 105, 90, 145], 180_000, { coastal: true, island: true, terrain: "Đồi Núi" }),
-  leaf("north-stony-shore", "Bờ Đá", "macro-the-north", "Torrhen's Square", [370, 310], [205, 255, 160, 145], 350_000, { coastal: true }),
+  leaf("north-stony-shore", "Bờ Đá", "macro-the-north", "Torrhen's Square", [370, 310], [205, 255, 160, 145], 350_000, { coastal: true, defaultHouse: "tallhart" }),
 
   // Quần Đảo Sắt
   leaf("the-iron-islands", "Pyke", "macro-iron-islands", "Pyke", [75, 545], [45, 520, 60, 70], 300_000, { coastal: true, island: true, seatPopulation: 10_000, labelPriority: 5 }),
-  leaf("iron-harlaw", "Harlaw", "macro-iron-islands", "Ten Towers", [112, 500], [85, 465, 65, 60], 350_000, { coastal: true, island: true }),
-  leaf("iron-great-wyk", "Great Wyk", "macro-iron-islands", "Hammerhorn", [48, 490], [18, 455, 60, 60], 300_000, { coastal: true, island: true }),
-  leaf("iron-old-wyk", "Old Wyk", "macro-iron-islands", "Nagga's Hill", [38, 555], [18, 530, 45, 55], 150_000, { coastal: true, island: true }),
+  leaf("iron-harlaw", "Harlaw", "macro-iron-islands", "Ten Towers", [112, 500], [85, 465, 65, 60], 350_000, { coastal: true, island: true, defaultHouse: "harlaw" }),
+  leaf("iron-great-wyk", "Great Wyk", "macro-iron-islands", "Hammerhorn", [48, 490], [18, 455, 60, 60], 300_000, { coastal: true, island: true, defaultHouse: "goodbrother" }),
+  leaf("iron-old-wyk", "Old Wyk", "macro-iron-islands", "Nagga's Hill", [38, 555], [18, 530, 45, 55], 150_000, { coastal: true, island: true, defaultHouse: "drumm" }),
   leaf("iron-orkmont", "Orkmont", "macro-iron-islands", "Orkmont", [92, 585], [62, 565, 55, 45], 160_000, { coastal: true, island: true }),
   leaf("iron-saltcliffe", "Saltcliffe", "macro-iron-islands", "Saltcliffe", [130, 552], [110, 525, 40, 55], 120_000, { coastal: true, island: true }),
-  leaf("iron-blacktyde", "Blacktyde", "macro-iron-islands", "Blacktyde Castle", [25, 510], [10, 490, 38, 50], 120_000, { coastal: true, island: true }),
+  leaf("iron-blacktyde", "Blacktyde", "macro-iron-islands", "Blacktyde Castle", [25, 510], [10, 490, 38, 50], 120_000, { coastal: true, island: true, defaultHouse: "blacktyde" }),
 
   // Vale
   leaf("the-vale", "Thung Lũng Arryn", "macro-the-vale", "The Eyrie", [745, 585], [685, 520, 125, 125], 900_000, { coastal: false, seatPopulation: 10_000, labelPriority: 5 }),
-  leaf("vale-gulltown", "Bờ Gulltown", "macro-the-vale", "Gulltown", [850, 630], [790, 575, 125, 120], 850_000, { coastal: true, terrain: "Đồng Bằng", seatPopulation: 50_000, labelPriority: 3 }),
+  leaf("vale-gulltown", "Bờ Gulltown", "macro-the-vale", "Gulltown", [850, 630], [790, 575, 125, 120], 850_000, { coastal: true, terrain: "Đồng Bằng", seatPopulation: 50_000, labelPriority: 3, defaultHouse: "grafton" }),
   leaf("vale-fingers", "The Fingers", "macro-the-vale", "The Drearfort", [865, 505], [805, 455, 115, 120], 450_000, { coastal: true, terrain: "Đồi Núi" }),
-  leaf("vale-snakewood", "Snakewood", "macro-the-vale", "Heart's Home", [770, 515], [720, 455, 90, 100], 650_000, { coastal: true, terrain: "Rừng Rậm" }),
+  leaf("vale-snakewood", "Snakewood", "macro-the-vale", "Heart's Home", [770, 515], [720, 455, 90, 100], 650_000, { coastal: true, terrain: "Rừng Rậm", defaultHouse: "corbray" }),
   leaf("vale-mountains", "Dãy Núi Mặt Trăng", "macro-the-vale", "Cổng Máu", [675, 560], [625, 485, 85, 145], 700_000, { terrain: "Hẻm Núi" }),
-  leaf("vale-sisters", "Ba Chị Em", "macro-the-vale", "Sisterton", [900, 450], [860, 420, 80, 65], 450_000, { coastal: true, island: true }),
+  leaf("vale-sisters", "Ba Chị Em", "macro-the-vale", "Sisterton", [900, 450], [860, 420, 80, 65], 450_000, { coastal: true, island: true, defaultHouse: "sunderland" }),
 
   // Riverlands
   leaf("the-riverlands", "Đất Riverrun", "macro-riverlands", "Riverrun", [480, 610], [420, 565, 120, 110], 750_000, { seatPopulation: 20_000, labelPriority: 5 }),
-  leaf("riverlands-twins", "Green Fork và Song Thành", "macro-riverlands", "The Twins", [440, 500], [365, 465, 125, 95], 650_000),
-  leaf("riverlands-seagard", "Bờ Seagard", "macro-riverlands", "Seagard", [365, 535], [315, 500, 90, 120], 600_000, { coastal: true }),
+  leaf("riverlands-twins", "Green Fork và Song Thành", "macro-riverlands", "The Twins", [440, 500], [365, 465, 125, 95], 650_000, { defaultHouse: "frey" }),
+  leaf("riverlands-seagard", "Bờ Seagard", "macro-riverlands", "Seagard", [365, 535], [315, 500, 90, 120], 600_000, { coastal: true, defaultHouse: "mallister" }),
   leaf("riverlands-trident", "Tam Xoa", "macro-riverlands", "Lord Harroway's Town", [575, 615], [520, 530, 120, 115], 900_000),
-  leaf("riverlands-gods-eye", "Gods Eye", "macro-riverlands", "Harrenhal", [550, 680], [500, 630, 115, 120], 750_000),
-  leaf("riverlands-maidenpool", "Bờ Maidenpool", "macro-riverlands", "Maidenpool", [635, 650], [610, 585, 75, 120], 700_000, { coastal: true }),
-  leaf("riverlands-blackwood", "Blackwood Vale", "macro-riverlands", "Raventree Hall", [420, 670], [350, 600, 100, 120], 600_000, { terrain: "Rừng Rậm", defaultHouse: "tully" }),
-  leaf("riverlands-bracken", "Đất Bracken", "macro-riverlands", "Stone Hedge", [475, 705], [440, 675, 90, 95], 550_000, { terrain: "Đồng Bằng" }),
+  leaf("riverlands-gods-eye", "Gods Eye", "macro-riverlands", "Harrenhal", [550, 680], [500, 630, 115, 120], 750_000, { defaultHouse: "whent" }),
+  leaf("riverlands-maidenpool", "Bờ Maidenpool", "macro-riverlands", "Maidenpool", [635, 650], [610, 585, 75, 120], 700_000, { coastal: true, defaultHouse: "mooton" }),
+  leaf("riverlands-blackwood", "Blackwood Vale", "macro-riverlands", "Raventree Hall", [420, 670], [350, 600, 100, 120], 600_000, { terrain: "Rừng Rậm", defaultHouse: "blackwood" }),
+  leaf("riverlands-bracken", "Đất Bracken", "macro-riverlands", "Stone Hedge", [475, 705], [440, 675, 90, 95], 550_000, { terrain: "Đồng Bằng", defaultHouse: "bracken" }),
 
   // Westerlands
   leaf("the-westerlands", "Casterly Rock và Lannisport", "macro-westerlands", "Casterly Rock", [275, 690], [210, 640, 115, 130], 1_100_000, { coastal: true, seatPopulation: 50_000, labelPriority: 5 }),
-  leaf("westerlands-golden-tooth", "Golden Tooth", "macro-westerlands", "Golden Tooth", [330, 630], [300, 570, 70, 110], 700_000, { terrain: "Hẻm Núi" }),
+  leaf("westerlands-golden-tooth", "Golden Tooth", "macro-westerlands", "Golden Tooth", [330, 630], [300, 570, 70, 110], 700_000, { terrain: "Hẻm Núi", defaultHouse: "lefford" }),
   leaf("westerlands-castamere", "Đồi Castamere", "macro-westerlands", "Castamere", [260, 605], [220, 545, 90, 105], 700_000),
-  leaf("westerlands-crakehall", "Crakehall", "macro-westerlands", "Crakehall", [230, 785], [180, 730, 105, 90], 900_000, { coastal: true }),
-  leaf("westerlands-fair-isle", "Fair Isle", "macro-westerlands", "Faircastle", [165, 665], [135, 625, 65, 85], 500_000, { coastal: true, island: true }),
-  leaf("westerlands-north-coast", "Bờ Tây Bắc", "macro-westerlands", "The Crag", [190, 590], [155, 500, 85, 140], 1_100_000, { coastal: true }),
+  leaf("westerlands-crakehall", "Crakehall", "macro-westerlands", "Crakehall", [230, 785], [180, 730, 105, 90], 900_000, { coastal: true, defaultHouse: "crakehall" }),
+  leaf("westerlands-fair-isle", "Fair Isle", "macro-westerlands", "Faircastle", [165, 665], [135, 625, 65, 85], 500_000, { coastal: true, island: true, defaultHouse: "farman" }),
+  leaf("westerlands-north-coast", "Bờ Tây Bắc", "macro-westerlands", "The Crag", [190, 590], [155, 500, 85, 140], 1_100_000, { coastal: true, defaultHouse: "westerling" }),
 
   // Crownlands
   leaf("the-crownlands", "Vương Đô và Nước Đen", "macro-crownlands", "King's Landing", [690, 770], [625, 730, 120, 100], 650_000, { coastal: true, seatPopulation: 500_000, seatHiddenEras: ["aegon-conquest", "long-night"], labelPriority: 5 }),
-  leaf("crownlands-duskendale", "Duskendale", "macro-crownlands", "Duskendale", [735, 700], [680, 665, 105, 75], 350_000, { coastal: true }),
-  leaf("crownlands-crackclaw", "Crackclaw Point", "macro-crownlands", "Dyre Den", [790, 670], [760, 625, 95, 100], 250_000, { coastal: true, terrain: "Đồi Núi" }),
+  leaf("crownlands-duskendale", "Duskendale", "macro-crownlands", "Duskendale", [735, 700], [680, 665, 105, 75], 350_000, { coastal: true, defaultHouse: "rykker" }),
+  leaf("crownlands-crackclaw", "Crackclaw Point", "macro-crownlands", "Dyre Den", [790, 670], [760, 625, 95, 100], 250_000, { coastal: true, terrain: "Đồi Núi", defaultHouse: "celtigar" }),
   leaf("crownlands-dragonstone", "Dragonstone", "macro-crownlands", "Dragonstone", [835, 750], [805, 720, 65, 75], 250_000, { coastal: true, island: true, terrain: "Đồi Núi" }),
-  leaf("crownlands-driftmark", "Driftmark và Claw Isle", "macro-crownlands", "High Tide", [790, 770], [755, 735, 70, 75], 250_000, { coastal: true, island: true }),
-  leaf("crownlands-kingswood", "Kingswood", "macro-crownlands", "Hayford", [650, 825], [590, 790, 105, 85], 250_000, { coastal: true, terrain: "Rừng Rậm" }),
+  leaf("crownlands-driftmark", "Driftmark và Claw Isle", "macro-crownlands", "High Tide", [790, 770], [755, 735, 70, 75], 250_000, { coastal: true, island: true, defaultHouse: "velaryon" }),
+  leaf("crownlands-kingswood", "Kingswood", "macro-crownlands", "Hayford", [650, 825], [590, 790, 105, 85], 250_000, { coastal: true, terrain: "Rừng Rậm", defaultHouse: "stokeworth" }),
 
   // Reach
   leaf("the-reach", "Highgarden và Hạ Mander", "macro-reach", "Highgarden", [390, 965], [325, 910, 125, 120], 1_900_000, { coastal: false, seatPopulation: 80_000, labelPriority: 5 }),
   leaf("reach-oldtown", "Oldtown và Honeywine", "macro-reach", "Oldtown", [250, 1120], [195, 1050, 120, 125], 1_800_000, { coastal: true, seatPopulation: 500_000, labelPriority: 4 }),
-  leaf("reach-arbor", "The Arbor", "macro-reach", "Ryamsport", [145, 1200], [105, 1145, 95, 115], 800_000, { coastal: true, island: true }),
+  leaf("reach-arbor", "The Arbor", "macro-reach", "Ryamsport", [145, 1200], [105, 1145, 95, 115], 800_000, { coastal: true, island: true, defaultHouse: "redwyne" }),
   leaf("reach-shield-islands", "Shield Islands", "macro-reach", "Lord Hewett's Town", [145, 1010], [105, 955, 80, 100], 600_000, { coastal: true, island: true }),
-  leaf("reach-bitterbridge", "Bitterbridge", "macro-reach", "Bitterbridge", [440, 835], [375, 790, 115, 100], 1_300_000),
+  leaf("reach-bitterbridge", "Bitterbridge", "macro-reach", "Bitterbridge", [440, 835], [375, 790, 115, 100], 1_300_000, { defaultHouse: "caswell" }),
   leaf("reach-tumbleton", "Tumbleton", "macro-reach", "Tumbleton", [495, 910], [445, 850, 105, 115], 1_200_000),
-  leaf("reach-horn-hill", "Horn Hill và Biên Dorne", "macro-reach", "Horn Hill", [330, 1070], [280, 1010, 105, 125], 1_300_000, { terrain: "Đồi Núi" }),
-  leaf("reach-western", "Tây Reach", "macro-reach", "Goldengrove", [260, 900], [175, 820, 150, 160], 1_600_000, { coastal: true }),
+  leaf("reach-horn-hill", "Horn Hill và Biên Dorne", "macro-reach", "Horn Hill", [330, 1070], [280, 1010, 105, 125], 1_300_000, { terrain: "Đồi Núi", defaultHouse: "tarly" }),
+  leaf("reach-western", "Tây Reach", "macro-reach", "Goldengrove", [260, 900], [175, 820, 150, 160], 1_600_000, { coastal: true, defaultHouse: "rowan" }),
   leaf("reach-upper-mander", "Thượng Mander", "macro-reach", "Ashford", [520, 1030], [450, 980, 135, 130], 1_500_000),
 
   // Stormlands
   leaf("the-stormlands", "Storm's End", "macro-stormlands", "Storm's End", [712, 1000], [665, 945, 105, 115], 500_000, { coastal: true, seatPopulation: 15_000, labelPriority: 5 }),
-  leaf("stormlands-rainwood", "Rainwood", "macro-stormlands", "Griffin's Roost", [760, 945], [720, 870, 105, 120], 450_000, { coastal: true, terrain: "Rừng Rậm" }),
-  leaf("stormlands-cape-wrath", "Cape Wrath", "macro-stormlands", "Weeping Town", [805, 1030], [755, 990, 105, 110], 400_000, { coastal: true, terrain: "Rừng Rậm" }),
-  leaf("stormlands-tarth", "Tarth", "macro-stormlands", "Evenfall Hall", [850, 910], [820, 865, 65, 95], 250_000, { coastal: true, island: true }),
-  leaf("stormlands-dornish-marches", "Biên Địa Dorne", "macro-stormlands", "Blackhaven", [615, 1050], [565, 990, 110, 120], 500_000, { terrain: "Đồi Núi" }),
-  leaf("stormlands-kingswood", "Đông Kingswood", "macro-stormlands", "Parchments", [675, 875], [615, 830, 105, 105], 400_000, { coastal: true, terrain: "Rừng Rậm" }),
+  leaf("stormlands-rainwood", "Rainwood", "macro-stormlands", "Griffin's Roost", [760, 945], [720, 870, 105, 120], 450_000, { coastal: true, terrain: "Rừng Rậm", defaultHouse: "connington" }),
+  leaf("stormlands-cape-wrath", "Cape Wrath", "macro-stormlands", "Weeping Town", [805, 1030], [755, 990, 105, 110], 400_000, { coastal: true, terrain: "Rừng Rậm", defaultHouse: "wylde" }),
+  leaf("stormlands-tarth", "Tarth", "macro-stormlands", "Evenfall Hall", [850, 910], [820, 865, 65, 95], 250_000, { coastal: true, island: true, defaultHouse: "tarth" }),
+  leaf("stormlands-dornish-marches", "Biên Địa Dorne", "macro-stormlands", "Blackhaven", [615, 1050], [565, 990, 110, 120], 500_000, { terrain: "Đồi Núi", defaultHouse: "dondarrion" }),
+  leaf("stormlands-kingswood", "Đông Kingswood", "macro-stormlands", "Parchments", [675, 875], [615, 830, 105, 105], 400_000, { coastal: true, terrain: "Rừng Rậm", defaultHouse: "penrose" }),
 
   // Dorne
   leaf("dorne", "Sunspear", "macro-dorne", "Sunspear", [545, 1290], [500, 1240, 105, 105], 400_000, { coastal: true, seatPopulation: 30_000, labelPriority: 5 }),
   leaf("dorne-greenblood", "Greenblood", "macro-dorne", "Planky Town", [635, 1325], [575, 1280, 120, 95], 300_000, { coastal: true, terrain: "Sông/Lối Vượt Sông" }),
-  leaf("dorne-yronwood", "Yronwood", "macro-dorne", "Yronwood", [500, 1195], [450, 1140, 105, 110], 250_000, { terrain: "Hẻm Núi" }),
-  leaf("dorne-boneway", "Boneway", "macro-dorne", "Wyl", [730, 1160], [675, 1105, 115, 120], 180_000, { terrain: "Hẻm Núi" }),
-  leaf("dorne-princes-pass", "Prince's Pass", "macro-dorne", "Skyreach", [430, 1200], [375, 1140, 105, 120], 180_000, { terrain: "Hẻm Núi" }),
-  leaf("dorne-red-mountains", "Dãy Núi Đỏ", "macro-dorne", "Kingsgrave", [560, 1140], [515, 1090, 105, 115], 180_000, { terrain: "Đồi Núi" }),
-  leaf("dorne-starfall", "Torrentine và Starfall", "macro-dorne", "Starfall", [320, 1280], [255, 1215, 135, 125], 180_000, { coastal: true, terrain: "Sông/Lối Vượt Sông" }),
-  leaf("dorne-hellholt", "Sa Mạc Hellholt", "macro-dorne", "Hellholt", [430, 1360], [350, 1320, 145, 105], 130_000, { terrain: "Sa Mạc" }),
+  leaf("dorne-yronwood", "Yronwood", "macro-dorne", "Yronwood", [500, 1195], [450, 1140, 105, 110], 250_000, { terrain: "Hẻm Núi", defaultHouse: "yronwood" }),
+  leaf("dorne-boneway", "Boneway", "macro-dorne", "Wyl", [730, 1160], [675, 1105, 115, 120], 180_000, { terrain: "Hẻm Núi", defaultHouse: "wyl" }),
+  leaf("dorne-princes-pass", "Prince's Pass", "macro-dorne", "Skyreach", [430, 1200], [375, 1140, 105, 120], 180_000, { terrain: "Hẻm Núi", defaultHouse: "fowler" }),
+  leaf("dorne-red-mountains", "Dãy Núi Đỏ", "macro-dorne", "Kingsgrave", [560, 1140], [515, 1090, 105, 115], 180_000, { terrain: "Đồi Núi", defaultHouse: "manwoody" }),
+  leaf("dorne-starfall", "Torrentine và Starfall", "macro-dorne", "Starfall", [320, 1280], [255, 1215, 135, 125], 180_000, { coastal: true, terrain: "Sông/Lối Vượt Sông", defaultHouse: "dayne" }),
+  leaf("dorne-hellholt", "Sa Mạc Hellholt", "macro-dorne", "Hellholt", [430, 1360], [350, 1320, 145, 105], 130_000, { terrain: "Sa Mạc", defaultHouse: "uller" }),
 
   // Ngoài Tường Thành
   leaf("beyond-haunted-forest", "Rừng Ma Ám", "macro-beyond-wall", "Craster's Keep", [500, 55], [370, 25, 230, 70], 170_000, { terrain: "Rừng Rậm", realmId: "beyond-wall", labelPriority: 3 }),
@@ -617,55 +617,305 @@ export function areSeaConnected(fromId: string, toId: string): boolean {
 
 const DEFAULT_298: Record<string, string> = Object.fromEntries(REGIONS.map((region) => [region.id, region.defaultHouse]));
 
-function westerosControllerForRealm(realmId: string, year: number, fallback: string): string {
-  if (year < 1) {
-    const ancient: Record<string, string> = {
-      "the-north": "stark", "the-iron-islands": "greyiron", "the-vale": "royce",
-      "the-riverlands": "mudd", "the-westerlands": "casterly", "the-crownlands": "darklyn",
-      "the-reach": "gardener", "the-stormlands": "durrandon", dorne: "yronwood",
-      "beyond-wall": "",
-    };
-    return ancient[realmId] ?? fallback;
-  }
-  if (year === 1) {
-    const conquest: Record<string, string> = {
-      "the-north": "stark", "the-iron-islands": "hoare", "the-vale": "arryn",
-      "the-riverlands": "hoare", "the-westerlands": "lannister", "the-crownlands": "",
-      "the-reach": "gardener", "the-stormlands": "durrandon", dorne: "martell",
-      "beyond-wall": "",
-    };
-    return conquest[realmId] ?? fallback;
-  }
-  if (realmId === "the-crownlands") {
-    if (year >= 129 && year <= 131) return "targaryen-black";
-    if (year < 283) return "targaryen";
-    if (year < 299) return "baratheon";
-    return "lannister";
-  }
-  if (year >= 300 && realmId === "the-north") return "bolton";
-  if (year >= 300 && realmId === "the-riverlands") return "frey";
-  return fallback;
+/**
+ * Bảng chủ quyền chi tiết theo leaf province cho từng thời kỳ lịch sử.
+ *
+ * Key = leaf province id, value = houseId.
+ * DEFAULT_298 chứa đúng vassal house tại 298 AC (vd: Karstark ở Karhold, Tarly ở Horn Hill).
+ * Mỗi bảng dưới đây chỉ liệt kê các leaf THỰC SỰ KHÁC so với 298 AC baseline.
+ */
+
+/** Thời kỳ Đêm Trường (~8000 trước AC) — các vương quốc cổ đại, chưa có hệ thống phong kiến */
+const CONTROL_ANCIENT: Record<string, string> = {
+  // Bắc — Nhà Stark (Vua Mùa Đông) — trực tiếp cai trị, chưa có hệ thống chư hầu
+  "the-north": "stark", "north-wolfswood": "stark", "north-barrowlands": "stark",
+  "north-white-knife": "stark", "north-dreadfort": "stark", "north-karhold": "stark",
+  "north-last-hearth": "stark", "north-neck": "stark", "north-bear-island": "stark",
+  "north-skagos": "stark", "north-stony-shore": "stark",
+  // Quần Đảo Sắt — Nhà Greyiron (Vua Sắt trước Andal)
+  "the-iron-islands": "greyiron", "iron-harlaw": "greyiron", "iron-great-wyk": "greyiron",
+  "iron-old-wyk": "greyiron", "iron-orkmont": "greyiron", "iron-saltcliffe": "greyiron",
+  "iron-blacktyde": "greyiron",
+  // Thung Lũng — Nhà Royce (Vua Đồng, trước Andal)
+  "the-vale": "royce", "vale-gulltown": "royce", "vale-fingers": "royce",
+  "vale-snakewood": "royce", "vale-mountains": "royce", "vale-sisters": "royce",
+  // Vùng Sông — Nhà Mudd (Vua Sông và Đồi, trước Andal/Storm King)
+  "the-riverlands": "mudd", "riverlands-twins": "mudd", "riverlands-seagard": "mudd",
+  "riverlands-trident": "mudd", "riverlands-gods-eye": "mudd", "riverlands-maidenpool": "mudd",
+  "riverlands-blackwood": "mudd", "riverlands-bracken": "mudd",
+  // Vùng Tây — Nhà Casterly (trước Lannister)
+  "the-westerlands": "casterly", "westerlands-golden-tooth": "casterly",
+  "westerlands-castamere": "casterly", "westerlands-crakehall": "casterly",
+  "westerlands-fair-isle": "casterly", "westerlands-north-coast": "casterly",
+  // Khu vực trung tâm — Nhà Darklyn (chưa có King's Landing, chưa có Dragonstone)
+  "the-crownlands": "darklyn", "crownlands-duskendale": "darklyn",
+  "crownlands-crackclaw": "darklyn", "crownlands-dragonstone": "",
+  "crownlands-driftmark": "", "crownlands-kingswood": "darklyn",
+  // Reach — Nhà Gardener (Vua Reach)
+  "the-reach": "gardener", "reach-oldtown": "gardener", "reach-arbor": "gardener",
+  "reach-shield-islands": "gardener", "reach-bitterbridge": "gardener",
+  "reach-tumbleton": "gardener", "reach-horn-hill": "gardener",
+  "reach-western": "gardener", "reach-upper-mander": "gardener",
+  // Vùng Bão — Nhà Durrandon (Vua Bão)
+  "the-stormlands": "durrandon", "stormlands-rainwood": "durrandon",
+  "stormlands-cape-wrath": "durrandon", "stormlands-tarth": "durrandon",
+  "stormlands-dornish-marches": "durrandon", "stormlands-kingswood": "durrandon",
+  // Dorne — Nhà Yronwood (quyền lực nhất trước Rhoynar đổ bộ ~700 trước AC)
+  "dorne": "yronwood", "dorne-greenblood": "yronwood", "dorne-yronwood": "yronwood",
+  "dorne-boneway": "yronwood", "dorne-princes-pass": "yronwood",
+  "dorne-red-mountains": "yronwood", "dorne-starfall": "yronwood", "dorne-hellholt": "yronwood",
+  // Ngoài Tường — không chính quyền
+  "beyond-the-wall": "", "beyond-frostfangs": "", "beyond-hardhome": "",
+  "beyond-lands-always-winter": "others", "beyond-ice-bay": "",
+};
+
+/**
+ * Bảy Vương Quốc trước Chinh Phục (~2 BC) — thế giới khi Aegon đổ bộ.
+ * 
+ * So với Đêm Trường: Andal đã xâm lược, nhiều nhà cổ bị thay thế.
+ * Hoare chinh phục cả Quần Đảo Sắt + Vùng Sông.
+ * Arryn thay Royce, Lannister thay Casterly, Martell thay Yronwood (sau Nymeria).
+ * Targaryen ở Dragonstone, Velaryon ở Driftmark (sau Doom of Valyria).
+ */
+const CONTROL_PRE_CONQUEST: Record<string, string> = {
+  // Bắc — Nhà Stark (Vua Phương Bắc) — vassal vẫn phục vụ nhưng dưới vua chứ không phải lãnh chúa
+  "the-north": "stark", "north-wolfswood": "stark", "north-barrowlands": "stark",
+  "north-white-knife": "stark", "north-dreadfort": "stark", "north-karhold": "stark",
+  "north-last-hearth": "stark", "north-neck": "stark", "north-bear-island": "stark",
+  "north-skagos": "stark", "north-stony-shore": "stark",
+  // Quần Đảo Sắt — Nhà HOARE (Vua Sắt) — KHÔNG phải Greyjoy
+  "the-iron-islands": "hoare", "iron-harlaw": "hoare", "iron-great-wyk": "hoare",
+  "iron-old-wyk": "hoare", "iron-orkmont": "hoare", "iron-saltcliffe": "hoare",
+  "iron-blacktyde": "hoare",
+  // Vùng Sông — Nhà HOARE cai trị (chinh phục từ Storm Kings) — KHÔNG phải Tully
+  "the-riverlands": "hoare", "riverlands-twins": "hoare", "riverlands-seagard": "hoare",
+  "riverlands-trident": "hoare", "riverlands-gods-eye": "hoare", // Harrenhal đang xây / vừa xong
+  "riverlands-maidenpool": "hoare", "riverlands-blackwood": "hoare", "riverlands-bracken": "hoare",
+  // Thung Lũng — Nhà ARRYN (Vua Núi và Thung Lũng, thay Royce sau Andal)
+  "the-vale": "arryn", "vale-gulltown": "arryn", "vale-fingers": "arryn",
+  "vale-snakewood": "arryn", "vale-mountains": "arryn", "vale-sisters": "arryn",
+  // Vùng Tây — Nhà LANNISTER (Vua Tảng Đá, thay Casterly từ lâu)
+  // default 298 đã là lannister cho macro — chỉ override leaf nếu cần
+  "westerlands-golden-tooth": "lannister", "westerlands-castamere": "lannister",
+  "westerlands-crakehall": "lannister", "westerlands-fair-isle": "lannister",
+  "westerlands-north-coast": "lannister",
+  // Khu vực trung tâm — Darklyn kiểm soát, Targaryen ở Dragonstone
+  "the-crownlands": "darklyn", "crownlands-duskendale": "darklyn",
+  "crownlands-crackclaw": "darklyn", "crownlands-dragonstone": "targaryen",
+  "crownlands-driftmark": "velaryon", "crownlands-kingswood": "darklyn",
+  // Reach — Nhà GARDENER (Vua Reach) — KHÔNG phải Tyrell
+  "the-reach": "gardener", "reach-oldtown": "gardener", "reach-arbor": "gardener",
+  "reach-shield-islands": "gardener", "reach-bitterbridge": "gardener",
+  "reach-tumbleton": "gardener", "reach-horn-hill": "gardener",
+  "reach-western": "gardener", "reach-upper-mander": "gardener",
+  // Vùng Bão — Nhà DURRANDON (Vua Bão) — KHÔNG phải Baratheon
+  "the-stormlands": "durrandon", "stormlands-rainwood": "durrandon",
+  "stormlands-cape-wrath": "durrandon", "stormlands-tarth": "durrandon",
+  "stormlands-dornish-marches": "durrandon", "stormlands-kingswood": "durrandon",
+  // Dorne — Nhà MARTELL (Thân Vương, sau Nymeria ~700 BC) — KHÔNG phải Yronwood
+  "dorne": "martell", "dorne-greenblood": "martell", "dorne-yronwood": "yronwood",
+  "dorne-boneway": "martell", "dorne-princes-pass": "martell",
+  "dorne-red-mountains": "martell", "dorne-starfall": "martell", "dorne-hellholt": "martell",
+  // Ngoài Tường
+  "beyond-the-wall": "", "beyond-frostfangs": "", "beyond-hardhome": "",
+  "beyond-lands-always-winter": "", "beyond-ice-bay": "",
+};
+
+/** Hậu Chinh Phục (1-2 AC) — Aegon đã chinh phục xong, vương quốc mới hình thành */
+const CONTROL_CONQUEST: Record<string, string> = {
+  // Crownlands — Aegon lập Aegon's Fort (tiền thân Red Keep)
+  "the-crownlands": "targaryen", "crownlands-duskendale": "targaryen",
+  "crownlands-crackclaw": "targaryen", "crownlands-dragonstone": "targaryen",
+  "crownlands-driftmark": "velaryon", "crownlands-kingswood": "targaryen",
+  // Riverlands — Harren chết cháy, Tully được phong Lãnh Chúa Tối Cao
+  "riverlands-gods-eye": "tully", // Harrenhal cháy rụi, chưa phong chư hầu mới
+  // Iron Islands — Hoare diệt vong, Vickon Greyjoy được bầu
+  // (default 298 AC greyjoy OK — Greyjoy lên nắm quyền từ đây)
+  // Reach — Mern IX Gardener chết ở Field of Fire, Harlan Tyrell đầu hàng → phong
+  // (default 298 AC tyrell OK)
+  // Stormlands — Argilac Durrandon chết, Orys Baratheon lấy con gái Argella → phong
+  // (default 298 AC baratheon OK)
+  // Bắc — Torrhen Stark quỳ gối, giữ nguyên quyền cai trị
+  // Vale — Sharra Arryn đầu hàng
+  // Westerlands — Loren Lannister quỳ gối
+  // Dorne — KHÔNG bị chinh phục, Martell vẫn độc lập
+  // Ngoài Tường
+  "beyond-the-wall": "", "beyond-frostfangs": "", "beyond-hardhome": "",
+  "beyond-lands-always-winter": "", "beyond-ice-bay": "",
+};
+
+/** Hậu Chinh Phục (3-128 AC) — Targaryen cai trị ổn định */
+const CONTROL_POST_CONQUEST: Record<string, string> = {
+  // Crownlands — KL thủ đô, Darklyn vẫn giữ Duskendale
+  "the-crownlands": "targaryen", "crownlands-duskendale": "darklyn",
+  "crownlands-crackclaw": "targaryen", "crownlands-dragonstone": "targaryen",
+  "crownlands-driftmark": "velaryon", "crownlands-kingswood": "targaryen",
+  // Harrenhal qua tay nhiều nhà
+  "riverlands-gods-eye": "tully",
+};
+
+/** Vũ Điệu Rồng (129-131 AC) — nội chiến Targaryen */
+const CONTROL_DANCE: Record<string, string> = {
+  // Crownlands chia phe: KL = Phe Xanh, Dragonstone/Driftmark = Phe Đen
+  "the-crownlands": "targaryen-green", "crownlands-duskendale": "targaryen-green",
+  "crownlands-crackclaw": "targaryen-black", "crownlands-dragonstone": "targaryen-black",
+  "crownlands-driftmark": "targaryen-black", "crownlands-kingswood": "targaryen-green",
+  // Reach — Hightower dẫn đầu Phe Xanh, nhiều nhà chia phe
+  "reach-oldtown": "hightower",
+  "reach-horn-hill": "targaryen-black", // Tarly theo Phe Đen
+  "reach-bitterbridge": "targaryen-black", // Caswell theo Phe Đen
+  // Riverlands — chiến trường khốc liệt
+  "riverlands-bracken": "targaryen-green", // Bracken theo Phe Xanh
+  "riverlands-gods-eye": "targaryen-green", // Harrenhal bị tranh giành
+  // Stormlands — Borros Baratheon theo Phe Xanh (chưa đổi vassal)
+  // Iron Islands — Red Kraken Dalton Greyjoy cướp bóc Westerlands (Phe Đen)
+  "westerlands-fair-isle": "greyjoy", // Dalton Greyjoy đốt Fair Isle
+  "westerlands-north-coast": "greyjoy", // Red Kraken tấn công bờ biển
+};
+
+/** Hậu Vũ Rồng (132-194 AC) — khôi phục, Targaryen tiếp tục */
+const CONTROL_POST_DANCE: Record<string, string> = {
+  "the-crownlands": "targaryen", "crownlands-duskendale": "darklyn",
+  "crownlands-crackclaw": "targaryen", "crownlands-dragonstone": "targaryen",
+  "crownlands-driftmark": "velaryon", "crownlands-kingswood": "targaryen",
+  "riverlands-gods-eye": "tully",
+};
+
+/** Khởi Nghĩa Blackfyre (195-196 AC) — Daemon Blackfyre nổi dậy */
+const CONTROL_BLACKFYRE: Record<string, string> = {
+  ...CONTROL_POST_DANCE,
+  // Bracken theo Blackfyre
+  "riverlands-bracken": "blackfyre",
+  // Bitterbridge gần chiến trường Redgrass Field
+  "reach-bitterbridge": "blackfyre",
+  // Connington theo Blackfyre (vùng Rainwood)
+  "stormlands-rainwood": "blackfyre",
+};
+
+/** Dunk & Egg (209+ AC) — hậu Blackfyre, ổn định */
+const CONTROL_DUNK_EGG: Record<string, string> = {
+  ...CONTROL_POST_DANCE,
+  // Castamere — Nhà Reyne vẫn tồn tại (bị diệt ~261 AC bởi Tywin)
+  "westerlands-castamere": "lannister", // Reyne là vassal Lannister
+  // Harrenhal — Nhà Lothston rồi Whent
+  "riverlands-gods-eye": "whent",
+  // Duskendale — Darklyn vẫn giữ (bị diệt ~276 AC, Defiance of Duskendale)
+  "crownlands-duskendale": "darklyn",
+};
+
+/** Robert's Rebellion (282-283 AC) — Phe nổi dậy vs Vua Điên */
+const CONTROL_ROBERTS_REBELLION: Record<string, string> = {
+  // Crownlands — Aerys II (Targaryen) giữ King's Landing
+  "the-crownlands": "targaryen", "crownlands-duskendale": "targaryen",
+  "crownlands-crackclaw": "targaryen", "crownlands-dragonstone": "targaryen",
+  "crownlands-driftmark": "targaryen", "crownlands-kingswood": "targaryen",
+  // Harrenhal — Whent (cùng phe Robert sau Tourney at Harrenhal)
+  "riverlands-gods-eye": "targaryen",
+  // Darry trung thành Targaryen
+  // Stormlands — Robert phất cờ nổi dậy, nhưng một số vassal chia phe
+  // Dorne — Elia Martell → theo Targaryen
+};
+
+/** Greyjoy Rebellion (289 AC) — Robert trị vì, Balon nổi dậy bị dẹp */
+const CONTROL_GREYJOY_REBELLION: Record<string, string> = {
+  // Crownlands — Baratheon cai trị
+  "the-crownlands": "baratheon", "crownlands-duskendale": "rykker",
+  "crownlands-crackclaw": "baratheon", "crownlands-dragonstone": "baratheon",
+  "crownlands-driftmark": "velaryon", "crownlands-kingswood": "stokeworth",
+  // Quần Đảo Sắt — Balon nổi dậy rồi thua; Greyjoy giữ quyền nhưng Theon bị lấy
+  // Các vùng khác giữ nguyên default 298
+};
+
+/** War of Five Kings (298-299 AC) — hỗn loạn đa cực */
+const CONTROL_WOFK: Record<string, string> = {
+  // Crownlands — Lannister cầm quyền qua Joffrey
+  "the-crownlands": "lannister", "crownlands-duskendale": "lannister",
+  "crownlands-crackclaw": "lannister", "crownlands-dragonstone": "baratheon", // Stannis
+  "crownlands-driftmark": "baratheon", "crownlands-kingswood": "lannister",
+  // Bắc — Robb Stark tuyên bố King in the North, nhưng Ironborn xâm chiếm
+  "north-wolfswood": "greyjoy", // Asha Greyjoy chiếm Deepwood Motte
+  "north-stony-shore": "greyjoy", // Ironborn cướp bóc Stony Shore
+  // Vùng Sông — chiến trường, Tully vẫn giữ danh nghĩa
+  // Stormlands — Renly rồi Stannis tranh Storm's End
+  "stormlands-rainwood": "baratheon", // Connington lưu vong, vẫn Baratheon
+  "stormlands-cape-wrath": "baratheon", // Cape Wrath dưới Stannis sau khi Renly chết
+};
+
+/** Winds of Winter (300+ AC) — hậu Red Wedding, Bolton/Frey nắm quyền */
+const CONTROL_WINDS: Record<string, string> = {
+  // Crownlands — Cersei / Lannister kiểm soát chặt
+  "the-crownlands": "lannister", "crownlands-duskendale": "lannister",
+  "crownlands-crackclaw": "lannister", "crownlands-dragonstone": "baratheon", // Stannis đã đi Bắc
+  "crownlands-driftmark": "lannister", "crownlands-kingswood": "lannister",
+  // Bắc — Bolton nắm quyền từ Winterfell, nhưng nhiều nhà ngầm phản
+  "the-north": "bolton",
+  "north-wolfswood": "bolton", // Ironborn rút, Bolton chiếm
+  "north-barrowlands": "dustin", // Lady Dustin theo Bolton
+  "north-white-knife": "manderly", // Manderly ngầm trung thành Stark
+  "north-dreadfort": "bolton",
+  "north-karhold": "karstark", // Karstark theo Bolton (Arnolf Karstark)
+  "north-last-hearth": "umber", // Umber chia phe (Whoresbane theo Bolton, Crowfood theo Stark)
+  "north-neck": "reed", // Reed từ chối Bolton — giữ trung thành Stark
+  "north-bear-island": "mormont", // Mormont trung thành tuyệt đối với Stark
+  "north-skagos": "stark", // Skagos cô lập (Davos đi tìm Rickon)
+  "north-stony-shore": "tallhart", // Tallhart thiệt hại nặng nhưng danh nghĩa theo Bolton
+  // Quần Đảo Sắt — Euron Greyjoy chiếm quyền (sau Kingsmoot)
+  // Vùng Sông — Frey/Lannister danh nghĩa kiểm soát, kháng cự ngầm
+  "the-riverlands": "frey",
+  "riverlands-twins": "frey",
+  "riverlands-seagard": "mallister", // Mallister bất đắc dĩ khuất phục
+  "riverlands-trident": "frey",
+  "riverlands-gods-eye": "lannister", // Harrenhal — Littlefinger danh nghĩa, thực tế Lannister
+  "riverlands-maidenpool": "frey",
+  "riverlands-blackwood": "blackwood", // Blackwood cầm cự kháng cự cuối cùng
+  "riverlands-bracken": "bracken", // Bracken theo Lannister/Frey
+  // Reach — Tyrell liên minh Lannister, nhưng Euron tấn công
+  "reach-shield-islands": "greyjoy", // Euron chiếm Shield Islands
+  // Stormlands — fAegon + JonCon đổ bộ, chiếm Griffin's Roost
+  "stormlands-rainwood": "connington", // Jon Connington chiếm lại lãnh thổ tổ tiên
+  "stormlands-cape-wrath": "connington", // fAegon/Golden Company mở rộng
+  // Dorne — Martell vẫn giữ, Arianne đang đàm phán với fAegon
+  // Essos — Daenerys chiếm Meereen, Yunkai phản kích
+  "meereen": "targaryen-essos",
+  "astapor": "", // hỗn loạn
+  "yunkai": "ghiscar", // Yunkai tái chiếm
+};
+
+/**
+ * Tra cứu năm → bảng override thích hợp.
+ *
+ * Chỉ trả về các entry CẦN GHI ĐÈ so với `DEFAULT_298`. Kết quả cuối cùng
+ * của `regionControlForYear()` sẽ merge override lên default.
+ */
+function overridesForYear(year: number): Record<string, string> {
+  if (year < -300) return CONTROL_ANCIENT;      // Đêm Trường / Thời Đại Anh Hùng (~8000+ BC)
+  if (year < 1) return CONTROL_PRE_CONQUEST;     // Bảy Vương Quốc trước Aegon (~300 BC – 1 BC)
+  if (year <= 2) return CONTROL_CONQUEST;         // Hậu chinh phục (1-2 AC)
+  if (year < 129) return CONTROL_POST_CONQUEST;
+  if (year <= 131) return CONTROL_DANCE;
+  if (year < 195) return CONTROL_POST_DANCE;
+  if (year <= 196) return CONTROL_BLACKFYRE;
+  if (year < 282) return CONTROL_DUNK_EGG;
+  if (year <= 283) return CONTROL_ROBERTS_REBELLION;
+  if (year < 298) return CONTROL_GREYJOY_REBELLION;
+  if (year < 300) return CONTROL_WOFK;
+  return CONTROL_WINDS;
 }
 
 /** Bản đồ controller đầy đủ cho mọi leaf province tại một năm. */
 export function regionControlForYear(year: number): Record<string, string> {
   const control = { ...DEFAULT_298 };
-  for (const region of REGIONS) {
-    if (region.continentId === "westeros") {
-      control[region.id] = westerosControllerForRealm(region.realmId, year, region.defaultHouse);
+  const overrides = overridesForYear(year);
+  for (const [regionId, house] of Object.entries(overrides)) {
+    if (regionId in control) {
+      control[regionId] = house;
     }
-  }
-
-  // Thay đổi lớn tại Essos trong giai đoạn tiểu thuyết.
-  if (year >= 300) {
-    control.meereen = "targaryen-essos";
-    control.astapor = "";
-    control.yunkai = "ghiscar";
   }
   return control;
 }
 
 export const FACTION_COLORS_MAP: Record<string, string> = {
+  "Nhà Targaryen": "targaryen", "Bảy Vương Quốc": "stark",
   "Phe Đen": "targaryen-black", "Phe Xanh": "targaryen-green",
   "Targaryen Vương Thất": "targaryen", "Phe Blackfyre": "blackfyre",
   "Phe Khởi Nghĩa": "baratheon", "Phe Ngai Sắt": "lannister",
@@ -674,6 +924,10 @@ export const FACTION_COLORS_MAP: Record<string, string> = {
 };
 
 export function factionsForYear(year: number): Record<string, string[]> | null {
+  if (year >= -2 && year <= 1) return {
+    "Nhà Targaryen": ["targaryen", "velaryon"],
+    "Bảy Vương Quốc": ["stark", "arryn", "lannister", "gardener", "durrandon", "hoare", "martell"],
+  };
   if (year >= 129 && year <= 131) return {
     "Phe Đen": ["targaryen-black", "stark", "arryn", "tully", "velaryon"],
     "Phe Xanh": ["targaryen-green", "lannister", "baratheon", "hightower"],
@@ -695,7 +949,7 @@ export function factionsForYear(year: number): Record<string, string[]> | null {
 
 export function regionControlForEra(eraId: string): Record<string, string> {
   const eraToYear: Record<string, number> = {
-    "long-night": -8000, "aegon-conquest": 1, "dance-of-dragons": 129,
+    "long-night": -8000, "aegon-conquest": -2, "dance-of-dragons": 129,
     "blackfyre-rebellion": 195, "dunk-and-egg": 209, "roberts-rebellion": 282,
     "greyjoy-rebellion": 289, "war-of-five-kings": 298, "winds-of-winter": 300,
   };

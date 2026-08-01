@@ -115,10 +115,10 @@ describe("Tô màu 2 chế độ (9.5.2)", () => {
   });
 
   it("Chính Trị: vùng tô màu Nhà kiểm soát; vô chủ → sọc", () => {
-    const s = starkPlayer("aegon-conquest"); // Crownlands vô chủ ở Era này
+    const s = starkPlayer("long-night"); // beyond-the-wall vô chủ ở Era này
     expect(regionFill(s, "the-north", "political").color).toBe(houseColor("stark").base);
-    const crown = regionFill(s, "the-crownlands", "political");
-    expect(crown.striped).toBe(true); // vô chủ → sọc 2 màu
+    const beyond = regionFill(s, "beyond-the-wall", "political");
+    expect(beyond.striped).toBe(true); // vô chủ → sọc 2 màu
   });
 
   it("Quan Hệ: lãnh thổ ta nổi bật; heatmap theo Thái Độ Nhà kiểm soát", () => {

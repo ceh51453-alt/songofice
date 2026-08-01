@@ -208,6 +208,82 @@ const HOUSE_SEEDS: HouseSeed[] = [
   { id: "ulthos-peoples", name: "Các Cộng Đồng Ulthos", schemaName: "Ulthos", sigil: "Tán rừng đen dưới sao", words: "Ngoài rìa hải đồ", seat: "Unknown Harbour", region: "Ulthos", themeColor: { primary: "#334c3f", secondary: "#17221d" }, continentIds: ["ulthos"], regionIds: ["ulthos-west-coast", "ulthos-interior"], cultureIds: ["ulthosi"], kind: "people", government: "tribal" },
   { id: "iron-bank", name: "Ngân Hàng Sắt Braavos", schemaName: "Ngân Hàng Sắt", sigil: "Cánh cửa sắt và đồng tiền", words: "Ngân Hàng Sắt sẽ lấy lại phần của mình", seat: "Braavos", region: "Braavos", themeColor: { primary: "#66737a", secondary: "#262d31" }, continentIds: ["essos"], regionIds: ["essos-braavos"], cultureIds: ["braavosi"], kind: "order", government: "institution" },
   { id: "golden-company", name: "Đại Đội Vàng", schemaName: "Golden Company", sigil: "Sọ vàng trên giáo", words: "Dưới vàng, thép cay đắng", seat: "Di động", region: "Essos", themeColor: { primary: "#a88b3f", secondary: "#3b2e19" }, continentIds: ["essos"], regionIds: [], cultureIds: ["valyrian", "andals"], kind: "company", government: "company", activeFromYear: 212 },
+
+  // ── CHƯƠNG HẦU / GIA TỘC CHÍNH CỦA WESTEROS ──────────────────────────────
+
+  // -- Phương Bắc --
+  { id: "karstark", name: "Nhà Karstark", schemaName: "Karstark", sigil: "Mặt trời trắng trên nền đen", words: "Mùa đông sẽ đến", seat: "Karhold", region: "Phương Bắc", themeColor: { primary: "#5a5a5a", secondary: "#2a2a2a" } },
+  { id: "umber", name: "Nhà Umber", schemaName: "Umber", sigil: "Người khổng lồ đỏ xiềng xích trên nền cam", words: "Sức mạnh không gục ngã", seat: "Last Hearth", region: "Phương Bắc", themeColor: { primary: "#8b4513", secondary: "#cd6600" } },
+  { id: "mormont", name: "Nhà Mormont", schemaName: "Mormont", sigil: "Gấu đen trên nền xanh lá", words: "Nơi đây chúng tôi đứng vững", seat: "Mormont Keep", region: "Phương Bắc", themeColor: { primary: "#2e4e2e", secondary: "#1a3a1a" } },
+  { id: "manderly", name: "Nhà Manderly", schemaName: "Manderly", sigil: "Người cá trên nền xanh biển", words: "Người trung thành, trái tim không lay", seat: "White Harbor", region: "Phương Bắc", themeColor: { primary: "#2e6e8e", secondary: "#1a4a5e" } },
+  { id: "glover", name: "Nhà Glover", schemaName: "Glover", sigil: "Bàn tay sắt trên nền đỏ thẫm", words: "Không ngại gian nan", seat: "Deepwood Motte", region: "Phương Bắc", themeColor: { primary: "#6e3030", secondary: "#4a1a1a" } },
+  { id: "reed", name: "Nhà Reed", schemaName: "Reed", sigil: "Thằn lằn sư tử đen trên nền xám xanh", words: "Chúng tôi canh giữ con đường", seat: "Greywater Watch", region: "Phương Bắc", themeColor: { primary: "#4a5e4a", secondary: "#2e3e2e" } },
+  { id: "dustin", name: "Nhà Dustin", schemaName: "Dustin", sigil: "Hai chiếc rìu vàng trên nền đen", words: "Sắc bén và kiên quyết", seat: "Barrowton", region: "Phương Bắc", themeColor: { primary: "#6e5a30", secondary: "#3e3018" } },
+  { id: "tallhart", name: "Nhà Tallhart", schemaName: "Tallhart", sigil: "Ba cây lính canh trên nền xanh", words: "Kiêu hãnh và tự do", seat: "Torrhen's Square", region: "Phương Bắc", themeColor: { primary: "#4e6e3e", secondary: "#2e4e2e" } },
+
+  // -- Quần Đảo Sắt --
+  { id: "harlaw", name: "Nhà Harlaw", schemaName: "Harlaw", sigil: "Lưỡi hái bạc trên nền đen", words: "Đọc và gặt", seat: "Ten Towers", region: "Quần Đảo Sắt", themeColor: { primary: "#4a4a4a", secondary: "#2a2a2a" } },
+  { id: "goodbrother", name: "Nhà Goodbrother", schemaName: "Goodbrother", sigil: "Sừng vàng trên nền đen", words: "Máu của anh em", seat: "Hammerhorn", region: "Quần Đảo Sắt", themeColor: { primary: "#5a4a2a", secondary: "#3a2a1a" } },
+  { id: "drumm", name: "Nhà Drumm", schemaName: "Drumm", sigil: "Xương trắng trên nền đỏ máu", words: "Gươm đỏ không rỉ sét", seat: "Old Wyk", region: "Quần Đảo Sắt", themeColor: { primary: "#6e2a2a", secondary: "#4a1a1a" } },
+  { id: "blacktyde", name: "Nhà Blacktyde", schemaName: "Blacktyde", sigil: "Sóng xanh trên nền đen", words: "Sóng không ngừng", seat: "Blacktyde Castle", region: "Quần Đảo Sắt", themeColor: { primary: "#2a4a5a", secondary: "#1a2a3a" } },
+
+  // -- Thung Lũng --
+  { id: "grafton", name: "Nhà Grafton", schemaName: "Grafton", sigil: "Tháp cháy trên nền vàng", words: "Ngọn lửa thương mại", seat: "Gulltown", region: "Thung Lũng", themeColor: { primary: "#8a7a2a", secondary: "#5a4a1a" } },
+  { id: "corbray", name: "Nhà Corbray", schemaName: "Corbray", sigil: "Ba quạ đen trên nền trắng đỏ", words: "Danh dự và thép", seat: "Heart's Home", region: "Thung Lũng", themeColor: { primary: "#6a2a2a", secondary: "#4a1a1a" } },
+  { id: "sunderland", name: "Nhà Sunderland", schemaName: "Sunderland", sigil: "Ba tàu trên sóng", words: "Biển là nhà", seat: "Sisterton", region: "Thung Lũng", themeColor: { primary: "#3a5a6a", secondary: "#2a3a4a" } },
+  { id: "waynwood", name: "Nhà Waynwood", schemaName: "Waynwood", sigil: "Bánh xe vỡ đen trên nền lục", words: "Không bao giờ đầu hàng", seat: "Ironoaks", region: "Thung Lũng", themeColor: { primary: "#3a5a3a", secondary: "#2a3a2a" } },
+  { id: "hunter", name: "Nhà Hunter", schemaName: "Hunter", sigil: "Năm mũi tên nâu trên nền vàng", words: "Tên không bao giờ trượt", seat: "Longbow Hall", region: "Thung Lũng", themeColor: { primary: "#6a5a2a", secondary: "#4a3a1a" } },
+
+  // -- Vùng Sông --
+  { id: "mallister", name: "Nhà Mallister", schemaName: "Mallister", sigil: "Đại bàng bạc trên nền tím", words: "Trên cao và xa", seat: "Seagard", region: "Vùng Sông Nước", themeColor: { primary: "#5a3a6a", secondary: "#3a2a4a" } },
+  { id: "whent", name: "Nhà Whent", schemaName: "Whent", sigil: "Chín dơi đen trên nền vàng", words: "Đêm không quên", seat: "Harrenhal", region: "Vùng Sông Nước", themeColor: { primary: "#5a5a2a", secondary: "#3a3a1a" } },
+  { id: "mooton", name: "Nhà Mooton", schemaName: "Mooton", sigil: "Cá đỏ trên nền trắng", words: "Dưới dòng nước", seat: "Maidenpool", region: "Vùng Sông Nước", themeColor: { primary: "#8a4a3a", secondary: "#5a2a2a" } },
+  { id: "blackwood", name: "Nhà Blackwood", schemaName: "Blackwood", sigil: "Cây tâm gỗ đen bao quanh quạ", words: "Xanh vĩnh hằng", seat: "Raventree Hall", region: "Vùng Sông Nước", themeColor: { primary: "#3a3a3a", secondary: "#1a1a1a" } },
+  { id: "darry", name: "Nhà Darry", schemaName: "Darry", sigil: "Người cày trên nền nâu", words: "Chúng tôi đứng vững", seat: "Darry", region: "Vùng Sông Nước", themeColor: { primary: "#6a5a3a", secondary: "#4a3a2a" } },
+
+  // -- Vùng Tây --
+  { id: "lefford", name: "Nhà Lefford", schemaName: "Lefford", sigil: "Mặt trời vàng trên nền xanh trời", words: "Răng vàng canh gác", seat: "Golden Tooth", region: "Phương Tây", themeColor: { primary: "#4a6a8a", secondary: "#2a4a6a" } },
+  { id: "westerling", name: "Nhà Westerling", schemaName: "Westerling", sigil: "Sáu vỏ sò trên nền cát", words: "Danh dự, không phải vàng", seat: "The Crag", region: "Phương Tây", themeColor: { primary: "#8a7a5a", secondary: "#5a5a3a" } },
+  { id: "crakehall", name: "Nhà Crakehall", schemaName: "Crakehall", sigil: "Lợn rừng nâu trên nền bạc", words: "Không có kẻ nào dũng mãnh hơn", seat: "Crakehall", region: "Phương Tây", themeColor: { primary: "#5a4a3a", secondary: "#3a2a2a" } },
+  { id: "farman", name: "Nhà Farman", schemaName: "Farman", sigil: "Ba tàu trên sóng bạc", words: "Gió ấm đưa ta đi", seat: "Faircastle", region: "Phương Tây", themeColor: { primary: "#3a5a7a", secondary: "#2a3a5a" } },
+  { id: "marbrand", name: "Nhà Marbrand", schemaName: "Marbrand", sigil: "Cây lửa cháy trên nền tro", words: "Lửa cháy không tắt", seat: "Ashemark", region: "Phương Tây", themeColor: { primary: "#8a5a2a", secondary: "#5a3a1a" } },
+
+  // -- Đất Vương Thất --
+  { id: "celtigar", name: "Nhà Celtigar", schemaName: "Celtigar", sigil: "Cua đỏ trên nền trắng", words: "Biển và máu Valyria", seat: "Claw Isle", region: "Đất Vương Thất", themeColor: { primary: "#8a3a3a", secondary: "#5a2a2a" } },
+  { id: "stokeworth", name: "Nhà Stokeworth", schemaName: "Stokeworth", sigil: "Chiếc chuông bạc trên nền xám", words: "Trung thành và vững chãi", seat: "Stokeworth", region: "Đất Vương Thất", themeColor: { primary: "#6a6a6a", secondary: "#4a4a4a" } },
+  { id: "rykker", name: "Nhà Rykker", schemaName: "Rykker", sigil: "Hai búa chiến trên nền xanh", words: "Búa nặng tay vững", seat: "Duskendale", region: "Đất Vương Thất", themeColor: { primary: "#3a4a5a", secondary: "#2a3a3a" } },
+  { id: "sunglass", name: "Nhà Sunglass", schemaName: "Sunglass", sigil: "Bảy mặt trời trên nền trắng", words: "Ánh sáng trong sáng", seat: "Sweetport Sound", region: "Đất Vương Thất", themeColor: { primary: "#8a8a4a", secondary: "#5a5a2a" } },
+
+  // -- Reach --
+  { id: "redwyne", name: "Nhà Redwyne", schemaName: "Redwyne", sigil: "Chùm nho burgundy trên nền xanh", words: "Rượu ngon nhất thế giới", seat: "The Arbor", region: "Vùng Reach", themeColor: { primary: "#6a2a4a", secondary: "#4a1a3a" } },
+  { id: "tarly", name: "Nhà Tarly", schemaName: "Tarly", sigil: "Thợ săn đỏ trên nền xanh lá", words: "Ngay Thẳng và Kiên Cường", seat: "Horn Hill", region: "Vùng Reach", themeColor: { primary: "#3a5a2a", secondary: "#2a3a1a" } },
+  { id: "rowan", name: "Nhà Rowan", schemaName: "Rowan", sigil: "Cây sồi vàng trên nền trắng", words: "Bền vững như sồi", seat: "Goldengrove", region: "Vùng Reach", themeColor: { primary: "#7a6a2a", secondary: "#5a4a1a" } },
+  { id: "oakheart", name: "Nhà Oakheart", schemaName: "Oakheart", sigil: "Ba chiếc lá sồi xanh trên nền vàng", words: "Lá sồi cũng có móng vuốt", seat: "Old Oak", region: "Vùng Reach", themeColor: { primary: "#4a6a2a", secondary: "#2a4a1a" } },
+  { id: "florent", name: "Nhà Florent", schemaName: "Florent", sigil: "Đầu cáo đỏ nở hoa", words: "Tai cáo nghe rõ", seat: "Brightwater Keep", region: "Vùng Reach", themeColor: { primary: "#7a4a2a", secondary: "#5a3a1a" } },
+  { id: "caswell", name: "Nhà Caswell", schemaName: "Caswell", sigil: "Centaur vàng trên nền trắng", words: "Tốc độ chiến thắng", seat: "Bitterbridge", region: "Vùng Reach", themeColor: { primary: "#6a6a3a", secondary: "#4a4a2a" } },
+  { id: "crane", name: "Nhà Crane", schemaName: "Crane", sigil: "Hạc vàng trên nền lam", words: "Vĩnh viễn trong chờ đợi", seat: "Red Lake", region: "Vùng Reach", themeColor: { primary: "#3a5a6a", secondary: "#2a3a4a" } },
+
+  // -- Vùng Bão --
+  { id: "connington", name: "Nhà Connington", schemaName: "Connington", sigil: "Hai chim ưng đỏ chiến đấu trên nền trắng", words: "Một cánh tay đỏ", seat: "Griffin's Roost", region: "Vùng Bão", themeColor: { primary: "#7a2a2a", secondary: "#5a1a1a" } },
+  { id: "tarth", name: "Nhà Tarth", schemaName: "Tarth", sigil: "Ngôi sao vàng và trăng lưỡi liềm trên nền hồng xanh", words: "Đảo Sapphire", seat: "Evenfall Hall", region: "Vùng Bão", themeColor: { primary: "#3a6a7a", secondary: "#2a4a5a" } },
+  { id: "dondarrion", name: "Nhà Dondarrion", schemaName: "Dondarrion", sigil: "Sét tím trên nền đen", words: "Sét không đánh hai lần", seat: "Blackhaven", region: "Vùng Bão", themeColor: { primary: "#4a2a6a", secondary: "#3a1a4a" } },
+  { id: "swann", name: "Nhà Swann", schemaName: "Swann", sigil: "Hai thiên nga chiến đấu trắng đen", words: "Đen và trắng, không xám", seat: "Stonehelm", region: "Vùng Bão", themeColor: { primary: "#3a3a3a", secondary: "#5a5a5a" } },
+  { id: "penrose", name: "Nhà Penrose", schemaName: "Penrose", sigil: "Hai quill vàng trên nền cam", words: "Viết bằng máu", seat: "Parchments", region: "Vùng Bão", themeColor: { primary: "#6a5a2a", secondary: "#8a7a4a" } },
+  { id: "estermont", name: "Nhà Estermont", schemaName: "Estermont", sigil: "Rùa biển xanh trên nền xanh lá", words: "Biển nuôi sống", seat: "Greenstone", region: "Vùng Bão", themeColor: { primary: "#2a5a4a", secondary: "#1a3a3a" } },
+  { id: "wylde", name: "Nhà Wylde", schemaName: "Wylde", sigil: "Vương miện xanh bão trên sóng", words: "Sóng gào ta vẫn đứng", seat: "Rain House", region: "Vùng Bão", themeColor: { primary: "#3a4a5a", secondary: "#2a3a4a" } },
+
+  // -- Dorne --
+  { id: "dayne", name: "Nhà Dayne", schemaName: "Dayne", sigil: "Ngôi sao rơi bạc trên nền tím", words: "Thanh kiếm Bình Minh", seat: "Starfall", region: "Dorne", themeColor: { primary: "#5a3a6a", secondary: "#3a2a4a" } },
+  { id: "fowler", name: "Nhà Fowler", schemaName: "Fowler", sigil: "Chim ưng xanh bắt mồi trên nền bạc", words: "Cho tôi bay", seat: "Skyreach", region: "Dorne", themeColor: { primary: "#4a5a6a", secondary: "#2a3a4a" } },
+  { id: "uller", name: "Nhà Uller", schemaName: "Uller", sigil: "Thằn lằn đỏ trên nền vàng", words: "Nửa điên nửa tỉnh", seat: "Hellholt", region: "Dorne", themeColor: { primary: "#8a5a2a", secondary: "#5a3a1a" } },
+  { id: "manwoody", name: "Nhà Manwoody", schemaName: "Manwoody", sigil: "Sọ vương miện trên nền đen", words: "Xương không quên", seat: "Kingsgrave", region: "Dorne", themeColor: { primary: "#4a4a3a", secondary: "#2a2a2a" } },
+  { id: "blackmont", name: "Nhà Blackmont", schemaName: "Blackmont", sigil: "Kền kền đen trên nền vàng", words: "Sự thật và kiên quyết", seat: "Blackmont", region: "Dorne", themeColor: { primary: "#3a3a2a", secondary: "#1a1a1a" } },
+  { id: "toland", name: "Nhà Toland", schemaName: "Toland", sigil: "Rồng cắn đuôi xanh trên nền vàng", words: "Vòng tròn bất tận", seat: "Ghost Hill", region: "Dorne", themeColor: { primary: "#6a6a2a", secondary: "#4a4a1a" } },
+  { id: "wyl", name: "Nhà Wyl", schemaName: "Wyl", sigil: "Rắn hổ mang đen trên nền vàng", words: "Nanh độc canh đường", seat: "Wyl", region: "Dorne", themeColor: { primary: "#4a4a2a", secondary: "#2a2a1a" } },
+
+  // -- Nhà Hoare (thời Chinh Phục) --
+  { id: "hoare", name: "Nhà Hoare", schemaName: "Hoare", sigil: "Cung trăng bạc trên nền đen", words: "Ngai Sắt và Đá Đen", seat: "Harrenhal", region: "Quần Đảo Sắt", themeColor: { primary: "#42484d", secondary: "#6b737a" }, activeToYear: 1 },
+
   { id: "custom", name: "Tự Tạo Thế Lực Mới", schemaName: "Tùy Chỉnh", sigil: "Tùy chọn",
     words: "Tùy chọn", seat: "Tùy chọn", region: "Tùy chọn",
     themeColor: { primary: "#a0a0a0", secondary: "#404040" }, continentIds: ["westeros", "essos", "ibben", "sothoryos", "summer-isles", "ulthos"], regionIds: [], cultureIds: [], kind: "polity", government: "feudal" }
