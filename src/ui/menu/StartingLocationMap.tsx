@@ -2,21 +2,20 @@ import { useEffect, useMemo } from "react";
 import { CircleMarker, MapContainer, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
-  MAP_H,
-  MAP_W,
   macroForRegion,
   regionsForContinent,
   type ContinentId,
   type MapRegion,
 } from "../../content/world/geography";
+import { REGION_COORDINATES } from "../../content/westeros/mapCoordinates";
 import { QuartermaesterTileLayer } from "../map/QuartermaesterTileLayer";
 
 type LatLngTuple = [number, number];
 
-/** Convert the shared world-map pixel registry to Leaflet's bounded CRS. */
+/** Look up the Quartermaester lat/lng for a region. Every region has an
+ *  explicit entry populated by mapCoordinates.ts at import time. */
 function regionLatLng(region: MapRegion): LatLngTuple {
-  const [x, y] = region.seatXY;
-  return [80 - (y / MAP_H) * 160, -170 + (x / MAP_W) * 340];
+  return REGION_COORDINATES[region.id] ?? [0, 0];
 }
 
 function FitRegions({ regions }: { regions: MapRegion[] }) {
