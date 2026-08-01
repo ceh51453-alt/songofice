@@ -51,20 +51,6 @@ const NODE_COLOR: Record<string, string> = {
   "Khoáng Sản": "#987b57",
   "Sông Hồ": "#4e91b6",
   "Biển Cả": "#326f9f",
-  "Gỗ": "#4c7a52",
-  "Đá": "#9a958c",
-  "Quặng Sắt": "#a98a52",
-  "Than Đá": "#4a4642",
-  "Đồng": "#b5763f",
-  "Thiếc": "#8fa3ad",
-  "Muối": "#d8d3c4",
-  "Lương Thực": "#b3a55e",
-  "Thảo Dược": "#6fa86b",
-  "Lanh": "#a8b083",
-  "Da Thú": "#9c7a56",
-  "Sáp Ong": "#d2ae53",
-  "Cá Khô": "#5d97b5",
-  "Hắc Diện Thạch": "#6b4f8a",
 };
 const NODE_FALLBACK = "#8a8a8a";
 const ALL_RESOURCE_NAMES = [...new Set(
@@ -72,17 +58,10 @@ const ALL_RESOURCE_NAMES = [...new Set(
 )];
 
 function resourceIcon(resource: string): string {
-  if (resource === "Rừng Rậm") return "♣";
-  if (resource === "Khoáng Sản") return "◆";
+  if (resource === "Rừng Rậm") return "🌲";
+  if (resource === "Khoáng Sản") return "⛰️";
   if (resource === "Sông Hồ") return "≋";
   if (resource === "Biển Cả") return "⚓";
-  if (resource.includes("Gỗ")) return "♣";
-  if (resource.includes("Sắt") || resource.includes("Đồng") || resource.includes("Thiếc")) return "◆";
-  if (resource.includes("Than") || resource.includes("Thạch")) return "⬟";
-  if (resource.includes("Cá")) return "◈";
-  if (resource.includes("Lương") || resource.includes("Lanh")) return "♧";
-  if (resource.includes("Thảo") || resource.includes("Ong")) return "✤";
-  if (resource.includes("Da")) return "◇";
   return "●";
 }
 
