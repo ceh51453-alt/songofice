@@ -26,7 +26,7 @@
   "game": {
     "navChat": "Nhập vai",
     "navMap": "Bản đồ",
-    "navTerritory": "Lãnh địa",
+    "navTerritory": "Quản trị phong kiến",
     "navMilitary": "Quân sự",
     "navCourt": "Triều đình",
     "navIntrigue": "Mưu đồ",
@@ -145,6 +145,7 @@
   "map": {
     "modePolitical": "Bản Đồ Chính Trị",
     "modeRelationship": "Bản Đồ Quan Hệ",
+    "faction": "Bản Đồ Phe Phái",
     "layerTerritory": "Lãnh thổ",
     "layerMarkers": "Địa danh",
     "zoomIn": "Phóng to",

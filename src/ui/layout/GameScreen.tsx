@@ -13,6 +13,7 @@ import { DashboardLanhChua } from "../territory/DashboardLanhChua";
 import { TerritoryPanel } from "../territory/TerritoryPanel";
 import { MilitaryPanel } from "../military/MilitaryPanel";
 import { CourtPanel } from "../court/CourtPanel";
+import { DynastyPanel } from "../court/DynastyPanel";
 import { IntriguePanel } from "../intrigue/IntriguePanel";
 import { DiplomacyPanel } from "../diplomacy/DiplomacyPanel";
 import { EconomyPanel } from "../economy/EconomyPanel";
@@ -28,7 +29,6 @@ import { useUiStore } from "../../state/uiStore";
 import { useMvuStore } from "../../state/mvuStore";
 import { useTerritoryStore } from "../../state/territoryStore";
 import { useEconomyStore } from "../../state/economyStore";
-import { playerHoldingIds } from "../../territory/mapAggregate";
 import { courtInvolved } from "../../strategy/court";
 import { intrigueAvailable } from "../../strategy/intrigue";
 import { diplomacyAvailable } from "../../strategy/diplomacy";
@@ -55,6 +55,7 @@ export function GameScreen() {
   const [statusCollapsed, setStatusCollapsed] = useState(false);
   const [militaryOpen, setMilitaryOpen] = useState(false);
   const [courtOpen, setCourtOpen] = useState(false);
+  const [dynastyOpen, setDynastyOpen] = useState(false);
   const [intrigueOpen, setIntrigueOpen] = useState(false);
   const [diplomacyOpen, setDiplomacyOpen] = useState(false);
   const courtActive = useMvuStore((s) => courtInvolved(s.stat));
@@ -75,8 +76,6 @@ export function GameScreen() {
   const setGameView = useUiStore((s) => s.setGameView);
   const selectRegion = useTerritoryStore((s) => s.selectRegion);
   const stat = useMvuStore((s) => s.stat);
-  const myHoldings = playerHoldingIds(stat);
-  const [noHoldingNotice, setNoHoldingNotice] = useState(false);
   const userInteracted = useAudioStore((s) => s.userInteracted);
   const isDead = stat["Thông Tin Nhân Vật"]["Đã Chết"];
   const deathCause = stat["Thông Tin Nhân Vật"]["Nguyên Nhân Cái Chết"];
@@ -86,23 +85,20 @@ export function GameScreen() {
     if (userInteracted) updateMood(stat);
   }, [stat, userInteracted]);
 
-  /** Mở bảng quản trị Lãnh Địa (hành chính). Bản đồ lãnh địa nằm ở Tầng 1 của Bản Đồ. */
+  /** Mở bảng phân cấp và quản trị phong kiến; vẫn xem được khi chưa có đất. */
   const openTerritory = () => {
-    if (myHoldings.length > 0) {
-      setTerritoryDashboardOpen(true);
-      return;
-    }
-    setNoHoldingNotice(true);
+    setTerritoryDashboardOpen(true);
   };
 
   const railItems: RailItem[] = [
     { key: "chat", label: t("game.navChat"), icon: <IconSend size={18} />, enabled: true, active: gameView === "chat", onClick: () => setGameView("chat") },
-    { key: "map", label: "Bản Đồ (Thế Giới / Lãnh Thổ / Lãnh Địa)", icon: <IconMap size={18} />, enabled: true, active: gameView === "map", onClick: () => { setGameView("map"); selectRegion(null); } },
-    { key: "territory", label: t("game.navTerritory"), icon: <IconCastle size={18} />, enabled: myHoldings.length > 0, active: territoryDashboardOpen, onClick: openTerritory },
+    { key: "map", label: "Bản Đồ (5 cấp địa lý)", icon: <IconMap size={18} />, enabled: true, active: gameView === "map", onClick: () => { setGameView("map"); selectRegion(null); } },
+    { key: "territory", label: t("game.navTerritory"), icon: <IconCastle size={18} />, enabled: true, active: territoryDashboardOpen, onClick: openTerritory },
     { key: "military", label: t("game.navMilitary"), icon: <IconShield size={18} />, enabled: true, active: militaryOpen, onClick: () => setMilitaryOpen(true) },
     { key: "diplomacy", label: "Ngoại Giao", icon: <IconScroll size={18} />, enabled: diplomacyActive, active: diplomacyOpen, onClick: () => setDiplomacyOpen(true) },
     { key: "economy", label: "Kinh Tế", icon: <IconCoin size={18} />, enabled: hasHoldings, active: economyOpen, onClick: toggleEconomy },
     { key: "court", label: t("game.navCourt"), icon: <IconCrown size={18} />, enabled: courtActive, active: courtOpen, onClick: () => setCourtOpen(true) },
+    { key: "dynasty", label: "Gia Tộc", icon: <IconUsers size={18} />, enabled: true, active: dynastyOpen, onClick: () => setDynastyOpen(true) },
     { key: "intrigue", label: t("game.navIntrigue"), icon: <IconMask size={18} />, enabled: intrigueActive, active: intrigueOpen, onClick: () => setIntrigueOpen(true) },
     { key: "kingdoms", label: "Bàn Cờ Thế Giới (cán cân quyền lực)", icon: <IconBanner size={18} />, enabled: true, active: kingdomsOpen, onClick: () => setKingdomsOpen(true) },
     { key: "relationship", label: "Quan Hệ", icon: <IconUsers size={18} />, enabled: true, active: relationshipOpen, onClick: () => setRelationshipOpen(true) },
@@ -118,6 +114,7 @@ export function GameScreen() {
       <DashboardLanhChua />
       <MilitaryPanel open={militaryOpen} onClose={() => setMilitaryOpen(false)} />
       <CourtPanel open={courtOpen} onClose={() => setCourtOpen(false)} />
+      <DynastyPanel open={dynastyOpen} onClose={() => setDynastyOpen(false)} />
       <IntriguePanel open={intrigueOpen} onClose={() => setIntrigueOpen(false)} />
       <DiplomacyPanel open={diplomacyOpen} onClose={() => setDiplomacyOpen(false)} />
       <EconomyPanel />
@@ -189,12 +186,11 @@ export function GameScreen() {
       <div className="glass-strong fixed bottom-20 left-1/2 z-30 flex -translate-x-1/2 gap-1 rounded-full px-1.5 py-1 lg:hidden">
         <MobileNavBtn label={t("game.navChat")} icon={<IconSend size={17} />} active={gameView === "chat"} onClick={() => setGameView("chat")} />
         <MobileNavBtn label="Bản Đồ" icon={<IconMap size={17} />} active={gameView === "map"} onClick={() => { setGameView("map"); selectRegion(null); }} />
-        {myHoldings.length > 0 && (
-          <MobileNavBtn label={t("game.navTerritory")} icon={<IconCastle size={17} />} active={territoryDashboardOpen} onClick={openTerritory} />
-        )}
+        <MobileNavBtn label={t("game.navTerritory")} icon={<IconCastle size={17} />} active={territoryDashboardOpen} onClick={openTerritory} />
         <MobileNavBtn label={t("game.navMilitary")} icon={<IconShield size={17} />} active={militaryOpen} onClick={() => setMilitaryOpen(true)} />
         {hasHoldings && <MobileNavBtn label="Kinh Tế" icon={<IconCoin size={17} />} active={economyOpen} onClick={toggleEconomy} />}
         {courtActive && <MobileNavBtn label={t("game.navCourt")} icon={<IconCrown size={17} />} active={courtOpen} onClick={() => setCourtOpen(true)} />}
+        <MobileNavBtn label="Gia Tộc" icon={<IconUsers size={17} />} active={dynastyOpen} onClick={() => setDynastyOpen(true)} />
         {diplomacyActive && <MobileNavBtn label="Ngoại Giao" icon={<IconScroll size={17} />} active={diplomacyOpen} onClick={() => setDiplomacyOpen(true)} />}
         {intrigueActive && <MobileNavBtn label={t("game.navIntrigue")} icon={<IconMask size={17} />} active={intrigueOpen} onClick={() => setIntrigueOpen(true)} />}
         <MobileNavBtn label="Bàn Cờ" icon={<IconBanner size={17} />} active={kingdomsOpen} onClick={() => setKingdomsOpen(true)} />
@@ -231,26 +227,6 @@ export function GameScreen() {
           >
             Chấp Nhận Số Phận
           </button>
-        </div>
-      )}
-
-      {/* ---- chưa có lãnh địa nào để quản trị ---- */}
-      {noHoldingNotice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog">
-          <div className="absolute inset-0 bg-[rgba(5,7,10,0.6)]" onClick={() => setNoHoldingNotice(false)} />
-          <div className="glass-strong anim-in relative max-w-sm rounded-[var(--radius-md)] p-5">
-            <h3 className="font-display mb-2 text-[15px] tracking-wide text-[var(--accent-text)]">Chưa có tấc đất cắm dùi</h3>
-            <p className="text-[13px] leading-relaxed text-[var(--text-muted)]">
-              Ngươi chưa quản trị lãnh địa nào. Hãy chiếm một vùng hoặc được ban đất trước —
-              khi đó Tầng Lãnh Địa trên bản đồ sẽ mở ra để quy hoạch.
-            </p>
-            <button
-              onClick={() => setNoHoldingNotice(false)}
-              className="mt-4 w-full rounded-[var(--radius-sm)] bg-[var(--accent-soft)] px-3 py-2 text-[12.5px] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"
-            >
-              Đã rõ
-            </button>
-          </div>
         </div>
       )}
 

@@ -5,7 +5,7 @@
  * trang bị/tài sản → engine tính phái sinh → HP/Thể Lực = trần.
  * Kèm: lore entry khởi tạo (constant) + tin nhắn mở đầu + tự trigger AI.
  */
-import { makeDefaultState, DRAGON_SIZE_HP, DRAGON_STATS, DRAGON_SKILLS, type StatData, type DragonStat, type DragonSkill, type DragonSize, type DragonSpecialPower, type WallLine, PATRON_GODS, BLOODLINES } from "../mvu/schema";
+import { makeDefaultState, makeDefaultRegionGovernance, DRAGON_SIZE_HP, DRAGON_STATS, DRAGON_SKILLS, type StatData, type DragonStat, type DragonSkill, type DragonSize, type DragonSpecialPower, type WallLine, PATRON_GODS, BLOODLINES } from "../mvu/schema";
 import { NpcSchema, lifeStage, type Npc } from "../mvu/npcSchema";
 import { parseEffect, recomputeDerived } from "../mvu/effects";
 import { clamp } from "../mvu/helpers";
@@ -25,7 +25,16 @@ import { CULTURES_BY_ID, culturesForContinent } from "../content/westeros/cultur
 import { TALENTS_BY_ID, type TalentDef } from "../content/westeros/talents";
 import { SKILLS_BY_ID, STARTING_SKILLS_BY_ORIGIN } from "../content/westeros/skills";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
-import { ERAS_BY_ID, parseHookYear, type CanonCharacter, type EraData, type StartingHook } from "../content/westeros/eras";
+import {
+  ERAS_BY_ID,
+  activeCanonCharacters,
+  canonCharacterActiveAtYear,
+  parseHookYear,
+  resolveCanonCharacterSnapshot,
+  type CanonCharacter,
+  type EraData,
+  type StartingHook,
+} from "../content/westeros/eras";
 import { LORE_EQUIPMENT_BY_ID } from "../content/westeros/equipment";
 import { STARTING_CRISES } from "../content/westeros/startingCrises";
 import { COMPANIONS_BY_ID } from "../content/westeros/companions";
@@ -41,6 +50,7 @@ import {
   type MapRegion,
 } from "../content/world/geography";
 import { seedRegionControl, toHouseId, normalizeHouseIds, seedMissingTerrain, repairPlayerSovereignty } from "../territory/territoryEngine";
+import { canonicalSettlementPopulation } from "../territory/geographyRuntime";
 import { newUnit } from "../strategy/army";
 import { newDragon } from "../strategy/dragons";
 import { seedVassals } from "../strategy/muster";
@@ -551,8 +561,15 @@ function buildCompanion(archetypeId: string, name: string | undefined, affinityO
 }
 
 /** Áp phần chung: era/settings/world/seed. actualStartYear cho phép hook override. */
-function applyBase(state: StatData, era: EraData, d: Pick<WizardData, "narrativeMode" | "scenarioMode" | "difficulty">, actualStartYear?: number): void {
+function applyBase(
+  state: StatData,
+  era: EraData,
+  d: Pick<WizardData, "narrativeMode" | "scenarioMode" | "difficulty">,
+  actualStartYear?: number,
+  phaseId = "era-start",
+): void {
   state["Cài Đặt Ván"]["Thời Kỳ"] = era.id;
+  state["Cài Đặt Ván"]["Pha Thời Kỳ"] = phaseId;
   state["Cài Đặt Ván"]["Chế Độ Tường Thuật"] = d.narrativeMode;
   state["Cài Đặt Ván"]["Hướng Kịch Bản"] = d.scenarioMode;
   state["Cài Đặt Ván"]["Độ Khó Chiến Đấu"] = d.difficulty;
@@ -586,7 +603,8 @@ export function buildStateFromWizard(d: WizardData): StatData {
   const hook = era.startingHooks.find((h) => h.id === d.hookId);
   const actualStartYear = Number.isInteger(d.customStartYear) ? d.customStartYear! : parseHookYear(hook, era.startYear);
   const state = makeDefaultState();
-  applyBase(state, era, d, actualStartYear);
+  applyBase(state, era, d, actualStartYear, hook?.id ?? d.hookId ?? "era-start");
+  state["Cài Đặt Ván"]["_ID Xuất Thân"] = selectedOriginIds(d);
   state["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"] = origins.some((item) => item.id === "time-traveler");
 
   // Wizard stores the leaf region id. Narrative/UI shows the readable seat,
@@ -810,9 +828,10 @@ export function buildStateFromWizard(d: WizardData): StatData {
     const regionId = startRegionId;
     if (!regionId) throw new Error(`Không xác định được vùng khởi đầu cho ${era.startLocation}`);
     if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
-      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0 };
+      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "Quản Trị": makeDefaultRegionGovernance(), "_Ngày Đổi Chủ": 0 };
     }
     state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = toHouseId(d.houseId || d.customHouseName || "Vô Danh");
+    state["Chủ Quyền Lãnh Thổ"][regionId]["Người Kiểm Soát"] = d.name;
     state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
   } else if (origin.assets.lanhDia) {
     const regionId = startRegionId;
@@ -831,7 +850,7 @@ export function buildStateFromWizard(d: WizardData): StatData {
 
     if (!state["Chủ Quyền Lãnh Thổ"]) state["Chủ Quyền Lãnh Thổ"] = {};
     if (!state["Chủ Quyền Lãnh Thổ"][regionId]) {
-      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0 };
+      state["Chủ Quyền Lãnh Thổ"][regionId] = { "Nhà Kiểm Soát": "Không Rõ", "Người Kiểm Soát": "Không Rõ", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "Quản Trị": makeDefaultRegionGovernance(), "_Ngày Đổi Chủ": 0 };
     }
     state["Chủ Quyền Lãnh Thổ"][regionId]["Nhà Kiểm Soát"] = toHouseId(d.houseId || d.customHouseName || "Vô Danh");
     state["Chủ Quyền Lãnh Thổ"][regionId]["Là Của Người Chơi"] = true;
@@ -1093,23 +1112,10 @@ function adjustCanonCharacterByAge(original: CanonCharacter, targetAge: number, 
     if (c.skills[sk] <= 0) delete c.skills[sk];
   }
 
-  // 3. Holdings, Army, Equipment, Gold
-  if (targetAge < 16) {
-    c.startArmy = undefined;
-    c.startHoldings = undefined;
-    c.startRegions = undefined;
-    
-    c.gold = Math.max(0, Math.floor(c.gold * (targetAge / 25)));
-
-    c.equipment = c.equipment.filter(eq => {
-      const isValyrian = eq.phamChat === 'Thép Valyria' || (eq.dacTinh && eq.dacTinh.includes('valyrian'));
-      return !isValyrian;
-    });
-
-    if (c.tuocVi === 'Lãnh Chúa' || c.tuocVi === 'Vua') {
-      c.tuocVi = 'Người Thừa Kế';
-    }
-  }
+  // 3. Tuổi nhỏ chỉ làm yếu THỂ CHẤT/KỸ NĂNG ở trên. Không được tự xoá tước,
+  // thành, ngân khố hay quân của một quân chủ vị thành niên: các tài sản đó do
+  // nhiếp chính và triều đình vận hành (Joffrey, Ronnel Arryn...). Hồ sơ content
+  // quyết định ai thật sự là holder/heir; tuổi không được ghi đè pháp quyền.
 
   // 4. Dragon scaling
   if (c.dragon && original.birthYear !== undefined) {
@@ -1148,6 +1154,8 @@ export function canonLabel(era: EraData, id: string): string {
   if (character) return character.name;
   const region = REGIONS.find((entry) => entry.id === id);
   if (region) return region.name;
+  const regionSeat = REGIONS.find((entry) => `${entry.id}-seat` === id);
+  if (regionSeat) return regionSeat.seat;
   const marker = MAP_MARKERS.find((entry) => entry.id === id);
   if (marker) return marker.name;
   // Một vài quan hệ canon trỏ tới nhân vật lịch sử không thuộc roster đang
@@ -1201,9 +1209,14 @@ function canonNpc(
   actualStartYear: number,
   playerRelationship: { affinity: number; trust: number; labels: Npc["Loại Quan Hệ"] },
 ): Npc {
-  const age = character.birthYear === undefined ? character.age : Math.max(0, actualStartYear - character.birthYear);
+  const ageYear = character.deathYear !== undefined && character.deathYear < actualStartYear
+    ? character.deathYear
+    : actualStartYear;
+  const age = character.birthYear === undefined ? character.age : Math.max(0, ageYear - character.birthYear);
   const notBornYet = character.birthYear !== undefined && character.birthYear > actualStartYear;
-  const places = [...(character.startHoldings ?? []), ...(character.startRegions ?? [])].map((id) => canonLabel(era, id));
+  const residencePlaces = (character.residenceIds ?? []).map((id) => canonLabel(era, id));
+  const legalPlaces = [...(character.startHoldings ?? []), ...(character.startRegions ?? [])].map((id) => canonLabel(era, id));
+  const places = [...new Set(legalPlaces)];
 
   return {
     "Họ Tên": character.name,
@@ -1216,7 +1229,8 @@ function canonNpc(
     "Tuổi": age,
     ...(character.birthYear !== undefined ? { "Năm Sinh": character.birthYear } : {}),
     "Giai Đoạn Đời": lifeStage(age),
-    "Còn Sống": character.deathYear === undefined || character.deathYear >= actualStartYear,
+    "Còn Sống": (character as CanonCharacter & { active?: boolean }).active !== false
+      && (character.deathYear === undefined || character.deathYear >= actualStartYear),
     "Tình Trạng": notBornYet ? "Chưa Sinh" : "Bình Thường",
     "Độ Hảo Cảm": playerRelationship.affinity,
     "Tin Cậy": playerRelationship.trust,
@@ -1224,7 +1238,7 @@ function canonNpc(
     "Đánh Giá": character.biography || character.blurb,
     "Ngoại Hình": character.appearance,
     "Chức Vụ": character.role,
-    "Vị Trí Hiện Tại": places[0],
+    "Vị Trí Hiện Tại": residencePlaces[0] ?? places[0],
     "Năng Lực": character.năngLực ?? { "Võ Lực": 30, "Thống Soái": 30, "Trí Mưu": 30, "Ngoại Giao": 30 },
     "Chỉ Số Cốt Lõi": character.coreStats,
     "Kỹ Năng": character.skills,
@@ -1246,6 +1260,12 @@ function canonNpc(
   } as unknown as Npc;
 }
 
+/** Dữ liệu cũ không có legalStatus vẫn tương thích; snapshot mới phải ghi rõ holder. */
+function isCanonLegalHolder(character: CanonCharacter): boolean {
+  if (character.legalStatus !== undefined) return character.legalStatus === "holder";
+  return Boolean(character.startHoldings?.length || character.startRegions?.length);
+}
+
 export function buildStateFromCanon(
   c: CanonCharacter,
   era: EraData,
@@ -1253,17 +1273,20 @@ export function buildStateFromCanon(
   extras?: { persona?: WizardData["persona"]; portraitKey?: string; hookId?: string; customStartYear?: number },
 ): StatData {
   const hook = extras?.hookId ? (era.startingHooks.find((h) => h.id === extras.hookId) || c.personalHooks?.find((h) => h.id === extras.hookId)) : undefined;
+  const phaseId = hook?.id ?? extras?.hookId;
   const actualStartYear = extras?.customStartYear ?? parseHookYear(hook, era.startYear);
   const state = makeDefaultState();
-  applyBase(state, era, modes, actualStartYear);
+  applyBase(state, era, modes, actualStartYear, phaseId ?? "era-start");
 
   // Tuổi tính theo năm bắt đầu thực (hook year)
-  const canonAge = c.birthYear !== undefined
-    ? Math.max(0, actualStartYear - c.birthYear)
-    : c.age;
+  const snapshotC = resolveCanonCharacterSnapshot(c, phaseId);
+  const canonAge = snapshotC.birthYear !== undefined
+    ? Math.max(0, actualStartYear - snapshotC.birthYear)
+    : snapshotC.age;
 
   // Điểu chỉnh nhân vật (thay đổi c) dựa theo năm
-  const adjustedC = adjustCanonCharacterByAge(c, canonAge, actualStartYear);
+  const adjustedC = adjustCanonCharacterByAge(snapshotC, canonAge, actualStartYear);
+  const activeCharacters = activeCanonCharacters(era, actualStartYear, phaseId);
 
   const info = state["Thông Tin Nhân Vật"];
   info["Họ Tên"] = adjustedC.name;
@@ -1274,23 +1297,23 @@ export function buildStateFromCanon(
   // Văn hoá và huyết mạch là dữ liệu canon từng người, không suy diễn từ họ Nhà.
   info["Văn Hoá"] = adjustedC.culture || "Chưa xác minh";
   info["Huyết Mạch"] = adjustedC.bloodline || "Chưa xác minh";
-  info["Tôn Giáo"] = c.religion || "Thất Diện Thần";
+  info["Tôn Giáo"] = adjustedC.religion || "Thất Diện Thần";
   info["Thần Bảo Hộ"] = "";
   info["Đức Tin"] = 30;
   info["Ân Sủng"] = 10;
   if (info["Tôn Giáo"] && PATRON_GODS[info["Tôn Giáo"]]) {
     info["Thần Bảo Hộ"] = PATRON_GODS[info["Tôn Giáo"]][0]?.name || "";
   }
-  info["Ngân Khố"] = c.gold * G; // canon character.gold viết theo Rồng Vàng
+  info["Ngân Khố"] = adjustedC.gold * G; // canon character.gold viết theo Rồng Vàng
   
-  if (c.startResources) {
+  if (adjustedC.startResources) {
     info["Tài Nguyên Gia Tộc"] = { 
-      "Gỗ": c.startResources["Gỗ"] || 0,
-      "Quặng Sắt": c.startResources["Quặng Sắt"] || 0,
-      "Đá": c.startResources["Đá"] || 0,
-      "Lương Thực": c.startResources["Lương Thực"] || 0,
-      "Ngựa": c.startResources["Ngựa"] || 0,
-      "Thép Valyria": c.startResources["Thép Valyria"] || 0
+      "Gỗ": adjustedC.startResources["Gỗ"] || 0,
+      "Quặng Sắt": adjustedC.startResources["Quặng Sắt"] || 0,
+      "Đá": adjustedC.startResources["Đá"] || 0,
+      "Lương Thực": adjustedC.startResources["Lương Thực"] || 0,
+      "Ngựa": adjustedC.startResources["Ngựa"] || 0,
+      "Thép Valyria": adjustedC.startResources["Thép Valyria"] || 0
     };
   } else {
     // Nếu chưa có, gán mặc định để tránh lỗi undefined
@@ -1299,8 +1322,8 @@ export function buildStateFromCanon(
     };
   }
   
-  if (c.startDebts) {
-    for (const [creditor, debtInfo] of Object.entries(c.startDebts)) {
+  if (adjustedC.startDebts) {
+    for (const [creditor, debtInfo] of Object.entries(adjustedC.startDebts)) {
       state["Các Khoản Nợ"][creditor] = {
         "Nợ Gốc": debtInfo.amount,
         "Lãi/Tháng": debtInfo.interest,
@@ -1312,7 +1335,7 @@ export function buildStateFromCanon(
 
   // ---- tuổi tác ----
   info["Tuổi"] = canonAge;
-  if (c.birthYear !== undefined) info["Năm Sinh"] = c.birthYear;
+  if (adjustedC.birthYear !== undefined) info["Năm Sinh"] = adjustedC.birthYear;
   info["Giai Đoạn Đời"] = lifeStage(canonAge);
   if (extras?.portraitKey) info["Ảnh Chân Dung"] = extras.portraitKey;
   if (extras?.persona) {
@@ -1380,8 +1403,8 @@ export function buildStateFromCanon(
     state["Triều Đình"]["Triều Đình Của"] = adjustedC.name;
     
     // Quét các nhân vật trong Era có liege là nhân vật này
-    for (const npc of era.canonCharacters) {
-      if (npc.liege === c.id) {
+    for (const npc of activeCharacters) {
+      if (npc.liege === adjustedC.id) {
         // Thêm vào Tướng Lĩnh
         (state["Tướng Lĩnh"] as Record<string, unknown>)[npc.id] = {
           "Họ Tên": npc.name,
@@ -1409,7 +1432,7 @@ export function buildStateFromCanon(
       }
     }
   } else if (adjustedC.liege) {
-    const liegeChar = era.canonCharacters.find(ch => ch.id === adjustedC.liege);
+    const liegeChar = activeCharacters.find(ch => ch.id === adjustedC.liege);
     if (liegeChar) {
       state["Triều Đình"]["Có Liên Quan"] = true;
       state["Triều Đình"]["Triều Đình Của"] = liegeChar.name;
@@ -1423,13 +1446,18 @@ export function buildStateFromCanon(
   }
 
   // canon: lãnh chúa cai quản vùng quê → mở holding nếu kiểm soát (9.6.1/10.1)
-  seedRegionControl(state, era.id, { createIfMissing: true });
+  // Chỉ PERSON thực sự được era trao đất mới nhận holding. Cùng Nhà không đủ:
+  // Arya/Sansa không tự lấy Winterfell, Joffrey không tự lấy Storm's End.
+  seedRegionControl(state, era.id, { createIfMissing: true, requirePersonOwnership: true });
 
   // ---- Cập nhật tài sản khởi điểm tuỳ chỉnh của nhân vật (nếu có) ----
-  const allCharacters = [adjustedC, ...era.canonCharacters.filter(ch => ch.id !== c.id)];
+  // NPC holder ghi trước, holder do người chơi chọn ghi sau cùng. Như vậy
+  // snapshot không thể bị một NPC cùng ngồi tại triều ghi đè chủ hợp pháp.
+  const allCharacters = [...activeCharacters.filter(ch => ch.id !== adjustedC.id), adjustedC];
 
   for (const char of allCharacters) {
     const isPlayer = char.id === adjustedC.id;
+    if (!isCanonLegalHolder(char)) continue;
 
     if (char.startRegions) {
       for (const rid of char.startRegions) {
@@ -1452,20 +1480,10 @@ export function buildStateFromCanon(
         if (!isPlayer && state["Lãnh Địa"][sid]?.["Người Kiểm Soát"] === adjustedC.name) continue;
         const marker = MAP_MARKERS.find(m => m.id === sid);
         const regionSeat = REGIONS.find(r => r.id + "-seat" === sid || r.seat === marker?.name);
-        
-        let basePop = 5000;
-        if (regionSeat && regionSeat.seatPopulation) {
-             basePop = regionSeat.seatPopulation;
-        } else if (marker && marker.population) {
-             basePop = marker.population;
-        }
-        
+
         const seatProfile = seatProfileFor(sid, era.id);
         const lvl = Math.max(char.holdingsLevel?.[sid] || 1, seatProfile?.level ?? 1);
-        const pop = seatProfile?.population ?? basePop * lvl;
-        const factor = lvl;
-        const popMulti = Math.max(1, Math.floor(pop / 5000));
-        
+
         let regionId = "the-crownlands"; // default fallback
         if (regionSeat) {
           regionId = regionSeat.id;
@@ -1474,7 +1492,18 @@ export function buildStateFromCanon(
         } else if (sid.endsWith("-seat")) {
           regionId = sid.replace("-seat", "");
         }
-        
+
+        const settlementName = marker?.name ?? regionSeat?.seat ?? sid;
+        const pop = canonicalSettlementPopulation(
+          sid,
+          settlementName,
+          regionId,
+          era.id,
+          5_000 * lvl,
+        );
+        const factor = lvl;
+        const popMulti = Math.max(1, Math.floor(pop / 5000));
+
         const REGION_RESOURCE_MODIFIERS: Record<string, { gold: number, food: number, wood: number, stone: number, iron: number }> = {
           "the-north": { gold: 0.5, food: 0.8, wood: 1.5, stone: 1.2, iron: 1.0 },
           "the-westerlands": { gold: 3.0, food: 1.0, wood: 0.8, stone: 1.2, iron: 1.5 },
@@ -1526,6 +1555,15 @@ export function buildStateFromCanon(
           "Sức Chứa Dân Cư": 0,
           "Vô Gia Cư": 0,
           "Pháp Lệnh": {},
+          "Quản Trị Lãnh Địa": {
+            "Trọng Tâm": "Cân Bằng",
+            "Phân Bổ Đất": { "Canh Tác": 40, "Đồng Cỏ": 20, "Lâm Địa": 25, "Thôn Ấp": 15 },
+            "Cường Độ Khai Thác": 50,
+            "Dự Trữ Hạt Giống": 50,
+            "Độ Màu Mỡ": 70,
+            "Xói Mòn": 5,
+            "_Lượt Đổi Gần Nhất": -1,
+          },
           "Tường Thành": autoBuildWalls(lvl, sid, era.id),
           "Đường Đi": [],
           "Đường Tự Động Đã Xoá": [],
@@ -1681,22 +1719,17 @@ export function buildStateFromCanon(
     "Gardener": { size: 70000, quality: "Đồng Bộ Chỉnh Tề", seat: "the-reach-seat", region: "the-reach" }
   };
 
-  for (const ch of era.canonCharacters) {
-    if (ch.id === c.id) continue; // Bỏ qua người chơi vì đã được xử lý
+  for (const ch of activeCharacters) {
+    if (ch.id === adjustedC.id) continue; // Bỏ qua người chơi vì đã được xử lý
+    if (!isCanonLegalHolder(ch)) continue;
     
     // Chỉ cấp quân cho Đại Lãnh Chúa, Quốc Vương, Vua, hoặc Lãnh Chúa (tuỳ thời kỳ)
     if (["Đại Lãnh Chúa", "Quốc Vương", "Vua", "Vua Bảy Vương Quốc", "Hoàng Đế"].includes(ch.tuocVi)) {
       const def = factionLoreDefaults[ch.house];
       if (def) {
-        // Cấp chủ quyền
-        state["Chủ Quyền Lãnh Thổ"][def.region] = {
-          "Nhà Kiểm Soát": ch.house,
-          "Người Kiểm Soát": ch.name,
-          "Là Của Người Chơi": false,
-          "Tình Trạng": "Ổn Định",
-          "_Ngày Đổi Chủ": 0
-        };
-        
+        // Chủ quyền đã được ghi từ startRegions ở trên. Không suy
+        // "vùng nhà" theo họ: Joffrey/Robert ở Crownlands, không phải Stormlands.
+        if (!ch.startHoldings?.length) continue;
         const loc = ch.startHoldings?.[0] || def.seat;
         const totalSize = ch.startArmy?.size || def.size;
         const quality = ch.startArmy?.quality || def.quality;
@@ -1847,8 +1880,14 @@ export function buildStateFromCanon(
   for (const key of Object.keys(familyNpcs)) delete familyNpcs[key];
   for (const key of Object.keys(mainNpcs)) delete mainNpcs[key];
 
-  for (const character of era.canonCharacters) {
+  for (const baseCharacter of era.canonCharacters) {
+    const character = resolveCanonCharacterSnapshot(baseCharacter, phaseId);
     if (character.id === adjustedC.id) continue;
+    // Nhân vật chưa sinh không tồn tại trong runtime. Người đã mất chỉ còn ở
+    // gia phả nếu có quan hệ trực tiếp với người chơi; họ không nhận đất/quân.
+    const isFamily = playerFamilyIds.has(character.id);
+    if (!canonCharacterActiveAtYear(character, actualStartYear) && !isFamily) continue;
+    if (character.birthYear !== undefined && character.birthYear > actualStartYear) continue;
     const playerRelationship: { affinity: number; trust: number; labels: Npc["Loại Quan Hệ"] } = playerFamilyIds.has(character.id)
       ? { affinity: 60, trust: 60, labels: ["Người Thân"] }
       : playerAllies.has(character.id)

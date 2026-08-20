@@ -19,8 +19,8 @@ import { useMvuStore } from "../../state/mvuStore";
 import { useMilitaryStore } from "../../state/militaryStore";
 
 import { formatDuration } from "../../mvu/calendar";
-import { REGIONS_BY_ID } from "../../content/westeros/regions";
-import { playerHouseId } from "../../territory/territoryEngine";
+import { MACRO_REGIONS, REGIONS_BY_ID } from "../../content/westeros/regions";
+import { playerHouseId, strongholdForState, toHouseId } from "../../territory/territoryEngine";
 import { formatCurrencyShort } from "../../economy/currency";
 import { recruitableTroopsForBranch, troopMeta, troopPower, type TroopTypeAll } from "../../content/westeros/troopTypes";
 import { branchMeta } from "../../content/westeros/armyBranches";
@@ -28,7 +28,10 @@ import { ARMY_BRANCHES, type ArmyBranch } from "../../mvu/schema";
 import {
   canRecruitAt, recruitableHoldings, recruitCapFor, recruitCost, availableCompanies,
 } from "../../strategy/army";
-import { canCallBanners, musteredStrength } from "../../strategy/muster";
+import {
+  callableVassals, canCallBanners, effectiveBannerLoyalty, musteredStrength,
+  runtimeVassalCommitment,
+} from "../../strategy/muster";
 import { mobilizeAt, homeSupportAt, battleLocation, unitAvailability } from "../../combat/mobilization";
 import { playerDragons, dragonSummary, DRAGON_TAMING_THRESHOLD } from "../../strategy/dragons";
 import { GlassButton } from "../components/GlassButton";
@@ -212,6 +215,11 @@ function ForcesTab({ stat }: { stat: Stat }) {
         const loc = REGIONS_BY_ID[u["Lãnh Địa Đồn Trú"]]?.name ?? u["Lãnh Địa Đồn Trú"] ?? "—";
         const availability = unitAvailability(name, u, battleLocation(stat));
         const movingTo = u["Đang Di Chuyển Đến"] ? REGIONS_BY_ID[u["Đang Di Chuyển Đến"]]?.name : null;
+        const siegeTarget = u["Lệnh Vây Khi Đến"]
+          ? strongholdForState(stat, u["Lệnh Vây Khi Đến"])?.name
+            ?? REGIONS_BY_ID[u["Lệnh Vây Khi Đến"]]?.name
+            ?? u["Lệnh Vây Khi Đến"]
+          : null;
         const mustering = u["Ngày Tập Hợp Còn Lại"] > 0;
         const training = u["Ngày Huấn Luyện"] > 0;
         const meta = troopMeta(u["Loại Quân"]);
@@ -274,8 +282,12 @@ function ForcesTab({ stat }: { stat: Stat }) {
                 : training
                   ? t("mil.training", { n: formatDuration(u["Ngày Huấn Luyện"]) })
                   : movingTo
-                    ? t("mil.movingTo", { region: movingTo, n: formatDuration(u["Ngày Hành Quân Còn Lại"]) })
-                    : t("mil.stationed", { region: loc })}
+                    ? siegeTarget
+                      ? `Đang hành quân tới ${movingTo} để vây ${siegeTarget} — còn ${formatDuration(u["Ngày Hành Quân Còn Lại"])}`
+                      : t("mil.movingTo", { region: movingTo, n: formatDuration(u["Ngày Hành Quân Còn Lại"]) })
+                    : siegeTarget
+                      ? `Đang dựng trại vây ${siegeTarget} — còn ${formatDuration(u["Ngày Dựng Trại Vây Còn Lại"])}`
+                      : t("mil.stationed", { region: loc })}
             </p>
 
             {u["Hạn Phục Dịch Còn Lại"] > 0 && (
@@ -330,19 +342,23 @@ function VassalsTab({ stat }: { stat: Stat }) {
   const dismiss = useMilitaryStore((s) => s.dismissBanner);
   const [msg, setMsg] = useState<string | null>(null);
   const [replies, setReplies] = useState<string[]>([]);
-  const vassals = Object.entries(stat["Chư Hầu"] ?? {});
+  const vassals = callableVassals(stat);
+  const liegeHouse = playerHouseId(stat);
   const allowed = canCallBanners(stat);
   const strength = musteredStrength(stat);
 
   if (vassals.length === 0) {
     return (
       <p className="text-[13px] italic text-[var(--text-muted)]">
-        Ngươi chưa có chư hầu nào. Chư hầu đến cùng lãnh thổ — nắm được một vùng thì các nhà trong vùng đó mới thần phục.
+        Tước vị hiện tại chưa tạo nghĩa vụ chư hầu nào. Quyền hiệu triệu đến từ tước vị và phạm vi pháp lý; chiếm đất chỉ quyết định họ đã thực sự thần phục hay chưa.
       </p>
     );
   }
 
   const regions = [...new Set(vassals.map(([, v]) => v["Vùng"]))];
+  const realmName = (id: string) => MACRO_REGIONS.find((realm) => realm.legacyRegionId === id || realm.id === id)?.name
+    ?? REGIONS_BY_ID[id]?.name
+    ?? id;
 
   return (
     <div className="space-y-3">
@@ -384,7 +400,7 @@ function VassalsTab({ stat }: { stat: Stat }) {
                 setReplies(r.responses?.map((x) => x.reply) ?? []);
               }}
             >
-              Gọi {REGIONS_BY_ID[rid]?.name ?? rid}
+              Gọi {realmName(rid)}
             </GlassButton>
           ))}
         </div>
@@ -400,32 +416,38 @@ function VassalsTab({ stat }: { stat: Stat }) {
         </div>
       )}
 
-      {vassals.map(([id, v]) => (
-        <div key={id} className="glass rounded-[var(--radius-md)] p-3">
+      {vassals.map(([id, v]) => {
+        const submitted = !!liegeHouse && toHouseId(v["Chủ Của"]) === liegeHouse;
+        const commitment = runtimeVassalCommitment(stat, id, v);
+        const effectiveLoyalty = Math.max(0, Math.min(100, Math.round(effectiveBannerLoyalty(stat, id, v))));
+        return <div key={id} className="glass rounded-[var(--radius-md)] p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <span className="text-[14px] text-[var(--text-soft)]">{v["Tên Nhà"]}</span>
               <p className="mt-0.5 text-[11.5px] text-[var(--text-faint)]">
-                {v["Thành Trì"]} · {REGIONS_BY_ID[v["Vùng"]]?.name ?? v["Vùng"]} · {v["Binh Chủng Chính"]}
+                {v["Thành Trì"]} · {realmName(v["Vùng"])} · {v["Binh Chủng Chính"]}
+              </p>
+              <p className={`mt-1 text-[10.5px] ${submitted ? "text-[var(--ok)]" : "text-[var(--warn)]"}`}>
+                {submitted ? "Đã thừa nhận quyền bá chủ" : "Nghĩa vụ pháp lý · chưa thần phục trên thực địa"}
               </p>
             </div>
             <span className="shrink-0 text-right">
-              <span className="block font-mono text-[13px] text-[var(--text-soft)]">{fmt(v["Quân Cam Kết"])}</span>
-              <span className="block text-[10px] text-[var(--text-faint)]">cam kết</span>
+              <span className="block font-mono text-[13px] text-[var(--text-soft)]">{fmt(commitment)}</span>
+              <span className="block text-[10px] text-[var(--text-faint)]">khả năng cam kết</span>
             </span>
           </div>
 
           <div className="mt-1.5">
             <div className="mb-0.5 flex justify-between text-[11px] text-[var(--text-faint)]">
-              <span>Trung thành</span>
-              <span className="font-mono">{v["Trung Thành"]}/100</span>
+              <span>Thiện chí hiệu triệu</span>
+              <span className="font-mono">{effectiveLoyalty}/100</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-[rgba(0,0,0,0.3)]">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{
-                  width: `${v["Trung Thành"]}%`,
-                  background: v["Trung Thành"] >= 70 ? "var(--ok)" : v["Trung Thành"] >= 40 ? "#d97706" : "var(--danger)",
+                  width: `${effectiveLoyalty}%`,
+                  background: effectiveLoyalty >= 70 ? "var(--ok)" : effectiveLoyalty >= 40 ? "#d97706" : "var(--danger)",
                 }}
               />
             </div>
@@ -436,9 +458,9 @@ function VassalsTab({ stat }: { stat: Stat }) {
               ? `Đang hành quân: ${fmt(v["Quân Đã Gửi"])} quân, còn ${formatDuration(v["Ngày Tới Nơi"])}`
               : v["Trạng Thái"] === "Đã Tới"
                 ? `Đã có mặt: ${fmt(v["Quân Đã Gửi"])} quân · tòng quân ${formatDuration(v["Ngày Tòng Quân"])}`
-                : v["Trạng Thái"] === "Từ Chối"
-                  ? "Đã từ chối lời hiệu triệu"
-                  : "Đang ở nhà"}
+              : v["Trạng Thái"] === "Từ Chối"
+                  ? "Đã từ chối lời hiệu triệu — quyền bá chủ vẫn chưa được công nhận"
+                  : submitted ? "Đang ở nhà" : "Có thể nhận lời, trì hoãn hoặc công khai từ chối"}
           </p>
           {v["Ghi Chú"] && <p className="mt-1 text-[11px] italic text-[var(--text-faint)]">{v["Ghi Chú"]}</p>}
 
@@ -450,8 +472,8 @@ function VassalsTab({ stat }: { stat: Stat }) {
               Cho về nhà
             </button>
           )}
-        </div>
-      ))}
+        </div>;
+      })}
     </div>
   );
 }
@@ -507,7 +529,7 @@ function RaiseBox({ stat, branch }: { stat: Stat; branch: ArmyBranch }) {
 
   if (holdings.length === 0) {
     const anyHolding = Object.keys(stat["Lãnh Địa"])[0];
-    const why = anyHolding ? canRecruitAt(stat, anyHolding, branch).reason : "Ngươi chưa cai quản lãnh địa nào";
+    const why = anyHolding ? canRecruitAt(stat, anyHolding, branch).reason : "Ngươi chưa cai quản thành trì trực thuộc nào";
     return (
       <div className="glass rounded-[var(--radius-md)] p-3">
         <p className="text-[13px] text-[var(--text-muted)]">Không có nơi nào tuyển được ngạch {branch}.</p>

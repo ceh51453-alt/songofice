@@ -6,18 +6,26 @@
  * - regionFill: suy màu tô runtime theo chế độ (9.5.2) — Chính Trị / Quan Hệ.
  * Bản đồ ĐỌC từ đây, không tự giữ chủ quyền — nguồn chân lý là stat_data.
  */
-import type { StatData } from "../mvu/schema";
+import { makeDefaultRegionGovernance, type StatData } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
 import {
   REGIONS, REGIONS_BY_ID, MACRO_REGIONS_BY_ID, regionControlForYear,
-  factionsForYear, FACTION_COLORS_MAP, REGION_ID_ALIASES,
+  factionsForYear, FACTION_COLORS_MAP, REGION_ID_ALIASES, regionsForRealm, regionForLocation,
 } from "../content/world/geography";
 import { HOUSES_DATA, HOUSES_BY_ID } from "../content/westeros/houses";
+import { BANNERMEN, BANNERMEN_BY_ID, type BannermanData } from "../content/westeros/bannermen";
 import { houseColor, ATTITUDE_HEAT, PLAYER_HEAT_COLOR, NEUTRAL_COLOR } from "../content/westeros/houseColors";
-import { MAP_MARKERS } from "../content/westeros/mapMarkers";
+import { MAP_MARKERS, markersForEra } from "../content/westeros/mapMarkers";
 import { eventSeed } from "../probability/rng";
 import { loreSeatFor } from "../content/westeros/loreSeats";
 import { defaultJobSplit } from "../content/westeros/buildings";
+import { canonicalSettlementPopulation } from "./geographyRuntime";
+import {
+  strongholdById,
+  strongholdsForEra,
+  strongholdsForProvince,
+  type StrongholdSite,
+} from "../content/westeros/strongholds";
 
 type MapRegion = (typeof REGIONS)[number];
 
@@ -30,8 +38,26 @@ export function playerHouseId(state: StatData): string {
   return HOUSE_ID_BY_SCHEMA[state["Thông Tin Nhân Vật"]["Nhà"]] ?? "";
 }
 
+function canonicalRegionId(regionId: string): string {
+  return REGION_ID_ALIASES[regionId] ?? regionId;
+}
+
+/** Quyền trực tiếp là của một con người, không tự truyền cho mọi thành viên cùng Nhà. */
+export function playerOwnsProvince(state: StatData, regionId: string): boolean {
+  const playerName = (state["Thông Tin Nhân Vật"]["Họ Tên"] ?? "").trim();
+  if (!playerName) return false;
+  const wantedRegion = canonicalRegionId(regionId);
+  const sovereignty = state["Chủ Quyền Lãnh Thổ"]?.[wantedRegion]
+    ?? state["Chủ Quyền Lãnh Thổ"]?.[regionId];
+  if ((sovereignty?.["Người Kiểm Soát"] ?? "").trim() === playerName) return true;
+  return Object.values(state["Lãnh Địa"] ?? {}).some((holding) => (
+    (holding["Người Kiểm Soát"] ?? "").trim() === playerName
+    && canonicalRegionId(holding["Thuộc Vùng"] ?? "") === wantedRegion
+  ));
+}
+
 /**
- * Chốt lại cờ "Là Của Người Chơi" từ Nhà Kiểm Soát (M20).
+ * Chốt cờ chủ quyền trực tiếp và cache kiểm soát hoàn toàn từ graph thành trì.
  *
  * seedRegionControl tính cờ này NGAY LÚC gieo, nhưng ở luồng nhân vật nguyên tác
  * thì Nhà của nhân vật chưa được ghi vào state ở thời điểm đó — nên MỌI vùng đều
@@ -40,13 +66,23 @@ export function playerHouseId(state: StatData): string {
  * CUỐI init (và lúc migrate save) để cờ khớp với thực tế bàn cờ.
  */
 export function repairPlayerSovereignty(state: StatData): number {
-  const pHouse = playerHouseId(state);
-  if (!pHouse) return 0;
+  const playerName = (state["Thông Tin Nhân Vật"]["Họ Tên"] ?? "").trim();
+  // Trong lúc wizard chưa chốt tên, chưa đủ dữ kiện để sửa một save đang dựng dở.
+  if (!playerName) return 0;
   let fixed = 0;
-  for (const sov of Object.values(state["Chủ Quyền Lãnh Thổ"] ?? {})) {
-    const owns = String(sov["Nhà Kiểm Soát"] ?? "").toLowerCase() === pHouse;
+  for (const [regionId, sov] of Object.entries(state["Chủ Quyền Lãnh Thổ"] ?? {})) {
+    const owns = playerOwnsProvince(state, regionId);
     if (sov["Là Của Người Chơi"] !== owns) {
       sov["Là Của Người Chơi"] = owns;
+      fixed++;
+    }
+    const holder = toHouseId(String(sov["Nhà Kiểm Soát"] ?? ""));
+    const complete = !!holder && provinceControlStatus(state, regionId, holder).complete;
+    const hasFullControlCache = Object.prototype.hasOwnProperty.call(sov, "Kiểm Soát Hoàn Toàn");
+    // Save cũ không có cache thì giữ nguyên byte dữ liệu cũ; UI/engine vẫn dẫn
+    // xuất live. Save mới đã có field thì tiếp tục duy trì nó.
+    if (hasFullControlCache && sov["Kiểm Soát Hoàn Toàn"] !== complete) {
+      sov["Kiểm Soát Hoàn Toàn"] = complete;
       fixed++;
     }
   }
@@ -127,12 +163,84 @@ export function repairRegionControl(state: StatData, options: RepairRegionContro
         "Người Kiểm Soát": "",
         "Tình Trạng": "Ổn Định",
         "Là Của Người Chơi": !!pHouse && controller === pHouse,
+        "Kiểm Soát Hoàn Toàn": false,
+        "Quản Trị": makeDefaultRegionGovernance(),
         "_Ngày Đổi Chủ": 0,
       };
     }
     added++;
   }
+  repairCanonicalHoldingRegions(state);
+  repairStrongholdControl(state, options.mode);
   return added;
+}
+
+/**
+ * Save cũ từng gắn lâu đài canon vào 9 đại vùng. Sau khi bản đồ tách province,
+ * đưa chúng về leaf của marker/thủ phủ để dân số, thuế, quân và panel không còn
+ * tính Dreadfort vào Winterfell (hoặc tương tự). Holding tuỳ chỉnh không bị đụng.
+ */
+export function repairCanonicalHoldingRegions(state: StatData): number {
+  let changed = 0;
+  for (const [holdingId, holding] of Object.entries(state["Lãnh Địa"] ?? {})) {
+    const marker = MAP_MARKERS.find((candidate) => candidate.id === holdingId);
+    const seatProvince = REGIONS.find((region) => `${region.id}-seat` === holdingId);
+    const targetRegionId = marker?.regionId ?? seatProvince?.id ?? "";
+    if (!targetRegionId || !REGIONS_BY_ID[targetRegionId] || holding["Thuộc Vùng"] === targetRegionId) continue;
+    holding["Thuộc Vùng"] = targetRegionId;
+    changed++;
+  }
+  return changed;
+}
+
+/**
+ * Bù sổ bá quyền từng thành cho ván mới/save cũ.
+ *
+ * - Snapshot chưa từng đổi chủ: các cứ điểm của province đang nằm trong trật tự
+ *   cũ, nên top-level controller được ghi làm bá quyền ban đầu.
+ * - Province đã đổi chủ: chỉ thủ phủ đã chắc chắn thất thủ; các thành phụ không
+ *   được tự động trao cho chủ mới. Đây là migration quan trọng sửa lỗi 100%.
+ * - Entry đã tồn tại tuyệt đối không bị ghi đè, nên vây/đầu hàng sống qua reload.
+ */
+export function repairStrongholdControl(
+  state: StatData,
+  mode: RegionControlRepairMode = "legacy-migration",
+): number {
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+  let changed = 0;
+  for (const region of REGIONS) {
+    const sovereignty = state["Chủ Quyền Lãnh Thổ"]?.[region.id];
+    if (!sovereignty) continue;
+    const controller = toHouseId(sovereignty["Nhà Kiểm Soát"] ?? "");
+    const stable = (sovereignty["_Ngày Đổi Chủ"] ?? 0) === 0
+      && (sovereignty["Tình Trạng"] ?? "Ổn Định") === "Ổn Định";
+    const existing = sovereignty["Bá Quyền Thành Trì"] ?? {};
+    const hadLedger = sovereignty["Bá Quyền Thành Trì"] !== undefined;
+    for (const site of strongholdsForProvince(region.id, eraId)) {
+      if (Object.prototype.hasOwnProperty.call(existing, site.id)) continue;
+      const isSeat = site.source === "seat";
+      // Fresh seed dựng trật tự đầu ván. Migration của một province vừa đổi chủ
+      // chỉ biết chắc thủ phủ; thành phụ để trống cho chiến tranh/chư hầu quyết định.
+      existing[site.id] = controller && (stable || (mode === "fresh-seed" && isSeat) || isSeat)
+        ? controller
+        : "";
+      changed++;
+    }
+    // Chư hầu canon chưa có marker vẫn là một chủ thành thật. Lưu entry riêng
+    // để snapshot ban đầu có bằng chứng kiểm soát, nhưng sau khi province đổi
+    // chủ thì không tự ép họ thần phục chủ mới.
+    for (const bannerman of activeBannermen(state)) {
+      if (provinceForBannerman(bannerman)?.id !== region.id) continue;
+      const strongholdId = `vassal:${bannerman.id}`;
+      if (Object.prototype.hasOwnProperty.call(existing, strongholdId)) continue;
+      existing[strongholdId] = controller && stable ? controller : "";
+      changed++;
+    }
+    if (!hadLedger || sovereignty["Bá Quyền Thành Trì"] !== existing) {
+      sovereignty["Bá Quyền Thành Trì"] = existing;
+    }
+  }
+  return changed;
 }
 
 /** Tên tương thích cho các luồng migration gọi bước chuẩn hoá world state. */
@@ -151,6 +259,33 @@ export function homeRegionForHouse(houseId: string): MapRegion | null {
     REGIONS.find((r) => r.defaultHouse === houseId) ??
     null
   );
+}
+
+/**
+ * Catalog chư hầu M19 là lát cắt cuối thế kỷ III AC. Ở các era cổ, chỉ dùng
+ * một Nhà khi dữ liệu Nhà có mốc tồn tại/era tường minh; không tự mang Rosby,
+ * Tarly, Clegane... ngược hàng nghìn năm chỉ vì catalog không ghi niên đại.
+ */
+function houseActiveInState(state: StatData, houseId: string): boolean {
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+  const year = state["Thế Giới"]["Năm"] ?? 298;
+  const requiresExplicitDating = year <= 2
+    || eraId === "long-night"
+    || eraId === "aegon-conquest";
+  const house = HOUSES_BY_ID[houseId];
+  if (!house) return !requiresExplicitDating;
+  if (requiresExplicitDating
+    && house.activeFromYear === undefined
+    && house.activeToYear === undefined
+    && !house.availableEras?.includes(eraId)) return false;
+  if (house.availableEras?.length && eraId && !house.availableEras.includes(eraId)) return false;
+  if (house.activeFromYear !== undefined && year < house.activeFromYear) return false;
+  if (house.activeToYear !== undefined && year > house.activeToYear) return false;
+  return true;
+}
+
+export function activeBannermen(state: StatData): BannermanData[] {
+  return BANNERMEN.filter((bannerman) => houseActiveInState(state, bannerman.id));
 }
 
 /**
@@ -174,6 +309,427 @@ export function holdingOwnedByPlayer(state: StatData, holdingId: string): boolea
 /** Danh sách thành trì người chơi được quyền cai quản. */
 export function playerHoldingIds(state: StatData): string[] {
   return Object.keys(state["Lãnh Địa"]).filter((id) => holdingOwnedByPlayer(state, id));
+}
+
+export interface HoldingNavigationContext {
+  /** Thành vừa được mở rõ ràng ở tầng Lãnh Địa/Thành Trì. */
+  focusHoldingId?: string | null;
+  /** Lãnh thổ người chơi vừa chọn trên bản đồ. */
+  selectedRegionId?: string | null;
+  /** Chỉ chọn đất người chơi có quyền quản lý (dùng trong bảng quản trị). */
+  ownedOnly?: boolean;
+}
+
+function normalizedHoldingLabel(value: string): string {
+  return value
+    .trim()
+    .toLocaleLowerCase("vi")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’']/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/**
+ * Chọn thành trì theo đúng ngữ cảnh điều hướng, thay vì phụ thuộc thứ tự object
+ * (trước đây phần tử đầu luôn là Winterfell trong phần lớn ván chơi).
+ *
+ * Ưu tiên: thành đang xem → lãnh thổ vừa chọn → vị trí hiện tại → đất trực tiếp
+ * đầu tiên của người chơi. Không bao giờ tự nhảy tới một thành ngoại quốc bất kỳ.
+ */
+export function holdingForNavigation(
+  state: StatData,
+  context: HoldingNavigationContext = {},
+): string | null {
+  const holdings = state["Lãnh Địa"] ?? {};
+  const allIds = Object.keys(holdings);
+  const ownedIds = playerHoldingIds(state);
+  const allowedIds = context.ownedOnly ? ownedIds : allIds;
+  const allowed = new Set(allowedIds);
+
+  if (context.focusHoldingId && allowed.has(context.focusHoldingId)) {
+    return context.focusHoldingId;
+  }
+
+  const selectedRegionId = context.selectedRegionId
+    ? canonicalRegionId(context.selectedRegionId)
+    : "";
+  if (selectedRegionId) {
+    const inSelectedRegion = (id: string) => (
+      canonicalRegionId(holdings[id]?.["Thuộc Vùng"] ?? "") === selectedRegionId
+    );
+    const ownedMatch = ownedIds.find(inSelectedRegion);
+    if (ownedMatch) return ownedMatch;
+    const visibleMatch = allowedIds.find(inSelectedRegion);
+    if (visibleMatch) return visibleMatch;
+  }
+
+  const location = state["Thế Giới"]?.["Vị Trí"] ?? "";
+  const normalizedLocation = normalizedHoldingLabel(location);
+  if (normalizedLocation) {
+    const exactLocation = allowedIds.find((id) => (
+      normalizedHoldingLabel(id) === normalizedLocation
+      || normalizedHoldingLabel(holdings[id]?.["Mô Tả"] ?? "") === normalizedLocation
+    ));
+    if (exactLocation) return exactLocation;
+  }
+
+  const locationRegionId = regionForLocation(location)?.id ?? "";
+  if (locationRegionId) {
+    const inLocationRegion = (id: string) => (
+      canonicalRegionId(holdings[id]?.["Thuộc Vùng"] ?? "") === locationRegionId
+    );
+    const ownedMatch = ownedIds.find(inLocationRegion);
+    if (ownedMatch) return ownedMatch;
+    const visibleMatch = allowedIds.find(inLocationRegion);
+    if (visibleMatch) return visibleMatch;
+  }
+
+  return ownedIds.find((id) => allowed.has(id)) ?? null;
+}
+
+// ── Kiểm soát thực địa: tỉnh / vương quốc ──────────────────────────────────
+
+export type StrongholdControlKind = "Trực Tiếp" | "Qua Chư Hầu" | "Chưa Kiểm Soát";
+
+export interface StrongholdControl {
+  id: string;
+  name: string;
+  provinceId: string;
+  /** Nhà đang giữ thành theo chủ quyền tỉnh hoặc hồ sơ chư hầu. */
+  holderHouseId: string;
+  vassalId?: string;
+  kind: StrongholdControlKind;
+  controlled: boolean;
+}
+
+export interface TerritorialControlStatus {
+  scopeId: string;
+  houseId: string;
+  provinceIds: string[];
+  strongholds: StrongholdControl[];
+  controlledStrongholds: number;
+  directlyHeldStrongholds: number;
+  subduedStrongholds: number;
+  totalStrongholds: number;
+  controlRatio: number;
+  complete: boolean;
+  unsecuredStrongholds: StrongholdControl[];
+}
+
+const BANNERMAN_PROVINCE_CACHE = new Map<string, MapRegion | null>();
+function normalizedSeat(value: string): string {
+  return value
+    .toLocaleLowerCase("vi")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * Tỉnh lá chứa thành của một chư hầu. Dữ liệu M19 cũ chỉ lưu đại vùng trong
+ * `Vùng`; hàm này nối tên thành với bản đồ tỉnh mới và có fallback ổn định.
+ */
+export function provinceForBannerman(bannerman: BannermanData): MapRegion | null {
+  if (BANNERMAN_PROVINCE_CACHE.has(bannerman.id)) {
+    return BANNERMAN_PROVINCE_CACHE.get(bannerman.id) ?? null;
+  }
+  const realm = regionsForRealm(bannerman.region);
+  const seat = normalizedSeat(bannerman.seat);
+  const exact = realm.find((region) => normalizedSeat(region.seat) === seat);
+  if (exact) {
+    BANNERMAN_PROVINCE_CACHE.set(bannerman.id, exact);
+    return exact;
+  }
+  const byHouse = realm.find((region) => toHouseId(region.defaultHouse) === bannerman.id);
+  if (byHouse) {
+    BANNERMAN_PROVINCE_CACHE.set(bannerman.id, byHouse);
+    return byHouse;
+  }
+
+  const marker = MAP_MARKERS.find((candidate) => {
+    const markerName = normalizedSeat(candidate.name);
+    return candidate.type !== "landmark"
+      && !!candidate.regionId
+      && (markerName === seat || markerName.startsWith(`${seat} `));
+  });
+  const province = marker?.regionId && REGIONS_BY_ID[marker.regionId]
+    ? REGIONS_BY_ID[marker.regionId]
+    : REGIONS_BY_ID[bannerman.region] ?? realm[0] ?? null;
+  BANNERMAN_PROVINCE_CACHE.set(bannerman.id, province);
+  return province;
+}
+
+function provinceForStoredVassal(state: StatData, vassalId: string): MapRegion | null {
+  const canon = BANNERMEN.find((bannerman) => bannerman.id === vassalId);
+  if (canon) return provinceForBannerman(canon);
+  const vassal = state["Chư Hầu"]?.[vassalId];
+  if (!vassal) return null;
+  const realm = regionsForRealm(vassal["Vùng"]);
+  const seat = normalizedSeat(vassal["Thành Trì"]);
+  return realm.find((region) => normalizedSeat(region.seat) === seat)
+    ?? REGIONS_BY_ID[vassal["Vùng"]]
+    ?? realm[0]
+    ?? null;
+}
+
+function storedVassalAtStronghold(
+  state: StatData,
+  provinceId: string,
+  strongholdName: string,
+  preferredId = "",
+): [string, StatData["Chư Hầu"][string]] | undefined {
+  if (preferredId && state["Chư Hầu"]?.[preferredId]) return [preferredId, state["Chư Hầu"][preferredId]];
+  const wantedSeat = normalizedSeat(strongholdName);
+  return Object.entries(state["Chư Hầu"] ?? {}).find(([vassalId, vassal]) => {
+    if (normalizedSeat(vassal["Thành Trì"]) !== wantedSeat) return false;
+    return provinceForStoredVassal(state, vassalId)?.id === provinceId;
+  });
+}
+
+function directStrongholdForHouse(
+  state: StatData,
+  provinceId: string,
+  strongholdName: string,
+  houseId: string,
+): boolean {
+  const seat = normalizedSeat(strongholdName);
+  return Object.entries(state["Lãnh Địa"] ?? {}).some(([holdingId, holding]) => {
+    if (holding["Thuộc Vùng"] !== provinceId) return false;
+    const holdingName = normalizedSeat(holding["Mô Tả"] ?? holdingId);
+    if (!(holdingName === seat || holdingName.startsWith(`${seat} `))) return false;
+    const holdingHouse = toHouseId(holding["Nhà Kiểm Soát"] ?? "");
+    if (holdingHouse) return holdingHouse === houseId;
+    return houseId === playerHouseId(state) && holdingOwnedByPlayer(state, holdingId);
+  });
+}
+
+function statusForProvinces(
+  state: StatData,
+  scopeId: string,
+  provinces: MapRegion[],
+  houseId: string,
+): TerritorialControlStatus {
+  const wantedHouse = toHouseId(houseId);
+  const strongholds: StrongholdControl[] = [];
+  const seenVassals = new Set<string>();
+  const seenStrongholds = new Set<string>();
+  const currentBannermen = activeBannermen(state);
+  const currentBannermanIds = new Set(currentBannermen.map((bannerman) => bannerman.id));
+  const provinceIds = new Set(provinces.map((province) => province.id));
+  const strongholdKey = (provinceId: string, name: string) => `${provinceId}:${normalizedSeat(name)}`;
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+  const sites = strongholdsForEra(eraId).filter((site) => provinceIds.has(site.provinceId));
+
+  /** Ghép một site với Nhà/chư hầu giữ nó mà không dựa vào chủ quyền province. */
+  const bannermanForSite = (site: StrongholdSite, province: MapRegion): BannermanData | undefined => {
+    const siteName = normalizedSeat(site.name);
+    return currentBannermen.find((bannerman) => {
+      if (provinceForBannerman(bannerman)?.id !== province.id) return false;
+      return bannerman.id === site.holderHouseId
+        || normalizedSeat(bannerman.seat) === siteName
+        || normalizedSeat(HOUSES_BY_ID[bannerman.id]?.seat ?? "") === siteName;
+    });
+  };
+
+  for (const site of sites) {
+    const province = REGIONS_BY_ID[site.provinceId];
+    if (!province) continue;
+    const sovereignty = state["Chủ Quyền Lãnh Thổ"]?.[province.id];
+    const provinceHolder = toHouseId(String(sovereignty?.["Nhà Kiểm Soát"] ?? ""));
+    const ledgerHouse = toHouseId(sovereignty?.["Bá Quyền Thành Trì"]?.[site.id] ?? "");
+    const bannerman = bannermanForSite(site, province);
+    const preferredVassalId = bannerman?.id
+      || site.holderHouseId
+      || (province.defaultHouse !== wantedHouse
+        ? toHouseId(province.defaultHouse)
+        : "");
+    const storedEntry = storedVassalAtStronghold(
+      state,
+      province.id,
+      site.name,
+      preferredVassalId,
+    );
+    const changedSeat = site.source === "seat" && (sovereignty?.["_Ngày Đổi Chủ"] ?? 0) > 0;
+    const holderHouseId = changedSeat
+      ? ledgerHouse || provinceHolder
+      : storedEntry?.[0] || site.holderHouseId || toHouseId(province.defaultHouse) || ledgerHouse || provinceHolder;
+    const directlyOccupied = !!wantedHouse && (
+      directStrongholdForHouse(state, province.id, site.name, wantedHouse)
+      || (!!ledgerHouse && ledgerHouse === wantedHouse && (holderHouseId === wantedHouse || changedSeat))
+    );
+    const subduedByVassal = !!wantedHouse && !!storedEntry
+      && toHouseId(storedEntry[1]["Chủ Của"]) === wantedHouse;
+    const subduedByLedger = !!wantedHouse && !storedEntry
+      && ledgerHouse === wantedHouse && !directlyOccupied;
+    const kind: StrongholdControlKind = directlyOccupied
+      ? "Trực Tiếp"
+      : (subduedByVassal || subduedByLedger) ? "Qua Chư Hầu" : "Chưa Kiểm Soát";
+    strongholds.push({
+      id: site.id,
+      name: site.name,
+      provinceId: province.id,
+      holderHouseId,
+      vassalId: storedEntry?.[0] || bannerman?.id || (preferredVassalId || undefined),
+      kind,
+      controlled: kind !== "Chưa Kiểm Soát",
+    });
+    if (storedEntry?.[0]) seenVassals.add(storedEntry[0]);
+    if (bannerman?.id) seenVassals.add(bannerman.id);
+    seenStrongholds.add(strongholdKey(province.id, site.name));
+  }
+
+  // Một chư hầu canon có thành không đủ dữ liệu toạ độ vẫn là mục tiêu thật.
+  for (const bannerman of currentBannermen) {
+    if (seenVassals.has(bannerman.id)) continue;
+    const province = provinceForBannerman(bannerman);
+    if (!province || !provinceIds.has(province.id)) continue;
+    const key = strongholdKey(province.id, bannerman.seat);
+    if (seenStrongholds.has(key)) continue;
+    const vassal = state["Chư Hầu"]?.[bannerman.id];
+    const sovereignty = state["Chủ Quyền Lãnh Thổ"]?.[province.id];
+    const ledgerHouse = toHouseId(sovereignty?.["Bá Quyền Thành Trì"]?.[`vassal:${bannerman.id}`] ?? "");
+    const direct = !!wantedHouse && directStrongholdForHouse(state, province.id, bannerman.seat, wantedHouse);
+    const subdued = !!wantedHouse && (vassal
+      ? toHouseId(vassal["Chủ Của"]) === wantedHouse
+      : ledgerHouse === wantedHouse);
+    const kind: StrongholdControlKind = direct ? "Trực Tiếp" : subdued ? "Qua Chư Hầu" : "Chưa Kiểm Soát";
+    strongholds.push({
+      id: `vassal:${bannerman.id}`,
+      name: bannerman.seat,
+      provinceId: province.id,
+      holderHouseId: bannerman.id,
+      vassalId: bannerman.id,
+      kind,
+      controlled: kind !== "Chưa Kiểm Soát",
+    });
+    seenVassals.add(bannerman.id);
+    seenStrongholds.add(key);
+  }
+
+  // Chư hầu custom/save cũ không có trong catalog vẫn là một chủ thành thật.
+  for (const [vassalId, vassal] of Object.entries(state["Chư Hầu"] ?? {})) {
+    if (seenVassals.has(vassalId)) continue;
+    // Save cổ có thể chứa snapshot M19 từ một bản trước. Giữ dữ liệu để tương
+    // thích save, nhưng không biến Nhà canon chưa tồn tại ở era này thành mục tiêu.
+    if (BANNERMEN_BY_ID[vassalId] && !currentBannermanIds.has(vassalId)) continue;
+    const province = provinceForStoredVassal(state, vassalId);
+    if (!province || !provinceIds.has(province.id)) continue;
+    const key = strongholdKey(province.id, vassal["Thành Trì"] || vassal["Tên Nhà"]);
+    if (seenStrongholds.has(key)) continue;
+    const direct = !!wantedHouse && directStrongholdForHouse(
+      state, province.id, vassal["Thành Trì"] || vassal["Tên Nhà"], wantedHouse,
+    );
+    const subdued = !!wantedHouse && toHouseId(vassal["Chủ Của"]) === wantedHouse;
+    const kind: StrongholdControlKind = direct ? "Trực Tiếp" : subdued ? "Qua Chư Hầu" : "Chưa Kiểm Soát";
+    strongholds.push({
+      id: `vassal:${vassalId}`,
+      name: vassal["Thành Trì"] || vassal["Tên Nhà"],
+      provinceId: province.id,
+      holderHouseId: vassalId,
+      vassalId,
+      kind,
+      controlled: kind !== "Chưa Kiểm Soát",
+    });
+    seenStrongholds.add(key);
+  }
+
+  const controlledStrongholds = strongholds.filter((stronghold) => stronghold.controlled).length;
+  const directlyHeldStrongholds = strongholds.filter((stronghold) => stronghold.kind === "Trực Tiếp").length;
+  const subduedStrongholds = strongholds.filter((stronghold) => stronghold.kind === "Qua Chư Hầu").length;
+  const totalStrongholds = strongholds.length;
+  const controlRatio = totalStrongholds > 0 ? controlledStrongholds / totalStrongholds : 0;
+  return {
+    scopeId,
+    houseId: wantedHouse,
+    provinceIds: provinces.map((province) => province.id),
+    strongholds,
+    controlledStrongholds,
+    directlyHeldStrongholds,
+    subduedStrongholds,
+    totalStrongholds,
+    controlRatio,
+    complete: totalStrongholds > 0 && controlledStrongholds === totalStrongholds,
+    unsecuredStrongholds: strongholds.filter((stronghold) => !stronghold.controlled),
+  };
+}
+
+/** Kiểm soát một tỉnh lá: thành tỉnh và mọi thành phụ nằm trong tỉnh. */
+export function provinceControlStatus(
+  state: StatData,
+  provinceId: string,
+  houseId = playerHouseId(state),
+): TerritorialControlStatus {
+  const province = REGIONS_BY_ID[provinceId];
+  return statusForProvinces(state, provinceId, province ? [province] : [], houseId);
+}
+
+/**
+ * Kiểm soát một chính thể/vương quốc lịch sử. Chỉ hoàn toàn khi TẤT CẢ thủ phủ
+ * tỉnh và thành chư hầu đã bị chiếm trực tiếp hoặc chủ thành đã thần phục.
+ */
+export function realmControlStatus(
+  state: StatData,
+  realmId: string,
+  houseId = playerHouseId(state),
+): TerritorialControlStatus {
+  return statusForProvinces(state, realmId, regionsForRealm(realmId), houseId);
+}
+
+/** Alias phạm vi động: id chính thể ưu tiên cả cõi; id tỉnh thường chỉ xét tỉnh. */
+export function regionalControlStatus(
+  state: StatData,
+  scopeId: string,
+  houseId = playerHouseId(state),
+): TerritorialControlStatus {
+  const realm = regionsForRealm(scopeId);
+  return realm.length > 1
+    ? statusForProvinces(state, scopeId, realm, houseId)
+    : provinceControlStatus(state, scopeId, houseId);
+}
+
+export function controlsRegionCompletely(state: StatData, scopeId: string, houseId = playerHouseId(state)): boolean {
+  return regionalControlStatus(state, scopeId, houseId).complete;
+}
+
+/** Tra cứu một mục tiêu thành trì theo đúng era của ván hiện tại. */
+export function strongholdForState(state: StatData, strongholdId: string): StrongholdSite | undefined {
+  return strongholdById(strongholdId, state["Cài Đặt Ván"]["Thời Kỳ"] ?? "");
+}
+
+/** Nhà đang nắm một thành cụ thể; không suy rộng từ việc chiếm thủ phủ của province. */
+export function strongholdController(state: StatData, strongholdId: string): string {
+  const site = strongholdForState(state, strongholdId);
+  if (!site) return "";
+  const sovereignty = state["Chủ Quyền Lãnh Thổ"]?.[site.provinceId];
+  const ledger = toHouseId(sovereignty?.["Bá Quyền Thành Trì"]?.[site.id] ?? "");
+  if (ledger) return ledger;
+  return site.source === "seat" ? toHouseId(sovereignty?.["Nhà Kiểm Soát"] ?? "") : "";
+}
+
+/**
+ * Ghi bá quyền của đúng một thành và làm mới cache kiểm soát province. MUTATE.
+ * Hàm không tự đổi chủ quyền province; riêng thủ phủ phải đi qua captureRegion.
+ */
+export function setStrongholdControlMutate(
+  state: StatData,
+  strongholdId: string,
+  newHouseId: string,
+): boolean {
+  const site = strongholdForState(state, strongholdId);
+  if (!site) return false;
+  const sovereignty = state["Chủ Quyền Lãnh Thổ"]?.[site.provinceId];
+  if (!sovereignty) return false;
+  const ledger = sovereignty["Bá Quyền Thành Trì"] ?? {};
+  ledger[site.id] = toHouseId(newHouseId);
+  sovereignty["Bá Quyền Thành Trì"] = ledger;
+  const provinceHouse = toHouseId(sovereignty["Nhà Kiểm Soát"] ?? "");
+  sovereignty["Kiểm Soát Hoàn Toàn"] = !!provinceHouse
+    && provinceControlStatus(state, site.provinceId, provinceHouse).complete;
+  return true;
 }
 
 /** Kho tài nguyên khởi điểm cho 1 lãnh địa mới (10.1). */
@@ -237,7 +793,11 @@ export function seedMissingTerrain(state: StatData, day = 0): number {
  * chưa có holding (tuyến canon — lãnh chúa). Tuyến wizard chỉ MIGRATE holding
  * gói xuất thân sẵn có (giữ nguyên số lượng holding — 8.5).
  */
-export function seedRegionControl(state: StatData, _eraId: string, opts?: { createIfMissing?: boolean }): void {
+export function seedRegionControl(
+  state: StatData,
+  _eraId: string,
+  opts?: { createIfMissing?: boolean; requirePersonOwnership?: boolean },
+): void {
   const currentYear = state["Thế Giới"]["Năm"] ?? 298;
   repairRegionControl(state, { mode: "fresh-seed", year: currentYear });
   const pHouse = playerHouseId(state);
@@ -246,7 +806,9 @@ export function seedRegionControl(state: StatData, _eraId: string, opts?: { crea
   const home = homeRegionForHouse(pHouse);
   const holdings = state["Lãnh Địa"] as Record<string, unknown>;
   const playerControlsHome = home &&
-    state["Chủ Quyền Lãnh Thổ"][home.id]?.["Nhà Kiểm Soát"] === pHouse;
+    (opts?.requirePersonOwnership
+      ? playerOwnsProvince(state, home.id)
+      : state["Chủ Quyền Lãnh Thổ"][home.id]?.["Nhà Kiểm Soát"] === pHouse);
   if (!home || !playerControlsHome) return;
 
   // MIGRATE: Đặt "Thuộc Vùng" cho holding gói xuất thân. Nếu là nhân vật canon, tạo Lãnh Địa cho trọng trấn.
@@ -264,19 +826,28 @@ export function seedRegionControl(state: StatData, _eraId: string, opts?: { crea
   } else if (opts?.createIfMissing) {
     // Tạo Lãnh Địa cho trọng trấn (seat) của vùng nếu là canon player
     if (home.seat) {
-      const seatMarker = MAP_MARKERS.find((m) => m.name === home.seat);
+      const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] || _eraId;
+      const seatMarker = markersForEra(eraId).find((m) => normalizedSeat(m.name) === normalizedSeat(home.seat));
       const seatId = seatMarker ? seatMarker.id : home.id + "-seat";
       holdings[seatId] = makeHolding({
         regionId: home.id,
         terrain: home.terrain,
         coastal: home.coastal,
         name: home.seat,
-        danSo: seatMarker?.population ?? 20000,
+        danSo: canonicalSettlementPopulation(
+          seatId,
+          home.seat,
+          home.id,
+          eraId,
+          seatMarker?.population ?? 20_000,
+        ),
         lord: state["Thông Tin Nhân Vật"]["Họ Tên"],
         terrainSeed: newTerrainSeed(state, seatId, 0),
       });
     }
   }
+  // Holding vừa migrate/tạo là bằng chứng quyền PERSON; chốt lại cờ sau nó.
+  repairPlayerSovereignty(state);
 }
 
 /**
@@ -293,19 +864,66 @@ export function captureRegionOps(
   if (!region) return [];
   const pHouse = playerHouseId(state);
   const isPlayer = !!pHouse && newHouseId === pHouse;
-  const wasPlayer = !!state["Chủ Quyền Lãnh Thổ"][regionId]?.["Là Của Người Chơi"];
+  const wasPlayer = playerOwnsProvince(state, regionId);
   const base = `stat_data.Chủ Quyền Lãnh Thổ.${regionId}`;
+  const conqueredGovernance = {
+    ...makeDefaultRegionGovernance(),
+    "Trật Tự": 35, "Hội Nhập": 20, "Chấp Nhận Văn Hoá": 30, "Bất Ổn": 55,
+  };
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+
+  // Tìm seat marker ID cho region trước để mô phỏng đúng trạng thái sau chiếm.
+  const seatMarker = markersForEra(eraId).find((m) => normalizedSeat(m.name) === normalizedSeat(region.seat));
+  const seatId = seatMarker ? seatMarker.id : region.id + "-seat";
+  const seatPopulation = canonicalSettlementPopulation(
+    seatId,
+    region.seat,
+    region.id,
+    eraId,
+    seatMarker?.population ?? 20_000,
+  );
+  const projected = structuredClone(state);
+  const projectedSovereignty = projected["Chủ Quyền Lãnh Thổ"][regionId];
+  const seatStronghold = strongholdsForProvince(region.id, eraId).find((site) => site.source === "seat");
+  const nextStrongholdLedger = {
+    ...(state["Chủ Quyền Lãnh Thổ"][regionId]?.["Bá Quyền Thành Trì"] ?? {}),
+  };
+  if (seatStronghold) nextStrongholdLedger[seatStronghold.id] = newHouseId;
+  if (projectedSovereignty) {
+    projectedSovereignty["Nhà Kiểm Soát"] = newHouseId;
+    projectedSovereignty["Người Kiểm Soát"] = isPlayer
+      ? state["Thông Tin Nhân Vật"]["Họ Tên"]
+      : "";
+    projectedSovereignty["Bá Quyền Thành Trì"] = nextStrongholdLedger;
+  }
+  if (isPlayer && !projected["Lãnh Địa"][seatId]) {
+    projected["Lãnh Địa"][seatId] = makeHolding({
+      regionId: region.id,
+      terrain: region.terrain,
+      coastal: region.coastal,
+      name: region.seat,
+      danSo: seatPopulation,
+      lord: state["Thông Tin Nhân Vật"]["Họ Tên"],
+    }) as StatData["Lãnh Địa"][string];
+  } else if (!isPlayer && wasPlayer && projected["Lãnh Địa"][seatId]) {
+    delete projected["Lãnh Địa"][seatId];
+  }
+  const fullControl = !!newHouseId && provinceControlStatus(projected, regionId, newHouseId).complete;
 
   const ops: PatchOp[] = [
     { op: "replace", path: `${base}.Nhà Kiểm Soát`, value: newHouseId },
+    {
+      op: "replace",
+      path: `${base}.Người Kiểm Soát`,
+      value: isPlayer ? state["Thông Tin Nhân Vật"]["Họ Tên"] : "",
+    },
     { op: "replace", path: `${base}.Tình Trạng`, value: "Mới Chiếm" },
     { op: "replace", path: `${base}.Là Của Người Chơi`, value: isPlayer },
+    { op: "replace", path: `${base}.Kiểm Soát Hoàn Toàn`, value: fullControl },
+    { op: "replace", path: `${base}.Bá Quyền Thành Trì`, value: nextStrongholdLedger },
+    { op: "replace", path: `${base}.Quản Trị`, value: conqueredGovernance },
     { op: "replace", path: `${base}._Ngày Đổi Chủ`, value: capturedOnDay },
   ];
-
-  // Tìm seat marker ID cho region
-  const seatMarker = MAP_MARKERS.find((m) => m.name === region.seat);
-  const seatId = seatMarker ? seatMarker.id : region.id + "-seat";
 
   if (isPlayer && !state["Lãnh Địa"][seatId]) {
     // về tay người chơi → mở quản trị nội bộ thành trì trọng trấn, GIEO địa thế mới
@@ -313,7 +931,7 @@ export function captureRegionOps(
       op: "replace", path: `stat_data.Lãnh Địa.${seatId}`,
       value: makeHolding({
         regionId: region.id, terrain: region.terrain, coastal: region.coastal, name: region.seat,
-        danSo: seatMarker?.population ?? 20000, trungThanh: 35,
+        danSo: seatPopulation, trungThanh: 35,
         moTa: `${region.seat} — vừa chiếm được, dân chưa quy phục`,
         lord: state["Thông Tin Nhân Vật"]["Họ Tên"],
         terrainSeed: newTerrainSeed(state, seatId, capturedOnDay),
@@ -338,57 +956,112 @@ export interface RegionFill {
   isPlayer: boolean;
   status: string;
   house: string;
+  controlRatio: number;
+  fullControl: boolean;
   /** ngày tuyệt đối đổi chủ gần nhất (animation "lan chiếm" 9.5.3). */
   changedDay: number;
 }
 
 export function regionController(state: StatData, regionId: string): string {
-  return state["Chủ Quyền Lãnh Thổ"][regionId]?.["Nhà Kiểm Soát"] ?? "";
+  return toHouseId(state["Chủ Quyền Lãnh Thổ"][regionId]?.["Nhà Kiểm Soát"] ?? "");
+}
+
+function explicitFactionForHouse(factions: Record<string, string[]>, houseId: string): string | undefined {
+  const normalizedHouse = toHouseId(houseId);
+  if (!normalizedHouse) return undefined;
+  return Object.entries(factions).find(([, houses]) => (
+    houses.some((candidate) => toHouseId(candidate) === normalizedHouse)
+  ))?.[0];
+}
+
+function liveFactionForHouse(
+  state: StatData,
+  factions: Record<string, string[]> | null,
+  houseId: string,
+): string {
+  const holder = toHouseId(houseId);
+  if (!holder) return "__neutral__";
+
+  const direct = factions ? explicitFactionForHouse(factions, holder) : undefined;
+  if (direct) return direct;
+
+  // Chỉ gộp chư hầu khi state có lời thần phục thật. Không suy ngược từ việc
+  // cùng nằm trong một Vương quốc de-jure.
+  const vassalEntry = state["Chư Hầu"]?.[holder]
+    ?? Object.entries(state["Chư Hầu"] ?? {}).find(([id]) => toHouseId(id) === holder)?.[1];
+  const liege = toHouseId(vassalEntry?.["Chủ Của"] ?? "");
+  if (liege && liege !== holder) {
+    return (factions ? explicitFactionForHouse(factions, liege) : undefined) ?? `house:${liege}`;
+  }
+
+  const player = playerHouseId(state);
+  const relation = state["Quan Hệ Ngoại Giao"]?.[holder]?.["Trạng Thái"];
+  if (player && holder !== player && (relation === "Liên Minh" || relation === "Thần Phục Ta")) {
+    return (factions ? explicitFactionForHouse(factions, player) : undefined) ?? `house:${player}`;
+  }
+  if (holder === player) {
+    const overlord = Object.entries(state["Quan Hệ Ngoại Giao"] ?? {})
+      .find(([, current]) => current["Trạng Thái"] === "Ta Thần Phục")?.[0];
+    const overlordId = toHouseId(overlord ?? "");
+    if (overlordId) {
+      return (factions ? explicitFactionForHouse(factions, overlordId) : undefined) ?? `house:${overlordId}`;
+    }
+  }
+
+  // Có chủ nhưng chưa có liên kết chính trị: đây là một phe độc lập, không phải
+  // "trung lập / chưa rõ" và cũng không tự động thuộc đại vùng de-jure.
+  return `house:${holder}`;
+}
+
+/** Phe chính trị của province; regionId giữ trong API để UI có một điểm gọi ổn định. */
+export function factionIdForRegion(state: StatData, regionId: string, houseId?: string): string {
+  const factions = factionsForYear(state["Thế Giới"]["Năm"] ?? 298);
+  const holder = toHouseId(houseId ?? regionController(state, regionId));
+  return liveFactionForHouse(state, factions, holder);
 }
 
 /** Màu + kiểu tô 1 vùng theo chế độ hiển thị (9.5.2). */
 export function regionFill(state: StatData, regionId: string, mode: MapMode): RegionFill {
   const sov = state["Chủ Quyền Lãnh Thổ"][regionId];
-  const house = sov?.["Nhà Kiểm Soát"] ?? "";
+  const house = toHouseId(sov?.["Nhà Kiểm Soát"] ?? "");
   const isPlayer = !!sov?.["Là Của Người Chơi"];
   const status = sov?.["Tình Trạng"] ?? "Ổn Định";
   const changedDay = sov?.["_Ngày Đổi Chủ"] ?? 0;
+  const control = house ? provinceControlStatus(state, regionId, house) : undefined;
+  const controlRatio = control?.controlRatio ?? 0;
+  const fullControl = control?.complete ?? false;
+  const striped = !fullControl;
 
   if (mode === "relationship") {
     if (isPlayer) {
-      return { color: PLAYER_HEAT_COLOR, striped: false, isPlayer, status, house, changedDay };
+      return { color: PLAYER_HEAT_COLOR, striped, isPlayer, status, house, controlRatio, fullControl, changedDay };
     }
     if (!house) {
-      return { color: NEUTRAL_COLOR.base, striped: true, isPlayer, status, house, changedDay };
+      return { color: NEUTRAL_COLOR.base, striped: true, isPlayer, status, house, controlRatio, fullControl, changedDay };
     }
     const schemaName = HOUSES_BY_ID[house]?.schemaName ?? "";
     const attitude = state["Thái Độ Các Nhà"][schemaName]?.["Thái Độ"] ?? "Cảnh Giác";
     const heat = ATTITUDE_HEAT[attitude] ?? ATTITUDE_HEAT["Cảnh Giác"];
-    return { color: heat.color, striped: false, isPlayer, status, house, changedDay };
+    return { color: heat.color, striped, isPlayer, status, house, controlRatio, fullControl, changedDay };
   }
 
   if (mode === "faction") {
     const currentYear = state["Thế Giới"]["Năm"] ?? 298;
     const eraFactions = factionsForYear(currentYear);
     if (eraFactions) {
-      // Find which faction the house belongs to
-      let foundFaction = null;
-      for (const [factionName, houses] of Object.entries(eraFactions)) {
-        if (houses.includes(house)) {
-          foundFaction = factionName;
-          break;
-        }
-      }
+      const foundFaction = factionIdForRegion(state, regionId, house);
       
-      if (foundFaction) {
+      if (foundFaction !== "__neutral__") {
         // Use a generic logic to color by faction based on its name or specific house color
         const factionColorId = FACTION_COLORS_MAP[foundFaction] ?? house;
         return {
           color: factionColorId ? houseColor(factionColorId).base : NEUTRAL_COLOR.base,
-          striped: false,
+          striped,
           isPlayer,
           status,
           house, // still keep the house for UI tooltips
+          controlRatio,
+          fullControl,
           changedDay,
         };
       }
@@ -399,6 +1072,8 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
         isPlayer,
         status,
         house,
+        controlRatio,
+        fullControl,
         changedDay,
       };
     }
@@ -407,10 +1082,12 @@ export function regionFill(state: StatData, regionId: string, mode: MapMode): Re
   // chính trị: màu bản sắc Nhà kiểm soát
   return {
     color: house ? houseColor(house).base : NEUTRAL_COLOR.base,
-    striped: !house,
+    striped,
     isPlayer,
     status,
     house,
+    controlRatio,
+    fullControl,
     changedDay,
   };
 }

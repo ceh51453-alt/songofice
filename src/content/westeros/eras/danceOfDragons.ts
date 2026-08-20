@@ -33,12 +33,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "baela-targaryen",
     siblings: ["lucerys-velaryon", "joffrey-velaryon"],
     allies: ["cregan-stark", "jeyne-arryn"],
-    rivals: ["aegon-ii-targaryen"],
+    rivals: ["aegon-ii"],
     liege: "rhaenyra-targaryen",
     relationshipDetails: {
       "rhaenyra-targaryen": { type: "Mẹ", trust: 100, affinity: 100, detail: "Jace là con trai trưởng của Rhaenyra và là người thừa kế của bà. Cậu sẵn sàng chết vì danh dự của mẹ." },
       "cregan-stark": { type: "Bằng Hữu", trust: 90, affinity: 95, detail: "Jace bay đến Winterfell và ký Hiệp Ước Băng và Lửa với Cregan — khởi đầu một tình bạn huyền thoại." },
-      "aegon-ii-targaryen": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Kẻ cướp ngôi của mẹ. Jace khinh thường Aegon vì sự hèn nhát và tham lam." }
+      "aegon-ii": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Kẻ cướp ngôi của mẹ. Jace khinh thường Aegon vì sự hèn nhát và tham lam." }
     },
     dragon: {
       name: "Vermax", color: "Xanh Lục", size: "Trưởng Thành", age: 14,
@@ -201,14 +201,14 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
       "Thép Valyria": 0
     }, startingHookIds: [],
     father: "viserys-i", mother: "alicent-hightower",
-    spouse: "aegon-ii-targaryen",
+    spouse: "aegon-ii",
     children: ["jaehaerys-targaryen", "jaehaera-targaryen", "maelour-targaryen"],
-    siblings: ["aegon-ii-targaryen", "aemond-targaryen", "daeron-targaryen"],
+    siblings: ["aegon-ii", "aemond-targaryen", "daeron-targaryen"],
     allies: [],
     rivals: ["rhaenyra-targaryen"],
-    liege: "aegon-ii-targaryen",
+    liege: "aegon-ii",
     relationshipDetails: {
-      "aegon-ii-targaryen": { type: "Chồng/Anh", trust: 40, affinity: 30, detail: "Aegon là chồng nhưng cũng là anh trai. Helaena không yêu Aegon nhưng làm bổn phận." },
+      "aegon-ii": { type: "Chồng/Anh", trust: 40, affinity: 30, detail: "Aegon là chồng nhưng cũng là anh trai. Helaena không yêu Aegon nhưng làm bổn phận." },
       "aemond-targaryen": { type: "Anh Trai", trust: 20, affinity: 10, detail: "Aemond lạnh lùng và tàn ác. Helaena sợ Aemond dù là chị em." },
       "jaehaerys-targaryen": { type: "Con", trust: 100, affinity: 100, detail: "Con trai bị giết trước mắt. Sự kiện Máu và Phô Mai phá hủy tinh thần Helaena mãi mãi." }
     },
@@ -262,7 +262,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
       "Thép Valyria": 0
     }, startingHookIds: [],
     father: "viserys-i", mother: "alicent-hightower",
-    siblings: ["aegon-ii-targaryen", "aemond-targaryen", "helaena-targaryen"],
+    siblings: ["aegon-ii", "aemond-targaryen", "helaena-targaryen"],
     allies: ["ormund-hightower"],
     rivals: ["rhaenyra-targaryen"],
     dragon: {
@@ -317,12 +317,12 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
       "Thép Valyria": 0
     }, startingHookIds: [],
     children: ["alicent-hightower", "gwayne-hightower"],
-    allies: ["aegon-ii-targaryen", "larys-strong"],
+    allies: ["aegon-ii", "larys-strong"],
     rivals: ["rhaenyra-targaryen", "daemon-targaryen"],
-    liege: "aegon-ii-targaryen",
+    liege: "aegon-ii",
     courtPosition: "Bàn Tay Nhà Vua",
     relationshipDetails: {
-      "aegon-ii-targaryen": { type: "Cháu Ngoại", trust: 80, affinity: 60, detail: "Otto đưa Aegon lên ngai nhưng Aegon không bao giờ thực sự nghe lời ông." },
+      "aegon-ii": { type: "Cháu Ngoại", trust: 80, affinity: 60, detail: "Otto đưa Aegon lên ngai nhưng Aegon không bao giờ thực sự nghe lời ông." },
       "alicent-hightower": { type: "Con Gái", trust: 100, affinity: 100, detail: "Alicent là quân cờ quan trọng nhất của Otto — cô làm vợ vua Viserys theo ý ông." },
       "rhaenyra-targaryen": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Otto nghi ngờ dòng máu của con Rhaenyra và muốn loại bỏ cô khỏi kế thừa." }
     },
@@ -374,7 +374,7 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     siblings: ["harwin-strong"],
     allies: ["otto-hightower", "alicent-hightower"],
     rivals: ["rhaenyra-targaryen"],
-    liege: "aegon-ii-targaryen",
+    liege: "aegon-ii",
     relationshipDetails: {
       "alicent-hightower": { type: "Chủ", trust: 80, affinity: 60, detail: "Larys phục vụ Alicent bằng tình báo và những vụ ám sát. Đổi lại, hắn có những yêu cầu kỳ quái." },
       "otto-hightower": { type: "Đồng Minh", trust: 50, affinity: 30, detail: "Cả hai là kiến trúc sư của phe Xanh, nhưng Larys luôn có mục đích riêng." }
@@ -427,10 +427,10 @@ export const danceOfDragonsCharacters: CanonCharacter[] = [
     spouse: "arra-norrey",
     children: ["rickon-stark-son"],
     allies: ["jacaerys-velaryon", "rhaenyra-targaryen"],
-    rivals: ["aegon-ii-targaryen"],
+    rivals: ["aegon-ii"],
     relationshipDetails: {
       "jacaerys-velaryon": { type: "Bằng Hữu", trust: 95, affinity: 100, detail: "Hoàng tử Jace bay đến Winterfell trên lưng Vermax. Cregan nể phục sự dũng cảm và ký Hiệp Ước Băng và Lửa." },
-      "aegon-ii-targaryen": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Cregan coi Aegon II là kẻ cướp ngôi. Giờ Của Sói — Cregan sẽ phán xét tất cả những kẻ phản bội." }
+      "aegon-ii": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Cregan coi Aegon II là kẻ cướp ngôi. Giờ Của Sói — Cregan sẽ phán xét tất cả những kẻ phản bội." }
     },
     personalHooks: [
       { id: "hour-of-the-wolf", title: "Giờ Của Sói", year: "131 AC", numericYear: 131, desc: "Cuộc chiến đã vãn, các vị vua đã chết. Ngươi kéo quân phương Bắc xuống King's Landing để phán xét những kẻ phản bội." }

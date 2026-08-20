@@ -25,6 +25,7 @@ function fmtNpc(name: string, npc: Npc): string {
     `• ${name}${npc["Tuổi"] ? ` (${npc["Tuổi"]} tuổi, ${npc["Giai Đoạn Đời"]})` : ""} — Quan hệ: ${stage} (${npc["Độ Hảo Cảm"]}), Tin Cậy: ${npc["Tin Cậy"]}.`,
   ];
   if (npc["Chức Vụ"]) parts.push(`Chức: ${npc["Chức Vụ"]}.`);
+  parts.push(`Dòng họ: ${npc["Nhánh Gia Tộc"] ?? "Dòng Chính"}; nhiệm vụ: ${npc["Nhiệm Vụ Gia Tộc"] ?? "Tại Gia"}${npc["Mục Tiêu Nhiệm Vụ"] ? ` (${npc["Mục Tiêu Nhiệm Vụ"]})` : ""}.`);
   if (npc["Nhà"]) parts.push(`Thế lực/gia tộc: ${npc["Nhà"]}.`);
   if (npc["Lục Địa"] || npc["Văn Hoá"] || npc["Tôn Giáo"]) {
     parts.push(`Bản sắc: ${[npc["Lục Địa"], npc["Văn Hoá"], npc["Tôn Giáo"]].filter(Boolean).join(" · ")}.`);
@@ -121,6 +122,13 @@ function renderMilitaryForAI(state: StatData): string[] {
       else if (u["Ngày Huấn Luyện"] > 0) parts.push(`đang huấn luyện, còn ${formatDuration(u["Ngày Huấn Luyện"])}`);
       else if (u["Đang Di Chuyển Đến"]) parts.push(`đang hành quân tới ${u["Đang Di Chuyển Đến"]}, còn ${formatDuration(u["Ngày Hành Quân Còn Lại"])}`);
       else parts.push(`đóng tại ${u["Lãnh Địa Đồn Trú"] || "chưa rõ"}`);
+      if (u["Lệnh Vây Khi Đến"]) {
+        parts.push(
+          u["Đang Di Chuyển Đến"]
+            ? `mục tiêu cuối là vây ${u["Lệnh Vây Khi Đến"]} sau khi tới nơi`
+            : `đang dựng trại vây ${u["Lệnh Vây Khi Đến"]}, còn ${formatDuration(u["Ngày Dựng Trại Vây Còn Lại"])}`,
+        );
+      }
       if (u["Thương Binh"] > 0) parts.push(`${u["Thương Binh"].toLocaleString("vi-VN")} thương binh nằm trại`);
       if (u["Hạn Phục Dịch Còn Lại"] > 0) {
         parts.push(
@@ -367,10 +375,11 @@ export function renderStateForAI(state: StatData): string {
 
   // Era context block (chống toàn tri)
   const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+  const phaseId = state["Cài Đặt Ván"]["Pha Thời Kỳ"] ?? "era-start";
   const eraData = ERAS_BY_ID[eraId];
   if (eraData) {
     lines.push(
-      `[BỐI CẢNH THỜI KỲ] ${eraData.name} | ${formatDate(world)} | Mùa: ${world["Mùa"]}`,
+      `[BỐI CẢNH THỜI KỲ] ${eraData.name} | Mốc sự kiện: ${phaseId} | ${formatDate(world)} | Mùa: ${world["Mùa"]}`,
       getTimelineContext(world["Năm"]),
       `⛔ GIỚI HẠN KIẾN THỨC: Mọi thông tin chỉ hợp lệ tới năm ${world["Năm"]} AC. KHÔNG tham chiếu sự kiện/nhân vật sau mốc này.`,
     );
@@ -510,8 +519,27 @@ export function renderStateForAI(state: StatData): string {
   if (owned.length > 0) {
     lines.push(
       "",
-      `Lãnh thổ của ngươi: ${owned.map(([id, s]) => `${REGIONS_BY_ID[id]?.name ?? id}${s["Tình Trạng"] !== "Ổn Định" ? ` [${s["Tình Trạng"]}]` : ""}`).join(", ")}.`,
+      `Lãnh thổ của ngươi: ${owned.map(([id, s]) => {
+        const governance = s["Quản Trị"];
+        const status = s["Tình Trạng"] !== "Ổn Định" ? ` [${s["Tình Trạng"]}]` : "";
+        const administration = governance ? ` {trật tự ${Math.round(governance["Trật Tự"])}, hội nhập ${Math.round(governance["Hội Nhập"])}, hạ tầng ${Math.round(governance["Hạ Tầng"])}, bất ổn ${Math.round(governance["Bất Ổn"])}}` : "";
+        return `${REGIONS_BY_ID[id]?.name ?? id}${status}${administration}`;
+      }).join(", ")}.`,
     );
+  }
+
+  const feudal = state["Quản Trị Tước Địa"];
+  lines.push(
+    `Triều chính phong kiến: ưu tiên ${feudal["Ưu Tiên"]}; chính danh ${Math.round(feudal["Chính Danh"])}; uy quyền ${Math.round(feudal["Uy Quyền"])}; gắn kết chư hầu ${Math.round(feudal["Gắn Kết Chư Hầu"])}; gánh hành chính ${Math.round(feudal["Gánh Nặng Hành Chính"])}; kiệt quệ chiến tranh ${Math.round(feudal["Kiệt Quệ Chiến Tranh"])}.`,
+  );
+  const governanceProjects = Object.values(state["Dự Án Quản Trị"]).filter((project) =>
+    project["Trạng Thái"] !== "Hoàn Tất" && project["Trạng Thái"] !== "Đã Hủy");
+  if (governanceProjects.length > 0) {
+    lines.push(`Dự án quản trị đang chạy: ${governanceProjects.map((project) => {
+      const progress = Math.round(project["Ngày Công Đã Tích Lũy"] / Math.max(1, project["Ngày Cần"]) * 100);
+      const obstacles = project["Trở Ngại"].length ? `; nút thắt ${project["Trở Ngại"].join(", ")}` : "";
+      return `${project["Tên"]} [${project["Phạm Vi"]}, ${project["Trạng Thái"]}, ${progress}%${obstacles}]`;
+    }).join(" · ")}. Không kể hiệu ứng cuối như đã xảy ra trước khi tiến độ đạt 100%.`);
   }
 
   // triều đình (13.1) — chỉ render nếu có dính líu (13.5)
@@ -545,16 +573,18 @@ export function renderStateForAI(state: StatData): string {
   // ── MƯU ĐỒ (M20) — tai mắt, vỏ bọc, sổ bí mật, phản gián, âm mưu ──
   lines.push(...renderIntrigueForAI(state));
 
-  // lãnh địa quản lý (10.1) — tài nguyên + công trình đang xây, gọn
+  // hồ sơ thành trì + đất trực thuộc (khóa legacy "Lãnh Địa") — gọn
   const holdings = Object.entries(state["Lãnh Địa"]);
   if (holdings.length > 0) {
-    lines.push("Lãnh địa quản lý:");
+    lines.push("Thành trì và đất trực thuộc trong sổ chi tiết (không đồng nghĩa toàn bộ lãnh thổ):");
     for (const [name, terr] of holdings.slice(0, 6)) {
       const building = Object.entries(terr["Công Trình"]);
       const inProgress = building.filter(([, b]) => b["Đang Xây"]).map(([bn, b]) => `${bn} (còn ${formatDuration(b["Ngày Xây Còn Lại"])})`);
       const demolishing = building.filter(([, b]) => !b["Đang Xây"] && b["Đang Phá"]).map(([bn, b]) => `${bn} (còn ${formatDuration(b["Ngày Phá Còn Lại"] ?? 0)} để phá dỡ)`);
       const done = building.filter(([, b]) => !b["Đang Xây"] && !b["Đang Phá"]).map(([bn, b]) => `${bn} c${b["Cấp Độ"]}`);
       const parts = [`• ${name}: Dân ${terr["Dân Số"].toLocaleString("vi-VN")}, Lòng Dân ${terr["Trung Thành"]}`];
+      const demesne = terr["Quản Trị Lãnh Địa"];
+      parts.push(`Kế hoạch đất: ${demesne["Trọng Tâm"]}, khai thác ${Math.round(demesne["Cường Độ Khai Thác"])}%, hạt giống ${Math.round(demesne["Dự Trữ Hạt Giống"])}%, màu mỡ ${Math.round(demesne["Độ Màu Mỡ"])}, xói mòn ${Math.round(demesne["Xói Mòn"])}`);
 
       // DÂN CƯ & VIỆC LÀM — để AI kể đúng cảnh phố xá: thất nghiệp thì có
       // người vạ vật ở cổng chợ, thiếu nhà thì có lều dựng ngoài tường thành.

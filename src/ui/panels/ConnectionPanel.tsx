@@ -389,11 +389,12 @@ export function ConnectionPanel() {
           <GlassSelect
             className="w-32"
             value={settings.language}
-            onChange={(e) => settings.setLanguage(e.target.value as "vi" | "en")}
+            onChange={(e) => settings.setLanguage(e.target.value as typeof settings.language)}
             aria-label={t("conn.language")}
           >
             <option value="vi">Tiếng Việt</option>
             <option value="en">English</option>
+            <option value="zh-CN">简体中文</option>
           </GlassSelect>
         </div>
         <div className="flex items-center justify-between gap-2">

@@ -3,16 +3,50 @@
  * chú giải (đổi theo chế độ tô màu) và thanh nhiệm vụ.
  */
 import type { StatData } from "../../mvu/schema";
-import { HOUSE_COLORS, ATTITUDE_HEAT, PLAYER_HEAT_COLOR } from "../../content/westeros/houseColors";
-import { factionsForYear, FACTION_COLORS_MAP } from "../../content/westeros/regions";
-import { balanceOfPower } from "../../territory/mapAggregate";
+import { HOUSE_COLORS, ATTITUDE_HEAT, PLAYER_HEAT_COLOR, houseColor } from "../../content/westeros/houseColors";
+import { balanceOfPower, deJureRealms, factionMapSummaries } from "../../territory/mapAggregate";
 import { fromAbsoluteDay, formatDateShort } from "../../mvu/calendar";
 import type { MapMode } from "../../territory/territoryEngine";
 import type { MapTier } from "../../content/westeros/mapScale";
 import { IconPin, IconCheck, IconChevronDown } from "../icons";
 
-export function MapLegend({ mode, tier, stat }: { mode: MapMode; tier: MapTier; stat: StatData }) {
-  // Tầng 3 nói chuyện quyền lực, không nói chuyện từng Nhà chư hầu
+export function MapLegend({
+  mode,
+  tier,
+  stat,
+  onSelectFaction,
+}: {
+  mode: MapMode;
+  tier: MapTier;
+  stat: StatData;
+  onSelectFaction?: (factionId: string) => void;
+}) {
+  // Chú giải theo chế độ phải được ưu tiên ở mọi cấp zoom. Trước đây hai tầng
+  // Thế Giới/Vương Quốc return sớm khiến chế độ Phe Phái không có chú giải.
+  if (mode === "relationship") {
+    const items = [
+      { id: "player", color: PLAYER_HEAT_COLOR, label: "Lãnh thổ ta" },
+      ...Object.entries(ATTITUDE_HEAT).map(([k, v]) => ({ id: `attitude:${k}`, color: v.color, label: `${k} · ${v.label}` })),
+    ];
+    return <LegendBox items={items} />;
+  }
+
+  if (mode === "faction") {
+    const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+    const factions = factionMapSummaries(stat, eraId);
+    return (
+      <LegendBox
+        items={factions.map((faction) => ({
+          id: faction.factionId,
+          color: faction.colorHouseId ? houseColor(faction.colorHouseId).base : "#657174",
+          label: `${faction.name} · ${faction.regionIds.length} vùng · ${Math.round(faction.controlRatio * 100)}%`,
+          onClick: onSelectFaction ? () => onSelectFaction(faction.factionId) : undefined,
+        }))}
+      />
+    );
+  }
+
+  // Tầng Thế Giới nói chuyện quyền lực, không nói chuyện từng Nhà chư hầu.
   if (tier === "world") {
     const realms = balanceOfPower(stat).slice(0, 6);
     return (
@@ -25,36 +59,47 @@ export function MapLegend({ mode, tier, stat }: { mode: MapMode; tier: MapTier; 
     );
   }
 
-  if (mode === "relationship") {
-    const items = [
-      { color: PLAYER_HEAT_COLOR, label: "Lãnh thổ ta" },
-      ...Object.entries(ATTITUDE_HEAT).map(([k, v]) => ({ color: v.color, label: k })),
-    ];
-    return <LegendBox items={items} />;
-  }
-
-  if (mode === "faction") {
-    const eraFactions = factionsForYear(stat["Thế Giới"]?.["Năm"] ?? 298);
-    if (eraFactions) {
-      const items = Object.keys(eraFactions).map((name) => {
-        const colorId = FACTION_COLORS_MAP[name];
-        return { color: colorId && HOUSE_COLORS[colorId] ? HOUSE_COLORS[colorId].base : "#4a4a4a", label: name };
-      });
-      return <LegendBox items={items} />;
-    }
+  if (tier === "realm") {
+    const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+    const realms = deJureRealms(stat, eraId).slice(0, 9);
+    return (
+      <LegendBox
+        items={realms.map((realm) => ({
+          color: HOUSE_COLORS[realm.controller]?.base ?? "#657174",
+          label: `${realm.name} · ${realm.controlledStrongholds}/${realm.totalStrongholds} thành`,
+        }))}
+      />
+    );
   }
 
   const present = new Set(Object.values(stat["Chủ Quyền Lãnh Thổ"]).map((s) => s["Nhà Kiểm Soát"]).filter(Boolean));
-  const items = [...present].map((h) => ({ color: HOUSE_COLORS[h]?.base ?? "#4a4a4a", label: HOUSE_COLORS[h]?.label ?? h }));
+  const items = [...present].map((h) => ({ id: h, color: HOUSE_COLORS[h]?.base ?? "#4a4a4a", label: HOUSE_COLORS[h]?.label ?? h }));
   return <LegendBox items={items} />;
 }
 
-function LegendBox({ items }: { items: { color: string; label: string }[] }) {
+interface LegendItem {
+  id?: string;
+  color: string;
+  label: string;
+  onClick?: () => void;
+}
+
+function LegendBox({ items }: { items: LegendItem[] }) {
   if (items.length === 0) return null;
   return (
-    <div className="glass-strong absolute bottom-3 left-3 z-10 flex max-w-[45vw] flex-wrap gap-x-3 gap-y-1 p-2.5">
-      {items.map((it) => (
-        <div key={it.label} className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+    <div className="glass-strong absolute bottom-3 left-3 z-10 flex max-h-[32vh] max-w-[48vw] flex-wrap gap-x-3 gap-y-1 overflow-y-auto p-2.5">
+      {items.map((it) => it.onClick ? (
+        <button
+          key={it.id ?? it.label}
+          type="button"
+          onClick={it.onClick}
+          className="flex items-center gap-1.5 rounded px-1 py-0.5 text-[11px] text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-hover)] hover:text-[var(--text-soft)]"
+        >
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: it.color }} />
+          {it.label}
+        </button>
+      ) : (
+        <div key={it.id ?? it.label} className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
           <span className="h-2.5 w-2.5 rounded-sm" style={{ background: it.color }} />
           {it.label}
         </div>

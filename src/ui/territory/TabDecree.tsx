@@ -129,7 +129,7 @@ export function TabDecree({ territoryId, holding, isOwner }: { territoryId: stri
       <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-1 gap-3 overflow-y-auto pr-1 xl:grid-cols-2">
         {Object.entries(decrees).length === 0 ? (
           <div className="glass col-span-full rounded-[var(--radius-md)] px-4 py-10 text-center text-[13px] italic text-[var(--text-muted)]">
-            Chưa có chiếu chỉ nào được ban ở lãnh địa này.
+            Chưa có pháp lệnh địa phương nào được ban trên đất trực thuộc này.
           </div>
         ) : (
           Object.entries(decrees).map(([id, decree]) => (

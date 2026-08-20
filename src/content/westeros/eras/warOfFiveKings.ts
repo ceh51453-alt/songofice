@@ -31,6 +31,8 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     rivals: ["aerys-ii", "robb-stark"],
       startRegions: ["the-westerlands"],
       startHoldings: ["the-westerlands-seat"],
+      legalStatus: "holder",
+      residenceIds: ["the-westerlands-seat"],
       holdingsLevel: {"the-westerlands-seat":5},
       baseIncome: 800
 },
@@ -65,6 +67,11 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     rivals: ["eddard-stark", "brienne-tarth"],
     liege: "joffrey-baratheon",
     courtPosition: "Tổng Chỉ Huy Ngự Lâm Quân",
+    legalStatus: "courtier",
+    residenceIds: ["the-crownlands-seat"],
+    phaseOverrides: {
+      "kings-arrival": { residenceIds: ["the-north-seat"] },
+    },
     secretBiologicalFather: "",
     secretBiologicalMother: "",
     relationshipDetails: {
@@ -271,9 +278,9 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
       baseIncome: 25
 },
   {
-    id: "euron-greyjoy", name: "Euron Greyjoy", house: "Greyjoy", role: "Mắt Quạ", tuocVi: "Quốc Vương", religion: "Thần Chết Chìm",
-    origin: "Em trai Balon Greyjoy, thuyền trưởng Silence và kẻ lưu vong trở về tranh quyền sau cái chết của Balon.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Tóc đen phủ vai, râu sẫm; một mắt xanh biếc còn mắt kia che bằng miếng bịt màu đen.",
-    blurb: "Độc ác, điên rồ, dùng phép thuật hắc ám và dong buồm trên tàu Im Lặng với thủy thủ đoàn bị cắt lưỡi.",
+    id: "euron-greyjoy", name: "Euron Greyjoy", house: "Greyjoy", role: "Thuyền Trưởng Silence Lưu Vong", tuocVi: "Lãnh Chúa", religion: "Thần Chết Chìm",
+    origin: "Em trai Balon Greyjoy, thuyền trưởng Silence và kẻ bị Balon đày khỏi Quần Đảo Sắt; ở các mốc 298 AC Balon vẫn còn sống.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Tóc đen phủ vai, râu sẫm; một mắt xanh biếc còn mắt kia che bằng miếng bịt màu đen.",
+    blurb: "Độc ác, điên rồ và nguy hiểm, nhưng lúc này hắn vẫn là kẻ lưu vong trên tàu Silence, chưa phải Vua Quần Đảo Sắt.",
     birthYear: 260, age: 38, coreStats: { "Sức Mạnh": 14, "Nhanh Nhẹn": 15, "Thể Chất": 15, "Trí Tuệ": 16, "Tinh Tường": 17, "Uy Tín": 16 },
     năngLực: { "Võ Lực": 70, "Thống Soái": 80, "Trí Mưu": 80, "Ngoại Giao": 85 },
     talentIds: ["schemer", "warrior-blood"],
@@ -300,13 +307,15 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     spouse: "",
     children: [],
     allies: [],
-      startRegions: ["the-iron-islands"],
-      startHoldings: ["the-iron-islands-seat"],
+      startRegions: [],
+      startHoldings: [],
+      legalStatus: "unlanded",
+      claimRegionIds: ["the-iron-islands"],
       holdingsLevel: {"the-iron-islands-seat":5},
       baseIncome: 300
 },
   {
-    id: "margaery-tyrell", name: "Margaery Tyrell", house: "Tyrell", role: "Hoa Hồng Mưu Mô", tuocVi: "Vương Hậu", religion: "Thất Diện Thần",
+    id: "margaery-tyrell", name: "Margaery Tyrell", house: "Tyrell", role: "Tiểu Thư Highgarden", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
     origin: "Con gái Mace Tyrell và Alerie Hightower, cháu ngoại Olenna Redwyne; được đưa vào các hôn ước hoàng gia của Nhà Tyrell.", culture: "Người Reach", bloodline: "Nhà Tyrell, Hightower và Redwyne", continent: "Westeros", appearance: "Tóc nâu xoăn, mắt nâu ấm và nụ cười cuốn hút; thường được so sánh với một đóa hồng.",
     blurb: "Xinh đẹp và khôn ngoan, được bà nội Olenna huấn luyện để nắm lấy quyền lực qua hôn nhân.",
     birthYear: 283, age: 15, coreStats: { "Sức Mạnh": 5, "Nhanh Nhẹn": 9, "Thể Chất": 10, "Trí Tuệ": 15, "Tinh Tường": 15, "Uy Tín": 19 },
@@ -329,6 +338,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     allies: ["olenna-tyrell"],
     rivals: ["cersei-lannister"],
     liege: "mace-tyrell",
+    legalStatus: "courtier",
+    residenceIds: ["the-reach-seat"],
+    phaseOverrides: {
+      "dragonstone-fleet": { tuocVi: "Vương Hậu", role: "Vương Hậu Của Renly", legalStatus: "consort" },
+      "highgarden-alliance": { tuocVi: "Vương Hậu", role: "Vương Hậu Của Renly", legalStatus: "consort" },
+      "boy-king-crowned": { tuocVi: "Vương Hậu", role: "Vương Hậu Của Renly", legalStatus: "consort" },
+    },
     relationshipDetails: {
       "olenna-tyrell": { type: "Bà Nội", trust: 100, affinity: 100, detail: "Olenna dạy Margaery nghệ thuật chính trị. Bà cháu như nhau — sắc sảo và nguy hiểm." },
       "cersei-lannister": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Cersei ghen tỵ và sợ hãi sự nổi tiếng của Margaery. Hai người chiến tranh lạnh ngay trong Hồng Bảo Thành." },
@@ -346,7 +362,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
       baseIncome: 25
 },
   {
-    id: "olenna-tyrell", name: "Olenna Tyrell", house: "Tyrell", role: "Nữ Hoàng Gai", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
+    id: "olenna-tyrell", name: "Olenna Tyrell", house: "Tyrell", role: "Nữ Hoàng Gai", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
     origin: "Sinh ra là Olenna Redwyne, vợ quá cố Luthor Tyrell và bà nội của Margaery, người điều hướng chính trị thực tế của Highgarden.", culture: "Người Reach", bloodline: "Nhà Redwyne; kết hôn vào Tyrell", continent: "Westeros", appearance: "Bà lão nhỏ người, tóc bạc, mắt sáng và lưỡi sắc như gai hồng.",
     blurb: "Trí óc sắc bén, lời lẽ cay độc, người phụ nữ quyền lực nhất nắm giữ tài sản nhà Tyrell.",
     birthYear: 228, age: 70, coreStats: { "Sức Mạnh": 3, "Nhanh Nhẹn": 5, "Thể Chất": 6, "Trí Tuệ": 18, "Tinh Tường": 19, "Uy Tín": 17 },
@@ -379,8 +395,10 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
           { name: "Kỵ Binh Hạng Nặng Xứ Reach", type: "Kỵ Binh", size: 8000, quality: "Thành Thạo" },
           { name: "Cung Thủ Highgarden", type: "Cung Thủ", size: 8000, quality: "Thành Thạo" }
         ],
-      startRegions: ["the-reach"],
-      startHoldings: ["the-reach-seat"],
+      startRegions: [],
+      startHoldings: [],
+      legalStatus: "courtier",
+      residenceIds: ["the-reach-seat"],
       holdingsLevel: {"the-reach-seat":5},
       baseIncome: 700
 },
@@ -414,6 +432,8 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     siblings: [],
       startRegions: [],
       startHoldings: ["dreadfort"],
+      legalStatus: "holder",
+      residenceIds: ["dreadfort"],
       holdingsLevel: {"dreadfort":4},
       baseIncome: 200
 },
@@ -533,7 +553,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
       baseIncome: 50
 },
   {
-    id: "balon-greyjoy", name: "Balon Greyjoy", house: "Greyjoy", role: "Vua Quần Đảo Sắt", tuocVi: "Quốc Vương", religion: "Thần Chết Chìm",
+    id: "balon-greyjoy", name: "Balon Greyjoy", house: "Greyjoy", role: "Lãnh Chúa Pyke", tuocVi: "Đại Lãnh Chúa", religion: "Thần Chết Chìm",
     origin: "Con trai Quellon Greyjoy, Lãnh chúa Pyke đã thất bại trong cuộc nổi loạn năm 289 AC và khởi xướng cuộc chiến mới khi Bảy Vương Quốc suy yếu.", culture: "Người Sắt", bloodline: "Nhà Greyjoy", continent: "Westeros", appearance: "Gầy, tóc đen pha xám, gương mặt khắc khổ và ánh mắt cứng rắn.",
     blurb: "Lần thứ hai xưng vương, lần này đánh vào Phương Bắc yếu ớt thay vì Lannisport.",
     birthYear: 256, age: 42, coreStats: { "Sức Mạnh": 12, "Nhanh Nhẹn": 11, "Thể Chất": 13, "Trí Tuệ": 12, "Tinh Tường": 11, "Uy Tín": 14 },
@@ -569,6 +589,13 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     },
       startRegions: ["the-iron-islands"],
       startHoldings: ["the-iron-islands-seat"],
+      legalStatus: "holder",
+      residenceIds: ["the-iron-islands-seat"],
+      phaseOverrides: {
+        "dragonstone-fleet": { tuocVi: "Quốc Vương", role: "Vua Quần Đảo Sắt", claimRegionIds: ["the-iron-islands"] },
+        "highgarden-alliance": { tuocVi: "Quốc Vương", role: "Vua Quần Đảo Sắt", claimRegionIds: ["the-iron-islands"] },
+        "boy-king-crowned": { tuocVi: "Quốc Vương", role: "Vua Quần Đảo Sắt", claimRegionIds: ["the-iron-islands"] },
+      },
       holdingsLevel: {"the-iron-islands-seat":5},
       baseIncome: 300
 },
@@ -644,7 +671,7 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
       baseIncome: 25
 },
   {
-    id: "lysa-tully", name: "Lysa Arryn", house: "Tully", role: "Phu Nhân Eyrie", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
+    id: "lysa-tully", name: "Lysa Arryn", house: "Tully", role: "Nhiếp Chính Vale", tuocVi: "Nhiếp Chính", religion: "Thất Diện Thần",
     origin: "Con gái Hoster Tully và Minisa Whent, góa phụ Jon Arryn, nhiếp chính Vale cho con trai Robert Arryn.", culture: "Người Riverlands; sống tại Vale", bloodline: "Nhà Tully và Whent; kết hôn vào Arryn", continent: "Westeros", appearance: "Tóc đỏ nâu kiểu Tully, mắt xanh nhạt; gương mặt mệt mỏi vì bất an và chăm sóc Robert.",
     blurb: "Hoang tưởng và ích kỷ, cô giữ chặt con trai ở The Eyrie, từ chối tham gia cuộc chiến.",
     birthYear: 266, age: 32, coreStats: { "Sức Mạnh": 6, "Nhanh Nhẹn": 8, "Thể Chất": 7, "Trí Tuệ": 10, "Tinh Tường": 12, "Uy Tín": 11 },
@@ -674,8 +701,10 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
       "catelyn-tully": { type: "Chị Gái", trust: 30, affinity: 20, detail: "Lysa ghen tỵ với Catelyn vì Petyr yêu chị. Mối quan hệ chị em đổ vỡ vì ghen tuông." },
       "robert-arryn": { type: "Con Cái", trust: 100, affinity: 100, detail: "Lysa bảo vệ Robin bằng sự hoang tưởng và tình yêu bệnh hoạn, không cho cậu bé lớn lên." }
     },
-      startRegions: ["the-riverlands"],
-      startHoldings: ["the-riverlands-seat"],
+      startRegions: [],
+      startHoldings: [],
+      legalStatus: "regent",
+      residenceIds: ["the-vale-seat"],
       holdingsLevel: {"the-riverlands-seat":5},
       baseIncome: 450
 },
@@ -710,8 +739,10 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     },
     spouse: "",
     children: [],
-      startRegions: ["the-riverlands"],
+      startRegions: [],
       startHoldings: ["the-riverlands-seat"],
+      legalStatus: "holder",
+      residenceIds: ["the-riverlands-seat"],
       holdingsLevel: {"the-riverlands-seat":5},
       baseIncome: 450
 },
@@ -785,6 +816,8 @@ export const warOfFiveKingsCharacters: CanonCharacter[] = [
     },
       startRegions: ["the-reach"],
       startHoldings: ["the-reach-seat"],
+      legalStatus: "holder",
+      residenceIds: ["the-reach-seat"],
       holdingsLevel: {"the-reach-seat":5},
       baseIncome: 700
 },

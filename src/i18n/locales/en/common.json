@@ -26,7 +26,7 @@
   "game": {
     "navChat": "Roleplay",
     "navMap": "Map",
-    "navTerritory": "Territory",
+    "navTerritory": "Feudal Governance",
     "navMilitary": "Military",
     "navCourt": "Court",
     "navIntrigue": "Intrigue",
@@ -145,6 +145,7 @@
   "map": {
     "modePolitical": "Political Map",
     "modeRelationship": "Relations Map",
+    "faction": "Faction Map",
     "layerTerritory": "Territory",
     "layerMarkers": "Places",
     "zoomIn": "Zoom in",

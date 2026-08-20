@@ -146,8 +146,9 @@ describe("saveEngine (M15)", () => {
       const migrated = migrateState(JSON.parse(JSON.stringify(old)));
       const northSibling = REGIONS.find((region) => region.parentId === "macro-the-north" && region.id !== "the-north")!;
       const essos = REGIONS.find((region) => region.continentId === "essos")!;
-      expect(migrated["Chủ Quyền Lãnh Thổ"]["the-north"]).toEqual(oldControl);
-      expect(migrated["Chủ Quyền Lãnh Thổ"][northSibling.id]).toEqual(oldControl);
+      expect(migrated["Chủ Quyền Lãnh Thổ"]["the-north"]).toMatchObject(oldControl);
+      expect(migrated["Chủ Quyền Lãnh Thổ"][northSibling.id]).toMatchObject(oldControl);
+      expect(migrated["Chủ Quyền Lãnh Thổ"]["the-north"]["Bá Quyền Thành Trì"]).toBeDefined();
       expect(migrated["Chủ Quyền Lãnh Thổ"][essos.id]).toBeDefined();
       expect(migrated["Kinh Tế Vùng"]["the-north"]).toEqual(oldMarket);
       expect(Object.keys(migrated["Kinh Tế Vùng"])).toEqual(expect.arrayContaining(REGIONS.map((region) => region.id)));

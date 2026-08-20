@@ -11,10 +11,12 @@ import { useChatStore } from "../state/chatStore";
 import { useConnectionStore } from "../state/connectionStore";
 import { useMvuStore } from "../state/mvuStore";
 import { useTerritoryStore } from "../state/territoryStore";
-import { makeDefaultState, StatDataSchema } from "../mvu/schema";
+import { makeDefaultState, MilitaryUnitSchema, StatDataSchema } from "../mvu/schema";
 import { seedRegionControl, regionFill, regionController } from "../territory/territoryEngine";
 import { registerConstructionLoop } from "../territory/construction";
 import { houseColor } from "../content/westeros/houseColors";
+import { registerArmyLoop } from "../strategy/army";
+import { registerSiegeLoop } from "../strategy/war";
 
 const PORT = 8896;
 let server: http.Server;
@@ -34,8 +36,17 @@ const AI_TIME_PASSES = `Ba tháng trôi qua trong lúc thợ xây miệt mài d�
 
 <UpdateVariable>{"mvu_update":[{"op":"delta","path":"stat_data.Thế Giới.Ngày","value":90}]}</UpdateVariable>`;
 
+const AI_SIEGE_MARCH = `Robb hạ lệnh cho Đại quân Bắc nam tiến. Sau nhiều tuần đường trường, quân kỳ sói đã khép kín các ngả quanh Riverrun.
+
+<army_order unit="Đại quân Bắc" action="siege" target="the-riverlands">Hành quân rồi dựng trại vây Riverrun.</army_order>
+<siege_update unit="Đại quân Bắc" target="Riverrun" phase="siege" days="45">Quân tới nơi, đào hào, dựng đủ vòng trại rồi bắt đầu siết thành.</siege_update>
+
+<UpdateVariable>{"mvu_update":[{"op":"delta","path":"stat_data.Thế Giới.Ngày","value":45}]}</UpdateVariable>`;
+
 beforeAll(async () => {
   registerConstructionLoop();
+  registerArmyLoop();
+  registerSiegeLoop();
   server = http.createServer(async (req, res) => {
     if (req.method === "POST" && req.url === "/v1/chat/completions") {
       for await (const _ of req) { /* drain */ }
@@ -118,5 +129,29 @@ describe("M7 — chủ quyền + bản đồ + lãnh địa qua luồng chat", (
     const north = useMvuStore.getState().stat["Lãnh Địa"]["the-north-seat"];
     expect(north["Công Trình"]["Nông Trại"]["Đang Xây"]).toBe(false);
     expect(north["Tài Nguyên"]["Lương Thực"]).toBeGreaterThan(foodStart); // sản lượng cộng mỗi tháng
+  }, 20000);
+
+  it("AI kể lệnh vây + thời gian trôi → tự hành quân, dựng trại rồi mới mở vây", async () => {
+    const stat = structuredClone(useMvuStore.getState().stat);
+    stat["Biên Chế Quân Sự"]["Đại quân Bắc"] = MilitaryUnitSchema.parse({
+      "Tướng Chỉ Huy": "Robb Stark",
+      "Nhà": "Stark",
+      "Số Lượng": 8_000,
+      "Loại Quân": "Bộ Binh",
+      "Lãnh Địa Đồn Trú": "the-north-seat",
+      "Ngày Tập Hợp Còn Lại": 0,
+      "Ngày Huấn Luyện": 0,
+      "Lương Thực Mang Theo": 90,
+    });
+    useMvuStore.setState({ stat, pendingEvents: [], lastChangedPaths: [] });
+
+    responseQueue = [AI_SIEGE_MARCH];
+    await useChatStore.getState().send("Cho Đại quân Bắc tiến xuống vây Riverrun.");
+
+    const after = useMvuStore.getState().stat;
+    expect(after["Biên Chế Quân Sự"]["Đại quân Bắc"]["Lãnh Địa Đồn Trú"]).toBe("the-riverlands");
+    expect(after["Biên Chế Quân Sự"]["Đại quân Bắc"]["Đang Di Chuyển Đến"]).toBeFalsy();
+    expect(after["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).toBe("Bị Vây");
+    expect(after["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["_Vây"]?.["Ngày Đã Vây"]).toBeGreaterThan(0);
   }, 20000);
 });

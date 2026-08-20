@@ -187,6 +187,14 @@ export const useChatStore = create<ChatState>()(
         const { ops } = engine === "auto-database"
           ? extractSqlUpdates(variant.raw)
           : extractUpdates(variant.raw);
+
+        // Mệnh lệnh trong lời kể phải được xếp TRƯỚC khi thời gian của chính lượt đó
+        // trôi qua. Nhờ vậy hành quân, dựng trại và vây hãm tự tiến triển theo số ngày
+        // AI đã báo, thay vì tới cuối lượt mới bắt đầu nhận lệnh.
+        const milTags = findMilitaryTags(variant.display);
+        if (milTags.length > 0) {
+          useMilitaryStore.getState().applyMilitaryTags(milTags);
+        }
         useMvuStore.getState().applyAiOps(ops);
         // AI kể tới giao chiến → mở hệ thống chiến đấu (6.2 lượt N, mục 7)
         const trigger = findCombatTrigger(variant.display);
@@ -199,10 +207,6 @@ export const useChatStore = create<ChatState>()(
         }
         // AI kể chuyện binh đao (M19): tuyển quân, hiệu triệu chư hầu, đoàn đánh
         // thuê tới chào giá, điều quân, điều rồng — đi qua ĐÚNG luật engine
-        const milTags = findMilitaryTags(variant.display);
-        if (milTags.length > 0) {
-          useMilitaryStore.getState().applyMilitaryTags(milTags);
-        }
         // AI kể chuyện ngoại giao (M20): đổi trạng thái, ký/xé hiệp ước, cử sứ,
         // ghi ân oán, đặt lời đề nghị lên bàn
         const dipTags = findDiplomacyTags(variant.display);

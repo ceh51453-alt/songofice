@@ -915,7 +915,11 @@ export function regionControlForYear(year: number): Record<string, string> {
 }
 
 export const FACTION_COLORS_MAP: Record<string, string> = {
-  "Nhà Targaryen": "targaryen", "Bảy Vương Quốc": "stark",
+  "Nhà Targaryen": "targaryen",
+  "Vương Quốc Phương Bắc": "stark", "Vương Quốc Núi và Thung Lũng": "arryn",
+  "Vương Quốc Đá": "lannister", "Vương Quốc Reach": "gardener",
+  "Vương Quốc Bão Tố": "durrandon", "Vương Quốc Sông và Đảo": "hoare",
+  "Xứ Dorne": "martell",
   "Phe Đen": "targaryen-black", "Phe Xanh": "targaryen-green",
   "Targaryen Vương Thất": "targaryen", "Phe Blackfyre": "blackfyre",
   "Phe Khởi Nghĩa": "baratheon", "Phe Ngai Sắt": "lannister",
@@ -926,7 +930,15 @@ export const FACTION_COLORS_MAP: Record<string, string> = {
 export function factionsForYear(year: number): Record<string, string[]> | null {
   if (year >= -2 && year <= 1) return {
     "Nhà Targaryen": ["targaryen", "velaryon"],
-    "Bảy Vương Quốc": ["stark", "arryn", "lannister", "gardener", "durrandon", "hoare", "martell"],
+    // Trước Chinh Phạt, đây là bảy chính thể độc lập chứ không phải một liên
+    // minh thống nhất mang tên "Bảy Vương Quốc".
+    "Vương Quốc Phương Bắc": ["stark"],
+    "Vương Quốc Núi và Thung Lũng": ["arryn"],
+    "Vương Quốc Đá": ["lannister"],
+    "Vương Quốc Reach": ["gardener"],
+    "Vương Quốc Bão Tố": ["durrandon"],
+    "Vương Quốc Sông và Đảo": ["hoare"],
+    "Xứ Dorne": ["martell"],
   };
   if (year >= 129 && year <= 131) return {
     "Phe Đen": ["targaryen-black", "stark", "arryn", "tully", "velaryon"],

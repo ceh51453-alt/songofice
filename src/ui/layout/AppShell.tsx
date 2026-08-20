@@ -37,6 +37,7 @@ import { registerDiplomacyLoop } from "../../strategy/diplomacy";
 import { registerEconomyLoop } from "../../economy/economyEngine";
 import { registerDiseaseLoop } from "../../character/diseaseEngine";
 import { registerOffscreenLoop } from "../../npc/offscreenSim";
+import { registerFeudalManagementLoop } from "../../strategy/feudalManagement";
 import { warmupTokenizer } from "../../prompt/tokenizer";
 import { initAudioEngine } from "../../audio/audioEngine";
 import { startRealtimeHealingLoop } from "../../character/injuryEngine";
@@ -85,6 +86,7 @@ export function AppShell() {
     registerEconomyLoop();
     registerDiseaseLoop();
     registerOffscreenLoop();
+    registerFeudalManagementLoop();
     initAudioEngine();
     void warmupTokenizer();
     void refreshPresets();

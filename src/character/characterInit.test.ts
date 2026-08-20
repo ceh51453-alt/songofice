@@ -191,6 +191,7 @@ describe("buildStateFromWizard (8.6b)", () => {
     expect(s["Thông Tin Nhân Vật"]["Xuất Thân"]).toContain("Hiệp Sĩ");
     expect(s["Thông Tin Nhân Vật"]["Xuất Thân"]).toContain("Người Xuyên Không");
     expect(s["Chỉ Số Cốt Lõi"]["Trí Tuệ"]).toBe(STAT_BASE + 1);
+    expect(s["Cài Đặt Ván"]["_ID Xuất Thân"]).toEqual(["knight", "time-traveler"]);
     expect(s["Cài Đặt Ván"]["Đặc Quyền Đa Kỵ Sĩ"]).toBe(true);
   });
 
@@ -318,6 +319,7 @@ describe("buildStateFromWizard (8.6b)", () => {
     expect(npcAffinityOffset(["highborn-charm"])).toBe(10);
     expect(npcAffinityOffset(["ill-reputed"])).toBe(-10);
     expect(s["Cài Đặt Ván"]["Thời Kỳ"]).toBe("war-of-five-kings");
+    expect(s["Cài Đặt Ván"]["Pha Thời Kỳ"]).toBe("ai-random");
     expect(s["Cài Đặt Ván"]["Hướng Kịch Bản"]).toBe("Người Chơi Là Trung Tâm");
     expect(s["Thế Giới"]["Năm"]).toBe(298);
   });
@@ -405,11 +407,39 @@ describe("buildStateFromCanon (8.4b)", () => {
     expect(ERAS_BY_ID["blackfyre-rebellion"].startYear).toBe(196);
   });
 
-  it("đánh dấu nhân vật chưa sinh thay vì cho họ trạng thái NPC đang hoạt động", () => {
+  it("không đưa nhân vật chưa sinh vào NPC, triều đình hay quân đội runtime", () => {
     const rebellion = ERAS_BY_ID["roberts-rebellion"]!;
     const robert = rebellion.canonCharacters.find((character) => character.id === "robert-baratheon")!;
     const state = buildStateFromCanon(robert, rebellion, MODES);
-    expect(state["Mối Quan Hệ"]["NPC Chính"]["margaery-tyrell"]?.["Tình Trạng"]).toBe("Chưa Sinh");
+    expect(state["Mối Quan Hệ"]["NPC Chính"]["margaery-tyrell"]).toBeUndefined();
+    expect(state["Tướng Lĩnh"]["margaery-tyrell"]).toBeUndefined();
+    expect(Object.keys(state["Biên Chế Quân Sự"]).some((id) => id.includes("margaery-tyrell"))).toBe(false);
+  });
+
+  it("quân chủ vị thành niên giữ tước và thành qua cơ chế nhiếp chính", () => {
+    const era = ERAS_BY_ID["war-of-five-kings"]!;
+    const joffrey = era.canonCharacters.find((character) => character.id === "joffrey-baratheon")!;
+    const state = buildStateFromCanon(joffrey, era, MODES, { hookId: "boy-king-crowned" });
+    expect(state["Cài Đặt Ván"]["Pha Thời Kỳ"]).toBe("boy-king-crowned");
+    expect(state["Thông Tin Nhân Vật"]["Tuổi"]).toBeLessThan(16);
+    expect(state["Thông Tin Nhân Vật"]["Tước Vị"]).toBe("Vua Bảy Vương Quốc");
+    expect(state["Lãnh Địa"]["the-crownlands-seat"]?.["Người Kiểm Soát"]).toBe(joffrey.name);
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-crownlands"]?.["Người Kiểm Soát"]).toBe(joffrey.name);
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-stormlands"]?.["Người Kiểm Soát"]).not.toBe(joffrey.name);
+  });
+
+  it("holder do người chơi chọn không bị NPC cùng triều ghi đè", () => {
+    const ned = era.canonCharacters.find((character) => character.id === "eddard-stark")!;
+    const early = buildStateFromCanon(ned, era, MODES, { hookId: "kings-arrival" });
+    expect(early["Lãnh Địa"]["the-north-seat"]?.["Người Kiểm Soát"]).toBe(ned.name);
+    expect(early["Chủ Quyền Lãnh Thổ"]["the-north"]?.["Người Kiểm Soát"]).toBe(ned.name);
+
+    const joffrey = era.canonCharacters.find((character) => character.id === "joffrey-baratheon")!;
+    const late = buildStateFromCanon(joffrey, era, MODES, { hookId: "boy-king-crowned" });
+    expect(late["Lãnh Địa"]["the-crownlands-seat"]?.["Người Kiểm Soát"]).toBe(joffrey.name);
+    expect(late["Chủ Quyền Lãnh Thổ"]["the-crownlands"]?.["Người Kiểm Soát"]).toBe(joffrey.name);
+    expect(late["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["cersei-lannister"]?.["Lãnh Địa"]).toEqual([]);
+    expect(late["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["cersei-lannister"]?.["Vị Trí Hiện Tại"]).toBe("King's Landing");
   });
 
   it("mỗi era chỉ có một hồ sơ cho mỗi ID canon", () => {

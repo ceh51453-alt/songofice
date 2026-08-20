@@ -20,6 +20,7 @@ import { wallUpkeep } from "../territory/walls";
 import { buildingLedgers } from "../territory/construction";
 import { treasuryMultiplier } from "../strategy/court";
 import { troopWage, unitMonthlyWage } from "./wages";
+import { titleDefinition } from "../strategy/feudalHierarchy";
 
 export { troopWage };
 
@@ -174,7 +175,8 @@ const COURT_SCALE: Record<string, number> = {
 
 function courtLines(state: StatData): LedgerLine[] {
   const title = state["Thông Tin Nhân Vật"]["Tước Vị"];
-  const scale = COURT_SCALE[title] ?? 1;
+  const rankScale = Math.max(0, titleDefinition(title).rank - 1) * 0.62;
+  const scale = COURT_SCALE[title] ?? Math.max(0.4, rankScale);
   if (scale <= 0) return [];
 
   // số ghế trong triều đã bổ nhiệm — mỗi vị đại thần là một khoản bổng lộc

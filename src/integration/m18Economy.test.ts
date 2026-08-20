@@ -208,7 +208,11 @@ describe("M18 · Thuế khoá hợp lý trở lại", () => {
   it("tô thuế chư hầu ở mức HỢP LÝ — không còn 800 triệu Vàng mỗi tháng", () => {
     const s = lordState();
     s["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa";
-    s["Chủ Quyền Lãnh Thổ"]["the-north"]["Là Của Người Chơi"] = true;
+    // Sau khi tách bản đồ thành nhiều tỉnh lá, `the-north` chỉ còn là tỉnh Winterfell.
+    // Muốn kiểm tra tô của toàn Phương Bắc phải đánh dấu đủ các tỉnh thuộc đại vùng.
+    for (const region of regionsForMacro("macro-the-north")) {
+      s["Chủ Quyền Lãnh Thổ"][region.id]["Là Của Người Chơi"] = true;
+    }
 
     const levy = vassalLevy(s);
     expect(levy.length).toBeGreaterThan(0);

@@ -13,7 +13,7 @@ import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { applyPatch } from "../mvu/patchEngine";
 import {
   seedRegionControl, normalizeHouseIds, toHouseId, regionFill,
-  captureRegionOps, holdingOwnedByPlayer, playerHoldingIds, seedMissingTerrain,
+  captureRegionOps, holdingOwnedByPlayer, playerHoldingIds, holdingForNavigation, seedMissingTerrain,
 } from "./territoryEngine";
 import { startConstruction } from "./construction";
 import { houseColor } from "../content/westeros/houseColors";
@@ -71,7 +71,7 @@ function findCell(s: StatData, type: keyof typeof BUILDING_CATALOG): [number, nu
   throw new Error(`không tìm được ô hợp lệ cho ${type}`);
 }
 
-describe("Tỉ lệ & tầng bản đồ (một hệ toạ độ cho cả 3 tầng)", () => {
+describe("Tỉ lệ & tầng bản đồ (một hệ toạ độ xuyên suốt hệ 5 tầng)", () => {
   it("lưới Tầng 1 = 5 m/ô → 1500 ô = 7.5 km", () => {
     expect(LOCAL_CELL_M).toBe(5);
     expect(LOCAL_SPAN_M).toBe(LOCAL_GRID_CELLS * LOCAL_CELL_M);
@@ -373,6 +373,38 @@ describe("Đồng bộ từ dưới lên — Tầng 1 đổi thì Tầng 2, Tầ
 });
 
 describe("Quyền xây — chỉ CHỦ THẬT của thành trì mới động thổ được", () => {
+  it("mở Lãnh Địa/Thành Trì theo nhân vật và vị trí, không mặc định về Winterfell", () => {
+    const s = lordState();
+    const winterfell = s["Lãnh Địa"]["the-north-seat"];
+    winterfell["Người Kiểm Soát"] = "Robb Stark";
+    s["Lãnh Địa"]["the-reach-seat"] = {
+      ...structuredClone(winterfell),
+      "Mô Tả": "Highgarden",
+      "Thuộc Vùng": "the-reach",
+      "Người Kiểm Soát": "Mace Tyrell",
+    };
+    s["Thông Tin Nhân Vật"]["Họ Tên"] = "Mace Tyrell";
+    s["Thông Tin Nhân Vật"]["Nhà"] = "Tyrell";
+    s["Thế Giới"]["Vị Trí"] = "Highgarden";
+
+    expect(holdingForNavigation(s)).toBe("the-reach-seat");
+    expect(holdingForNavigation(s, { ownedOnly: true })).toBe("the-reach-seat");
+  });
+
+  it("ưu tiên thành thuộc lãnh thổ vừa chọn hơn vị trí mặc định", () => {
+    const s = lordState();
+    const winterfell = s["Lãnh Địa"]["the-north-seat"];
+    s["Lãnh Địa"]["the-riverlands-seat"] = {
+      ...structuredClone(winterfell),
+      "Mô Tả": "Riverrun",
+      "Thuộc Vùng": "the-riverlands",
+      "Người Kiểm Soát": "Robb Stark",
+    };
+    s["Thế Giới"]["Vị Trí"] = "Winterfell";
+
+    expect(holdingForNavigation(s, { selectedRegionId: "the-riverlands" })).toBe("the-riverlands-seat");
+  });
+
   it("chủ thành trì xây được", () => {
     const s = lordState();
     s["Lãnh Địa"]["the-north-seat"]["Người Kiểm Soát"] = "Robb Stark";

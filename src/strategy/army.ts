@@ -500,6 +500,10 @@ export function moveArmy(state: StatData, unitName: string, targetTerritoryId: s
   if (!unit) return { ok: false, error: "Không tìm thấy đơn vị", ops: [] };
   if (unit["Ngày Tập Hợp Còn Lại"] > 0) return { ok: false, error: "Đơn vị chưa tập hợp xong", ops: [] };
   if (unit["Ngày Huấn Luyện"] > 0) return { ok: false, error: "Đơn vị đang huấn luyện", ops: [] };
+  if (unit["Lệnh Vây Khi Đến"]) return { ok: false, error: "Đơn vị đang thi hành lệnh vây thành", ops: [] };
+  if (Object.values(state["Chủ Quyền Lãnh Thổ"]).some((sov) => sov["_Vây"]?.["Đơn Vị Vây"] === unitName)) {
+    return { ok: false, error: "Đơn vị đang giữ vòng vây; phải phá vây trước khi hành quân", ops: [] };
+  }
   if (!REGIONS_BY_ID[targetTerritoryId]) return { ok: false, error: "Đích không hợp lệ", ops: [] };
   const rawFrom = unit["Lãnh Địa Đồn Trú"] || (unit["Đang Di Chuyển Đến"] ?? "");
   const from = REGIONS_BY_ID[rawFrom] ? rawFrom : state["Lãnh Địa"][rawFrom]?.["Thuộc Vùng"] ?? rawFrom;

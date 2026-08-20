@@ -63,6 +63,7 @@ export function RegionLayer({
   /** bộ lọc LOD: khu ngươi quản trị không bao giờ bị ẩn. */
   const visible = settlements.filter((s) => {
     if (s.ownedByPlayer || s.managed) return true;
+    if (s.strategicStronghold) return zoom >= 1.32;
     if (s.seat) return lod.seats;
     if (s.kind === "Thành Phố") return lod.towns;
     if (s.kind === "Thành Trì" || s.kind === "Thị Trấn") return lod.towns;
@@ -96,12 +97,20 @@ export function RegionLayer({
             <g key={r.id}>
               <path
                 d={fillPath}
-                fill={fill.striped ? "url(#contested)" : `color-mix(in srgb, ${fill.color} 68%, #1d2b2d)`}
+                fill={`color-mix(in srgb, ${fill.color} 68%, #1d2b2d)`}
                 style={{ transition: "fill 700ms ease, fill-opacity 700ms ease, stroke 300ms ease" }}
                 fillOpacity={fill.isPlayer ? 0.96 : 0.9}
                 onClick={() => onRegionClick(r.id)}
                 className="cursor-pointer transition-all hover:brightness-110"
               />
+              {fill.striped && (
+                <path
+                  d={fillPath}
+                  fill="url(#contested)"
+                  fillOpacity={0.82}
+                  pointerEvents="none"
+                />
+              )}
               <path
                 d={path} fill="none"
                 stroke={fill.isPlayer ? "#b6c7ca" : "#7f9398"}
@@ -223,7 +232,7 @@ export function RegionLayer({
           );
         })}
 
-      <PlayerMarker loc={stat["Thế Giới"]["Vị Trí"]} />
+      <PlayerMarker loc={stat["Thế Giới"]["Vị Trí"]} eraId={eraId} />
     </>
   );
 }
@@ -232,7 +241,10 @@ function selectSettlementLabels(settlements: Settlement[], showLabels: boolean, 
   const selected = new Set<string>();
   const boxes: Array<{ left: number; right: number; top: number; bottom: number }> = [];
   const candidates = settlements
-    .filter((settlement) => showLabels || (zoom >= 1 && (settlement.managed || settlement.ownedByPlayer)))
+    .filter((settlement) => (
+      (!settlement.strategicStronghold || zoom >= 1.62)
+      && (showLabels || (zoom >= 1 && (settlement.managed || settlement.ownedByPlayer)))
+    ))
     .sort((a, b) =>
       Number(b.ownedByPlayer) - Number(a.ownedByPlayer)
       || Number(b.managed) - Number(a.managed)
@@ -264,7 +276,7 @@ function SettlementGlyph({ s, label, detail, onClick }: { s: Settlement; label: 
   const fill = s.ownedByPlayer ? "#f1cf62" : MAP_GOLD;
 
   return (
-    <g onClick={onClick} className={s.managed ? "cursor-pointer" : "cursor-default"} filter="url(#softshadow)">
+    <g onClick={onClick} className={s.kind === "Thành Trì" || s.managed ? "cursor-pointer" : "cursor-default"} filter="url(#softshadow)">
       {/* vùng bấm rộng hơn hình vẽ để dễ trỏ trên cảm ứng */}
       <circle cx={x} cy={y} r={14} fill="transparent" />
       {/* vòng vàng = thành trì của CHÍNH NGƯƠI, không phải chỉ "có dữ liệu" */}
@@ -299,9 +311,9 @@ function SettlementGlyph({ s, label, detail, onClick }: { s: Settlement; label: 
   );
 }
 
-function PlayerMarker({ loc }: { loc: string }) {
+function PlayerMarker({ loc, eraId }: { loc: string; eraId: string }) {
   const seat = regionForLocation(loc);
-  const marker = markersForEra("").find((m) => m.name === loc);
+  const marker = markersForEra(eraId).find((m) => m.name === loc);
   const xy: [number, number] | null = seat ? seat.seatXY : marker ? [marker.x, marker.y] : null;
   if (!xy) return null;
   const [px, py] = xy;

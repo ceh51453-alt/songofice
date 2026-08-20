@@ -25,6 +25,10 @@ import { MVU_UPDATE_PROMPT, NARRATIVE_TAGS_PROMPT, BATTLE_NARRATION_PROMPT, SQL_
 import { useExtraModelStore } from "../state/extraModelStore";
 import { streamRng } from "../probability/rng";
 import { countTokens } from "./tokenizer";
+import { buildStoryDrivePrompt } from "../event/storyDriveEngine";
+import { buildFeudalHierarchyPrompt } from "../strategy/feudalHierarchy";
+import { outputLanguageInstruction } from "../i18n";
+import { useSettingsStore } from "../state/settingsStore";
 
 /**
  * Bridge biến 2 tầng (3.1b.3 — "biến preset và stat_data là CÙNG MỘT store"):
@@ -79,7 +83,7 @@ function makeAppMacroContext(history: ApiChatMessage[]): MacroContext {
 
 /** Lớp prompt riêng của app (3.1b.5) — ghép CÙNG pipeline, KHÔNG sửa preset người dùng. */
 /** Khối system thực sự được ghép trước mỗi yêu cầu tới AI. */
-export function appLayerMessages(): ApiChatMessage[] {
+export function appLayerMessages(history: ApiChatMessage[] = []): ApiChatMessage[] {
   const stat = useMvuStore.getState().stat;
   const engine = useExtraModelStore.getState().stateEngine;
   const updatePrompt = engine === "auto-database" ? SQL_UPDATE_PROMPT : MVU_UPDATE_PROMPT;
@@ -101,13 +105,16 @@ ${narrativeState}`
   );
 
   const msgs: ApiChatMessage[] = [
+    { role: "system", content: outputLanguageInstruction(useSettingsStore.getState().language) },
     { role: "system", content: updatePrompt },
     { role: "system", content: NARRATIVE_TAGS_PROMPT },
     { role: "system", content: DICE_ROLL_PROMPT },
     { role: "system", content: ANTI_OMNISCIENCE_PROMPT },
     { role: "system", content: DRAGON_MECHANICS_PROMPT },
+    { role: "system", content: buildFeudalHierarchyPrompt(stat) },
     { role: "system", content: `${geographyContextPrompt(stat)}\n\n${FEUDAL_WARFARE_PROMPT}` }, // M19: luật quân sự theo chính thể
     { role: "system", content: DIPLOMACY_INTRIGUE_PROMPT }, // M20: ngoại giao & bóng tối
+    { role: "system", content: buildStoryDrivePrompt(stat, history) }, // nhịp cốt truyện cân bằng theo xuất thân
     { role: "system", content: worldPrompt },           // GĐ2: World Background Engine
     { role: "system", content: COT_INSTRUCTION_PROMPT }, // GĐ2: CoT 4-bước
     { role: "system", content: DEATH_AND_DOOM_PROMPT }, // Hệ thống Tử vong
@@ -191,29 +198,36 @@ export async function buildPipeline(history: ApiChatMessage[]): Promise<Pipeline
   // lớp engine của app: luật cập nhật bảng (5.4b) + thẻ (5.6) + STATE render (5.7.3)
   // + báo cáo trận (7.10/7.11) nếu vừa phân giải
   const APP_LAYER_LABELS = [
+    ["(app) output_language", "Ngôn ngữ đầu ra"],
     ["(app) mvu_update", "Luật cập nhật bảng (5.4b)"],
     ["(app) narrative_tags", "Thẻ ngữ nghĩa (5.6)"],
     ["(app) dice_roll", "Luật gieo xúc xắc"],
     ["(app) anti_omniscience", "Chống toàn tri (5.8)"],
     ["(app) dragon_mechanics", "Cơ chế rồng"],
+    ["(app) feudal_hierarchy", "Phân cấp phong kiến"],
     ["(app) polity_warfare", "Địa lý & luật quân sự theo chính thể (M19)"],
     ["(app) diplomacy_intrigue", "Luật ngoại giao & mưu đồ (M20)"],
+    ["(app) story_drive", "Động lực cốt truyện theo xuất thân"],
     ["(app) world_engine", "Thế Giới Sống (GĐ2)"],
     ["(app) cot_instruction", "Suy Luận CoT (GĐ2)"],
     ["(app) death_doom", "Hệ Thống Tử Vong"],
     ["(app) state_render", "Bảng Trạng Thái render (5.7.3)"],
     ["(app) battle_report", "Báo cáo trận + bút pháp (7.10/7.11)"],
   ];
-  const appLayer = appLayerMessages();
+  const appLayer = appLayerMessages(history);
   const appTraces: BlockTrace[] = appLayer.map((m, i) => ({
     identifier: APP_LAYER_LABELS[i]?.[0] ?? `(app) block_${i}`,
     name: APP_LAYER_LABELS[i]?.[1] ?? `Khối app ${i}`,
     role: "system", kind: "prompt", tokens: countTokens(m.content), content: m.content, messageIndex: i,
   }));
+  const appTokens = appTraces.reduce((s, t) => s + t.tokens, 0);
 
   if (!preset) {
     const injected = injectIntoHistory(history, lore.depthInjections);
-    const bare = buildBare(params, { before: lore.before, after: lore.after, injected });
+    const bare = buildBare(
+      { ...params, max_context: Math.max(params.max_tokens + 1, params.max_context - appTokens) },
+      { before: lore.before, after: lore.after, injected },
+    );
     bare.warnings.push(...lore.warnings);
     const messages = [...appLayer, ...bare.messages];
     bare.traces.forEach((t) => {
@@ -231,7 +245,6 @@ export async function buildPipeline(history: ApiChatMessage[]): Promise<Pipeline
   }
 
   const ctx = makeAppMacroContext(history);
-  const appTokens = appTraces.reduce((s, t) => s + t.tokens, 0);
   const result = buildFromPreset(preset, {
     ctx,
     sources: emptyMarkerSources({

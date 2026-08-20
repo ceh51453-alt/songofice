@@ -1,40 +1,44 @@
 // content/westeros/mapScale.ts
 // ============================================================================
-// TỈ LỆ & TẦNG BẢN ĐỒ (hệ Đa Tầng) — MỘT nguồn chân lý về không gian cho cả 3
+// TỈ LỆ & TẦNG BẢN ĐỒ (hệ Đa Tầng) — MỘT nguồn chân lý về không gian cho cả 5
 // tầng. Mọi tầng dùng CHUNG hệ toạ độ px-ảnh-gốc (MAP_W × MAP_H); zoom chỉ đổi
 // mức chi tiết (LOD), KHÔNG đổi toạ độ vật lý.
 //
-//   Tầng 1 — Lãnh Địa (local) : lưới ô 5 × 5 m, quản lý VI MÔ (công trình, tài
-//                               nguyên, chiến thuật). Neo vào 1 điểm px thế giới.
-//   Tầng 2 — Lãnh Thổ (region): bỏ lưới, gom cụm khu dân cư, quản lý TẦM TRUNG
-//                               (hành chính, điều quân, giao thương).
-//   Tầng 3 — Thế Giới (world) : bỏ chi tiết lẻ, địa chính trị VĨ MÔ.
+//   Thế Giới  (world)   : lục địa và cán cân các thế lực.
+//   Vương Quốc (realm)  : chính thể/de-jure, quyền hiệu triệu và mức khuất phục.
+//   Lãnh Thổ (region)   : province hành chính, điều quân và giao thương.
+//   Lãnh Địa (demesne)  : đất, dân và tài nguyên nuôi một thành trì.
+//   Thành Trì (local)   : lưới 5 m, công trình, tường và chiến thuật.
 //
-// Quy đổi vật lý (giữ 3 tầng nhất quán):
+// Quy đổi vật lý (giữ cả 5 tầng nhất quán):
 //   1 ô lưới          = 5 m
 //   1 lưới lãnh địa   = 1500 ô = 7.5 km mỗi cạnh
 //   1 px ảnh thế giới = WORLD_KM_PER_PX km (suy từ chiều dài Westeros)
 // → toàn bộ lưới 1 lãnh địa ≈ 2.3 px trên bản đồ thế giới: đúng bản chất "một
-//   chấm" ở Tầng 3, và là cả một vùng quy hoạch ở Tầng 1.
+//   chấm" ở tầng Lãnh Thổ, và là cả một vùng quy hoạch ở tầng Lãnh Địa.
 // ============================================================================
-/** 3 tầng bản đồ. Tầng nào cũng đọc cùng 1 nguồn dữ liệu (stat_data). */
-export type MapTier = "world" | "region" | "local";
+/** 5 tầng bản đồ. Giữ khóa `local` cho save cũ; trên UI nó là Thành Trì. */
+export type MapTier = "world" | "realm" | "region" | "demesne" | "local";
 
-export const MAP_TIERS: MapTier[] = ["world", "region", "local"];
+export const MAP_TIERS: MapTier[] = ["world", "realm", "region", "demesne", "local"];
 
 export const TIER_LABEL: Record<MapTier, string> = {
   world: "Thế Giới",
+  realm: "Vương Quốc",
   region: "Lãnh Thổ",
-  local: "Lãnh Địa",
+  demesne: "Lãnh Địa",
+  local: "Thành Trì",
 };
 
 export const TIER_HINT: Record<MapTier, string> = {
   world: "Địa chính trị — châu lục, biên giới, cán cân quyền lực",
+  realm: "Chính thể — lãnh giới de-jure, chư hầu và mức kiểm soát toàn vùng",
   region: "Hành chính — vùng, khu dân cư, hành quân, giao thương",
-  local: "Quy hoạch — lưới 5 m, công trình, địa hình, tài nguyên",
+  demesne: "Điền địa — dân cư, đất canh tác, địa hình và tài nguyên quanh thành",
+  local: "Thành trì — lưới 5 m, công trình, tường thành và phòng thủ",
 };
 
-// ── Tầng 1: lưới lãnh địa ───────────────────────────────────────────────────
+// ── Hai tầng địa điểm: Lãnh Địa / Thành Trì ─────────────────────────────────
 
 /** Cạnh 1 ô lưới Tầng 1 (mét). */
 export const LOCAL_CELL_M = 5;
@@ -51,7 +55,7 @@ export const LOCAL_BLOCKS = LOCAL_GRID_CELLS / LOCAL_BLOCK_CELLS; // 25
 /** Bề rộng thực tế của toàn lưới (mét). */
 export const LOCAL_SPAN_M = LOCAL_GRID_CELLS * LOCAL_CELL_M; // 7 500 m
 
-// ── Tầng 2/3: px ảnh thế giới ───────────────────────────────────────────────
+// ── Ba tầng vĩ mô: px ảnh thế giới ──────────────────────────────────────────
 
 /** Chiều dài Westeros từ Tường Thành tới mũi Dorne (km, canon ≈ 3000 dặm). */
 export const WESTEROS_LENGTH_KM = 4800;
@@ -77,14 +81,14 @@ export function kmToWorldPx(km: number): number {
   return km / WORLD_KM_PER_PX;
 }
 
-/** Ô lưới Tầng 1 → px thế giới (Tầng 2/3), quanh điểm neo của lãnh địa. */
+/** Ô lưới Thành Trì → px thế giới, quanh điểm neo của lãnh địa. */
 export function localCellToWorldPx(anchor: [number, number], cellX: number, cellY: number): [number, number] {
   const half = LOCAL_GRID_CELLS / 2;
   const pxPerCell = LOCAL_SPAN_WORLD_PX / LOCAL_GRID_CELLS;
   return [anchor[0] + (cellX - half) * pxPerCell, anchor[1] + (cellY - half) * pxPerCell];
 }
 
-/** px thế giới → ô lưới Tầng 1 (nghịch đảo localCellToWorldPx). */
+/** px thế giới → ô lưới Thành Trì (nghịch đảo localCellToWorldPx). */
 export function worldPxToLocalCell(anchor: [number, number], x: number, y: number): [number, number] {
   const half = LOCAL_GRID_CELLS / 2;
   const pxPerCell = LOCAL_SPAN_WORLD_PX / LOCAL_GRID_CELLS;
@@ -112,14 +116,17 @@ export function buildableRadiusCells(castleLevel: number): number {
  * "lãnh địa nào" — người chơi chọn 1 khu dân cư để vào.
  */
 export const TIER_ZOOM = {
-  /** dưới ngưỡng này → hiển thị bức tranh Tầng 3. */
-  worldMax: 0.55,
-  /** trên ngưỡng này → Tầng 2 đã đủ gần để mời vào Tầng 1. */
+  /** dưới ngưỡng này → toàn thế giới. */
+  worldMax: 0.34,
+  /** dưới ngưỡng này → ranh các vương quốc; cao hơn mới bóc province. */
+  realmMax: 0.68,
+  /** trên ngưỡng này → Lãnh Thổ đã đủ gần để mời vào Lãnh Địa. */
   localHint: 2.6,
 } as const;
 
-export function tierForZoom(z: number): Exclude<MapTier, "local"> {
-  return z < TIER_ZOOM.worldMax ? "world" : "region";
+export function tierForZoom(z: number): Exclude<MapTier, "demesne" | "local"> {
+  if (z < TIER_ZOOM.worldMax) return "world";
+  return z < TIER_ZOOM.realmMax ? "realm" : "region";
 }
 
 /**

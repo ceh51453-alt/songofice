@@ -22,12 +22,16 @@ import {
   type RoadPoint,
 } from "../territory/roads";
 import { executeOrder, type OrderSide } from "../economy/market";
-import type { CustomBuilding, RoadLine, WallMaterial } from "../mvu/schema";
+import type { CustomBuilding, DemesneFocus, RoadLine, WallMaterial } from "../mvu/schema";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
 import { BUILDING_CATALOG, type BuildingType } from "../content/westeros/buildings";
 import type { MapTier } from "../content/westeros/mapScale";
 import { createLogger } from "../lib/log";
+import {
+  cancelGovernanceProject, changeDemesneFocus, changeDemesnePlan, takeFeudalAction, takeFeudalAgenda, takeRegionalAction,
+  type DemesnePlan,
+} from "../strategy/feudalManagement";
 
 const log = createLogger("territory");
 
@@ -59,15 +63,19 @@ interface TerritoryState {
   selectRegion: (id: string | null) => void;
 
   // ── Hệ bản đồ đa tầng ──
-  /** tầng bản đồ đang xem. world/region chia theo zoom, local do người chơi chọn. */
+  /** tầng bản đồ đang xem. world/realm/region chia theo zoom; hai tầng cuối chọn theo thành. */
   tier: MapTier;
-  /** lãnh địa đang mở ở Tầng 1; null = chưa vào tầng lãnh địa. */
+  /** thành trì làm tâm cho cả Lãnh Địa lẫn Thành Trì. */
   focusHoldingId: string | null;
   setTier: (tier: MapTier) => void;
-  /** vào Tầng 1 của 1 lãnh địa (từ khu dân cư trên Tầng 2). */
+  /** vào đất trực thuộc quanh một thành (từ khu dân cư trên Lãnh Thổ). */
+  enterDemesne: (holdingId: string) => void;
+  /** từ Lãnh Địa đi sâu vào bản đồ quy hoạch Thành Trì. */
   enterLocal: (holdingId: string) => void;
-  /** rời Tầng 1 về Tầng 2. */
+  /** rời Thành Trì về Lãnh Địa. */
   exitLocal: () => void;
+  /** rời Lãnh Địa về Lãnh Thổ. */
+  exitDemesne: () => void;
 
   /** Đặt công trình lên ô lưới Tầng 1 — kiểm quy hoạch rồi mới trừ tài nguyên. */
   placeBuild: (
@@ -125,6 +133,19 @@ interface TerritoryState {
 
   /** Giải quyết 1 thỉnh nguyện Dân Tình (10.4) — áp delta Lòng Dân / Vàng. */
   resolvePetition: (territoryId: string, loyaltyDelta: number, goldDelta: number) => void;
+
+  /** Chọn cách dùng đất trực thuộc quanh một thành trì. */
+  setDemesneFocus: (territoryId: string, focus: DemesneFocus) => { ok: boolean; error?: string };
+  /** Chốt toàn bộ kế hoạch mùa vụ thay vì chỉ dùng một preset. */
+  setDemesnePlan: (territoryId: string, plan: DemesnePlan) => { ok: boolean; error?: string };
+  /** Mở một chiến dịch hành chính tại đúng một lãnh thổ. */
+  takeRegionalDecision: (regionId: string, actionId: string) => { ok: boolean; error?: string };
+  /** Thi hành một quyết sách ở cấp tước địa hoặc chính thể. */
+  takeFeudalDecision: (actionId: string) => { ok: boolean; error?: string };
+  /** Chốt một phiên triều chính gồm nhiều quyết sách trong sức chứa bộ máy. */
+  takeFeudalAgenda: (actionIds: string[]) => { ok: boolean; error?: string };
+  /** Hủy một dự án đang triển khai; kinh phí đã chi không được hoàn lại. */
+  cancelGovernanceProject: (projectId: string) => { ok: boolean; error?: string };
 }
 
 export const useTerritoryStore = create<TerritoryState>()(
@@ -144,9 +165,15 @@ export const useTerritoryStore = create<TerritoryState>()(
 
       tier: "region",
       focusHoldingId: null,
-      setTier: (tier) => set(tier === "local" ? { tier } : { tier, focusHoldingId: null }),
+      setTier: (tier) => set(
+        tier === "local" || tier === "demesne"
+          ? { tier }
+          : { tier, focusHoldingId: null },
+      ),
+      enterDemesne: (focusHoldingId) => set({ tier: "demesne", focusHoldingId, selectedRegionId: null }),
       enterLocal: (focusHoldingId) => set({ tier: "local", focusHoldingId, selectedRegionId: null }),
-      exitLocal: () => set({ tier: "region", focusHoldingId: null }),
+      exitLocal: () => set({ tier: "demesne" }),
+      exitDemesne: () => set({ tier: "region", focusHoldingId: null }),
 
       placeBuild: (territoryId, type, x, y, opts) => {
         const stat = useMvuStore.getState().stat;
@@ -276,6 +303,48 @@ export const useTerritoryStore = create<TerritoryState>()(
         if (loyaltyDelta) ops.push({ op: "delta", path: `stat_data.Lãnh Địa.${territoryId}.Trung Thành`, value: loyaltyDelta });
         if (goldDelta) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: goldDelta });
         applyEngineOps(ops);
+      },
+
+      setDemesneFocus: (territoryId, focus) => {
+        const result = changeDemesneFocus(useMvuStore.getState().stat, territoryId, focus);
+        if (!result.ok) return { ok: false, error: result.error };
+        applyEngineOps(result.ops);
+        return { ok: true };
+      },
+
+      setDemesnePlan: (territoryId, plan) => {
+        const result = changeDemesnePlan(useMvuStore.getState().stat, territoryId, plan);
+        if (!result.ok) return { ok: false, error: result.error };
+        applyEngineOps(result.ops);
+        return { ok: true };
+      },
+
+      takeRegionalDecision: (regionId, actionId) => {
+        const result = takeRegionalAction(useMvuStore.getState().stat, regionId, actionId);
+        if (!result.ok) return { ok: false, error: result.error };
+        applyEngineOps(result.ops);
+        return { ok: true };
+      },
+
+      takeFeudalDecision: (actionId) => {
+        const result = takeFeudalAction(useMvuStore.getState().stat, actionId);
+        if (!result.ok) return { ok: false, error: result.error };
+        applyEngineOps(result.ops);
+        return { ok: true };
+      },
+
+      takeFeudalAgenda: (actionIds) => {
+        const result = takeFeudalAgenda(useMvuStore.getState().stat, actionIds);
+        if (!result.ok) return { ok: false, error: result.error };
+        applyEngineOps(result.ops);
+        return { ok: true };
+      },
+
+      cancelGovernanceProject: (projectId) => {
+        const result = cancelGovernanceProject(useMvuStore.getState().stat, projectId);
+        if (!result.ok) return { ok: false, error: result.error };
+        applyEngineOps(result.ops);
+        return { ok: true };
       },
     }),
     {

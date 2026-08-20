@@ -74,9 +74,15 @@ describe("M8 — vây thành qua loop ngày (12.2)", () => {
 
     const r = useMilitaryStore.getState().siege("Đại quân Bắc", "the-riverlands");
     expect(r.ok).toBe(true);
+    expect(useMvuStore.getState().stat["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).not.toBe("Bị Vây");
+    expect(r.daysToStart).toBeGreaterThan(3);
+
+    advanceDays((r.daysToStart ?? 1) - 1);
+    expect(useMvuStore.getState().stat["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).not.toBe("Bị Vây");
+    advanceDays(1);
     expect(useMvuStore.getState().stat["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).toBe("Bị Vây");
 
-    advanceDays(361); // > lương thủ (SIEGE_FOOD_DAYS = 360 ngày)
+    advanceDays(360); // hết lương thủ sau khi vòng vây đã hình thành
     expect(regionController(useMvuStore.getState().stat, "the-riverlands")).toBe("stark");
     expect(useMvuStore.getState().stat["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
     console.log("Holdings in state:", Object.keys(useMvuStore.getState().stat["Lãnh Địa"]));

@@ -6,13 +6,16 @@
  * tàng/dân cư chi tiết thì vào bảng quản trị; muốn quy hoạch thì xuống Tầng 1 —
  * panel này KHÔNG lặp lại hai việc đó nữa.
  */
+import { useState } from "react";
 import { useMvuStore } from "../../state/mvuStore";
 import { useUiStore } from "../../state/uiStore";
 import { useTerritoryStore } from "../../state/territoryStore";
+import { useMilitaryStore } from "../../state/militaryStore";
 import { REGIONS_BY_ID, continentForRegion, macroForRegion } from "../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { houseColor, ATTITUDE_HEAT } from "../../content/westeros/houseColors";
 import { summarizeRegion, type Settlement } from "../../territory/mapAggregate";
+import { playerHouseId, provinceControlStatus } from "../../territory/territoryEngine";
 import { formatCurrencyShort } from "../../economy/currency";
 import { useT } from "../../i18n";
 import { IconX, IconCoins, IconWheat, IconUsers, IconPopulation, IconAlert, IconCastle, IconMap } from "../icons";
@@ -26,8 +29,11 @@ export function TerritoryPanel() {
   const stat = useMvuStore((s) => s.stat);
   const selectedRegionId = useTerritoryStore((s) => s.selectedRegionId);
   const selectRegion = useTerritoryStore((s) => s.selectRegion);
-  const enterLocal = useTerritoryStore((s) => s.enterLocal);
+  const enterDemesne = useTerritoryStore((s) => s.enterDemesne);
   const setTerritoryDashboardOpen = useUiStore((s) => s.setTerritoryDashboardOpen);
+  const siege = useMilitaryStore((s) => s.siege);
+  const [siegeUnit, setSiegeUnit] = useState("");
+  const [siegeNotice, setSiegeNotice] = useState("");
 
   if (!selectedRegionId) return null;
   const region = REGIONS_BY_ID[selectedRegionId];
@@ -37,6 +43,9 @@ export function TerritoryPanel() {
 
   const eraId = stat["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
   const summary = summarizeRegion(stat, selectedRegionId, eraId);
+  const playerControl = provinceControlStatus(stat, selectedRegionId, playerHouseId(stat));
+  const availableUnits = Object.entries(stat["Biên Chế Quân Sự"])
+    .filter(([, unit]) => unit["Số Lượng"] > 0);
   const controller = HOUSES_BY_ID[summary.controller];
   const col = houseColor(summary.controller);
   const attitude = controller
@@ -70,6 +79,7 @@ export function TerritoryPanel() {
               <p className="mt-0.5 text-[12px]" style={{ color: col.light }}>
                 {controller ? controller.name : t("terr.unclaimed")}
                 {summary.isPlayer ? ` — ${t("terr.yours")}` : ""}
+                {summary.isPlayer ? (summary.fullControl ? " · Kiểm soát hoàn toàn" : ` · Kiểm soát ${Math.round(summary.controlRatio * 100)}%`) : ""}
                 {summary.status !== "Ổn Định" ? ` · ${summary.status}` : ""}
               </p>
             </div>
@@ -79,7 +89,7 @@ export function TerritoryPanel() {
           </div>
 
           <div className="mt-3 grid grid-cols-3 gap-2">
-            <Gem icon={<IconPopulation size={15} />} label={t("terr.population")} value={`${(summary.population / 1e6).toFixed(1)}tr`} />
+            <Gem icon={<IconPopulation size={15} />} label={t("terr.population")} value={fmt(summary.population)} />
             <Gem icon={<IconCastle size={15} />} label="Khu dân cư" value={`${summary.settlements.length}`} />
             <Gem icon={<IconUsers size={15} />} label="Quân trong vùng" value={fmt(summary.garrison)} />
           </div>
@@ -88,11 +98,103 @@ export function TerritoryPanel() {
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
           {summary.status === "Bị Vây" && <Banner text={t("terr.warnBesieged")} />}
 
+          <Block title="Kiểm soát thực địa">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <div className="font-display text-[21px] text-[var(--text-soft)]">
+                  {summary.fullControl ? "Hoàn toàn" : `${Math.round(summary.controlRatio * 100)}%`}
+                </div>
+                <div className="mt-0.5 text-[10.5px] text-[var(--text-faint)]">
+                  {summary.controlledStrongholds}/{summary.totalStrongholds} đầu mối quyền lực đã giữ hoặc quy phục
+                </div>
+              </div>
+              <span className={`rounded-full px-2 py-1 text-[10px] ${summary.fullControl ? "bg-[rgba(112,154,118,0.16)] text-[var(--ok)]" : "bg-[rgba(190,151,84,0.14)] text-[var(--warn)]"}`}>
+                {summary.fullControl ? "Thuế và quân dịch đầy đủ" : "Kiểm soát một phần"}
+              </span>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--surface-strong)]">
+              <div
+                className="h-full rounded-full transition-[width] duration-500"
+                style={{ width: `${summary.controlRatio * 100}%`, background: summary.fullControl ? "var(--ok)" : "var(--warn)" }}
+              />
+            </div>
+            {summary.unsecuredStrongholds.length > 0 && (
+              <div className="mt-3 space-y-1 border-t border-[var(--glass-border)] pt-2">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-faint)]">Chưa khuất phục</div>
+                <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
+                {summary.unsecuredStrongholds.map((stronghold) => (
+                  <div key={stronghold.id} className="flex items-center justify-between gap-3 text-[11.5px]">
+                    <span className="truncate text-[var(--text-muted)]">{stronghold.name}</span>
+                    <span className="shrink-0 text-[var(--danger)]">chưa kiểm soát</span>
+                  </div>
+                ))}
+                </div>
+              </div>
+            )}
+          </Block>
+
+          {playerControl.unsecuredStrongholds.length > 0 && (
+            <Block title="Mục tiêu quân sự của ngươi">
+              <p className="mb-2 text-[11px] leading-relaxed text-[var(--text-faint)]">
+                Chọn một đạo quân rồi vây đúng từng thành. Chiếm thủ phủ không tự trao các cứ điểm còn lại.
+              </p>
+              {availableUnits.length > 0 ? (
+                <>
+                  <select
+                    value={siegeUnit}
+                    onChange={(event) => setSiegeUnit(event.target.value)}
+                    className="mb-2 w-full rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--surface-strong)] px-2.5 py-2 text-[12px] text-[var(--text-soft)]"
+                  >
+                    <option value="">Chọn đạo quân vây</option>
+                    {availableUnits.map(([name, unit]) => (
+                      <option key={name} value={name}>{name} · {fmt(unit["Số Lượng"])} quân</option>
+                    ))}
+                  </select>
+                  <div className="max-h-60 space-y-1.5 overflow-y-auto pr-1">
+                    {playerControl.unsecuredStrongholds.map((stronghold) => (
+                      <div key={`siege-${stronghold.id}`} className="glass flex items-center justify-between gap-2 rounded-[var(--radius-sm)] px-2.5 py-2">
+                        <div className="min-w-0">
+                          <div className="truncate text-[12px] text-[var(--text-soft)]">{stronghold.name}</div>
+                          <div className="text-[10.5px] text-[var(--text-faint)]">{stronghold.holderHouseId ? HOUSES_BY_ID[stronghold.holderHouseId]?.name ?? stronghold.holderHouseId : "chưa rõ chủ"}</div>
+                        </div>
+                        <button
+                          disabled={!siegeUnit || summary.status === "Bị Vây"}
+                          onClick={() => {
+                            const result = siege(siegeUnit, stronghold.id);
+                            setSiegeNotice(result.ok ? `Đã bắt đầu vây ${stronghold.name}.` : result.error ?? "Không thể vây thành.");
+                          }}
+                          className="shrink-0 rounded-[var(--radius-sm)] border border-[rgba(176,106,95,0.45)] px-2.5 py-1.5 text-[11px] text-[var(--danger)] transition-colors hover:bg-[rgba(176,106,95,0.1)] disabled:cursor-not-allowed disabled:opacity-35"
+                        >
+                          Vây thành
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {siegeNotice && <p className="mt-2 text-[11px] text-[var(--text-muted)]">{siegeNotice}</p>}
+                </>
+              ) : (
+                <p className="text-[12px] italic text-[var(--text-muted)]">Không có đạo quân sẵn sàng để mở vây.</p>
+              )}
+            </Block>
+          )}
+
+          <Block title="Hồ sơ địa lý đồng bộ">
+            <InfoRow label="Địa hình lãnh thổ" value={summary.terrain} />
+            <InfoRow label="Dân số nền" value={fmt(summary.populationBaseline)} />
+            <InfoRow
+              label="Biến động trong ván"
+              value={`${summary.populationDelta >= 0 ? "+" : ""}${fmt(summary.populationDelta)}`}
+            />
+            <p className="mt-2 text-[10.5px] leading-relaxed text-[var(--text-faint)]">
+              Số này là tổng đang vận hành; biến động ở từng lãnh địa được truyền lên đúng một lần.
+            </p>
+          </Block>
+
           {/* ---- tổng hợp từ Tầng 1 ---- */}
           {summary.managedCount > 0 ? (
-            <Block title="Tổng hợp từ lãnh địa của ngươi">
-              <InfoRow label="Lãnh địa quản trị" value={`${summary.managedCount}`} />
-              <InfoRow label="Dân trong lãnh địa" value={fmt(summary.managedPopulation)} />
+            <Block title="Tổng hợp từ thành trì trực thuộc">
+              <InfoRow label="Thành trì trực thuộc" value={`${summary.managedCount}`} />
+              <InfoRow label="Dân trên đất trực thuộc" value={fmt(summary.managedPopulation)} />
               <InfoRow label="Công trình" value={`${summary.buildings}${summary.underConstruction > 0 ? ` (+${summary.underConstruction} đang xây)` : ""}`} />
               <InfoRow label="Phòng thủ" value={`${summary.defense}`} />
               <div className="mt-2 grid grid-cols-2 gap-2">
@@ -118,7 +220,7 @@ export function TerritoryPanel() {
                 <SettlementRow
                   key={s.id}
                   s={s}
-                  onOpen={() => { selectRegion(null); enterLocal(s.id); }}
+                  onOpen={() => { selectRegion(null); enterDemesne(s.id); }}
                 />
               ))}
             </div>
@@ -129,7 +231,7 @@ export function TerritoryPanel() {
               onClick={() => { selectRegion(null); setTerritoryDashboardOpen(true); }}
               className="w-full rounded-[var(--radius-sm)] border border-[var(--glass-border)] px-3 py-2.5 text-[12.5px] text-[var(--text-soft)] transition-colors hover:bg-[var(--glass-bg-hover)]"
             >
-              Mở bảng quản trị lãnh địa
+              Mở quản trị phong kiến
             </button>
           )}
         </div>
@@ -146,6 +248,7 @@ function SettlementRow({ s, onOpen }: { s: Settlement; onOpen: () => void }) {
         <div className="mt-0.5 truncate text-[11px] text-[var(--text-faint)]">
           {s.kind}
           {s.population > 0 ? ` · ${fmt(s.population)} dân` : ""}
+          {` · ${s.terrain}`}
           {s.managed ? ` · ${s.buildings} công trình` : ""}
           {s.lord && !s.ownedByPlayer ? ` · ${s.lord} cai quản` : ""}
         </div>
@@ -153,7 +256,7 @@ function SettlementRow({ s, onOpen }: { s: Settlement; onOpen: () => void }) {
       {s.managed ? (
         <button
           onClick={onOpen}
-          title={s.ownedByPlayer ? "Xuống Tầng 1 — bản đồ quy hoạch" : "Xem bản đồ (không có quyền xây)"}
+          title={s.ownedByPlayer ? "Mở tầng Lãnh Địa" : "Xem lãnh địa (không có quyền xây)"}
           className={`flex shrink-0 items-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[11.5px] transition-colors ${
             s.ownedByPlayer
               ? "bg-[var(--accent-soft)] text-[var(--accent-text)] hover:bg-[var(--glass-bg-hover)]"

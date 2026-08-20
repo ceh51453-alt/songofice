@@ -18,15 +18,24 @@
  */
 import type { StatData } from "../mvu/schema";
 import {
-  CONTINENTS_BY_ID, REGIONS, REGIONS_BY_ID, regionForLocation, factionsForYear,
+  CONTINENTS_BY_ID, MACRO_REGIONS_BY_ID, REGIONS, REGIONS_BY_ID, regionForLocation,
+  factionsForYear, regionsForRealm,
 } from "../content/world/geography";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
 import {
-  BANNERMEN_BY_ID, bannermenOfRegion, regionLevyPotential, type BannermanData,
+  BANNERMEN_BY_ID, type BannermanData,
 } from "../content/westeros/bannermen";
 import { absoluteDay } from "../mvu/calendar";
-import { playerHouseId, toHouseId } from "../territory/territoryEngine";
+import {
+  activeBannermen, homeRegionForHouse, playerHouseId, playerOwnsProvince,
+  provinceControlStatus, provinceForBannerman, realmControlStatus, toHouseId,
+  type TerritorialControlStatus,
+} from "../territory/territoryEngine";
 import { diplomacySummary, type DiploSummary } from "./diplomacy";
+import { titleDefinition } from "./feudalHierarchy";
+import {
+  regionPopulation, worldPopulation as runtimeWorldPopulation,
+} from "../territory/geographyRuntime";
 
 /**
  * ĐINH TRÁNG GỌI ĐƯỢC: 1 trên 200 miệng ăn. Phong kiến không có nghĩa vụ quân
@@ -76,6 +85,14 @@ export function regionLevy(regionId: string): number {
   const region = REGIONS_BY_ID[regionId];
   if (!region) return 0;
   return Math.round(region.population * mobilizationRateForRegion(regionId));
+}
+
+/** Bản runtime: sinh/chết/di cư ở thành trì truyền thẳng vào tiềm lực quân sự. */
+export function runtimeRegionLevy(state: StatData, regionId: string): number {
+  const region = REGIONS_BY_ID[regionId];
+  if (!region) return 0;
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+  return Math.round(regionPopulation(state, regionId, eraId) * mobilizationRateForRegion(regionId));
 }
 
 // ── Vây thành ────────────────────────────────────────────────────────────────
@@ -146,8 +163,21 @@ export interface RegionCard {
   siege?: SiegeView;
   /** vùng vừa đổi chủ cách đây bao nhiêu ngày (null = chưa từng / không rõ). */
   changedDaysAgo: number | null;
+  /** Kiểm soát thực địa, không đồng nhất với một màu chủ quyền trên bản đồ. */
+  control: TerritorialControlStatus;
+  fullControl: boolean;
   /** quan hệ pháp lý của ta với chủ vùng (rỗng nếu vùng của ta hoặc vô chủ). */
   relation?: DiploSummary;
+}
+
+export interface RealmControlCard {
+  realmId: string;
+  name: string;
+  control: TerritorialControlStatus;
+  /** Tiềm lực toàn cõi nếu mọi thành và chư hầu đều nằm dưới quyền. */
+  potentialLevy: number;
+  /** Quân lực có thể dựa vào mức kiểm soát thực địa hiện tại. */
+  mobilizableLevy: number;
 }
 
 // ── Cán cân quyền lực ────────────────────────────────────────────────────────
@@ -201,6 +231,10 @@ export interface KingdomsBoard {
   worldPopulation: number;
   /** quân TA thực có trong biên chế (khác hẳn tiềm lực). */
   playerArmy: number;
+  /** Các vương quốc có yêu sách hoặc hiện diện của người chơi. */
+  playerRealmControls: RealmControlCard[];
+  /** Đinh tráng có nền tảng kiểm soát thực địa để huy động (khác quân đang có). */
+  playerMobilizableLevy: number;
   regions: RegionCard[];
   /** thế lực đang nắm đất, mạnh trước yếu sau. */
   powers: PowerCard[];
@@ -244,6 +278,8 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
   const sovereignty = state["Chủ Quyền Lãnh Thổ"] ?? {};
   const relations = new Map(diplomacySummary(state).map((r) => [r.houseId, r]));
   const { byRegion, total: playerArmy } = ourTroopsByRegion(state);
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+  const currentBannermen = activeBannermen(state);
 
   // Bàn cờ mặc định theo lục địa nơi người chơi đang đứng. Nếu vị trí tự do
   // chưa ánh xạ được, hiển thị toàn thế giới và nói rõ phạm vi đó trong UI.
@@ -269,8 +305,14 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
     const sov = sovereignty[region.id];
     const holderId = toHouseId(String(sov?.["Nhà Kiểm Soát"] ?? ""));
     const changedOn = Number(sov?.["_Ngày Đổi Chủ"]) || 0;
-    const bannermen = bannermenOfRegion(region.id);
-    const isPlayer = !!sov?.["Là Của Người Chơi"] || (!!pHouse && holderId === pHouse);
+    const bannermen = currentBannermen.filter((bannerman) => provinceForBannerman(bannerman)?.id === region.id);
+    const isPlayer = playerOwnsProvince(state, region.id);
+    const control = provinceControlStatus(state, region.id, holderId);
+    // Không tin cache/snapshot “ổn định”: quyền kiểm soát phải được chứng minh
+    // bởi từng thành trực tiếp nắm hoặc từng chủ thành đã thần phục.
+    const fullControl = control.complete;
+    const population = regionPopulation(state, region.id, eraId);
+    const populationScale = region.population > 0 ? population / region.population : 1;
     return {
       id: region.id,
       name: region.name,
@@ -285,19 +327,57 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
       lord: String(sov?.["Người Kiểm Soát"] ?? ""),
       status: String(sov?.["Tình Trạng"] ?? "Ổn Định"),
       isPlayer,
-      population: region.population,
-      levy: regionLevy(region.id),
-      knownLevy: regionLevyPotential(region.id),
+      population,
+      levy: runtimeRegionLevy(state, region.id),
+      knownLevy: Math.round(bannermen.reduce((sum, bannerman) => sum + bannerman.levy, 0) * populationScale),
       bannermen,
       ourTroops: byRegion.get(region.id) ?? 0,
       siege: sov?.["Tình Trạng"] === "Bị Vây" ? siegeView(sov, pHouse) : undefined,
       changedDaysAgo: changedOn > 0 ? Math.max(0, today - changedOn) : null,
+      control,
+      fullControl,
       relation: !isPlayer && holderId ? relations.get(holderId) : undefined,
     };
   });
 
-  const totalPopulation = scopeRegions.reduce((s, r) => s + r.population, 0);
-  const worldPopulation = REGIONS.reduce((s, r) => s + r.population, 0);
+  const claimedRealms = new Set<string>();
+  for (const regionId of Object.keys(sovereignty)) {
+    if (!playerOwnsProvince(state, regionId)) continue;
+    const region = REGIONS_BY_ID[regionId];
+    if (region?.realmId) claimedRealms.add(region.realmId);
+  }
+  for (const [vassalId, vassal] of Object.entries(state["Chư Hầu"] ?? {})) {
+    if (!pHouse || toHouseId(vassal["Chủ Của"]) !== pHouse) continue;
+    claimedRealms.add(BANNERMEN_BY_ID[vassalId]?.region ?? REGIONS_BY_ID[vassal["Vùng"]]?.realmId ?? vassal["Vùng"]);
+  }
+  const title = titleDefinition(state["Thông Tin Nhân Vật"]["Tước Vị"]);
+  if (title.id === "high-king" || title.id === "emperor") {
+    for (const realmId of new Set(REGIONS.filter((region) => region.continentId === "westeros").map((region) => region.realmId))) {
+      if (regionsForRealm(realmId).some((region) => region.defaultHouse)) claimedRealms.add(realmId);
+    }
+  } else if (title.rank >= 7) {
+    const homeRealm = homeRegionForHouse(pHouse)?.realmId;
+    if (homeRealm) claimedRealms.add(homeRealm);
+  }
+  const playerRealmControls: RealmControlCard[] = [...claimedRealms]
+    .filter((realmId) => regionsForRealm(realmId).length > 0)
+    .map((realmId) => {
+      const realmRegions = regionsForRealm(realmId);
+      const control = realmControlStatus(state, realmId, pHouse);
+      const potentialLevy = realmRegions.reduce((sum, region) => sum + runtimeRegionLevy(state, region.id), 0);
+      const macro = realmRegions[0] ? MACRO_REGIONS_BY_ID[realmRegions[0].parentId] : undefined;
+      return {
+        realmId,
+        name: macro?.name ?? REGIONS_BY_ID[realmId]?.name ?? realmId,
+        control,
+        potentialLevy,
+        mobilizableLevy: Math.round(potentialLevy * control.controlRatio),
+      };
+    })
+    .sort((a, b) => b.control.controlRatio - a.control.controlRatio || b.potentialLevy - a.potentialLevy);
+
+  const totalPopulation = scopeRegions.reduce((sum, region) => sum + regionPopulation(state, region.id, eraId), 0);
+  const worldPopulation = runtimeWorldPopulation(state, eraId);
 
   // gom vùng theo thế lực nắm đất — vô chủ không phải một thế lực
   const grouped = new Map<string, RegionCard[]>();
@@ -315,7 +395,7 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
       return {
         houseId,
         name: powerName(houseId),
-        isPlayer: !!pHouse && houseId === pHouse,
+        isPlayer: held.some((region) => region.isPlayer),
         regionIds: held.map((r) => r.id),
         regionNames: held.map((r) => r.name),
         population,
@@ -358,6 +438,8 @@ export function kingdomsBoard(state: StatData): KingdomsBoard {
     totalPopulation,
     worldPopulation,
     playerArmy,
+    playerRealmControls,
+    playerMobilizableLevy: playerRealmControls.reduce((sum, realm) => sum + realm.mobilizableLevy, 0),
     regions,
     powers,
     playerRank: playerIndex >= 0 ? playerIndex + 1 : null,

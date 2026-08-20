@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 import { setVerbose } from "../lib/log";
 
 export type ThemeMode = "dark" | "light";
-export type Language = "vi" | "en";
+export type Language = "vi" | "en" | "zh-CN";
 
 interface SettingsState {
   theme: ThemeMode;
@@ -33,7 +33,10 @@ export const useSettingsStore = create<SettingsState>()(
         document.documentElement.dataset.theme = theme;
         set({ theme });
       },
-      setLanguage: (language) => set({ language }),
+      setLanguage: (language) => {
+        document.documentElement.lang = language;
+        set({ language });
+      },
       setVerboseLogging: (verboseLogging) => {
         setVerbose(verboseLogging);
         set({ verboseLogging });
@@ -47,6 +50,7 @@ export const useSettingsStore = create<SettingsState>()(
       onRehydrateStorage: () => (state) => {
         if (state) {
           document.documentElement.dataset.theme = state.theme;
+          document.documentElement.lang = state.language;
           setVerbose(state.verboseLogging);
         }
       },

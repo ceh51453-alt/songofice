@@ -75,4 +75,23 @@ describe("AI state injection", () => {
     expect(stateBlock).toContain("Ngân khố 6 Rồng Vàng");
     expect(stateBlock).toContain("Quân đội dưới cờ ngươi: 450 người");
   });
+
+  it("chèn engine thúc đẩy cốt truyện theo xuất thân vào mọi lượt kể", () => {
+    const state = makeDefaultState();
+    state["Cài Đặt Ván"]["_ID Xuất Thân"] = ["merchant"];
+    state["Thông Tin Nhân Vật"]["Xuất Thân"] = "Thương Nhân Giàu";
+    useMvuStore.setState({ stat: state });
+
+    const storyBlock = appLayerMessages().find((message) => message.content.includes("ENGINE THÚC ĐẨY CỐT TRUYỆN"));
+    expect(storyBlock?.content).toContain("sinh kế & tài nguyên");
+    expect(storyBlock?.content).toContain("không đồng nghĩa “bắt đầu đánh nhau”");
+  });
+
+  it("chèn luật phân cấp để AI không nhập thành trì với lãnh thổ", () => {
+    const block = appLayerMessages().find((message) => message.content.includes("PHÂN CẤP PHONG KIẾN"));
+    expect(block?.content).toContain("Thành trì");
+    expect(block?.content).toContain("Lãnh địa trực thuộc");
+    expect(block?.content).toContain("Lãnh thổ");
+    expect(block?.content).toContain("không tự động biến thành trì của chư hầu");
+  });
 });

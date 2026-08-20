@@ -28,6 +28,9 @@ import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { BUILDING_CATALOG } from "../content/westeros/buildings";
 import { hasPrivilege } from "../character/roleplay";
 import { analysePopulation } from "../territory/population";
+import { regionPopulation as syncedRegionPopulation } from "../territory/geographyRuntime";
+import { feudalModifiers } from "../strategy/feudalManagement";
+import { titleDefinition } from "../strategy/feudalHierarchy";
 
 /**
  * Của cải một đầu dân làm ra mỗi THÁNG, tính bằng Đồng Đỏ (220 ≈ 4 Hươu Bạc).
@@ -116,17 +119,31 @@ export function grossProduct(holding: StatData["Lãnh Địa"][string]): number 
   return Math.round((holding["Dân Số"] ?? 0) * INCOME_PER_CAPITA * prosperityOf(holding));
 }
 
-/** Tổng sản phẩm mỗi tháng của cả một VÙNG (dân số canon × mức thịnh vượng TB). */
+/** Tổng sản phẩm mỗi tháng của cả một VÙNG (dân số hiện tại × mức thịnh vượng TB). */
 export function regionGrossProduct(state: StatData, regionId: string): number {
   const region = REGIONS_BY_ID[regionId];
   if (!region) return 0;
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+  const population = syncedRegionPopulation(state, region.id, eraId);
   // lấy mức thịnh vượng trung bình của những lãnh địa ta biết trong vùng, mặc
   // định 0.85 cho phần còn lại (đất của bannerman ta không quản trực tiếp)
   const inRegion = Object.values(state["Lãnh Địa"]).filter((h) => h["Thuộc Vùng"] === regionId);
   const avg = inRegion.length > 0
     ? inRegion.reduce((s, h) => s + prosperityOf(h), 0) / inRegion.length
     : 0.85;
-  return Math.round(region.population * INCOME_PER_CAPITA * avg);
+  const governance = state["Chủ Quyền Lãnh Thổ"][regionId]?.["Quản Trị"];
+  // Các trị số mặc định neo đúng 1.0 để không làm lệch nền kinh tế cũ. Chiến dịch
+  // lãnh thổ chỉ sinh giá trị khi hạ tầng, hội nhập và trật tự thực sự được cải thiện.
+  const regionalFactor = governance
+    ? Math.max(0.55, Math.min(1.45,
+      (1 + (governance["Hạ Tầng"] - 30) * 0.004)
+      * (1 + (governance["An Ninh Lương Thực"] - 50) * 0.002)
+      * (1 + (governance["Trật Tự"] - 60) * 0.0015)
+      * (1 + (governance["Hội Nhập"] - 45) * 0.0015)
+      * (1 - (governance["Bất Ổn"] - 20) * 0.003),
+    ))
+    : 1;
+  return Math.round(population * INCOME_PER_CAPITA * avg * regionalFactor);
 }
 
 // ── Thu thuế ────────────────────────────────────────────────────────────────
@@ -220,6 +237,7 @@ export function vassalLevy(state: StatData): TaxLine[] {
   let bannerRegions = 0;
   let fromOwn = 0;
   let fromRealm = 0;
+  const governance = feudalModifiers(state);
 
   for (const [regionId, sov] of Object.entries(state["Chủ Quyền Lãnh Thổ"])) {
     const region = REGIONS_BY_ID[regionId];
@@ -252,14 +270,14 @@ export function vassalLevy(state: StatData): TaxLine[] {
   if (fromOwn > 0) {
     out.push({
       id: "levy-banner", label: "Tô Thuế Chư Hầu",
-      amount: Math.round(fromOwn),
+      amount: Math.round(fromOwn * governance.vassalTaxMult),
       detail: `${ownRegions} vùng dưới quyền · ${(GREAT_LORD_LEVY * 100).toFixed(1)}% tổng sản phẩm vùng`,
     });
   }
   if (fromRealm > 0) {
     out.push({
       id: "levy-crown", label: "Thuế Vương Quyền",
-      amount: Math.round(fromRealm),
+      amount: Math.round(fromRealm * governance.vassalTaxMult),
       detail: `${bannerRegions} vùng nộp lên ngai vàng · giảm theo thái độ từng Nhà`,
     });
   }
@@ -272,11 +290,11 @@ export function vassalLevy(state: StatData): TaxLine[] {
  */
 export function liegeDue(state: StatData, grossIncome: number): TaxLine | null {
   const title = state["Thông Tin Nhân Vật"]["Tước Vị"];
-  const sovereign = title === "Vua Bảy Vương Quốc" || title === "Vua" || title === "Hoàng Đế";
-  if (sovereign || grossIncome <= 0) return null;
+  const definition = titleDefinition(title);
+  if (definition.sovereign || grossIncome <= 0) return null;
 
   // càng lên cao thì phần phải nộp càng mỏng (nhưng không bao giờ bằng 0)
-  const share = title === "Quốc Vương" || title === "Đại Lãnh Chúa" ? LIEGE_DUE * 0.6 : LIEGE_DUE;
+  const share = definition.rank >= 7 ? LIEGE_DUE * 0.6 : LIEGE_DUE;
   return {
     id: "liege-due", label: "Cống Nạp Bề Trên",
     amount: Math.round(grossIncome * share),

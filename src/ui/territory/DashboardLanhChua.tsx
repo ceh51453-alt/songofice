@@ -1,30 +1,39 @@
 /**
- * DashboardLanhChua — BẢNG QUẢN TRỊ LÃNH ĐỊA (hành chính, không phải bản đồ).
+ * DashboardLanhChua — BẢNG QUẢN TRỊ PHONG KIẾN.
  *
  * Phân vai rõ với hệ bản đồ đa tầng để không lẫn chức năng:
- *   - Ở ĐÂY  : con số và quyết sách — dân cư, kho tàng, công trường, pháp lệnh.
- *   - Tầng 1 : không gian — đặt công trình lên lưới 5 m (nút "Bản đồ lãnh địa").
- *   - Tầng 2 : quan hệ vùng — chủ quyền, khu dân cư, điều quân (TerritoryPanel).
+ *   - Thành trì: công trình vật lý, quy hoạch và đồn trú.
+ *   - Lãnh địa trực thuộc: đất/dân trực tiếp nuôi thành.
+ *   - Lãnh thổ: vùng địa lý và chủ quyền.
+ *   - Tước địa / chính thể: chư hầu, chính danh và tải hành chính.
  *
  * Chọn được MỌI lãnh địa ngươi quản trị, không chỉ cái đầu tiên như trước.
  */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useMvuStore } from "../../state/mvuStore";
 import { useUiStore } from "../../state/uiStore";
 import { useTerritoryStore } from "../../state/territoryStore";
 import { REGIONS_BY_ID } from "../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../content/westeros/houses";
 import { houseColor } from "../../content/westeros/houseColors";
-import { playerHoldingIds, summarizeHolding } from "../../territory/mapAggregate";
+import { summarizeHolding } from "../../territory/mapAggregate";
+import { holdingForNavigation, playerHoldingIds } from "../../territory/territoryEngine";
 import { BUILDING_CATALOG } from "../../content/westeros/buildings";
 import { formatDuration } from "../../mvu/calendar";
 import { demolitionDays } from "../../territory/construction";
 import { formatCurrencyShort } from "../../economy/currency";
-import { IconX, IconCastle, IconMap, IconBook, IconPopulation } from "../icons";
+import { IconX, IconCastle, IconMap, IconBook, IconPopulation, IconCrown, IconScroll } from "../icons";
 import { TabStatus } from "./TabStatus";
 import { TabDecree } from "./TabDecree";
+import { FeudalConceptsTab } from "./FeudalManagementTabs";
+import {
+  AdvancedDemesneGame,
+  AdvancedFeudalDomainGame,
+  AdvancedTerritoryGame,
+} from "./AdvancedGovernanceGames";
 
-type Tab = "status" | "works" | "decree";
+type Tab = "concepts" | "stronghold" | "demesne" | "territory" | "fief" | "realm" | "decree";
 
 export function DashboardLanhChua() {
   const stat = useMvuStore((s) => s.stat);
@@ -32,52 +41,66 @@ export function DashboardLanhChua() {
   const setOpen = useUiStore((s) => s.setTerritoryDashboardOpen);
   const setGameView = useUiStore((s) => s.setGameView);
   const enterLocal = useTerritoryStore((s) => s.enterLocal);
-  const [tab, setTab] = useState<Tab>("status");
+  const focusHoldingId = useTerritoryStore((s) => s.focusHoldingId);
+  const selectedRegionId = useTerritoryStore((s) => s.selectedRegionId);
+  const [tab, setTab] = useState<Tab>("concepts");
   const [holdingId, setHoldingId] = useState<string | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const mine = playerHoldingIds(stat);
-  const activeId = holdingId && mine.includes(holdingId) ? holdingId : mine[0] ?? null;
+  const contextualId = holdingForNavigation(stat, { focusHoldingId, selectedRegionId, ownedOnly: true });
+  const activeId = holdingId && mine.includes(holdingId) ? holdingId : contextualId;
 
   useEffect(() => {
     if (open && activeId && holdingId !== activeId) setHoldingId(activeId);
   }, [open, activeId, holdingId]);
 
-  if (!open) return null;
-  if (!activeId) {
-    return (
-      <Shell onClose={() => setOpen(false)} title="Lãnh Địa" subtitle="Ngươi chưa quản trị nơi nào">
-        <div className="flex h-full items-center justify-center text-[13px] italic text-[var(--text-muted)]">
-          Chưa có lãnh địa nào thuộc quyền cai quản của ngươi.
-        </div>
-      </Shell>
-    );
-  }
+  useEffect(() => {
+    if (!open) return;
+    const bodyOverflow = document.body.style.overflow;
+    const rootOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+      document.documentElement.style.overflow = rootOverflow;
+    };
+  }, [open]);
 
-  const holding = stat["Lãnh Địa"][activeId];
-  const region = REGIONS_BY_ID[holding["Thuộc Vùng"]];
-  const sov = stat["Chủ Quyền Lãnh Thổ"][holding["Thuộc Vùng"]];
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [tab]);
+
+  if (!open) return null;
+
+  const holding = activeId ? stat["Lãnh Địa"][activeId] : undefined;
+  const region = holding ? REGIONS_BY_ID[holding["Thuộc Vùng"]] : undefined;
+  const sov = holding ? stat["Chủ Quyền Lãnh Thổ"][holding["Thuộc Vùng"]] : undefined;
   const controller = HOUSES_BY_ID[sov?.["Nhà Kiểm Soát"] ?? ""];
   const col = houseColor(sov?.["Nhà Kiểm Soát"] ?? "");
-  const summary = summarizeHolding(stat, activeId);
+  const summary = activeId ? summarizeHolding(stat, activeId) : null;
 
   const goLocalMap = () => {
     setOpen(false);
     setGameView("map");
-    enterLocal(activeId);
+    if (activeId) enterLocal(activeId);
   };
 
-  return (
+  return createPortal(
     <Shell
       onClose={() => setOpen(false)}
-      title={holding["Mô Tả"] || activeId}
-      subtitle={`${region ? region.name : "Không rõ vùng"} · ${summary.kind} · ${controller ? controller.name : "Vô Chủ"}`}
+      title="Quản Trị Phong Kiến"
+      subtitle={holding && summary ? `${holding["Mô Tả"] || activeId} · ${region ? region.name : "Không rõ vùng"} · ${summary.kind} · ${controller ? controller.name : "Vô Chủ"}` : "Phân biệt thành trì, đất trực thuộc, lãnh thổ, tước địa và chính thể"}
       accent={col.base}
       right={
-        mine.length > 1 ? (
+        mine.length > 0 ? (
           <select
-            value={activeId}
+            value={activeId ?? ""}
             onChange={(e) => setHoldingId(e.target.value)}
-            className="rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[rgba(0,0,0,0.35)] px-2 py-1.5 text-[12.5px] text-[var(--text-soft)] [&>option]:bg-[#141821]"
+            className="max-w-48 rounded-[var(--radius-sm)] border border-[#3a4351] bg-[#090e15] px-2 py-1.5 text-[12.5px] text-[var(--text-soft)] [&>option]:bg-[#141821]"
           >
             {mine.map((id) => (
               <option key={id} value={id}>{stat["Lãnh Địa"][id]["Mô Tả"] || id}</option>
@@ -86,32 +109,47 @@ export function DashboardLanhChua() {
         ) : null
       }
     >
-      <div className="flex h-full min-h-0">
-        <aside className="flex w-56 flex-none flex-col gap-2 border-r border-[var(--glass-border)] bg-[rgba(0,0,0,0.2)] p-3">
-          <TabButton active={tab === "status"} onClick={() => setTab("status")} icon={<IconPopulation size={17} />} label="DÂN & KHO" />
-          <TabButton active={tab === "works"} onClick={() => setTab("works")} icon={<IconCastle size={17} />} label="CÔNG TRƯỜNG" />
+      <div className="flex h-full min-h-0 flex-col lg:flex-row">
+        <aside className="flex w-full flex-none gap-1.5 overflow-x-auto border-b border-[#303846] bg-[#0a1017] p-2.5 lg:w-64 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:border-b-0 lg:border-r lg:p-3">
+          <TabButton active={tab === "concepts"} onClick={() => setTab("concepts")} icon={<IconBook size={17} />} label="PHÂN CẤP" />
+          <TabButton active={tab === "stronghold"} onClick={() => setTab("stronghold")} icon={<IconCastle size={17} />} label="THÀNH TRÌ" />
+          <TabButton active={tab === "demesne"} onClick={() => setTab("demesne")} icon={<IconPopulation size={17} />} label="ĐẤT TRỰC THUỘC" />
+          <TabButton active={tab === "territory"} onClick={() => setTab("territory")} icon={<IconMap size={17} />} label="LÃNH THỔ" />
+          <TabButton active={tab === "fief"} onClick={() => setTab("fief")} icon={<IconScroll size={17} />} label="TƯỚC ĐỊA" />
+          <TabButton active={tab === "realm"} onClick={() => setTab("realm")} icon={<IconCrown size={17} />} label="VƯƠNG QUỐC / ĐẾ QUỐC" />
           <TabButton active={tab === "decree"} onClick={() => setTab("decree")} icon={<IconBook size={17} />} label="PHÁP LỆNH" />
-          <div className="mt-auto">
+          {activeId && <div className="ml-auto flex-none lg:ml-0 lg:mt-auto lg:pt-3">
             <button
               onClick={goLocalMap}
-              className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] border border-[var(--accent-soft)] px-3 py-2.5 text-[12.5px] text-[var(--accent-text)] transition-colors hover:bg-[var(--glass-bg-hover)]"
+              className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-[var(--radius-sm)] border border-[var(--accent-soft)] px-3 py-2.5 text-[12.5px] text-[var(--accent-text)] transition-colors hover:bg-[#171e28]"
             >
-              <IconMap size={17} /> BẢN ĐỒ LÃNH ĐỊA
+              <IconMap size={17} /> BẢN ĐỒ THÀNH TRÌ
             </button>
-            <p className="mt-1.5 px-1 text-[10.5px] leading-snug text-[var(--text-faint)]">
+            <p className="mt-1.5 hidden px-1 text-[10.5px] leading-snug text-[var(--text-faint)] lg:block">
               Quy hoạch trên lưới 5 m ở Tầng 1 của bản đồ.
             </p>
-          </div>
+          </div>}
         </aside>
 
-        <main className="min-w-0 flex-1 overflow-y-auto bg-[rgba(0,0,0,0.25)] p-5">
-          {tab === "status" && <TabStatus territoryId={activeId} holding={holding} isOwner />}
-          {tab === "works" && <WorksTab territoryId={activeId} holding={holding} />}
-          {tab === "decree" && <TabDecree territoryId={activeId} holding={holding} isOwner />}
+        <main ref={mainRef} className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-[#0d131b] p-4 sm:p-5 lg:p-7">
+          {tab === "concepts" && <FeudalConceptsTab />}
+          {tab === "stronghold" && activeId && holding && <div className="space-y-7"><TabStatus territoryId={activeId} holding={holding} isOwner /><WorksTab territoryId={activeId} holding={holding} /></div>}
+          {tab === "stronghold" && (!activeId || !holding) && <NoStronghold />}
+          {tab === "demesne" && <AdvancedDemesneGame territoryId={activeId} holding={holding} />}
+          {tab === "territory" && <AdvancedTerritoryGame />}
+          {tab === "fief" && <AdvancedFeudalDomainGame realmOnly={false} />}
+          {tab === "realm" && <AdvancedFeudalDomainGame realmOnly />}
+          {tab === "decree" && activeId && holding && <TabDecree territoryId={activeId} holding={holding} isOwner />}
+          {tab === "decree" && (!activeId || !holding) && <NoStronghold />}
         </main>
       </div>
-    </Shell>
+    </Shell>,
+    document.body,
   );
+}
+
+function NoStronghold() {
+  return <div className="flex min-h-44 items-center justify-center rounded-lg border border-dashed border-[var(--glass-border)] px-6 text-center text-[13px] italic text-[var(--text-muted)]">Ngươi chưa trực tiếp sở hữu thành trì nào để dùng chức năng này.</div>;
 }
 
 function Shell({
@@ -121,11 +159,11 @@ function Shell({
   children: React.ReactNode; onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(5,7,10,0.7)] p-4 backdrop-blur-sm" role="dialog">
-      <div className="glass flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-[var(--glass-border)] bg-[rgba(10,13,20,0.92)] shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(2,4,7,0.88)] p-2 backdrop-blur-md sm:p-3" role="dialog">
+      <div className="flex h-[calc(100dvh-16px)] w-full max-w-[1600px] flex-col overflow-hidden rounded-xl border border-[#303846] bg-[#0b1017] shadow-[0_28px_90px_rgba(0,0,0,0.75)] sm:h-[calc(100dvh-24px)]">
         <header
-          className="flex flex-none items-center justify-between gap-4 border-b border-[var(--glass-border)] px-5 py-3.5"
-          style={{ background: `linear-gradient(90deg, ${accent ?? "transparent"}22, transparent)` }}
+          className="flex flex-none items-center justify-between gap-4 border-b border-[#303846] bg-[#101721] px-4 py-3.5 sm:px-5"
+          style={{ boxShadow: `inset 4px 0 0 ${accent ?? "transparent"}` }}
         >
           <div className="min-w-0">
             <h1 className="font-display truncate text-[19px] tracking-wide text-[var(--text-soft)]">{title}</h1>
@@ -144,7 +182,7 @@ function Shell({
   );
 }
 
-/** Công trường — hàng đợi xây dựng của lãnh địa (đối chiếu với vị trí trên Tầng 1). */
+/** Công trường — hàng đợi xây dựng vật lý của thành trì (đối chiếu với vị trí trên Tầng 1). */
 function WorksTab({ territoryId, holding }: { territoryId: string; holding: ReturnType<typeof useMvuStore.getState>["stat"]["Lãnh Địa"][string] }) {
   const cancelBuild = useTerritoryStore((s) => s.cancelBuild);
   const startBuild = useTerritoryStore((s) => s.startBuild);
@@ -258,8 +296,8 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2.5 text-[12.5px] tracking-widest transition-colors ${
-        active ? "bg-[var(--accent-soft)] text-[var(--accent-text)]" : "text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]"
+      className={`flex flex-none items-center gap-2.5 whitespace-nowrap rounded-[var(--radius-sm)] border-l-2 px-3 py-2.5 text-[12.5px] tracking-widest transition-colors ${
+        active ? "border-l-[var(--accent-text)] bg-[var(--accent-soft)] text-[var(--accent-text)]" : "border-l-transparent text-[var(--text-muted)] hover:bg-[#171e28]"
       }`}
     >
       {icon} {label}

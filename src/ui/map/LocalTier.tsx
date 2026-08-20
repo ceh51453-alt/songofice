@@ -1,5 +1,5 @@
 /**
- * LocalTier — TẦNG 1 (Bản Đồ Lãnh Địa), lưới 5 × 5 m.
+ * LocalTier — TẦNG 1 (Bản Đồ Thành Trì), lưới 5 × 5 m.
  *
  * Đây là tầng dữ liệu GỐC: đặt công trình ở đây thì khu dân cư ở Tầng 2 và cán
  * cân quyền lực ở Tầng 3 đổi theo (mapAggregate.ts).
@@ -796,7 +796,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
   if (!holding) {
     return (
       <div className="flex h-full items-center justify-center text-[13px] italic text-[var(--text-muted)]">
-        Lãnh địa không tồn tại.
+        Thành trì không tồn tại.
       </div>
     );
   }
@@ -893,7 +893,7 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
             </span>
           )}
           {onExit && (
-            <button onClick={onExit} title="Về bản đồ lãnh thổ" className="rounded-md p-1.5 text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]">
+            <button onClick={onExit} title="Về bản đồ lãnh địa quanh thành" className="rounded-md p-1.5 text-[var(--text-muted)] hover:bg-[var(--glass-bg-hover)]">
               <IconX size={16} />
             </button>
           )}
@@ -1362,8 +1362,8 @@ export function LocalTier({ holdingId, onExit }: { holdingId: string; onExit?: (
                               {def.terrain && !def.overrideTerrain ? ` · cần ${def.terrain.join(" / ")}` : ""}
                               {def.requiresNode ? ` · phải nằm trong vùng có ${def.requiresNode.join(" / ")}` : ""}
                               {def.nearWater ? " · sát mép nước" : ""}
-                              {coastBlocked ? " · lãnh địa không giáp biển" : ""}
-                              {!nodeAvailable ? " · lãnh địa chưa tìm ra mạch nào" : ""}
+                              {coastBlocked ? " · khu vực thành trì không giáp biển" : ""}
+                              {!nodeAvailable ? " · đất trực thuộc chưa tìm ra mạch nào" : ""}
                               {shortRes.length > 0 ? ` · thiếu ${shortRes.join(", ")}` : ""}
                               {shortLab.length > 0 ? ` · thiếu ${shortLab.join(", ")}` : ""}
                             </div>

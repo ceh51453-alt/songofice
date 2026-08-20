@@ -26,6 +26,7 @@ import {
 import { REGIONS_BY_ID } from "../content/westeros/regions";
 import { BUILDING_CATALOG } from "../content/westeros/buildings";
 import { buildingLedgers } from "../territory/construction";
+import { regionPopulation as syncedRegionPopulation } from "../territory/geographyRuntime";
 import { makeRng, eventSeed } from "../probability/rng";
 
 /** Bảng cờ thương mại — tra sẵn để không phải nạp cả danh mục công trình. */
@@ -52,10 +53,17 @@ export type OrderSide = "buy" | "sell";
 
 // ── Khởi tạo & tham số chợ ──────────────────────────────────────────────────
 
-/** Dân số quy ước của một vùng (dùng để suy cung/cầu nền). */
-function regionPopulation(state: StatData, regionId: string): number {
-  const canon = REGIONS_BY_ID[regionId]?.population ?? 0;
-  if (canon > 0) return canon;
+/**
+ * Dân số hiện tại của vùng (dùng để suy cung/cầu nền).
+ *
+ * Vùng canon đọc cùng sổ dân số với bản đồ; như vậy sinh, chết hay di
+ * cư trong một thành trì sẽ làm độ sâu chợ và nhu cầu của cả vùng thay
+ * đổi. Nhánh cộng lãnh địa chỉ còn là fallback cho save/mod dùng mã vùng lạ.
+ */
+function marketRegionPopulation(state: StatData, regionId: string): number {
+  const eraId = state["Cài Đặt Ván"]["Thời Kỳ"] ?? "";
+  const synced = syncedRegionPopulation(state, regionId, eraId);
+  if (synced > 0) return synced;
   let sum = 0;
   for (const h of Object.values(state["Lãnh Địa"])) {
     if (h["Thuộc Vùng"] === regionId) sum += h["Dân Số"] ?? 0;
@@ -68,7 +76,7 @@ function regionPopulation(state: StatData, regionId: string): number {
  * người chơi làm chợ sâu hơn và lái buôn bớt ăn chênh.
  */
 export function marketDepthParams(state: StatData, regionId: string): { liquidity: number; spread: number } {
-  const pop = regionPopulation(state, regionId);
+  const pop = marketRegionPopulation(state, regionId);
   let tradeFlags = 0;
   for (const h of Object.values(state["Lãnh Địa"])) {
     if (h["Thuộc Vùng"] !== regionId) continue;
@@ -184,7 +192,7 @@ function emptyGood(price: number, supply: number, demand: number): MarketGood {
  */
 export function ensureMarket(state: StatData, regionId: string): Market {
   const markets = state["Thị Trường Khu Vực"];
-  const pop = regionPopulation(state, regionId);
+  const pop = marketRegionPopulation(state, regionId);
   const params = marketDepthParams(state, regionId);
 
   let m = markets[regionId];
@@ -233,7 +241,7 @@ export function tickMarkets(state: StatData): void {
 
   for (const regionId of regionIds) {
     const m = ensureMarket(state, regionId);
-    const pop = regionPopulation(state, regionId);
+    const pop = marketRegionPopulation(state, regionId);
     const rng = makeRng(eventSeed(rootSeed, tick, `market-${regionId}`));
 
     // thương đoàn Essos ghé rồi lại nhổ neo

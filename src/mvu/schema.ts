@@ -284,6 +284,10 @@ export const MilitaryUnitSchema = z
     "Lãnh Địa Đồn Trú": safeString().prefault(""),
     "Đang Di Chuyển Đến": safeString().optional(), // territoryId đích; rỗng = đứng yên
     "Ngày Hành Quân Còn Lại": safeInt(0),
+    /** Lệnh vây được xếp trước khi quân tới nơi; không còn dịch chuyển tức thời để mở vây. */
+    "Lệnh Vây Khi Đến": safeString().optional(), // strongholdId hoặc regionId mục tiêu
+    /** Sau khi tới vùng đích, quân phải trinh sát, dựng trại và khép vòng vây trong vài ngày. */
+    "Ngày Dựng Trại Vây Còn Lại": safeInt(0),
     "Ngày Huấn Luyện": safeInt(0), // >0 = quân mới tuyển đang huấn luyện, chưa chiến đấu (11.3)
 
     // ── M19: ngạch quân + đời lính ──
@@ -557,6 +561,51 @@ export const DemographySchema = z
   .prefault({});
 export type Demography = z.infer<typeof DemographySchema>;
 
+export const DEMESNE_FOCUSES = ["Cân Bằng", "Khuyến Nông", "Chăn Nuôi", "Lâm Nghiệp", "Đô Thị Hoá", "Lao Dịch"] as const;
+export type DemesneFocus = (typeof DEMESNE_FOCUSES)[number];
+
+/** Đất và dân NUÔI một thành trì; khác bản thân tòa thành và khác lãnh thổ vùng. */
+export const DemesneManagementSchema = z.object({
+  "Trọng Tâm": z.enum(DEMESNE_FOCUSES).catch("Cân Bằng").prefault("Cân Bằng"),
+  "Phân Bổ Đất": z.object({
+    "Canh Tác": clampedStat(0, 100, 40),
+    "Đồng Cỏ": clampedStat(0, 100, 20),
+    "Lâm Địa": clampedStat(0, 100, 25),
+    "Thôn Ấp": clampedStat(0, 100, 15),
+  }).prefault({}),
+  /** Mức huy động người và đất: cao cho lợi tức nhanh nhưng làm đất suy kiệt. */
+  "Cường Độ Khai Thác": clampedStat(0, 100, 50),
+  /** Phần mùa màng giữ lại cho vụ sau thay vì đưa ngay vào kho/thuế. */
+  "Dự Trữ Hạt Giống": clampedStat(0, 100, 50),
+  /** Hai chỉ số dài hạn khiến kế hoạch điền địa không thể đổi lợi tức vô hạn. */
+  "Độ Màu Mỡ": clampedStat(0, 100, 70),
+  "Xói Mòn": clampedStat(0, 100, 5),
+  /** Engine dùng để mỗi nhịp truyện chỉ đổi trọng tâm một lần. */
+  "_Lượt Đổi Gần Nhất": safeInt(-1, -1),
+}).prefault({});
+export type DemesneManagement = z.infer<typeof DemesneManagementSchema>;
+
+export const REGION_GOVERNANCE_FOCUSES = ["Bình Ổn", "Hội Nhập", "Phòng Thủ", "Hạ Tầng", "Lương Thảo"] as const;
+export type RegionGovernanceFocus = (typeof REGION_GOVERNANCE_FOCUSES)[number];
+
+/** Năng lực cai trị một lãnh thổ địa lý, tách khỏi thành trì nằm trong vùng. */
+export const RegionGovernanceSchema = z.object({
+  "Trọng Tâm": z.enum(REGION_GOVERNANCE_FOCUSES).catch("Bình Ổn").prefault("Bình Ổn"),
+  "Trật Tự": clampedStat(0, 100, 60),
+  "Hội Nhập": clampedStat(0, 100, 45),
+  "Hạ Tầng": clampedStat(0, 100, 30),
+  "An Ninh Lương Thực": clampedStat(0, 100, 50),
+  "Phủ Sóng Phòng Thủ": clampedStat(0, 100, 35),
+  "Chấp Nhận Văn Hoá": clampedStat(0, 100, 55),
+  "Bất Ổn": clampedStat(0, 100, 20),
+  "_Lượt Chiến Dịch Cuối": safeInt(-1, -1),
+});
+export type RegionGovernance = z.infer<typeof RegionGovernanceSchema>;
+
+export function makeDefaultRegionGovernance(): RegionGovernance {
+  return RegionGovernanceSchema.parse({});
+}
+
 /**
  * Chi tiết NỘI BỘ 1 vùng người chơi quản lý (10.1). KHÔNG lưu "Nhà Kiểm Soát" —
  * ai nắm vùng là nguồn chân lý DUY NHẤT ở "Chủ Quyền Lãnh Thổ" (9.5.1).
@@ -602,6 +651,7 @@ export const TerritorySchema = z
     "Dự Trữ Lương Thực": safeInt(0),
     "Thu Nhập Bình Quân": safeInt(0),
     "Sự Kiện Đặc Biệt": z.array(safeString()).catch([]).prefault([]),
+    "Quản Trị Lãnh Địa": DemesneManagementSchema,
     "Thuộc Vùng": safeString().prefault(""), // regionId mà thành trì này toạ lạc
     // Neo px trên bản đồ THẾ GIỚI (bảo toàn toạ độ giữa 3 tầng — mapScale.ts).
     // Bỏ trống = suy từ địa danh/trọng trấn của vùng (territory/localMap.ts).
@@ -679,6 +729,69 @@ export const TerritorySchema = z
   })
   .prefault({});
 export type Territory = z.infer<typeof TerritorySchema>;
+
+export const FEUDAL_PRIORITIES = ["Cân Bằng", "Tập Quyền", "Nhượng Bộ Chư Hầu", "Biên Phòng", "Thương Mại", "Phúc Lợi"] as const;
+export type FeudalPriority = (typeof FEUDAL_PRIORITIES)[number];
+
+/**
+ * Trạng thái quản trị TƯỚC ĐỊA/vương quốc. Cấp tước và phạm vi lãnh thổ được
+ * dẫn xuất từ Tước Vị + Chủ Quyền, không lưu lặp ở đây để tránh mâu thuẫn.
+ */
+export const FeudalGovernanceSchema = z.object({
+  "Tên Tước Địa": safeString().prefault(""),
+  "Thủ Phủ": safeString().prefault(""),
+  "Ưu Tiên": z.enum(FEUDAL_PRIORITIES).catch("Cân Bằng").prefault("Cân Bằng"),
+  "Chính Danh": clampedStat(0, 100, 55),
+  "Uy Quyền": clampedStat(0, 100, 45),
+  "Gắn Kết Chư Hầu": clampedStat(0, 100, 50),
+  "An Ninh Biên Giới": clampedStat(0, 100, 50),
+  "Gánh Nặng Hành Chính": clampedStat(0, 100, 10),
+  "Kiệt Quệ Chiến Tranh": clampedStat(0, 100, 0),
+  /** Các trung tâm quyền lực là ảnh hưởng tương đối, không phải bốn lát cộng 100%. */
+  "Trung Tâm Quyền Lực": z.object({
+    "Vương Quyền": clampedStat(0, 100, 35),
+    "Chư Hầu": clampedStat(0, 100, 35),
+    "Giáo Quyền": clampedStat(0, 100, 20),
+    "Đô Thị": clampedStat(0, 100, 20),
+  }).prefault({}),
+  "_Lượt Quyết Sách Cuối": safeInt(-1, -1),
+}).prefault({});
+export type FeudalGovernance = z.infer<typeof FeudalGovernanceSchema>;
+
+export const GOVERNANCE_PROJECT_SCOPES = ["Đất Trực Thuộc", "Lãnh Thổ", "Tước Địa", "Vương Quốc"] as const;
+export const GOVERNANCE_PROJECT_STATES = ["Đang Chuẩn Bị", "Đang Triển Khai", "Nghiệm Thu", "Đình Trệ", "Hoàn Tất", "Đã Hủy"] as const;
+
+/**
+ * Một cải cách hành chính thật sự: mất ngày công, ngân sách và sức chứa bộ máy.
+ * Hiệu ứng cuối được dẫn xuất từ Hành Động để save không phải lưu lặp luật engine.
+ */
+export const GovernanceProjectSchema = z.object({
+  "Tên": safeString().prefault("Dự án chưa đặt tên"),
+  "Phạm Vi": z.enum(GOVERNANCE_PROJECT_SCOPES).catch("Tước Địa").prefault("Tước Địa"),
+  "Mục Tiêu": safeString().prefault(""),
+  "Hành Động": z.array(safeString()).catch([]).prefault([]),
+  "Trạng Thái": z.enum(GOVERNANCE_PROJECT_STATES).catch("Đang Chuẩn Bị").prefault("Đang Chuẩn Bị"),
+  "Ngày Khởi Công": safeInt(0),
+  "Ngày Cần": safeInt(30),
+  "Ngày Công Đã Tích Lũy": z.coerce.number().min(0).catch(0).prefault(0),
+  "Kinh Phí (Đồng Đỏ)": safeInt(0),
+  "Đã Chi (Đồng Đỏ)": safeInt(0),
+  "Tải Hành Chính": safeInt(1),
+  "Hiệu Suất Gần Nhất": clampedStat(0, 200, 100),
+  "Trở Ngại": z.array(safeString()).catch([]).prefault([]),
+  "Kết Quả Dự Kiến": z.array(safeString()).catch([]).prefault([]),
+  /** Chỉ dự án điền địa cần giữ phương án mục tiêu; các dự án khác dẫn xuất từ action id. */
+  "Phân Bổ Mục Tiêu": z.object({
+    "Canh Tác": clampedStat(0, 100, 40),
+    "Đồng Cỏ": clampedStat(0, 100, 20),
+    "Lâm Địa": clampedStat(0, 100, 25),
+    "Thôn Ấp": clampedStat(0, 100, 15),
+  }).optional(),
+  "Cường Độ Mục Tiêu": clampedStat(0, 100, 50).optional(),
+  "Dự Trữ Mục Tiêu": clampedStat(0, 100, 50).optional(),
+  "Trọng Tâm Mục Tiêu": safeString().optional(),
+}).prefault({});
+export type GovernanceProject = z.infer<typeof GovernanceProjectSchema>;
 
 // ── Hải quân (7.8) ──
 export const SEA_CONDITIONS = ["Biển Lặng", "Sóng Lớn", "Sương Mù", "Bão"] as const;
@@ -1171,6 +1284,10 @@ export const StatDataSchema = z
         "Hướng Kịch Bản": z.enum(["Người Chơi Là Trung Tâm", "Người Chơi Là Bối Cảnh"]).catch("Người Chơi Là Trung Tâm").prefault("Người Chơi Là Trung Tâm"),
         "Độ Khó Chiến Đấu": z.enum(["Nhàn Hạ", "Cân Bằng", "Chân Thực"]).catch("Cân Bằng").prefault("Cân Bằng"),
         "Thời Kỳ": safeString().optional(), // id Era (8.2)
+        /** Hai hook có thể cùng năm nhưng khác hẳn người giữ ngai, đất và phe. */
+        "Pha Thời Kỳ": safeString().optional(),
+        /** ID ổn định để engine cốt truyện đọc đúng cả khi chọn hai xuất thân hoặc dùng save cũ. */
+        "_ID Xuất Thân": z.array(safeString()).catch([]).prefault([]),
         /** Chỉ xuất thân Người Xuyên Không mới bật được: một người có thể gắn bó với nhiều rồng. */
         "Đặc Quyền Đa Kỵ Sĩ": z.boolean().catch(false).prefault(false),
         "$Bối Cảnh Ẩn": safeString().prefault(""), // Bộ nhớ ẩn dành riêng cho AI (mối quan hệ, gia phả, bối cảnh phức tạp)
@@ -1457,14 +1574,27 @@ export const StatDataSchema = z
             "Người Kiểm Soát": safeString().prefault(""), // Tên vị lãnh chúa hiện tại
 
             "Tình Trạng": z.enum(REGION_STATUS).catch("Ổn Định").prefault("Ổn Định"),
+            /** Người chơi đang giữ chủ quyền/thủ phủ; KHÔNG đồng nghĩa đã kiểm soát mọi thành. */
             "Là Của Người Chơi": z.boolean().catch(false).prefault(false),
+            /** Cache engine: mọi thành trong tỉnh đã bị chiếm hoặc chủ thành đã thần phục. */
+            "Kiểm Soát Hoàn Toàn": z.boolean().catch(false).optional(),
+            /**
+             * Bá quyền sống trên từng thành trì (strongholdId → houseId). Khác
+             * với Nhà Kiểm Soát province: chiếm thủ phủ chỉ đổi một entry, các
+             * thành phụ vẫn giữ chủ cũ cho tới khi thất thủ hoặc thần phục.
+             */
+            "Bá Quyền Thành Trì": z.record(safeString(), safeString()).catch({}).optional(),
+            "Quản Trị": RegionGovernanceSchema.optional(),
             "_Ngày Đổi Chủ": z.coerce.number().int().catch(0).prefault(0), // readonly — ngày tuyệt đối đổi chủ gần nhất (animation + replay 9.3)
             // trạng thái vây thành (12.2) — engine giữ (readonly), chỉ có khi Tình Trạng "Bị Vây"
             "_Vây": z
               .object({
-                "Phe Vây": safeString().prefault(""), // houseId phe đang vây
-                "Đơn Vị Vây": safeString().prefault(""), // key Biên Chế Quân Sự của quân vây
-                "Ngày Đã Vây": z.coerce.number().int().catch(0).prefault(0),
+                 "Phe Vây": safeString().prefault(""), // houseId phe đang vây
+                 "Đơn Vị Vây": safeString().prefault(""), // key Biên Chế Quân Sự của quân vây
+                 /** rỗng = vây thủ phủ theo cơ chế save cũ; có giá trị = một stronghold cụ thể. */
+                 "Thành Trì Mục Tiêu": safeString().optional(),
+                 "Tên Thành Trì Mục Tiêu": safeString().optional(),
+                 "Ngày Đã Vây": z.coerce.number().int().catch(0).prefault(0),
                 "Lương Còn": z.coerce.number().int().catch(0).prefault(0),
                 "Ngày Vây Tối Đa": z.coerce.number().int().catch(900).prefault(900), // 30 tháng
               })
@@ -1478,6 +1608,12 @@ export const StatDataSchema = z
     // ── LÃNH ĐỊA (10.1) — CHI TIẾT NỘI BỘ chỉ vùng người chơi quản lý. Key khớp
     // regionId (hoặc tên tự đặt cho gói xuất thân 8.5). Mở rộng thu/chi ở M12. ──
     "Lãnh Địa": z.record(safeString(), TerritorySchema).catch({}).prefault({}),
+
+    // Quyết sách cấp tước địa/vương quốc; không chứa công trình vật lý.
+    "Quản Trị Tước Địa": FeudalGovernanceSchema,
+
+    // Cải cách/công trình hành chính nhiều ngày ở mọi cấp; engine ngày xử lý tiến độ và ngân sách.
+    "Dự Án Quản Trị": z.record(safeString(), GovernanceProjectSchema).catch({}).prefault({}),
 
     // ── KINH TẾ VÙNG (15.1 — M12) — cung cầu + giá cả động từng vùng. Key = regionId. ──
     "Kinh Tế Vùng": z.record(safeString(), RegionalEconomySchema).catch({}).prefault({}),

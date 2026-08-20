@@ -6,8 +6,10 @@
 import { describe, expect, it } from "vitest";
 import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { absoluteDay } from "../mvu/calendar";
-import { REGIONS, REGIONS_BY_ID } from "../content/world/geography";
+import { REGIONS, REGIONS_BY_ID, regionsForRealm } from "../content/world/geography";
 import { kingdomsBoard, powerName, regionLevy, mobilizationRateForRegion } from "./kingdoms";
+import { seedVassals } from "./muster";
+import { repairStrongholdControl } from "../territory/territoryEngine";
 
 /** Một lãnh chúa Stark nắm Phương Bắc; Lannister nắm Vùng Tây + Đất Vương Thất. */
 function board(): StatData {
@@ -21,7 +23,9 @@ function board(): StatData {
     "the-crownlands": { "Nhà Kiểm Soát": "lannister", "Người Kiểm Soát": "", "Tình Trạng": "Ổn Định", "Là Của Người Chơi": false, "_Ngày Đổi Chủ": 0 },
     "the-riverlands": { "Nhà Kiểm Soát": "", "Người Kiểm Soát": "", "Tình Trạng": "Đang Tranh Chấp", "Là Của Người Chơi": false, "_Ngày Đổi Chủ": 0 },
   } as StatData["Chủ Quyền Lãnh Thổ"];
-  return StatDataSchema.parse(s);
+  const parsed = StatDataSchema.parse(s);
+  repairStrongholdControl(parsed, "legacy-migration");
+  return parsed;
 }
 
 describe("Tên thế lực", () => {
@@ -56,6 +60,7 @@ describe("Cán cân quyền lực", () => {
     expect(b.powers.map((p) => p.houseId)).toEqual(["lannister", "stark"]);
     expect(b.powers[0].regionIds).toEqual(["the-westerlands", "the-crownlands"]);
     expect(b.powers[0].levy).toBe(regionLevy("the-westerlands") + regionLevy("the-crownlands"));
+    expect(b.regions.find((region) => region.id === "the-westerlands")?.fullControl).toBe(true);
   });
 
   it("vùng VÔ CHỦ không tạo ra một thế lực", () => {
@@ -75,10 +80,45 @@ describe("Cán cân quyền lực", () => {
   it("ta không nắm đất thì không có hạng — bàn cờ là của người khác", () => {
     const s = board();
     s["Chủ Quyền Lãnh Thổ"]["the-north"]["Nhà Kiểm Soát"] = "bolton";
+    s["Chủ Quyền Lãnh Thổ"]["the-north"]["Người Kiểm Soát"] = "Roose Bolton";
     s["Chủ Quyền Lãnh Thổ"]["the-north"]["Là Của Người Chơi"] = false;
     const b = kingdomsBoard(s);
     expect(b.playerRank).toBeNull();
     expect(b.powers.some((p) => p.isPlayer)).toBe(false);
+  });
+
+  it("thành viên cùng Nhà không được xếp hạng bằng đất do gia chủ nắm", () => {
+    const s = board();
+    s["Thông Tin Nhân Vật"]["Họ Tên"] = "Arya Stark";
+    // Cố tình giữ cờ save cũ=true để chứng minh board đọc quyền PERSON hiện tại.
+    s["Chủ Quyền Lãnh Thổ"]["the-north"]["Là Của Người Chơi"] = true;
+    const b = kingdomsBoard(s);
+    expect(b.regions.find((region) => region.id === "the-north")?.isPlayer).toBe(false);
+    expect(b.playerRank).toBeNull();
+  });
+
+  it("bàn cờ tách yêu sách khỏi kiểm soát hoàn toàn và chỉ tính quân theo tiến độ khống chế", () => {
+    const partial = kingdomsBoard(board());
+    const north = partial.playerRealmControls.find((realm) => realm.realmId === "the-north")!;
+    expect(north.control.complete).toBe(false);
+    expect(north.mobilizableLevy).toBeLessThan(north.potentialLevy);
+
+    const s = board();
+    for (const region of regionsForRealm("the-north")) {
+      s["Chủ Quyền Lãnh Thổ"][region.id] = {
+        "Nhà Kiểm Soát": "stark", "Người Kiểm Soát": "Eddard Stark",
+        "Tình Trạng": "Ổn Định", "Là Của Người Chơi": true, "_Ngày Đổi Chủ": 0,
+      } as StatData["Chủ Quyền Lãnh Thổ"][string];
+    }
+    s["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa";
+    repairStrongholdControl(s, "legacy-migration");
+    seedVassals(s);
+    const occupiedProvinces = kingdomsBoard(StatDataSchema.parse(s));
+    const securedNorth = occupiedProvinces.playerRealmControls.find((realm) => realm.realmId === "the-north")!;
+    // Công sự trực thuộc đi theo tỉnh, Night's Watch nằm ngoài graph phong kiến:
+    // khi mọi tỉnh và chư hầu đã quy phục thì toàn cõi thật sự đạt 100%.
+    expect(securedNorth.control.complete).toBe(true);
+    expect(securedNorth.control.unsecuredStrongholds).toHaveLength(0);
   });
 });
 

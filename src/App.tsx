@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AppShell } from "./ui/layout/AppShell";
 import { createLogger } from "./lib/log";
+import { LegacyUiTranslator } from "./i18n/LegacyUiTranslator";
 
 const log = createLogger("app");
 
@@ -40,6 +41,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error
 export default function App() {
   return (
     <AppErrorBoundary>
+      <LegacyUiTranslator />
       <AppShell />
     </AppErrorBoundary>
   );

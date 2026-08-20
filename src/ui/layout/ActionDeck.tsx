@@ -55,8 +55,8 @@ export function ActionDeck() {
   if (holdings.length > 0) {
     const [terrName, terr] = holdings[0];
     actions.push({
-      key: "inspect-holding", label: "Thị sát lãnh địa", icon: <IconCastle size={13} />,
-      sentence: `Ta đi thị sát tình hình ${terrName}, xem xét dân tình và công trình.`,
+      key: "inspect-holding", label: "Thị sát đất trực thuộc", icon: <IconCastle size={13} />,
+      sentence: `Ta đi thị sát thành trì và đất trực thuộc tại ${terrName}, xem xét dân tình và công trình.`,
     });
     if (terr["Trung Thành"] < 40) {
       actions.push({ key: "soothe", label: "An dân", icon: <IconUsers size={13} />, sentence: `Ta tìm cách vỗ về dân chúng đang bất mãn ở ${terrName}.` });

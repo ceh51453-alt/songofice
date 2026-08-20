@@ -6,10 +6,11 @@
 import { describe, expect, it } from "vitest";
 import { makeDefaultState, StatDataSchema, type StatData, type Vassal } from "../mvu/schema";
 import { applyPatch } from "../mvu/patchEngine";
-import { seedRegionControl } from "../territory/territoryEngine";
+import { realmControlStatus, seedRegionControl } from "../territory/territoryEngine";
 import {
   seedVassals, callBanners, canCallBanners, bannerResponse, tickMuster,
-  dismissVassal, musteredStrength,
+  dismissVassal, musteredStrength, callableVassals, effectiveBannerLoyalty,
+  legalMusterRealmIds, runtimeVassalCommitment,
 } from "./muster";
 import { bannermenOfRegion } from "../content/westeros/bannermen";
 
@@ -47,12 +48,38 @@ describe("Gieo chư hầu theo lãnh thổ (M19)", () => {
   it("chư hầu của vùng VỪA CHIẾM khởi điểm trung thành thấp hơn nhiều", () => {
     const a = northernLord();
     const b = makeDefaultState();
+    b["Thông Tin Nhân Vật"]["Họ Tên"] = "Eddard Stark";
     b["Thông Tin Nhân Vật"]["Nhà"] = "Stark";
+    b["Thông Tin Nhân Vật"]["Tước Vị"] = "Đại Lãnh Chúa";
     b["Cài Đặt Ván"]["Thời Kỳ"] = "war-of-five-kings";
     seedRegionControl(b, "war-of-five-kings", { createIfMissing: true });
     const conquered = StatDataSchema.parse(b);
     seedVassals(conquered, { conquered: "the-north" });
-    expect(conquered["Chư Hầu"]["umber"]["Trung Thành"]).toBeLessThan(a["Chư Hầu"]["umber"]["Trung Thành"]);
+    expect(conquered["Chư Hầu"]["cerwyn"]["Trung Thành"]).toBeLessThan(a["Chư Hầu"]["cerwyn"]["Trung Thành"]);
+    expect(conquered["Chư Hầu"]["umber"]["Trung Thành"]).toBe(a["Chư Hầu"]["umber"]["Trung Thành"]);
+  });
+
+  it("era cổ không gieo hoặc gọi ngược catalog chư hầu cuối thế kỷ III", () => {
+    const raw = makeDefaultState();
+    raw["Thông Tin Nhân Vật"]["Họ Tên"] = "Aegon Targaryen";
+    raw["Thông Tin Nhân Vật"]["Nhà"] = "Targaryen";
+    raw["Thông Tin Nhân Vật"]["Tước Vị"] = "Vua Bảy Vương Quốc";
+    raw["Cài Đặt Ván"]["Thời Kỳ"] = "aegon-conquest";
+    raw["Thế Giới"]["Năm"] = 1;
+    seedRegionControl(raw, "aegon-conquest", { createIfMissing: true });
+    const s = StatDataSchema.parse(raw);
+    seedVassals(s);
+
+    expect(s["Chư Hầu"]["rosby"]).toBeUndefined();
+    expect(s["Chư Hầu"]["tarly"]).toBeUndefined();
+    expect(s["Chư Hầu"]["clegane"]).toBeUndefined();
+
+    // Save cũ vẫn được giữ nguyên, nhưng một record anachronistic không trở
+    // thành đối tượng hiệu triệu hợp lệ trong era cổ.
+    s["Chư Hầu"]["rosby"] = vassal({
+      "Tên Nhà": "Nhà Rosby", "Thành Trì": "Rosby", "Vùng": "the-crownlands",
+    });
+    expect(callableVassals(s).some(([id]) => id === "rosby")).toBe(false);
   });
 });
 
@@ -62,6 +89,95 @@ describe("Quyền hiệu triệu theo tước vị (M19)", () => {
     expect(canCallBanners(northernLord("Thường Dân"))).toBe(false);
     const r = callBanners(northernLord("Thường Dân"));
     expect(r.ok).toBe(false);
+  });
+
+  it("Quốc Vương Reach gọi được chư hầu toàn Reach dù không trực tiếp giữ tỉnh của họ", () => {
+    const s = makeDefaultState();
+    s["Thông Tin Nhân Vật"]["Họ Tên"] = "Mace Tyrell";
+    s["Thông Tin Nhân Vật"]["Nhà"] = "Tyrell";
+    s["Thông Tin Nhân Vật"]["Tước Vị"] = "Quốc Vương";
+    s["Thế Giới"]["Năm"] = 298;
+    seedRegionControl(s, "war-of-five-kings", { createIfMissing: true });
+    const parsed = StatDataSchema.parse(s);
+    parsed["Chủ Quyền Lãnh Thổ"]["reach-oldtown"]["Nhà Kiểm Soát"] = "hightower";
+    parsed["Chủ Quyền Lãnh Thổ"]["reach-oldtown"]["Là Của Người Chơi"] = false;
+    seedVassals(parsed);
+
+    expect(legalMusterRealmIds(parsed)).toEqual(["the-reach"]);
+    expect(parsed["Chủ Quyền Lãnh Thổ"]["reach-oldtown"]["Nhà Kiểm Soát"]).not.toBe("tyrell");
+    expect(callableVassals(parsed).some(([id]) => id === "hightower")).toBe(true);
+    expect(callBanners(parsed, "hightower").responses).toHaveLength(1);
+  });
+
+  it("chiếm thủ phủ rồi reload không tự động làm toàn vương quốc quy phục", () => {
+    const s = northernLord("Vua Bảy Vương Quốc");
+    const capital = s["Chủ Quyền Lãnh Thổ"]["dorne"];
+    capital["Nhà Kiểm Soát"] = "stark";
+    capital["Người Kiểm Soát"] = "Eddard Stark";
+    capital["Là Của Người Chơi"] = true;
+    capital["Tình Trạng"] = "Mới Chiếm";
+    capital["_Ngày Đổi Chủ"] = 25;
+    for (const id of ["yronwood", "dayne", "uller", "fowler", "manwoody"]) {
+      s["Chư Hầu"][id]["Chủ Của"] = "";
+    }
+
+    seedVassals(s); // mô phỏng load/migrate
+    expect(s["Chư Hầu"]["yronwood"]["Chủ Của"]).toBe("");
+    expect(s["Chư Hầu"]["dayne"]["Chủ Của"]).toBe("");
+    expect(realmControlStatus(s, "dorne", "stark").complete).toBe(false);
+  });
+
+  it("Vua Bảy Vương Quốc gửi quạ được khắp Westeros, nhưng nhà chưa khuất phục có thể từ chối", () => {
+    const s = northernLord("Vua Bảy Vương Quốc");
+    const legal = legalMusterRealmIds(s);
+    expect(legal).toContain("the-north");
+    expect(legal).toContain("the-reach");
+    expect(legal).toContain("dorne");
+    expect(callableVassals(s).some(([id]) => id === "yronwood")).toBe(true);
+
+    s["Chư Hầu"]["yronwood"]["Chủ Của"] = "";
+    s["Chư Hầu"]["yronwood"]["Trung Thành"] = 10;
+    const response = callBanners(s, "yronwood");
+    expect(response.ok).toBe(true);
+    expect(response.responses[0].refused).toBe(true);
+    expect(response.responses[0].troops).toBe(0);
+    const after = applyPatch(s, response.ops).state;
+    expect(after["Chư Hầu"]["yronwood"]["Chủ Của"]).toBe("");
+  });
+
+  it("chư hầu pháp lý chấp nhận hiệu triệu thì công khai thần phục và tăng kiểm soát thực địa", () => {
+    const s = northernLord("Vua Bảy Vương Quốc");
+    const yronwood = s["Chư Hầu"]["yronwood"];
+    yronwood["Chủ Của"] = "";
+    yronwood["Trung Thành"] = 100;
+    s["Quản Trị Tước Địa"]["Uy Quyền"] = 100;
+    s["Quản Trị Tước Địa"]["Gắn Kết Chư Hầu"] = 100;
+    const before = realmControlStatus(s, "dorne", "stark").controlledStrongholds;
+
+    const result = callBanners(s, "yronwood");
+    expect(result.ok).toBe(true);
+    expect(result.responses[0].refused).toBe(false);
+    const after = applyPatch(s, result.ops).state;
+    expect(after["Chư Hầu"]["yronwood"]["Chủ Của"]).toBe("stark");
+    expect(realmControlStatus(after, "dorne", "stark").controlledStrongholds).toBeGreaterThan(before);
+  });
+
+  it("uy quyền nâng khả năng đáp lời, còn chiến tranh với chính chư hầu làm nó sụp đổ", () => {
+    const s = northernLord("Vua Bảy Vương Quốc");
+    const yronwood = s["Chư Hầu"]["yronwood"];
+    yronwood["Chủ Của"] = "";
+    yronwood["Trung Thành"] = 50;
+    s["Quản Trị Tước Địa"]["Uy Quyền"] = 10;
+    const weak = effectiveBannerLoyalty(s, "yronwood", yronwood);
+    s["Quản Trị Tước Địa"]["Uy Quyền"] = 90;
+    const strong = effectiveBannerLoyalty(s, "yronwood", yronwood);
+    expect(strong).toBeGreaterThan(weak + 20);
+
+    s["Quan Hệ Ngoại Giao"]["yronwood"] = {
+      "Trạng Thái": "Chiến Tranh", "War Score": 0, "Lòng Tin": 0,
+      "Hiệp Ước": [], "Yêu Sách": [], "Lần Thay Đổi Cuối": 0,
+    } as StatData["Quan Hệ Ngoại Giao"][string];
+    expect(effectiveBannerLoyalty(s, "yronwood", yronwood)).toBeLessThan(strong - 50);
   });
 });
 
@@ -86,6 +202,14 @@ describe("Phản ứng của chư hầu theo lòng trung (M19)", () => {
     const a = callBanners(northernLord());
     const b = callBanners(northernLord());
     expect(a.responses.map((r) => r.troops)).toEqual(b.responses.map((r) => r.troops));
+  });
+
+  it("dân số thành trì thay đổi thì quân cam kết thay đổi cùng một nguồn", () => {
+    const s = northernLord();
+    const cerwyn = s["Chư Hầu"]["cerwyn"];
+    const before = runtimeVassalCommitment(s, "cerwyn", cerwyn);
+    s["Lãnh Địa"]["the-north-seat"]["Dân Số"] += 100_000;
+    expect(runtimeVassalCommitment(s, "cerwyn", cerwyn)).toBeGreaterThan(before);
   });
 });
 

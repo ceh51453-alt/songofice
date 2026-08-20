@@ -11,8 +11,8 @@ import { useMemo } from "react";
 import type { StatData } from "../../../mvu/schema";
 import { CONTINENTS, MACRO_REGIONS, REGIONS, MAP_W } from "../../../content/westeros/regions";
 import { HOUSES_BY_ID } from "../../../content/westeros/houses";
-import { houseColor, NEUTRAL_COLOR } from "../../../content/westeros/houseColors";
-import { balanceOfPower } from "../../../territory/mapAggregate";
+import { balanceOfPower, factionMapSummaries } from "../../../territory/mapAggregate";
+import { regionFill, type MapMode } from "../../../territory/territoryEngine";
 import { CLIMATE_BANDS, SEA_LANES, ROADS, pathD } from "../../../content/westeros/routes";
 import { markersForEra } from "../../../content/westeros/mapMarkers";
 import {
@@ -38,13 +38,15 @@ const CONTINENT_PATHS: Record<string, string> = Object.fromEntries(
 interface Props {
   stat: StatData;
   eraId: string;
+  mode: MapMode;
   zoom: number;
   showTerritory: boolean;
   onRealmClick: (regionId: string) => void;
 }
 
-export function WorldLayer({ stat, eraId, zoom, showTerritory, onRealmClick }: Props) {
+export function WorldLayer({ stat, eraId, mode, zoom, showTerritory, onRealmClick }: Props) {
   const realms = useMemo(() => balanceOfPower(stat, eraId), [stat, eraId]);
+  const factions = useMemo(() => factionMapSummaries(stat, eraId), [stat, eraId]);
   /** mốc lục địa còn giữ ở Tầng 3: chỉ những địa danh khổng lồ (Tường Thành, thành Essos). */
   const landmarks = useMemo(
     () => markersForEra(eraId).filter((m) => m.type === "landmark" || (m.population ?? 0) >= 200000),
@@ -83,18 +85,25 @@ export function WorldLayer({ stat, eraId, zoom, showTerritory, onRealmClick }: P
       {showTerritory &&
         REGIONS.map((r) => {
           const sov = stat["Chủ Quyền Lãnh Thổ"][r.id];
-          const house = sov?.["Nhà Kiểm Soát"] ?? "";
-          const col = house ? houseColor(house) : NEUTRAL_COLOR;
+          const fill = regionFill(stat, r.id, mode);
           return (
             <g key={r.id}>
               <path
                 d={REGION_FILL_PATHS[r.id]}
-                fill={`color-mix(in srgb, ${col.base} 68%, #1d2b2d)`}
+                fill={`color-mix(in srgb, ${fill.color} 68%, #1d2b2d)`}
                 fillOpacity={sov?.["Là Của Người Chơi"] ? 0.96 : 0.9}
                 onClick={() => onRealmClick(r.id)}
                 className="cursor-pointer transition-all hover:brightness-110"
                 style={{ transition: "fill 700ms ease" }}
               />
+              {fill.striped && (
+                <path
+                  d={REGION_FILL_PATHS[r.id]}
+                  fill="url(#contested)"
+                  fillOpacity={0.82}
+                  pointerEvents="none"
+                />
+              )}
               <path
                 d={REGION_PATHS[r.id]} fill="none" pointerEvents="none"
                 stroke="#7f9398" strokeWidth={0.9} strokeOpacity={0.58} strokeLinejoin="round"
@@ -155,7 +164,7 @@ export function WorldLayer({ stat, eraId, zoom, showTerritory, onRealmClick }: P
       </g>
 
       {/* ---- tên thế lực trên mảng lãnh thổ ---- */}
-      {showTerritory && zoom >= 0.48 &&
+      {showTerritory && mode !== "faction" && zoom >= 0.48 &&
         realms.filter((realm) => realm.share >= 0.045).map((realm) => {
           const anchor = realmAnchor(realm.regionIds);
           if (!anchor) return null;
@@ -169,6 +178,29 @@ export function WorldLayer({ stat, eraId, zoom, showTerritory, onRealmClick }: P
                 style={{ fontFamily: "var(--font-display)", fontSize: 23, fill: isPlayer ? "#76581b" : MAP_LABEL_INK, letterSpacing: "0.12em", fontWeight: "bold" }}
               >
                 {label}
+              </text>
+            </g>
+          );
+        })}
+      {showTerritory && mode === "faction" && zoom >= 0.42 &&
+        factions.filter((faction) => faction.regionIds.length > 0).map((faction) => {
+          const anchor = realmAnchor(faction.regionIds);
+          if (!anchor) return null;
+          return (
+            <g key={`faction-${faction.factionId}`} pointerEvents="none" filter="url(#inkLabelShadow)">
+              <text
+                x={anchor[0]} y={anchor[1]} textAnchor="middle" paintOrder="stroke"
+                stroke={MAP_PARCHMENT} strokeWidth={4.5} strokeOpacity={0.76}
+                style={{ fontFamily: "var(--font-display)", fontSize: 23, fill: MAP_LABEL_INK, letterSpacing: "0.1em", fontWeight: "bold" }}
+              >
+                {faction.name}
+              </text>
+              <text
+                x={anchor[0]} y={anchor[1] + 19} textAnchor="middle" paintOrder="stroke"
+                stroke={MAP_PARCHMENT} strokeWidth={3} strokeOpacity={0.72}
+                style={{ fontFamily: "var(--font-body)", fontSize: 12, fill: MAP_LABEL_INK, fontWeight: 700 }}
+              >
+                {faction.regionIds.length} lãnh thổ · {Math.round(faction.controlRatio * 100)}% thực địa
               </text>
             </g>
           );

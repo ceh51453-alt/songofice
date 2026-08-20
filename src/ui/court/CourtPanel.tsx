@@ -1,9 +1,9 @@
 /**
- * CourtPanel (13.5) — bảng Triều Đình kính mờ, mở từ rail Triều Đình. 3 tab:
+ * CourtPanel (13.5) — bảng Triều Đình kính mờ, mở từ rail Triều Đình. 2 tab:
  * - Tiểu Hội Đồng: sơ đồ bàn hội đồng 7 ghế + badge Năng Lực; bấm ghế → chi tiết
  *   + Bổ nhiệm/Miễn nhiệm (nếu có thẩm quyền 13.2) hoặc Vận động (lobby).
  * - Phe Cánh: ai phò/chống/trung lập theo Thái Độ Các Nhà (13.5).
- * - Gia Tộc & Kế Vị: cây gia phả + thứ tự kế vị + hôn ước đang thương lượng (13.4).
+ * Gia Tộc & Kế Vị đã được tách thành bảng quản lý riêng trên rail.
  * Engine giữ số; panel chỉ gọi courtStore. Không emoji — icon SVG.
  */
 import { useState } from "react";
@@ -26,7 +26,7 @@ import {
   IconX, IconCrown, IconCoins, IconScroll, IconEye, IconShield, IconUsers, IconBook, IconCrossedSwords, IconAlert, IconSpark,
 } from "../icons";
 
-type Tab = "council" | "power" | "dynasty";
+type Tab = "council" | "power";
 
 const POSITION_ICON: Record<CourtPosition, React.ReactNode> = {
   "Bàn Tay Nhà Vua": <IconCrown size={15} />,
@@ -74,7 +74,6 @@ export function CourtPanel({ open, onClose }: { open: boolean; onClose: () => vo
   const tabs: { key: Tab; label: string }[] = [
     { key: "council", label: "Tiểu Hội Đồng" },
     { key: "power", label: "Phe Cánh" },
-    { key: "dynasty", label: "Gia Tộc & Kế Vị" },
   ];
 
   return (
@@ -108,7 +107,6 @@ export function CourtPanel({ open, onClose }: { open: boolean; onClose: () => vo
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {tab === "council" && <CouncilTab stat={stat} onClose={onClose} />}
           {tab === "power" && <PowerTab stat={stat} />}
-          {tab === "dynasty" && <DynastyTab stat={stat} onClose={onClose} />}
         </div>
       </aside>
     </div>
@@ -326,7 +324,8 @@ function PowerTab({ stat }: { stat: Stat }) {
 }
 
 // ── Gia Tộc & Kế Vị (13.4) ───────────────────────────────────────────────────
-function DynastyTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
+/** @deprecated Giao diện mới nằm ở DynastyPanel; giữ export này để tương thích import cũ. */
+export function DynastyTab({ stat, onClose }: { stat: Stat; onClose: () => void }) {
   const setLaw = useCourtStore((s) => s.setSuccessionLaw);
   const designateHeir = useCourtStore((s) => s.designateHeir);
   const acceptBetrothal = useCourtStore((s) => s.acceptBetrothal);

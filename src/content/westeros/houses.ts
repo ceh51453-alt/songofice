@@ -117,6 +117,12 @@ const HOUSE_SEEDS: HouseSeed[] = [
   { id: "casterly", name: "Nhà Casterly", schemaName: "Casterly", sigil: "Vòng tròn mặt trời trên nền vàng",
     words: "Ánh Sáng Đầu Tiên", seat: "Casterly Rock", region: "Phương Tây",
     themeColor: { primary: "#b08d57", secondary: "#d4af37" } },
+  { id: "gardener", name: "Nhà Gardener", schemaName: "Gardener", sigil: "Bàn tay xanh trên nền trắng",
+    words: "Không rõ trong chính sử", seat: "Highgarden", region: "Vùng Reach",
+    themeColor: { primary: "#4f7d45", secondary: "#d6c768" }, activeToYear: 1 },
+  { id: "durrandon", name: "Nhà Durrandon", schemaName: "Durrandon", sigil: "Hươu đen đội vương miện trên nền vàng",
+    words: "Cơn Thịnh Nộ Của Chúng Ta", seat: "Storm's End", region: "Vùng Bão Tố",
+    themeColor: { primary: "#766b35", secondary: "#24231e" }, activeToYear: 1 },
   { id: "yronwood", name: "Nhà Yronwood", schemaName: "Yronwood", sigil: "Cổng thành rào sắt đen trên nền cát",
     words: "Máu Hoàng Gia", seat: "Yronwood", region: "Dorne",
     themeColor: { primary: "#8c564b", secondary: "#c49c94" } },
@@ -220,12 +226,15 @@ const HOUSE_SEEDS: HouseSeed[] = [
   { id: "reed", name: "Nhà Reed", schemaName: "Reed", sigil: "Thằn lằn sư tử đen trên nền xám xanh", words: "Chúng tôi canh giữ con đường", seat: "Greywater Watch", region: "Phương Bắc", themeColor: { primary: "#4a5e4a", secondary: "#2e3e2e" } },
   { id: "dustin", name: "Nhà Dustin", schemaName: "Dustin", sigil: "Hai chiếc rìu vàng trên nền đen", words: "Sắc bén và kiên quyết", seat: "Barrowton", region: "Phương Bắc", themeColor: { primary: "#6e5a30", secondary: "#3e3018" } },
   { id: "tallhart", name: "Nhà Tallhart", schemaName: "Tallhart", sigil: "Ba cây lính canh trên nền xanh", words: "Kiêu hãnh và tự do", seat: "Torrhen's Square", region: "Phương Bắc", themeColor: { primary: "#4e6e3e", secondary: "#2e4e2e" } },
+  { id: "hornwood", name: "Nhà Hornwood", schemaName: "Hornwood", sigil: "Nai sừng tấm nâu trên nền cam", words: "Chính Nghĩa Qua Gian Khó", seat: "Hornwood", region: "Phương Bắc", themeColor: { primary: "#78543a", secondary: "#c08343" } },
+  { id: "cerwyn", name: "Nhà Cerwyn", schemaName: "Cerwyn", sigil: "Rìu chiến đen trên nền bạc", words: "Mài Sắc Và Sẵn Sàng", seat: "Castle Cerwyn", region: "Phương Bắc", themeColor: { primary: "#60666b", secondary: "#2d3338" } },
 
   // -- Quần Đảo Sắt --
   { id: "harlaw", name: "Nhà Harlaw", schemaName: "Harlaw", sigil: "Lưỡi hái bạc trên nền đen", words: "Đọc và gặt", seat: "Ten Towers", region: "Quần Đảo Sắt", themeColor: { primary: "#4a4a4a", secondary: "#2a2a2a" } },
   { id: "goodbrother", name: "Nhà Goodbrother", schemaName: "Goodbrother", sigil: "Sừng vàng trên nền đen", words: "Máu của anh em", seat: "Hammerhorn", region: "Quần Đảo Sắt", themeColor: { primary: "#5a4a2a", secondary: "#3a2a1a" } },
   { id: "drumm", name: "Nhà Drumm", schemaName: "Drumm", sigil: "Xương trắng trên nền đỏ máu", words: "Gươm đỏ không rỉ sét", seat: "Old Wyk", region: "Quần Đảo Sắt", themeColor: { primary: "#6e2a2a", secondary: "#4a1a1a" } },
   { id: "blacktyde", name: "Nhà Blacktyde", schemaName: "Blacktyde", sigil: "Sóng xanh trên nền đen", words: "Sóng không ngừng", seat: "Blacktyde Castle", region: "Quần Đảo Sắt", themeColor: { primary: "#2a4a5a", secondary: "#1a2a3a" } },
+  { id: "botley", name: "Nhà Botley", schemaName: "Botley", sigil: "Đàn cá bạc trên nền xanh nhạt", words: "Không rõ trong chính sử", seat: "Lordsport", region: "Quần Đảo Sắt", themeColor: { primary: "#537685", secondary: "#263e49" } },
 
   // -- Thung Lũng --
   { id: "grafton", name: "Nhà Grafton", schemaName: "Grafton", sigil: "Tháp cháy trên nền vàng", words: "Ngọn lửa thương mại", seat: "Gulltown", region: "Thung Lũng", themeColor: { primary: "#8a7a2a", secondary: "#5a4a1a" } },
@@ -233,6 +242,8 @@ const HOUSE_SEEDS: HouseSeed[] = [
   { id: "sunderland", name: "Nhà Sunderland", schemaName: "Sunderland", sigil: "Ba tàu trên sóng", words: "Biển là nhà", seat: "Sisterton", region: "Thung Lũng", themeColor: { primary: "#3a5a6a", secondary: "#2a3a4a" } },
   { id: "waynwood", name: "Nhà Waynwood", schemaName: "Waynwood", sigil: "Bánh xe vỡ đen trên nền lục", words: "Không bao giờ đầu hàng", seat: "Ironoaks", region: "Thung Lũng", themeColor: { primary: "#3a5a3a", secondary: "#2a3a2a" } },
   { id: "hunter", name: "Nhà Hunter", schemaName: "Hunter", sigil: "Năm mũi tên nâu trên nền vàng", words: "Tên không bao giờ trượt", seat: "Longbow Hall", region: "Thung Lũng", themeColor: { primary: "#6a5a2a", secondary: "#4a3a1a" } },
+  { id: "redfort", name: "Nhà Redfort", schemaName: "Redfort", sigil: "Pháo đài đỏ trên nền trắng", words: "Vững Như Đá", seat: "Redfort", region: "Thung Lũng", themeColor: { primary: "#82423f", secondary: "#ddd3c7" } },
+  { id: "baelish", name: "Nhà Baelish", schemaName: "Baelish", sigil: "Đầu Titan xám trên nền xanh lá", words: "Không rõ trong chính sử", seat: "The Fingers", region: "Thung Lũng", themeColor: { primary: "#506d7a", secondary: "#a8b7b9" } },
 
   // -- Vùng Sông --
   { id: "mallister", name: "Nhà Mallister", schemaName: "Mallister", sigil: "Đại bàng bạc trên nền tím", words: "Trên cao và xa", seat: "Seagard", region: "Vùng Sông Nước", themeColor: { primary: "#5a3a6a", secondary: "#3a2a4a" } },
@@ -240,6 +251,8 @@ const HOUSE_SEEDS: HouseSeed[] = [
   { id: "mooton", name: "Nhà Mooton", schemaName: "Mooton", sigil: "Cá đỏ trên nền trắng", words: "Dưới dòng nước", seat: "Maidenpool", region: "Vùng Sông Nước", themeColor: { primary: "#8a4a3a", secondary: "#5a2a2a" } },
   { id: "blackwood", name: "Nhà Blackwood", schemaName: "Blackwood", sigil: "Cây tâm gỗ đen bao quanh quạ", words: "Xanh vĩnh hằng", seat: "Raventree Hall", region: "Vùng Sông Nước", themeColor: { primary: "#3a3a3a", secondary: "#1a1a1a" } },
   { id: "darry", name: "Nhà Darry", schemaName: "Darry", sigil: "Người cày trên nền nâu", words: "Chúng tôi đứng vững", seat: "Darry", region: "Vùng Sông Nước", themeColor: { primary: "#6a5a3a", secondary: "#4a3a2a" } },
+  { id: "piper", name: "Nhà Piper", schemaName: "Piper", sigil: "Thiếu nữ vũ điệu trên nền xanh", words: "Không rõ trong chính sử", seat: "Pinkmaiden", region: "Vùng Sông Nước", themeColor: { primary: "#7a4968", secondary: "#4e6f78" } },
+  { id: "strong", name: "Nhà Strong", schemaName: "Strong", sigil: "Ba dải xanh đỏ trắng quanh nắm tay", words: "Không rõ trong chính sử", seat: "Harrenhal", region: "Vùng Sông Nước", themeColor: { primary: "#53636b", secondary: "#7d3434" }, activeToYear: 131 },
 
   // -- Vùng Tây --
   { id: "lefford", name: "Nhà Lefford", schemaName: "Lefford", sigil: "Mặt trời vàng trên nền xanh trời", words: "Răng vàng canh gác", seat: "Golden Tooth", region: "Phương Tây", themeColor: { primary: "#4a6a8a", secondary: "#2a4a6a" } },
@@ -247,12 +260,16 @@ const HOUSE_SEEDS: HouseSeed[] = [
   { id: "crakehall", name: "Nhà Crakehall", schemaName: "Crakehall", sigil: "Lợn rừng nâu trên nền bạc", words: "Không có kẻ nào dũng mãnh hơn", seat: "Crakehall", region: "Phương Tây", themeColor: { primary: "#5a4a3a", secondary: "#3a2a2a" } },
   { id: "farman", name: "Nhà Farman", schemaName: "Farman", sigil: "Ba tàu trên sóng bạc", words: "Gió ấm đưa ta đi", seat: "Faircastle", region: "Phương Tây", themeColor: { primary: "#3a5a7a", secondary: "#2a3a5a" } },
   { id: "marbrand", name: "Nhà Marbrand", schemaName: "Marbrand", sigil: "Cây lửa cháy trên nền tro", words: "Lửa cháy không tắt", seat: "Ashemark", region: "Phương Tây", themeColor: { primary: "#8a5a2a", secondary: "#5a3a1a" } },
+  { id: "clegane", name: "Nhà Clegane", schemaName: "Clegane", sigil: "Ba chó săn đen trên nền vàng", words: "Không rõ trong chính sử", seat: "Clegane's Keep", region: "Phương Tây", themeColor: { primary: "#8b7837", secondary: "#30302d" }, activeFromYear: 250 },
+  { id: "reyne", name: "Nhà Reyne", schemaName: "Reyne", sigil: "Sư tử đỏ trên nền bạc", words: "Không rõ trong chính sử", seat: "Castamere", region: "Phương Tây", themeColor: { primary: "#8b3535", secondary: "#b8b4aa" }, activeToYear: 261 },
 
   // -- Đất Vương Thất --
   { id: "celtigar", name: "Nhà Celtigar", schemaName: "Celtigar", sigil: "Cua đỏ trên nền trắng", words: "Biển và máu Valyria", seat: "Claw Isle", region: "Đất Vương Thất", themeColor: { primary: "#8a3a3a", secondary: "#5a2a2a" } },
   { id: "stokeworth", name: "Nhà Stokeworth", schemaName: "Stokeworth", sigil: "Chiếc chuông bạc trên nền xám", words: "Trung thành và vững chãi", seat: "Stokeworth", region: "Đất Vương Thất", themeColor: { primary: "#6a6a6a", secondary: "#4a4a4a" } },
   { id: "rykker", name: "Nhà Rykker", schemaName: "Rykker", sigil: "Hai búa chiến trên nền xanh", words: "Búa nặng tay vững", seat: "Duskendale", region: "Đất Vương Thất", themeColor: { primary: "#3a4a5a", secondary: "#2a3a3a" } },
   { id: "sunglass", name: "Nhà Sunglass", schemaName: "Sunglass", sigil: "Bảy mặt trời trên nền trắng", words: "Ánh sáng trong sáng", seat: "Sweetport Sound", region: "Đất Vương Thất", themeColor: { primary: "#8a8a4a", secondary: "#5a5a2a" } },
+  { id: "rosby", name: "Nhà Rosby", schemaName: "Rosby", sigil: "Dải chéo đỏ trên nền lông chồn trắng", words: "Không rõ trong chính sử", seat: "Rosby", region: "Đất Vương Thất", themeColor: { primary: "#8a4541", secondary: "#c8beb1" } },
+  { id: "massey", name: "Nhà Massey", schemaName: "Massey", sigil: "Ba xoắn ốc xanh đỏ lục", words: "Không rõ trong chính sử", seat: "Stonedance", region: "Đất Vương Thất", themeColor: { primary: "#4d6673", secondary: "#813f42" } },
 
   // -- Reach --
   { id: "redwyne", name: "Nhà Redwyne", schemaName: "Redwyne", sigil: "Chùm nho burgundy trên nền xanh", words: "Rượu ngon nhất thế giới", seat: "The Arbor", region: "Vùng Reach", themeColor: { primary: "#6a2a4a", secondary: "#4a1a3a" } },
@@ -262,6 +279,9 @@ const HOUSE_SEEDS: HouseSeed[] = [
   { id: "florent", name: "Nhà Florent", schemaName: "Florent", sigil: "Đầu cáo đỏ nở hoa", words: "Tai cáo nghe rõ", seat: "Brightwater Keep", region: "Vùng Reach", themeColor: { primary: "#7a4a2a", secondary: "#5a3a1a" } },
   { id: "caswell", name: "Nhà Caswell", schemaName: "Caswell", sigil: "Centaur vàng trên nền trắng", words: "Tốc độ chiến thắng", seat: "Bitterbridge", region: "Vùng Reach", themeColor: { primary: "#6a6a3a", secondary: "#4a4a2a" } },
   { id: "crane", name: "Nhà Crane", schemaName: "Crane", sigil: "Hạc vàng trên nền lam", words: "Vĩnh viễn trong chờ đợi", seat: "Red Lake", region: "Vùng Reach", themeColor: { primary: "#3a5a6a", secondary: "#2a3a4a" } },
+  { id: "ball", name: "Nhà Ball", schemaName: "Ball", sigil: "Ba đĩa trắng trên dải chữ V đỏ", words: "Không rõ trong chính sử", seat: "Không rõ", region: "Vùng Reach", themeColor: { primary: "#93423e", secondary: "#d1c7b9" } },
+  { id: "webber", name: "Nhà Webber", schemaName: "Webber", sigil: "Nhện đen trên mạng bạc", words: "Không rõ trong chính sử", seat: "Coldmoat", region: "Vùng Reach", themeColor: { primary: "#414549", secondary: "#aaa49a" } },
+  { id: "osgrey", name: "Nhà Osgrey", schemaName: "Osgrey", sigil: "Sư tử xanh-vàng kẻ ô", words: "Không rõ trong chính sử", seat: "Standfast", region: "Vùng Reach", themeColor: { primary: "#656b69", secondary: "#4f695b" } },
 
   // -- Vùng Bão --
   { id: "connington", name: "Nhà Connington", schemaName: "Connington", sigil: "Hai chim ưng đỏ chiến đấu trên nền trắng", words: "Một cánh tay đỏ", seat: "Griffin's Roost", region: "Vùng Bão", themeColor: { primary: "#7a2a2a", secondary: "#5a1a1a" } },
@@ -271,6 +291,10 @@ const HOUSE_SEEDS: HouseSeed[] = [
   { id: "penrose", name: "Nhà Penrose", schemaName: "Penrose", sigil: "Hai quill vàng trên nền cam", words: "Viết bằng máu", seat: "Parchments", region: "Vùng Bão", themeColor: { primary: "#6a5a2a", secondary: "#8a7a4a" } },
   { id: "estermont", name: "Nhà Estermont", schemaName: "Estermont", sigil: "Rùa biển xanh trên nền xanh lá", words: "Biển nuôi sống", seat: "Greenstone", region: "Vùng Bão", themeColor: { primary: "#2a5a4a", secondary: "#1a3a3a" } },
   { id: "wylde", name: "Nhà Wylde", schemaName: "Wylde", sigil: "Vương miện xanh bão trên sóng", words: "Sóng gào ta vẫn đứng", seat: "Rain House", region: "Vùng Bão", themeColor: { primary: "#3a4a5a", secondary: "#2a3a4a" } },
+  { id: "cole", name: "Nhà Cole", schemaName: "Cole", sigil: "Mười viên than đen trên nền đỏ", words: "Không rõ trong chính sử", seat: "Không rõ", region: "Vùng Bão", themeColor: { primary: "#5b302e", secondary: "#242424" } },
+  { id: "selmy", name: "Nhà Selmy", schemaName: "Selmy", sigil: "Ba bông lúa vàng trên nền nâu", words: "Không rõ trong chính sử", seat: "Harvest Hall", region: "Vùng Bão", themeColor: { primary: "#876d33", secondary: "#4b3524" } },
+  { id: "seaworth", name: "Nhà Seaworth", schemaName: "Seaworth", sigil: "Thuyền đen với củ hành trên buồm xám", words: "Không rõ trong chính sử", seat: "Cape Wrath", region: "Vùng Bão", themeColor: { primary: "#556773", secondary: "#292f35" }, activeFromYear: 283 },
+  { id: "lonmouth", name: "Nhà Lonmouth", schemaName: "Lonmouth", sigil: "Hai sọ môi đỏ trên nền vàng đen", words: "Lựa Chọn Của Ta", seat: "Skull Valley", region: "Vùng Bão", themeColor: { primary: "#8b3b3e", secondary: "#5d522d" } },
 
   // -- Dorne --
   { id: "dayne", name: "Nhà Dayne", schemaName: "Dayne", sigil: "Ngôi sao rơi bạc trên nền tím", words: "Thanh kiếm Bình Minh", seat: "Starfall", region: "Dorne", themeColor: { primary: "#5a3a6a", secondary: "#3a2a4a" } },
@@ -308,6 +332,31 @@ export const HOUSES_DATA: HouseData[] = HOUSE_SEEDS.map((seed) => {
 });
 
 export const HOUSES_BY_ID: Record<string, HouseData> = Object.fromEntries(HOUSES_DATA.map((h) => [h.id, h]));
+
+/** Giá trị hợp lệ trong hồ sơ nhân vật nhưng không đại diện cho một gia tộc. */
+export const NON_HOUSE_AFFILIATIONS = new Set(["Không Nhà", "Khác"]);
+
+function houseLookupKey(value: string): string {
+  return value.trim().toLocaleLowerCase("vi").replace(/^nhà\s+/, "");
+}
+
+/**
+ * Alias schemaName/tên hiển thị → id chuẩn. CanonCharacter lưu `Stark`, trong
+ * khi bản đồ và chủ quyền dùng `stark`; mọi tầng dữ liệu phải đi qua cùng một
+ * phép phân giải thay vì tự gọi `toLowerCase()`.
+ */
+export const HOUSE_ID_ALIASES: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(HOUSES_DATA.flatMap((house) => {
+    const aliases = [house.id, house.schemaName, house.name];
+    return aliases.map((alias) => [houseLookupKey(alias), house.id]);
+  })),
+);
+
+export function resolveHouseId(value: string | null | undefined): string | undefined {
+  if (!value || NON_HOUSE_AFFILIATIONS.has(value.trim())) return undefined;
+  const id = HOUSE_ID_ALIASES[houseLookupKey(value)];
+  return id && HOUSES_BY_ID[id] ? id : undefined;
+}
 
 export function housesForContinent(
   continentId: string,

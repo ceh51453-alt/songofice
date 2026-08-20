@@ -29,17 +29,17 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
       "Ngựa": 4,
       "Thép Valyria": 0
     }, startingHookIds: [],
-    father: "daeron-ii-targaryen", mother: "myriah-martell",
+    father: "daeron-ii", mother: "myriah-martell",
     spouse: "jena-dondarrion",
     children: ["valarr-targaryen", "matarys-targaryen"],
     siblings: ["aerys-i-targaryen", "rhaegel-targaryen", "maekar-i-targaryen"],
     allies: ["maekar-i-targaryen"],
     rivals: ["daemon-blackfyre"],
-    liege: "daeron-ii-targaryen",
+    liege: "daeron-ii",
     relationshipDetails: {
       "daemon-blackfyre": { type: "Kẻ Thù", trust: 0, affinity: 20, detail: "Người anh em tầng khác cha. Baelor kính trọng khả năng chiến đấu của Daemon nhưng không thể tha thứ sự phản loạn." },
       "maekar-i-targaryen": { type: "Em Trai", trust: 90, affinity: 80, detail: "Em trai ít nói nhưng trung thành. Tại Cánh Đồng Cỏ Đỏ, Maekar dẫn quân đánh bọc sườn cứu Baelor." },
-      "daeron-ii-targaryen": { type: "Cha", trust: 100, affinity: 100, detail: "Baelor là niềm tự hào lớn nhất của Daeron II. Mọi người đều tin Baelor sẽ là một vị vua vĩ đại." }
+      "daeron-ii": { type: "Cha", trust: 100, affinity: 100, detail: "Baelor là niềm tự hào lớn nhất của Daeron II. Mọi người đều tin Baelor sẽ là một vị vua vĩ đại." }
     },
     personalHooks: [
       { id: "baelor-redgrass", title: "Cánh Đồng Cỏ Đỏ", year: "196 AC", numericYear: 196, desc: "Ngươi dẫn đầu đội quân Dorne và Stormlands đánh bọc sườn phiến quân Blackfyre. Chiến thắng hay thảm bại phụ thuộc vào nhát chùy của ngươi." }
@@ -84,13 +84,13 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
       "Ngựa": 4,
       "Thép Valyria": 0
     }, startingHookIds: [],
-    father: "daeron-ii-targaryen", mother: "myriah-martell",
+    father: "daeron-ii", mother: "myriah-martell",
     spouse: "dyanna-dayne",
     children: ["daeron-the-drunken", "aerion-brightflame", "aemon-targaryen", "aegon-v-targaryen", "daella-targaryen", "rhae-targaryen"],
     siblings: ["baelor-breakspear"],
     allies: ["baelor-breakspear"],
     rivals: ["daemon-blackfyre"],
-    liege: "daeron-ii-targaryen",
+    liege: "daeron-ii",
     relationshipDetails: {
       "baelor-breakspear": { type: "Anh Trai", trust: 80, affinity: 70, detail: "Maekar kính trọng Baelor nhưng ghen tị với sự hoàn hảo của anh. Bi kịch là Maekar vô tình giết Baelor tại Ashford." },
       "daemon-blackfyre": { type: "Kẻ Thù", trust: 0, affinity: 0, detail: "Kẻ phản loạn phải bị nghiền nát. Maekar là cái đe chắn đứng Bước Tiến của phản quân." }
@@ -138,12 +138,12 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
       "Thép Valyria": 0
     }, startingHookIds: [],
     father: "aegon-iv-targaryen", mother: "serenei-of-lys",
-    siblings: ["daemon-blackfyre", "aegor-rivers", "brynden-rivers"],
-    allies: ["brynden-rivers"],
+    siblings: ["daemon-blackfyre", "bittersteel", "bloodraven"],
+    allies: ["bloodraven"],
     rivals: [],
     relationshipDetails: {
-      "brynden-rivers": { type: "Người Tình", trust: 80, affinity: 80, detail: "Bloodraven yêu Shiera điên cuồng. Cô nhận tình yêu của anh nhưng không bao giờ thuộc về ai." },
-      "aegor-rivers": { type: "Đối Thủ", trust: 20, affinity: 30, detail: "Bittersteel cũng yêu Shiera, và sự từ chối của cô làm sâu thêm mối hận giữa Bittersteel và Bloodraven." }
+      "bloodraven": { type: "Người Tình", trust: 80, affinity: 80, detail: "Bloodraven yêu Shiera điên cuồng. Cô nhận tình yêu của anh nhưng không bao giờ thuộc về ai." },
+      "bittersteel": { type: "Đối Thủ", trust: 20, affinity: 30, detail: "Bittersteel cũng yêu Shiera, và sự từ chối của cô làm sâu thêm mối hận giữa Bittersteel và Bloodraven." }
     },
     personalHooks: [
       { id: "shiera-choice", title: "Lựa Chọn Của Ngôi Sao", year: "196 AC", numericYear: 196, desc: "Cả Bloodraven và Bittersteel đều cầu xin tình yêu của ngươi trước khi họ ra trận để chém giết lẫn nhau." }
@@ -189,7 +189,7 @@ export const blackfyreRebellionCharacters: CanonCharacter[] = [
     }, startingHookIds: [],
     allies: ["daeron-ii", "baelor-breakspear"],
     rivals: ["daemon-blackfyre"],
-    liege: "daeron-ii-targaryen",
+    liege: "daeron-ii",
     courtPosition: "Vệ Vương",
     relationshipDetails: {
       "daemon-blackfyre": { type: "Kẻ Thù", trust: 0, affinity: 30, detail: "Cuộc đấu tay đôi huyền thoại. Gwayne kính trọng kiếm thuật của Daemon nhưng không lay chuyển lòng trung thành." },

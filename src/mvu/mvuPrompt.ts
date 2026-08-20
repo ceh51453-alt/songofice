@@ -154,7 +154,7 @@ Nếu lượt này KHÔNG có gì thay đổi (chỉ đối thoại xã giao), t
   hậu cần, ngày tập hợp, hạn nghĩa vụ, lòng trung chư hầu. NGƯƠI KHÔNG GHI THẲNG vào
   stat_data."Biên Chế Quân Sự", "Chư Hầu" hay "Đội Đánh Thuê". Muốn có thay đổi quân sự thì
   PHÁT THẺ (xem mục THẺ NỘI DUNG ĐẶC BIỆT): <recruit>, <banner_call>, <sellsword_offer>,
-  <army_order>, <dragon_order>. Cỗ máy kiểm tra luật (có Doanh Trại không, đủ vàng không,
+  <army_order>, <siege_update>, <dragon_order>. Cỗ máy kiểm tra luật (có Doanh Trại không, đủ vàng không,
   chư hầu có chịu tới không) rồi mới cho phép — nên đừng kể như thể quân đã có sẵn trong tay.
   Ngươi ĐƯỢC ghi "Ghi Chú" của một đơn vị (biệt danh đội quân, quân kỳ, lai lịch).
 - TƯƠNG TÁC RỒNG VÀ TRỨNG: NGƯƠI KHÔNG được ghi trực tiếp kỵ sĩ, độ hảo cảm, mức/trạng thái thuần hóa của rồng — lời kể không thể quyết định rồng có nghe lời hay không. Khi nhân vật thực hiện một diễn biến cảm hóa cụ thể, phát <dragon_order action="tame" dragon="tên rồng" rider="tên người" method="feeding|patience|rescue|ritual">mô tả diễn biến tối thiểu 80 ký tự, không tự khẳng định kết quả</dragon_order>. Engine kiểm tra thời gian chờ, tình trạng rồng và tung xác suất; chỉ engine mới có thể tạo liên kết hoặc gán kỵ sĩ. Vẫn được cập nhật Tình Trạng Trứng ("Hóa Đá", "Đang Ấp", "Nứt Vỏ") theo diễn biến.
@@ -274,7 +274,14 @@ viết bình thường, không JSON):
 - ĐIỀU QUÂN (hành quân, vây thành, giải ngũ — theo diễn biến lời kể):
   <army_order unit="tên đơn vị trong biên chế" action="march|siege|disband"
     target="regionId đích (march/siege)">bối cảnh mệnh lệnh</army_order>
-  Cỗ máy tính số ngày hành quân theo khoảng cách và tốc độ binh chủng. Đừng tự nói quân tới nơi ngay.
+  Cỗ máy tính số ngày hành quân theo khoảng cách và tốc độ binh chủng. Lệnh siege LUÔN đi qua ba bước:
+  hành quân tới vùng đích → dựng trại/đào hào vài ngày → mới bắt đầu vây. Đừng tự nói quân tới nơi hoặc thành
+  đã bị vây ngay trong lúc vừa ban lệnh. Mỗi lượt sau, số ngày ngươi báo ở Thế Giới.Ngày sẽ TỰ làm quân tiến bước.
+  Khi lời kể tập trung vào diễn biến này, bọc phần tường thuật bằng thẻ hiển thị:
+  <siege_update unit="tên đơn vị" target="thành/vùng" phase="march|camp|siege" days="số ngày vừa trôi">
+  diễn biến hành quân, dựng trại hoặc công thủ</siege_update>
+  Thẻ siege_update KHÔNG tự quyết định kết quả; cỗ máy dùng thời gian đã báo để tính. Luôn đọc trạng thái quân
+  hiện tại trước khi kể: nếu còn hành quân thì không được kể đã dựng trại; nếu còn dựng trại thì chưa được kể công thành.
 - ĐIỀU RỒNG (rồng có bảng riêng, KHÔNG nằm trong biên chế bộ binh):
   <dragon_order dragon="tên rồng" action="fly|feed|rest" target="regionId (fly/feed)">bối cảnh</dragon_order>
   Cảm hóa chỉ là một lời thỉnh cầu tới engine, không phải lệnh: <dragon_order dragon="tên rồng" action="tame" rider="tên người" method="feeding|patience|rescue|ritual">diễn biến dài, cụ thể, không kể sẵn kết quả</dragon_order>.

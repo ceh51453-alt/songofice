@@ -17,11 +17,12 @@ import { callBanners, dismissVassal, type BannerResponse } from "../strategy/mus
 import { attemptDragonTaming, flyDragon, feedDragon, type DragonTamingContext } from "../strategy/dragons";
 import { addSellswordOffer } from "../strategy/sellswords";
 import type { MilitaryTagType } from "../ui/tags/parseNarrative";
-import { startSiege, declareWar, makePeace, adjustWarScore } from "../strategy/war";
+import { orderSiege, declareWar, makePeace, adjustWarScore } from "../strategy/war";
 import { amphibiousLandingOps, blockadeOps } from "../combat/naval";
 import type { TroopTypeAll } from "../content/westeros/troopTypes";
 import type { ArmyBranch } from "../mvu/schema";
 import { REGIONS_BY_ID } from "../content/westeros/regions";
+import { strongholdForState } from "../territory/territoryEngine";
 import { createLogger } from "../lib/log";
 
 const log = createLogger("military");
@@ -67,7 +68,13 @@ interface MilitaryState {
   tameDragon: (dragonKey: string, riderName?: string, context?: DragonTamingContext) => { ok: boolean; tamed?: boolean; progress?: number; chance?: number; error?: string };
 
   moveUnit: (unitName: string, targetTerritoryId: string) => { ok: boolean; error?: string; days?: number };
-  siege: (unitName: string, targetTerritoryId: string) => { ok: boolean; error?: string };
+  siege: (unitName: string, targetTerritoryId: string) => {
+    ok: boolean;
+    error?: string;
+    marchDays?: number;
+    setupDays?: number;
+    daysToStart?: number;
+  };
   setWar: (houseId: string, atWar: boolean) => void;
   bumpWarScore: (houseId: string, delta: number) => void;
 
@@ -174,13 +181,26 @@ export const useMilitaryStore = create<MilitaryState>()((set) => ({
   },
 
   siege: (unitName, targetTerritoryId) => {
-    const r = startSiege(useMvuStore.getState().stat, unitName, targetTerritoryId);
+    const stat = useMvuStore.getState().stat;
+    const r = orderSiege(stat, unitName, targetTerritoryId);
     if (!r.ok) return { ok: false, error: r.error };
     applyEngineOps(r.ops);
     set({ moveMode: false, selectedUnit: null });
     const region = REGIONS_BY_ID[targetTerritoryId];
-    pushEvent(`Ngươi khởi binh vây ${region?.name ?? targetTerritoryId}.`, "territory");
-    return { ok: true };
+    const stronghold = strongholdForState(stat, targetTerritoryId);
+    const targetName = stronghold?.name ?? region?.name ?? targetTerritoryId;
+    pushEvent(
+      r.marchDays
+        ? `${unitName} lên đường tới ${targetName}; dự kiến ${r.marchDays} ngày hành quân và ${r.setupDays} ngày dựng trại vây.`
+        : `${unitName} bắt đầu dựng trại quanh ${targetName}; cần ${r.setupDays} ngày để khép vòng vây.`,
+      "military",
+    );
+    return {
+      ok: true,
+      marchDays: r.marchDays,
+      setupDays: r.setupDays,
+      daysToStart: r.daysToStart,
+    };
   },
 
   setWar: (houseId, atWar) => applyEngineOps(atWar ? declareWar(houseId) : makePeace(houseId)),
@@ -241,7 +261,11 @@ export const useMilitaryStore = create<MilitaryState>()((set) => ({
             notes.push(r.ok ? `Giải ngũ ${unit}` : `Giải ngũ thất bại: ${r.error}`);
           } else if (action === "siege") {
             const r = store.siege(unit, a.target || "");
-            notes.push(r.ok ? `${unit} khởi binh vây ${a.target}` : `Vây thành thất bại: ${r.error}`);
+            notes.push(
+              r.ok
+                ? `${unit} nhận lệnh vây ${a.target}; vòng vây hình thành sau khoảng ${r.daysToStart} ngày`
+                : `Vây thành thất bại: ${r.error}`,
+            );
           } else {
             const r = store.moveUnit(unit, a.target || "");
             notes.push(r.ok ? `${unit} hành quân tới ${a.target} (${r.days} ngày)` : `Điều quân thất bại: ${r.error}`);

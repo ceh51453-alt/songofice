@@ -258,7 +258,7 @@ export function EconomyPanel() {
 
         {holdings.length > 0 && (
           <section className="glass-panel mb-4 overflow-x-auto rounded-xl p-4">
-            <p className="mb-3 text-[11px] uppercase tracking-wider text-[var(--text-faint)]">Tài Nguyên Lãnh Địa</p>
+            <p className="mb-3 text-[11px] uppercase tracking-wider text-[var(--text-faint)]">Kho Thành Trì & Đất Trực Thuộc</p>
             <table className="w-full text-[12px]">
               <thead>
                 <tr className="border-b border-[var(--glass-border)] text-left text-[var(--text-faint)]">

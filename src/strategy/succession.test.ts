@@ -11,6 +11,7 @@ import {
   successionOrder, reconcileSuccessionOps, setSuccessionLawOps, designateHeirOps,
   marriageOps, proposeBetrothalOps, acceptBetrothalOps, rejectBetrothalOps,
   successionCrisisInfo, tickSuccession,
+  setFamilyBranchOps, assignFamilyDutyOps, recommendHeirFromStory,
 } from "./succession";
 
 const fm = (name: string, gioi: "Nam" | "Nữ", tuoi: number, vo = 30) =>
@@ -48,6 +49,31 @@ describe("Thứ tự kế vị theo luật (13.4)", () => {
 });
 
 describe("Đồng bộ heir + đổi luật (13.4)", () => {
+  it("giáng dòng phụ loại khỏi kế vị; chỉ định lại sẽ tự nâng dòng chính", () => {
+    const s = famState("Trưởng Nam");
+    const demoted = applyPatch(s, setFamilyBranchOps(s, "Robb", "Dòng Phụ")).state;
+    expect(demoted["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["Robb"]["Nhánh Gia Tộc"]).toBe("Dòng Phụ");
+    expect(demoted["Gia Tộc Học"]["Thứ Tự Kế Vị"]).not.toContain("Robb");
+    const restored = applyPatch(demoted, designateHeirOps(demoted, "Robb")).state;
+    expect(restored["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["Robb"]["Nhánh Gia Tộc"]).toBe("Dòng Chính");
+    expect(restored["Gia Tộc Học"]["Người Thừa Kế Hiện Tại"]).toBe("Robb");
+  });
+
+  it("ghi nhiệm vụ hậu duệ và gợi ý thừa kế từ diễn biến", () => {
+    const s = famState("Trưởng Nam");
+    s["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["Arya"]["Ký Ức"] = [{
+      "Sự Việc": "Arya cứu Winterfell trong một cuộc đột kích",
+      "Cảm Xúc": "Ngưỡng Mộ",
+      "Trọng Số": 100,
+      "Ngày": 1,
+      "Tháng": 1,
+    }];
+    const assigned = applyPatch(s, assignFamilyDutyOps(s, "Arya", "Ra Trận", "The Twins")).state;
+    expect(assigned["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["Arya"]["Nhiệm Vụ Gia Tộc"]).toBe("Ra Trận");
+    expect(assigned["Mối Quan Hệ"]["Thành Viên Gia Tộc"]["Arya"]["Mục Tiêu Nhiệm Vụ"]).toBe("The Twins");
+    expect(recommendHeirFromStory(s)?.evidence).toContain("Arya cứu Winterfell trong một cuộc đột kích");
+  });
+
   it("reconcile: Người Thừa Kế Hiện Tại + cờ NPC cập nhật", () => {
     const s = famState("Trưởng Nam");
     const { state } = applyPatch(s, reconcileSuccessionOps(s));

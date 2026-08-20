@@ -41,6 +41,7 @@ import {
 import { EXCHANGE_RATES } from "../economy/currency";
 import { TAX_BRACKETS, grossProduct } from "../economy/taxation";
 import { clamp } from "../mvu/helpers";
+import { demesneEffects, demesneEffectsForHolding } from "../strategy/feudalManagement";
 
 export interface BuildResult {
   ok: boolean;
@@ -175,7 +176,8 @@ export function startConstruction(
   }
 
   const decreeEff = combineDecrees(territory["Pháp Lệnh"]);
-  const days = buildingDays(type, nextLevel, Math.min(0.6, adminSpeedup(territory) + decreeEff.buildSpeed));
+  const focusEff = demesneEffects(state, territoryId);
+  const days = buildingDays(type, nextLevel, Math.min(0.6, adminSpeedup(territory) + decreeEff.buildSpeed + focusEff.buildSpeed));
   const ops: PatchOp[] = [];
   if (cost["Ngân Khố"]) ops.push({ op: "delta", path: "stat_data.Thông Tin Nhân Vật.Ngân Khố", value: -(cost["Ngân Khố"] ?? 0) });
   for (const k of Object.keys(cost)) {
@@ -383,14 +385,16 @@ function baseProduction(territoryId: string, territory: Holding, month = 1): Rec
   const land = landYield(territoryId, territory);
   const kt = loyaltyFactor(territory);
   const eff = combineDecrees(territory["Pháp Lệnh"]);
+  const focusEff = demesneEffectsForHolding(territory);
 
   const out = emptyStock();
   out["Lương Thực"] = Math.round(
-    (Math.round(pop * 0.008) + land["Lương Thực"]) * seasonFactor(month) * kt * eff.foodMult,
+    (Math.round(pop * 0.008) + land["Lương Thực"]) * seasonFactor(month) * kt * eff.foodMult * focusEff.foodMult,
   );
-  out["Gỗ"] = Math.round((8 + land["Gỗ"]) * kt * eff.miningMult);
-  out["Đá"] = Math.round((5 + land["Đá"]) * kt * eff.miningMult);
-  out["Quặng Sắt"] = Math.round((2 + land["Quặng Sắt"]) * kt * eff.miningMult);
+  out["Gỗ"] = Math.round((8 + land["Gỗ"]) * kt * eff.miningMult * focusEff.woodMult);
+  out["Đá"] = Math.round((5 + land["Đá"]) * kt * eff.miningMult * focusEff.stoneMult);
+  out["Quặng Sắt"] = Math.round((2 + land["Quặng Sắt"]) * kt * eff.miningMult * focusEff.oreMult);
+  out["Ngựa"] = Math.round((pop / 1000) * focusEff.horsesPerThousand);
   return out;
 }
 
@@ -571,13 +575,14 @@ export function estimateTerritoryYield(
 ): Record<ResourceKey, number> & { "Lòng Dân": number } {
   const base = baseProduction(territoryId, territory, month);
   const eff = combineDecrees(territory["Pháp Lệnh"]);
+  const focusEff = demesneEffectsForHolding(territory);
   const report = analysePopulation(territory);
   const out: Record<ResourceKey, number> & { "Lòng Dân": number } = {
     ...base,
-    "Lòng Dân": eff.loyaltyPerMonth + socialMood(report),
+    "Lòng Dân": eff.loyaltyPerMonth + focusEff.loyaltyPerMonth + socialMood(report),
   };
   // thuế thu trên đất này — phần chính của dòng tiền một lãnh địa mang lại
-  out["Ngân Khố"] += Math.round(grossProduct(territory) * taxRate * eff.taxMult);
+  out["Ngân Khố"] += Math.round(grossProduct(territory) * taxRate * eff.taxMult * focusEff.goldMult);
 
   for (const led of buildingLedgers(territoryId, territory, report)) {
     for (const [k, v] of Object.entries(led.consume)) addTo(out, k, -v);
@@ -661,7 +666,7 @@ export function tickTerritoryIncome(state: StatData): void {
     }
 
     const eff: CombinedDecreeEffect = combineDecrees(territory["Pháp Lệnh"]);
-    loyaltyGain += eff.loyaltyPerMonth + socialMood(report);
+    loyaltyGain += eff.loyaltyPerMonth + demesneEffectsForHolding(territory).loyaltyPerMonth + socialMood(report);
 
     // 2. công trình — sản lượng theo NHÂN LỰC × TRỮ LƯỢNG MẠCH, và mạch cạn dần
     for (const led of buildingLedgers(territoryId, territory, report)) {

@@ -22,6 +22,7 @@ function Bubble({ role, children, stopped }: { role: "user" | "assistant"; child
   return (
     <div className={`anim-in flex ${role === "user" ? "justify-end" : "justify-start"}`}>
       <div
+        data-i18n-skip
         className={`glass max-w-[92%] px-4 py-2.5 text-[15px] leading-relaxed sm:max-w-[80%] ${
           role === "user" ? "border-[var(--accent-border)] bg-[var(--accent-soft)] whitespace-pre-wrap" : "bg-[var(--glass-bg)]"
         }`}
@@ -171,7 +172,7 @@ function EditableUserBubble({ msg, index, displayContent, busy }: { msg: UiChatM
   return (
     <div className="anim-in flex justify-end">
       <div className="relative flex max-w-[92%] flex-col items-end sm:max-w-[80%]">
-        <div className="glass w-full border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
+        <div data-i18n-skip className="glass w-full border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap">
           {displayContent}
         </div>
         {!busy && (
@@ -258,7 +259,7 @@ export function ChatScreen() {
                   {draftReasoning}
                 </div>
               )}
-              <span className="whitespace-pre-wrap">{draft}</span>
+              <span data-i18n-skip className="whitespace-pre-wrap">{draft}</span>
               <span className="anim-pulse ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 bg-[var(--accent-text)]" />
             </Bubble>
           )}

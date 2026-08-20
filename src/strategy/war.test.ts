@@ -5,8 +5,25 @@
 import { describe, expect, it } from "vitest";
 import { makeDefaultState, StatDataSchema, type StatData } from "../mvu/schema";
 import { applyPatch } from "../mvu/patchEngine";
-import { seedRegionControl, regionController } from "../territory/territoryEngine";
-import { declareWar, adjustWarScore, warScoreForOutcome, startSiege, tickSiege } from "./war";
+import {
+  provinceControlStatus,
+  seedRegionControl,
+  regionController,
+  strongholdController,
+} from "../territory/territoryEngine";
+import { canonicalSettlementPopulation } from "../territory/geographyRuntime";
+import { strongholdsForProvince } from "../content/westeros/strongholds";
+import {
+  declareWar,
+  adjustWarScore,
+  warScoreForOutcome,
+  startSiege,
+  orderSiege,
+  tickSiege,
+  tickSiegeOrders,
+  SIEGE_SETUP_DAYS,
+} from "./war";
+import { tickArmy } from "./army";
 
 function starkLord(): StatData {
   const s = makeDefaultState();
@@ -41,7 +58,7 @@ describe("Vây thành (12.2)", () => {
     // quân người chơi mở vây Vùng Sông (Tully)
     let state = applyPatch(s, [{
       op: "replace", path: "stat_data.Biên Chế Quân Sự.Đại quân Bắc",
-      value: { "Số Lượng": 8000, "Loại Quân": "Bộ Binh", "Lãnh Địa Đồn Trú": "the-north" },
+      value: { "Số Lượng": 8000, "Loại Quân": "Bộ Binh", "Lãnh Địa Đồn Trú": "the-riverlands" },
     }]).state;
     const siege = startSiege(state, "Đại quân Bắc", "the-riverlands");
     expect(siege.ok).toBe(true);
@@ -53,6 +70,15 @@ describe("Vây thành (12.2)", () => {
     expect(regionController(state, "the-riverlands")).toBe("stark"); // Stark là phe vây
     expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Là Của Người Chơi"]).toBe(true);
     expect(state["Lãnh Địa"]["the-riverlands-seat"]).toBeDefined(); // mở quản lý thành trì
+    expect(state["Lãnh Địa"]["the-riverlands-seat"]["Dân Số"]).toBe(
+      canonicalSettlementPopulation(
+        "the-riverlands-seat",
+        "Riverrun",
+        "the-riverlands",
+        "war-of-five-kings",
+        20_000,
+      ),
+    );
     // War Score với Nhà thủ (Tully) tăng cho ta
     expect(state["Quan Hệ Ngoại Giao"]["tully"]["War Score"]).toBeGreaterThan(0);
   });
@@ -88,5 +114,63 @@ describe("Vây thành (12.2)", () => {
       value: { "Số Lượng": 1000, "Loại Quân": "Bộ Binh", "Lãnh Địa Đồn Trú": "the-north" },
     }]).state;
     expect(startSiege(state, "Quân ta", "the-north").ok).toBe(false);
+  });
+
+  it("ra lệnh từ xa: phải hành quân rồi dựng trại đủ ngày, không bật vây tức thời", () => {
+    const s = starkLord();
+    let state = applyPatch(s, [{
+      op: "replace", path: "stat_data.Biên Chế Quân Sự.Đại quân hành vây",
+      value: {
+        "Số Lượng": 6000,
+        "Loại Quân": "Bộ Binh",
+        "Lãnh Địa Đồn Trú": "the-north",
+        "Ngày Tập Hợp Còn Lại": 0,
+        "Ngày Huấn Luyện": 0,
+        "Lương Thực Mang Theo": 90,
+      },
+    }]).state;
+
+    const order = orderSiege(state, "Đại quân hành vây", "the-riverlands");
+    expect(order.ok).toBe(true);
+    expect(order.marchDays).toBeGreaterThan(0);
+    expect(order.setupDays).toBe(SIEGE_SETUP_DAYS);
+    state = applyPatch(state, order.ops).state;
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["_Vây"]).toBeUndefined();
+    expect(state["Biên Chế Quân Sự"]["Đại quân hành vây"]["Lệnh Vây Khi Đến"]).toBeTruthy();
+
+    for (let day = 0; day < (order.daysToStart ?? 1) - 1; day += 1) {
+      tickArmy(state);
+      tickSiegeOrders(state);
+    }
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["_Vây"]).toBeUndefined();
+    tickArmy(state);
+    tickSiegeOrders(state);
+    expect(state["Biên Chế Quân Sự"]["Đại quân hành vây"]["Lãnh Địa Đồn Trú"]).toBe("the-riverlands");
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["Tình Trạng"]).toBe("Bị Vây");
+  });
+
+  it("vây một thành phụ chỉ đổi chủ thành đó, không lật cả province và sống qua save", () => {
+    const s = starkLord();
+    const target = strongholdsForProvince("the-riverlands", "war-of-five-kings")
+      .find((site) => site.source === "strategic")!;
+    let state = applyPatch(s, [{
+      op: "replace", path: "stat_data.Biên Chế Quân Sự.Quân vây Trident",
+      value: { "Số Lượng": 2200, "Loại Quân": "Bộ Binh", "Lãnh Địa Đồn Trú": "the-riverlands" },
+    }]).state;
+
+    const siege = startSiege(state, "Quân vây Trident", target.id);
+    expect(siege.ok).toBe(true);
+    state = applyPatch(state, siege.ops).state;
+    expect(state["Chủ Quyền Lãnh Thổ"]["the-riverlands"]["_Vây"]?.["Thành Trì Mục Tiêu"]).toBe(target.id);
+    for (let day = 0; day < 361; day += 1) tickSiege(state);
+
+    expect(regionController(state, "the-riverlands")).toBe("tully");
+    expect(strongholdController(state, target.id)).toBe("stark");
+    expect(state["Lãnh Địa"][target.id]).toBeDefined();
+    expect(provinceControlStatus(state, "the-riverlands", "tully").complete).toBe(false);
+
+    const reloaded = StatDataSchema.parse(structuredClone(state));
+    expect(strongholdController(reloaded, target.id)).toBe("stark");
+    expect(reloaded["Lãnh Địa"][target.id]).toBeDefined();
   });
 });

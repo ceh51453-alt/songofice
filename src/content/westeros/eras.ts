@@ -82,6 +82,18 @@ export interface CanonCharacter {
   startHoldings?: string[];
   /** Mã (regionId) các vương quốc nhân vật kiểm soát vĩ mô (vd: "the-north") */
   startRegions?: string[];
+  /**
+   * Tư cách pháp lý tại snapshot hiện tại. Chỉ `holder` được ghi
+   * quyền sở hữu thành/vùng; người thừa kế, phối ngẫu, nhiếp chính
+   * và người đòi ngôi được mô hình riêng thay vì chiếm cùng một ghế.
+   */
+  legalStatus?: CanonLegalStatus;
+  /** Nơi ở/hiện diện, không hàm ý sở hữu. */
+  residenceIds?: string[];
+  /** Vùng nhân vật tuyên bố quyền, không hàm ý đang kiểm soát. */
+  claimRegionIds?: string[];
+  /** Các thay đổi snapshot theo id của StartingHook trong cùng thời kỳ. */
+  phaseOverrides?: Record<string, CanonCharacterPhaseOverride>;
   /** Quân đội thường trực (nếu có) đóng tại thành trì đầu tiên */
   startArmy?: { size: number; quality: "Tinh Nhuệ" | "Thành Thạo" | "Mới Lập Đội" | "Rời Rạc" };
   /** Quân đội tuỳ chỉnh chuẩn lore (nếu có) */
@@ -128,6 +140,26 @@ export interface CanonCharacter {
   /** Các khoản nợ ban đầu (VD: Nợ Iron Bank) */
   startDebts?: Record<string, { amount: number; interest: number; duration: number }>;
 }
+
+export type CanonLegalStatus = "holder" | "heir" | "consort" | "regent" | "claimant" | "courtier" | "unlanded";
+
+export type CanonCharacterPhaseOverride = Partial<Pick<CanonCharacter,
+  | "tuocVi"
+  | "role"
+  | "startHoldings"
+  | "startRegions"
+  | "startArmies"
+  | "startFleets"
+  | "liege"
+  | "legalStatus"
+  | "residenceIds"
+  | "claimRegionIds"
+>> & {
+  /** `false` loại nhân vật khỏi roster runtime của snapshot này. */
+  active?: boolean;
+};
+
+export type ResolvedCanonCharacter = CanonCharacter & { active: boolean };
 
 export interface EraData {
   id: string;
@@ -270,6 +302,7 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 8000, startHoldings: ["dragonstone"],
         startRegions: [],
+        legalStatus: "holder", residenceIds: ["dragonstone"], claimRegionIds: [],
         startArmies: [
           { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 960, quality: "Tinh Nhuệ" },
           { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 240, quality: "Tinh Nhuệ" }
@@ -299,7 +332,7 @@ export const ERAS: EraData[] = [
         },
       },
       {
-        id: "visenya-targaryen", name: "Visenya Targaryen", house: "Targaryen", role: "Nữ Vương Chiến Binh", tuocVi: "Vua", religion: "Thất Diện Thần",
+        id: "visenya-targaryen", name: "Visenya Targaryen", house: "Targaryen", role: "Nữ Vương Chiến Binh", tuocVi: "Vương Hậu", religion: "Thất Diện Thần",
         blurb: "Chị cả cưỡi Vhagar — thanh Dark Sister trong tay, sắc như lời nói của bà.",
         origin: "Vương nữ Dragonstone; chị và vợ của Aegon", culture: "Valyria (Dragonstone)", bloodline: "Dòng máu rồng Valyria", continent: "Westeros",
         appearance: "Tóc bạc-vàng, mắt tím; vóc dáng nghiêm nghị, thường mang giáp và thanh Dark Sister.",
@@ -310,8 +343,9 @@ export const ERAS: EraData[] = [
           { slot: "Vũ Khí Chính", ten: "Dark Sister", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 7 }, dacTinh: ["valyrian", "gia truyền"], moTa: "Kiếm mảnh thép Valyria — dành cho tay kiếm thực thụ" },
         ],
         items: [],
-        gold: 5000, startHoldings: ["dragonstone"],
+        gold: 5000, startHoldings: [],
         startRegions: [],
+        legalStatus: "consort", residenceIds: ["dragonstone"], claimRegionIds: [],
         startArmies: [
           { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
           { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
@@ -335,7 +369,7 @@ export const ERAS: EraData[] = [
         },
       },
       {
-        id: "rhaenys-targaryen", name: "Rhaenys Targaryen", house: "Targaryen", role: "Nữ Vương Tự Do", tuocVi: "Vua", religion: "Thất Diện Thần",
+        id: "rhaenys-targaryen", name: "Rhaenys Targaryen", house: "Targaryen", role: "Nữ Vương Tự Do", tuocVi: "Vương Hậu", religion: "Thất Diện Thần",
         blurb: "Em út cưỡi Meraxes — yêu thơ ca, bay nhanh hơn gió, và không sợ gì cả.",
         origin: "Vương nữ Dragonstone; em và vợ của Aegon", culture: "Valyria (Dragonstone)", bloodline: "Dòng máu rồng Valyria", continent: "Westeros",
         appearance: "Tóc bạc-vàng, mắt tím; duyên dáng và thích trang phục, âm nhạc hơn việc triều chính.",
@@ -344,8 +378,9 @@ export const ERAS: EraData[] = [
         skills: { "war-riding": 6, "persuasion": 6, "court-etiquette": 5, "languages": 4 },
         equipment: [],
         items: [],
-        gold: 5000, startHoldings: ["dragonstone"],
+        gold: 5000, startHoldings: [],
         startRegions: [],
+        legalStatus: "consort", residenceIds: ["dragonstone"], claimRegionIds: [],
         startArmies: [
           { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
           { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
@@ -516,6 +551,7 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 6000, startHoldings: ["dragonstone"],
         startRegions: [],
+        legalStatus: "holder", residenceIds: ["dragonstone"], claimRegionIds: ["the-crownlands"],
         startArmies: [
           { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 1200, quality: "Thành Thạo" },
           { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Thành Thạo" }
@@ -550,8 +586,9 @@ export const ERAS: EraData[] = [
           { slot: "Giáp Thân", ten: "Giáp đen Targaryen", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Giáp hoàng tộc đen tuyền" },
         ],
         items: [],
-        gold: 5000, startHoldings: ["dragonstone"],
+        gold: 5000, startHoldings: [],
         startRegions: [],
+        legalStatus: "consort", residenceIds: ["dragonstone"], claimRegionIds: [],
         startArmies: [
           { name: "Lính Kích Đỉnh Aegon", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
           { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
@@ -587,6 +624,7 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 7000, startHoldings: ["the-crownlands-seat"],
         startRegions: ["the-crownlands"],
+        legalStatus: "holder", residenceIds: ["the-crownlands-seat"], claimRegionIds: ["the-crownlands"],
         startArmies: [
           { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 2400, quality: "Thành Thạo" },
           { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 600, quality: "Thành Thạo" }
@@ -620,8 +658,9 @@ export const ERAS: EraData[] = [
           { slot: "Vũ Khí Chính", ten: "Kiếm thép dài", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 6 }, moTa: "Kiếm tốt rèn cho hoàng tử" },
         ],
         items: [],
-        gold: 3000, startHoldings: ["the-crownlands-seat"],
+        gold: 3000, startHoldings: [],
         startRegions: [],
+        legalStatus: "courtier", residenceIds: ["the-crownlands-seat"], claimRegionIds: [],
         startArmies: [
           { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 1200, quality: "Thành Thạo" },
           { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 300, quality: "Thành Thạo" }
@@ -643,7 +682,7 @@ export const ERAS: EraData[] = [
         },
       },
       {
-        id: "corlys-velaryon", name: "Corlys Velaryon", house: "Velaryon", role: "Rắn Biển", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
+        id: "corlys-velaryon", name: "Corlys Velaryon", house: "Velaryon", role: "Rắn Biển", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Chúa tể biển khơi, người giàu nhất Westeros, chỉ huy hạm đội khổng lồ nhất lịch sử lục địa.",
         origin: "Lãnh chúa Driftmark, thủ lĩnh Nhà Velaryon", culture: "Valyria", bloodline: "Dòng Velaryon cổ", continent: "Westeros",
         appearance: "Thuỷ thủ giàu có và từng trải, mang dấu vết của những chuyến hải hành xa xôi cùng phong thái một đại lãnh chúa.",
@@ -692,7 +731,7 @@ export const ERAS: EraData[] = [
         rivals: ["rhaenyra-targaryen", "harwin-strong"],
       },
       {
-        id: "alicent-hightower", name: "Alicent Hightower", house: "Hightower", role: "Thái Hậu Xanh", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
+        id: "alicent-hightower", name: "Alicent Hightower", house: "Hightower", role: "Thái Hậu Xanh", tuocVi: "Thái Hậu", religion: "Thất Diện Thần",
         blurb: "Con gái Cánh Tay Phải, vợ thứ của Viserys. Nàng thề sẽ đưa huyết mạch mình lên ngai vàng bằng mọi giá.",
         origin: "Con gái Otto Hightower ở Oldtown; hoàng hậu góa của Viserys I", culture: "Andal (Reach)", bloodline: "Nhà Hightower", continent: "Westeros",
         appearance: "Tóc nâu đỏ, dáng vẻ mộ đạo và đoan trang; mặc màu xanh của phe mình tại triều đình.",
@@ -701,8 +740,9 @@ export const ERAS: EraData[] = [
         skills: { "court-etiquette": 9, "persuasion": 8, "cunning": 7, "maester-medicine": 5 },
         equipment: [],
         items: [{ ten: "Dấu ấn Hightower", soLuong: 1, moTa: "Biểu tượng quyền lực gia tộc Hightower" }],
-        gold: 4000, startHoldings: ["the-crownlands-seat"],
+        gold: 4000, startHoldings: [],
         startRegions: [],
+        legalStatus: "regent", residenceIds: ["the-crownlands-seat"], claimRegionIds: [],
         startingHookIds: ["green-coronation"],
         father: "otto-hightower",
         spouse: "viserys-i-targaryen",
@@ -732,7 +772,7 @@ export const ERAS: EraData[] = [
     canonCharacters: [
       ...blackfyreRebellionCharacters,
       {
-        id: "daemon-blackfyre", name: "Daemon Blackfyre", house: "Blackfyre", role: "Rồng Đen Nổi Loạn", tuocVi: "Thường Dân", religion: "Thất Diện Thần",
+        id: "daemon-blackfyre", name: "Daemon Blackfyre", house: "Blackfyre", role: "Rồng Đen Nổi Loạn", tuocVi: "Người Đòi Ngôi", religion: "Thất Diện Thần",
         blurb: "Đẹp trai, tay kiếm xuất chúng, cầm thanh kiếm Blackfyre do chính vua cha ban — và tin rằng mình mới là vua thật.",
         origin: "Con ngoài giá thú được hợp pháp hoá của Aegon IV và Daena", culture: "Valyria", bloodline: "Targaryen–Blackfyre", continent: "Westeros",
         appearance: "Đẹp trai, tóc bạc-vàng, thân hình chiến binh; mang Blackfyre như biểu tượng cho yêu sách ngai vàng.",
@@ -744,8 +784,9 @@ export const ERAS: EraData[] = [
           { slot: "Giáp Thân", ten: "Giáp đen đỏ", phamChat: "Thượng Hạng", thuocTinh: { "Phòng Thủ": 5 }, moTa: "Giáp chiến mang huy hiệu rồng đen đỏ" },
         ],
         items: [],
-        gold: 4000, startHoldings: ["the-crownlands-seat"],
+        gold: 4000, startHoldings: [],
         startRegions: [],
+        legalStatus: "claimant", residenceIds: [], claimRegionIds: ["the-crownlands"],
         startArmies: [
           { name: "Dân Binh Địa Phương", type: "Bộ Binh", size: 6000, quality: "Tinh Nhuệ" },
           { name: "Kỵ Binh Địa Phương", type: "Kỵ Binh", size: 2000, quality: "Tinh Nhuệ" },
@@ -770,7 +811,8 @@ export const ERAS: EraData[] = [
         equipment: [],
         items: [{ ten: "Vương miện Targaryen", soLuong: 1, moTa: "Vương miện vàng Valyria" }],
         gold: 8000, startHoldings: ["the-crownlands-seat"],
-        startRegions: ["the-crownlands","the-north","the-vale","the-westerlands","the-reach","the-stormlands","dorne","the-riverlands","the-iron-islands"],
+        startRegions: ["the-crownlands"],
+        legalStatus: "holder", residenceIds: ["the-crownlands-seat"], claimRegionIds: [],
         startArmies: [
           { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 12000, quality: "Thành Thạo" },
           { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 3000, quality: "Thành Thạo" }
@@ -798,8 +840,9 @@ export const ERAS: EraData[] = [
           { slot: "Vũ Khí Chính", ten: "Cung dài huyết mộc", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Xa": 7 }, moTa: "Cung được chạm rune cổ" },
         ],
         items: [{ ten: "Quạ đưa tin", soLuong: 3, moTa: "Mắt và tai khắp bảy vương quốc" }],
-        gold: 2000, startHoldings: ["the-crownlands-seat"],
+        gold: 2000, startHoldings: [],
         startRegions: [],
+        legalStatus: "courtier", residenceIds: ["the-crownlands-seat"], claimRegionIds: [],
         startArmies: [
           { name: "Quân Đoàn Rồng Lửa", type: "Bộ Binh", size: 600, quality: "Tinh Nhuệ" },
           { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 150, quality: "Tinh Nhuệ" }
@@ -890,7 +933,7 @@ export const ERAS: EraData[] = [
         items: [
           { ten: "Sách lịch sử", soLuong: 2, moTa: "Sách về các vua Targaryen — đọc đi đọc lại" },
         ],
-        gold: 15, startHoldings: ["targaryen-seat"],
+        gold: 15, startHoldings: [],
         startArmies: [
           { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 600, quality: "Mới Lập Đội" },
           { name: "Đội Bắn Nỏ Bến Vua", type: "Cung Thủ", size: 150, quality: "Mới Lập Đội" }
@@ -959,7 +1002,9 @@ export const ERAS: EraData[] = [
       ...robertsRebellionCharacters.filter((character) =>
         character.id !== "robert-baratheon"
         && character.id !== "rhaegar-targaryen"
-        && character.id !== "aerys-ii",
+        && character.id !== "aerys-ii"
+        && character.id !== "eddard-stark"
+        && character.id !== "tywin-lannister",
       ),
       {
         id: "robert-baratheon", name: "Robert Baratheon", house: "Baratheon", role: "Thủ Lĩnh Phiến Quân", tuocVi: "Vua Bảy Vương Quốc", religion: "Thất Diện Thần",
@@ -1043,7 +1088,8 @@ export const ERAS: EraData[] = [
         ],
         items: [],
         gold: 20000, startHoldings: ["the-crownlands-seat"],
-        startRegions: ["the-crownlands","the-reach","dorne"],
+        startRegions: ["the-crownlands"],
+        legalStatus: "holder", residenceIds: ["the-crownlands-seat"], claimRegionIds: [],
         startArmies: [
           { name: "Vệ Binh Rồng", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" },
           { name: "Cung Thủ Vương Đô", type: "Cung Thủ", size: 1500, quality: "Thành Thạo" }
@@ -1095,10 +1141,18 @@ export const ERAS: EraData[] = [
     hasMagic: false,
     canonCharacters: [
       // Balon và Euron có bản 289 AC riêng bên dưới; loại bản 298 AC trùng ID.
-      ...warOfFiveKingsCharacters.filter((character) =>
-        character.id !== "balon-greyjoy"
-        && character.id !== "euron-greyjoy",
-      ),
+      ...warOfFiveKingsCharacters
+        .filter((character) =>
+          character.id !== "balon-greyjoy"
+          && character.id !== "euron-greyjoy",
+        )
+        // Roster 298 AC được tái sử dụng cho mốc 289 AC, nhưng các phase override
+        // của Chiến Tranh Năm Vua không tồn tại trong Loạn Greyjoy.
+        .map((character) => ({
+          ...character,
+          startingHookIds: [],
+          phaseOverrides: undefined,
+        })),
       {
         id: "balon-greyjoy", name: "Balon Greyjoy", house: "Greyjoy", role: "Vua Quần Đảo Sắt", tuocVi: "Đại Lãnh Chúa", religion: "Thần Chết Chìm",
         blurb: "Con trai Quellon, Lãnh chúa Pyke — tin rằng người Sắt phải cai trị bằng giá sắt, không phải vàng. Và thời khắc đã đến.",
@@ -1137,7 +1191,8 @@ export const ERAS: EraData[] = [
         ],
         items: [],
         gold: 8000, startHoldings: ["the-crownlands-seat"],
-        startRegions: ["the-crownlands","the-north","the-vale","the-westerlands","the-reach","the-stormlands","dorne","the-riverlands"],
+        startRegions: ["the-crownlands"],
+        legalStatus: "holder", residenceIds: ["the-crownlands-seat"], claimRegionIds: [],
         startArmies: [
           { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 25000, quality: "Thành Thạo" },
           { name: "Cấm Vệ Hoàng Gia", type: "Kỵ Binh", size: 5000, quality: "Tinh Nhuệ" }
@@ -1155,8 +1210,9 @@ export const ERAS: EraData[] = [
         skills: { "bow-crossbow": 2, "hunting": 2 },
         equipment: [],
         items: [],
-        gold: 0, startHoldings: ["the-iron-islands-seat"],
+        gold: 0, startHoldings: [],
         startRegions: [],
+        legalStatus: "heir", residenceIds: ["the-iron-islands-seat"], claimRegionIds: [],
         startArmies: [
           { name: "Chiến Binh Đảo Muối", type: "Bộ Binh", size: 600, quality: "Thành Thạo" },
           { name: "Cung Thủ Người Sắt", type: "Cung Thủ", size: 150, quality: "Thành Thạo" }
@@ -1179,8 +1235,9 @@ export const ERAS: EraData[] = [
           { slot: "Vũ Khí Chính", ten: "Kiếm thép Valyria (tin đồn)", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Thanh kiếm chém không lưu vết" },
         ],
         items: [],
-        gold: 10000, startHoldings: ["the-iron-islands-seat"],
+        gold: 10000, startHoldings: [],
         startRegions: [],
+        legalStatus: "courtier", residenceIds: ["the-iron-islands-seat"], claimRegionIds: [],
         startArmies: [
           { name: "Băng Cướp Biển Silence", type: "Người Sắt (Ironborn)", size: 1000, quality: "Tinh Nhuệ" }
         ],
@@ -1210,6 +1267,38 @@ export const ERAS: EraData[] = [
     canonCharacters: [
       ...warOfFiveKingsCharacters,
       {
+        id: "robert-baratheon", name: "Robert Baratheon", house: "Baratheon", role: "Vua Bảy Vương Quốc", tuocVi: "Vua Bảy Vương Quốc", religion: "Thất Diện Thần",
+        blurb: "Vua Robert vẫn còn sống trong những mốc mở đầu: ông đến Winterfell mời Ned làm Bàn Tay, trước chuyến săn cuối cùng.",
+        origin: "Trưởng nam của Steffon Baratheon; người lãnh đạo cuộc nổi loạn lật đổ Aerys II và đang ngồi Ngai Sắt.",
+        culture: "Andal vùng Bão Tố", bloodline: "Baratheon–Durrandon", continent: "Westeros",
+        appearance: "Rất cao và nặng nề, tóc đen, râu rậm và mắt xanh; sức lực tuổi trẻ đã suy giảm sau nhiều năm yến tiệc.",
+        birthYear: 262, age: 36,
+        coreStats: { "Sức Mạnh": 15, "Nhanh Nhẹn": 8, "Thể Chất": 13, "Trí Tuệ": 9, "Tinh Tường": 9, "Uy Tín": 16 },
+        talentIds: ["giant-frame", "warrior-blood", "beloved"],
+        skills: { "axe-mace": 8, "war-riding": 5, "command": 7, "hunting": 7 },
+        equipment: [{ slot: "Vũ Khí Chính", ten: "Búa chiến Robert", phamChat: "Thượng Hạng", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Búa chiến gắn với chiến thắng trên sông Trident." }],
+        items: [{ ten: "Ấn tín Ngai Sắt", soLuong: 1, moTa: "Quyền vương hợp pháp của triều Baratheon." }],
+        gold: 20000,
+        startHoldings: ["the-crownlands-seat"], startRegions: ["the-crownlands"],
+        startArmies: [
+          { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 10000, quality: "Thành Thạo" },
+          { name: "Cấm Vệ Hoàng Gia", type: "Kỵ Binh", size: 5000, quality: "Tinh Nhuệ" },
+        ],
+        holdingsLevel: { "the-crownlands-seat": 5 }, baseIncome: 500,
+        legalStatus: "holder", residenceIds: ["the-crownlands-seat"],
+        father: "steffon-baratheon", mother: "cassana-estermont", spouse: "cersei-lannister",
+        siblings: ["stannis-baratheon", "renly-baratheon"],
+        children: ["joffrey-baratheon", "myrcella-baratheon", "tommen-baratheon"],
+        allies: ["eddard-stark"], rivals: ["daenerys-targaryen"],
+        startingHookIds: ["kings-arrival"],
+        phaseOverrides: {
+          "kings-arrival": { residenceIds: ["the-north-seat"] },
+          "dragonstone-fleet": { active: false, legalStatus: "unlanded", startHoldings: [], startRegions: [], startArmies: [], residenceIds: [] },
+          "highgarden-alliance": { active: false, legalStatus: "unlanded", startHoldings: [], startRegions: [], startArmies: [], residenceIds: [] },
+          "boy-king-crowned": { active: false, legalStatus: "unlanded", startHoldings: [], startRegions: [], startArmies: [], residenceIds: [] },
+        },
+      },
+      {
         id: "eddard-stark", name: "Eddard Stark", house: "Stark", role: "Lãnh Chúa Winterfell", tuocVi: "Đại Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Mười lăm năm thái bình cai trị phương Bắc — cho tới khi người bạn cũ phi ngựa tới cổng thành với một lời đề nghị chết người.",
         origin: "Lãnh chúa Winterfell; cựu Ward của Jon Arryn", culture: "First Men", bloodline: "Nhà Stark", continent: "Westeros",
@@ -1224,6 +1313,7 @@ export const ERAS: EraData[] = [
         items: [{ ten: "Ấn tín Lãnh chúa Winterfell", soLuong: 1, moTa: "Quyền cai trị phương Bắc" }],
         gold: 5000, startHoldings: ["the-north-seat"],
         startRegions: ["the-north"],
+        legalStatus: "holder", residenceIds: ["the-north-seat"],
         startArmies: [
           { name: "Cấm Vệ Mùa Đông", type: "Bộ Binh", size: 5000, quality: "Tinh Nhuệ" },
           { name: "Đội Tiên Phong Phương Bắc", type: "Kỵ Binh Nhẹ", size: 3000, quality: "Thành Thạo" },
@@ -1239,6 +1329,12 @@ export const ERAS: EraData[] = [
         allies: ["robert-baratheon", "jon-arryn"],
         rivals: ["cersei-lannister", "tywin-lannister"],
         startingHookIds: ["kings-arrival", "hand-of-king"],
+        phaseOverrides: {
+          "hand-of-king": { residenceIds: ["the-crownlands-seat"] },
+          "dragonstone-fleet": { active: false, legalStatus: "unlanded", startHoldings: [], startRegions: [], startArmies: [], residenceIds: [] },
+          "highgarden-alliance": { active: false, legalStatus: "unlanded", startHoldings: [], startRegions: [], startArmies: [], residenceIds: [] },
+          "boy-king-crowned": { active: false, legalStatus: "unlanded", startHoldings: [], startRegions: [], startArmies: [], residenceIds: [] },
+        },
       },
       {
         id: "tyrion-lannister", name: "Tyrion Lannister", house: "Lannister", role: "Quỷ Lùn Nhà Lannister", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
@@ -1252,8 +1348,13 @@ export const ERAS: EraData[] = [
           { slot: "Vũ Khí Chính", ten: "Dao găm", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 2 }, moTa: "Nhỏ — như chủ nhân" },
         ],
         items: [{ ten: "Túi vàng Lannister", soLuong: 1, moTa: "Một Lannister luôn trả nợ" }, { ten: "Sách hiếm", soLuong: 2, moTa: "Tri thức là vũ khí của kẻ yếu" }],
-        gold: 6000, startHoldings: ["the-crownlands-seat"],
+        gold: 6000, startHoldings: [],
         startRegions: [],
+        legalStatus: "courtier", residenceIds: ["the-crownlands-seat"],
+        phaseOverrides: {
+          "kings-arrival": { residenceIds: ["the-north-seat"] },
+          "journey-to-wall": { residenceIds: ["castle-black"] },
+        },
         startArmies: [
           { name: "Đội Sơn Cước (Mountain Clans)", type: "Bộ Binh", size: 2000, quality: "Mới Lập Đội" }
         ],
@@ -1298,8 +1399,9 @@ export const ERAS: EraData[] = [
           { slot: "Khiên", ten: "Áo choàng lông sói", phamChat: "Thường", thuocTinh: { "Chống Chịu": 3 }, moTa: "Chống rét" },
         ],
         items: [{ ten: "Sói tuyết Ghost", soLuong: 1, moTa: "Con sói trắng câm lặng — luôn ở gần" }],
-        gold: 50, startHoldings: ["castle-black"],
+        gold: 50, startHoldings: [],
         startRegions: [],
+        legalStatus: "unlanded", residenceIds: ["castle-black"],
         startArmies: [
           { name: "Người Giữ Tường Thành", type: "Bộ Binh", size: 300, quality: "Thành Thạo" }
         ],
@@ -1308,7 +1410,7 @@ export const ERAS: EraData[] = [
         startingHookIds: ["journey-to-wall", "kings-arrival"],
       },
       {
-        id: "cersei-lannister", name: "Cersei Lannister", house: "Lannister", role: "Vương Hậu", tuocVi: "Vua", religion: "Thất Diện Thần",
+        id: "cersei-lannister", name: "Cersei Lannister", house: "Lannister", role: "Vương Hậu", tuocVi: "Vương Hậu", religion: "Thất Diện Thần",
         blurb: "Hoa hồng vàng của Casterly Rock, vợ của vị vua nát rượu — và người giữ bí mật có thể thiêu rụi cả vương triều.",
         origin: "Con gái Tywin Lannister, hoàng hậu của Robert", culture: "Andal (Westerlands)", bloodline: "Nhà Lannister", continent: "Westeros",
         appearance: "Tóc vàng óng, mắt xanh lục; vẻ đẹp quyền quý đi cùng tính kiêu ngạo và óc kiểm soát.",
@@ -1317,8 +1419,15 @@ export const ERAS: EraData[] = [
         skills: { "deception": 6, "court-etiquette": 7, "cunning": 5, "persuasion": 5 },
         equipment: [],
         items: [{ ten: "Trang sức hoàng gia", soLuong: 1, moTa: "Biểu tượng địa vị Vương Hậu" }],
-        gold: 8000, startHoldings: ["the-crownlands-seat"],
+        gold: 8000, startHoldings: [],
         startRegions: [],
+        legalStatus: "consort", residenceIds: ["the-crownlands-seat"],
+        phaseOverrides: {
+          "kings-arrival": { residenceIds: ["the-north-seat"] },
+          "dragonstone-fleet": { legalStatus: "regent", role: "Thái Hậu Nhiếp Chính" },
+          "highgarden-alliance": { legalStatus: "regent", role: "Thái Hậu Nhiếp Chính" },
+          "boy-king-crowned": { legalStatus: "regent", role: "Thái Hậu Nhiếp Chính" },
+        },
         startArmies: [
           { name: "Lính Gác Vương Đô (Gold Cloaks)", type: "Bộ Binh", size: 6000, quality: "Thành Thạo" }
         ],
@@ -1331,7 +1440,7 @@ export const ERAS: EraData[] = [
         startingHookIds: ["kings-arrival"],
       },
       {
-        id: "robb-stark", name: "Robb Stark", house: "Stark", role: "Sói Trẻ", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
+        id: "robb-stark", name: "Robb Stark", house: "Stark", role: "Người Thừa Kế Winterfell", tuocVi: "Lãnh Chúa", religion: "Cựu Thần",
         blurb: "Con cả của Ned Stark. Sau cái chết của cha, cậu được phong làm Vua Phương Bắc. Bất bại trên chiến trường, nhưng chiến tranh không chỉ có gươm đao.",
         origin: "Người thừa kế Winterfell, con cả của Eddard và Catelyn", culture: "First Men", bloodline: "Stark–Tully", continent: "Westeros",
         appearance: "Tóc nâu, mắt xanh của nhà Tully; trẻ tuổi nhưng có khí chất chỉ huy và được sói Grey Wind theo sát.",
@@ -1342,8 +1451,9 @@ export const ERAS: EraData[] = [
           { slot: "Vũ Khí Chính", ten: "Trường kiếm", phamChat: "Tinh Xảo", thuocTinh: { "Sát Thương Cận": 5 }, moTa: "Kiếm của Lãnh chúa Winterfell" },
         ],
         items: [{ ten: "Sói Grey Wind", soLuong: 1, moTa: "Sói tuyết dữ tợn luôn bên cạnh Sói Trẻ" }],
-        gold: 4000, startHoldings: ["the-north-seat"],
-        startRegions: ["the-north","the-riverlands"],
+        gold: 4000, startHoldings: [],
+        startRegions: [],
+        legalStatus: "heir", residenceIds: ["the-north-seat"],
         startArmies: [
           { name: "Kỵ Binh Sói", type: "Kỵ Binh Nhẹ", size: 4000, quality: "Tinh Nhuệ" },
           { name: "Đội Tiên Phong Karstark", type: "Trường Thương", size: 6000, quality: "Thành Thạo" },
@@ -1356,9 +1466,14 @@ export const ERAS: EraData[] = [
         allies: ["edmure-tully", "greatjon-umber"],
         rivals: ["joffrey-baratheon", "tywin-lannister"],
         startingHookIds: ["hand-of-king"],
+        phaseOverrides: {
+          "dragonstone-fleet": { tuocVi: "Quốc Vương", role: "Vua Phương Bắc", legalStatus: "holder", startHoldings: ["the-north-seat"], startRegions: ["the-north", "the-riverlands"], residenceIds: ["the-north-seat"], claimRegionIds: ["the-north", "the-riverlands"] },
+          "highgarden-alliance": { tuocVi: "Quốc Vương", role: "Vua Phương Bắc", legalStatus: "holder", startHoldings: ["the-north-seat"], startRegions: ["the-north", "the-riverlands"], residenceIds: ["the-north-seat"], claimRegionIds: ["the-north", "the-riverlands"] },
+          "boy-king-crowned": { tuocVi: "Quốc Vương", role: "Vua Phương Bắc", legalStatus: "holder", startHoldings: ["the-north-seat"], startRegions: ["the-north", "the-riverlands"], residenceIds: ["the-north-seat"], claimRegionIds: ["the-north", "the-riverlands"] },
+        },
       },
       {
-        id: "stannis-baratheon", name: "Stannis Baratheon", house: "Baratheon", role: "Vua Đích Thực", tuocVi: "Đại Lãnh Chúa", religion: "Thần Ánh Sáng (R'hllor)",
+        id: "stannis-baratheon", name: "Stannis Baratheon", house: "Baratheon", role: "Lãnh Chúa Dragonstone", tuocVi: "Đại Lãnh Chúa", religion: "Thần Ánh Sáng (R'hllor)",
         blurb: "Em trai của Robert. Một con người được rèn từ sắt: cứng rắn, vô tình và không bao giờ uốn cong. Ông tin ngôi vị là quyền của mình.",
         origin: "Lãnh chúa Dragonstone, em trai Robert", culture: "Andal (Stormlands)", bloodline: "Baratheon–Durrandon", continent: "Westeros",
         appearance: "Hàm bạnh, tóc đen, ánh mắt nghiêm khắc; phong thái khô khan của một chỉ huy đặt luật lệ lên trên tình cảm.",
@@ -1371,6 +1486,8 @@ export const ERAS: EraData[] = [
         items: [],
         gold: 2000, startHoldings: ["dragonstone"],
         startRegions: [],
+        legalStatus: "holder", residenceIds: ["dragonstone"],
+        claimRegionIds: [],
         startArmies: [
           { name: "Lính Giáo Đảo Rồng", type: "Trường Thương", size: 3000, quality: "Thành Thạo" },
           { name: "Kỵ Binh Florent", type: "Kỵ Binh", size: 2000, quality: "Thành Thạo" }
@@ -1386,9 +1503,14 @@ export const ERAS: EraData[] = [
         allies: ["davos-seaworth", "melisandre"],
         rivals: ["renly-baratheon", "joffrey-baratheon"],
         startingHookIds: ["dragonstone-fleet"],
+        phaseOverrides: {
+          "dragonstone-fleet": { tuocVi: "Quốc Vương", role: "Vua Đích Thực", claimRegionIds: ["the-crownlands"] },
+          "highgarden-alliance": { tuocVi: "Quốc Vương", role: "Vua Đích Thực", claimRegionIds: ["the-crownlands"] },
+          "boy-king-crowned": { tuocVi: "Quốc Vương", role: "Vua Đích Thực", claimRegionIds: ["the-crownlands"] },
+        },
       },
       {
-        id: "renly-baratheon", name: "Renly Baratheon", house: "Baratheon", role: "Vua Ở Highgarden", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
+        id: "renly-baratheon", name: "Renly Baratheon", house: "Baratheon", role: "Lãnh Chúa Storm's End", tuocVi: "Đại Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Em út nhà Baratheon, đẹp trai, quyến rũ và được lòng dân chúng. Anh ta mặc áo giáp xanh và tự xưng vương dù không có quyền kế vị.",
         origin: "Lãnh chúa Storm's End, em út Robert và Stannis", culture: "Andal (Stormlands)", bloodline: "Baratheon–Durrandon", continent: "Westeros",
         appearance: "Tóc đen, mắt xanh, ngoại hình rất giống Robert thời trẻ; duyên dáng và thích sự phô trương của triều đình.",
@@ -1400,7 +1522,8 @@ export const ERAS: EraData[] = [
         ],
         items: [],
         gold: 15000, startHoldings: ["the-stormlands-seat"],
-        startRegions: ["the-stormlands","the-reach"],
+        startRegions: ["the-stormlands"],
+        legalStatus: "holder", residenceIds: ["the-stormlands-seat"], claimRegionIds: [],
         startArmies: [
           { name: "Vạn Quân Highgarden", type: "Bộ Binh", size: 70000, quality: "Mới Lập Đội" },
           { name: "Kỵ Sĩ Mùa Hè", type: "Kỵ Binh", size: 20000, quality: "Thành Thạo" },
@@ -1413,9 +1536,18 @@ export const ERAS: EraData[] = [
         allies: ["loras-tyrell", "mace-tyrell"],
         rivals: ["stannis-baratheon"],
         startingHookIds: ["highgarden-alliance"],
+        phaseOverrides: {
+          "kings-arrival": { startArmies: [{ name: "Gia Quân Storm's End", type: "Bộ Binh", size: 5000, quality: "Thành Thạo" }] },
+          "hand-of-king": { startArmies: [{ name: "Gia Quân Storm's End", type: "Bộ Binh", size: 5000, quality: "Thành Thạo" }] },
+          "journey-to-wall": { startArmies: [{ name: "Gia Quân Storm's End", type: "Bộ Binh", size: 5000, quality: "Thành Thạo" }] },
+          "dothraki-wedding": { startArmies: [{ name: "Gia Quân Storm's End", type: "Bộ Binh", size: 5000, quality: "Thành Thạo" }] },
+          "dragonstone-fleet": { tuocVi: "Quốc Vương", role: "Vua Ở Highgarden", claimRegionIds: ["the-crownlands"] },
+          "highgarden-alliance": { tuocVi: "Quốc Vương", role: "Vua Ở Highgarden", residenceIds: ["the-reach-seat"], claimRegionIds: ["the-crownlands"] },
+          "boy-king-crowned": { tuocVi: "Quốc Vương", role: "Vua Ở Highgarden", claimRegionIds: ["the-crownlands"] },
+        },
       },
       {
-        id: "joffrey-baratheon", name: "Joffrey Baratheon", house: "Baratheon", role: "Vua Bé Con", tuocVi: "Vua", religion: "Thất Diện Thần",
+        id: "joffrey-baratheon", name: "Joffrey Baratheon", house: "Baratheon", role: "Thái Tử Ngai Sắt", tuocVi: "Lãnh Chúa", religion: "Thất Diện Thần",
         blurb: "Tàn nhẫn, kiêu ngạo và hèn nhát. Dù mang tên Baratheon, cậu lại có mái tóc vàng của nhà Lannister.",
         origin: "Thái tử trên danh nghĩa của Robert Baratheon", culture: "Andal (Crownlands)", bloodline: "Baratheon (công khai)", continent: "Westeros",
         appearance: "Tóc vàng, mắt xanh lục; một thiếu niên xinh đẹp theo kiểu Lannister nhưng có khí chất bất ổn.",
@@ -1426,8 +1558,9 @@ export const ERAS: EraData[] = [
           { slot: "Vũ Khí Chính", ten: "Widow's Wail", phamChat: "Thép Valyria", thuocTinh: { "Sát Thương Cận": 7 }, moTa: "Kiếm thép Valyria mới rèn" },
         ],
         items: [{ ten: "Vương miện Ngai Sắt", soLuong: 1, moTa: "Vương miện hoàng kim" }],
-        gold: 50000, startHoldings: ["the-crownlands-seat"],
-        startRegions: ["the-crownlands","the-westerlands"],
+        gold: 50000, startHoldings: [],
+        startRegions: [],
+        legalStatus: "heir", residenceIds: ["the-crownlands-seat"],
         startArmies: [
           { name: "Vương Quân King's Landing", type: "Bộ Binh", size: 10000, quality: "Thành Thạo" },
           { name: "Cấm Vệ Hoàng Gia", type: "Kỵ Binh", size: 5000, quality: "Tinh Nhuệ" }
@@ -1438,6 +1571,12 @@ export const ERAS: EraData[] = [
         siblings: ["myrcella-baratheon", "tommen-baratheon"],
         rivals: ["robb-stark", "stannis-baratheon", "renly-baratheon"],
         startingHookIds: ["boy-king-crowned"],
+        phaseOverrides: {
+          "kings-arrival": { residenceIds: ["the-north-seat"] },
+          "dragonstone-fleet": { tuocVi: "Vua Bảy Vương Quốc", role: "Tiểu Vương Ngai Sắt", legalStatus: "holder", startHoldings: ["the-crownlands-seat"], startRegions: ["the-crownlands"], residenceIds: ["the-crownlands-seat"], claimRegionIds: ["the-crownlands"] },
+          "highgarden-alliance": { tuocVi: "Vua Bảy Vương Quốc", role: "Tiểu Vương Ngai Sắt", legalStatus: "holder", startHoldings: ["the-crownlands-seat"], startRegions: ["the-crownlands"], residenceIds: ["the-crownlands-seat"], claimRegionIds: ["the-crownlands"] },
+          "boy-king-crowned": { tuocVi: "Vua Bảy Vương Quốc", role: "Tiểu Vương Ngai Sắt", legalStatus: "holder", startHoldings: ["the-crownlands-seat"], startRegions: ["the-crownlands"], residenceIds: ["the-crownlands-seat"], claimRegionIds: ["the-crownlands"] },
+        },
       },
     ],
     startingHooks: [
@@ -1545,6 +1684,69 @@ export const ERAS: EraData[] = [
 ];
 
 export const ERAS_BY_ID: Record<string, EraData> = Object.fromEntries(ERAS.map((e) => [e.id, e]));
+
+/**
+ * Chiếu một hồ sơ canon sang snapshot của hook. Mảng rỗng trong override
+ * có chủ ý xoá tài sản/quân của snapshot gốc; dữ liệu gốc không bị mutate.
+ */
+export function resolveCanonCharacterSnapshot(
+  character: CanonCharacter,
+  phaseId?: string | null,
+): ResolvedCanonCharacter {
+  const override = phaseId ? character.phaseOverrides?.[phaseId] : undefined;
+  const authoredHoldings = override?.startHoldings !== undefined
+    ? [...override.startHoldings]
+    : [...(character.startHoldings ?? [])];
+  const authoredRegions = override?.startRegions !== undefined
+    ? [...override.startRegions]
+    : [...(character.startRegions ?? [])];
+  const legalStatus = override?.legalStatus
+    ?? character.legalStatus
+    ?? (authoredHoldings.length > 0 || authoredRegions.length > 0 ? "holder" : "unlanded");
+  const isHolder = legalStatus === "holder";
+  const residenceIds = override?.residenceIds !== undefined
+    ? [...override.residenceIds]
+    : character.residenceIds !== undefined
+      ? [...character.residenceIds]
+      : isHolder
+        ? [...authoredHoldings]
+        : [];
+  const claimRegionIds = override?.claimRegionIds !== undefined
+    ? [...override.claimRegionIds]
+    : [...(character.claimRegionIds ?? [])];
+
+  return {
+    ...character,
+    ...override,
+    active: override?.active ?? true,
+    legalStatus,
+    startHoldings: isHolder ? authoredHoldings : [],
+    startRegions: isHolder ? authoredRegions : [],
+    startArmies: override?.startArmies !== undefined
+      ? override.startArmies.map((army) => ({ ...army }))
+      : character.startArmies?.map((army) => ({ ...army })),
+    startFleets: override?.startFleets !== undefined
+      ? override.startFleets.map((fleet) => ({ ...fleet }))
+      : character.startFleets?.map((fleet) => ({ ...fleet })),
+    residenceIds,
+    claimRegionIds,
+  };
+}
+
+/** Nhân vật có thể hiện diện trong thế giới ở đúng năm này. */
+export function canonCharacterActiveAtYear(character: CanonCharacter & { active?: boolean }, year: number): boolean {
+  if (character.active === false) return false;
+  if (character.birthYear !== undefined && character.birthYear > year) return false;
+  if (character.deathYear !== undefined && character.deathYear < year) return false;
+  return true;
+}
+
+/** Roster đang sống/đã sinh; dùng chung cho triều đình, quân đội và NPC runtime. */
+export function activeCanonCharacters(era: EraData, year: number, phaseId?: string | null): ResolvedCanonCharacter[] {
+  return era.canonCharacters
+    .map((character) => resolveCanonCharacterSnapshot(character, phaseId))
+    .filter((character) => canonCharacterActiveAtYear(character, year));
+}
 
 /** Parse năm AC từ hook — ưu tiên numericYear, fallback parse string "105 AC" → 105. */
 export function parseHookYear(hook: StartingHook | null | undefined, fallback: number): number {

@@ -9,15 +9,34 @@
  *
  * Mọi hàm ở đây là thuần hàm đọc — không phát PatchOp, không mutate.
  */
-import type { StatData } from "../mvu/schema";
-import { REGIONS, REGIONS_BY_ID } from "../content/westeros/regions";
+import type { StatData, Terrain } from "../mvu/schema";
+import { MACRO_REGIONS, REGIONS, REGIONS_BY_ID } from "../content/westeros/regions";
 import { MAP_MARKERS, markersForEra } from "../content/westeros/mapMarkers";
+import { strongholdsForEra } from "../content/westeros/strongholds";
+import { HOUSES_BY_ID } from "../content/westeros/houses";
+import { factionsForYear, FACTION_COLORS_MAP } from "../content/world/geography";
 import { RESOURCE_LIST, type ResourceKey } from "../content/westeros/buildings";
 import { estimateTerritoryYield } from "./construction";
 import { buildingDefense } from "./population";
 import { TAX_BRACKETS } from "../economy/taxation";
 import { holdingAnchor } from "./localMap";
-import { playerHoldingIds, holdingOwnedByPlayer } from "./territoryEngine";
+import {
+  playerHoldingIds,
+  holdingOwnedByPlayer,
+  playerHouseId,
+  toHouseId,
+  factionIdForRegion,
+  provinceControlStatus,
+  realmControlStatus,
+  strongholdController,
+  type StrongholdControl,
+} from "./territoryEngine";
+import {
+  canonicalSettlementPopulation,
+  regionPopulation,
+  regionPopulationBreakdown,
+} from "./geographyRuntime";
+import { holdingTerrain } from "./terrainProjection";
 
 type Holding = StatData["Lãnh Địa"][string];
 
@@ -29,10 +48,13 @@ export interface Settlement {
   id: string;
   name: string;
   regionId: string;
-  /** px trên ảnh bản đồ thế giới — chung hệ toạ độ cho cả 3 tầng. */
+  /** px trên ảnh bản đồ thế giới — neo chung cho ba tầng vĩ mô của hệ 5 tầng. */
   world: [number, number];
   kind: SettlementKind;
   population: number;
+  /** Địa hình engine thực sự dùng cho thành này, không phải nhãn trang trí riêng. */
+  terrain: Terrain;
+  populationSource: "runtime" | "canon";
   /** true = có dữ liệu Tầng 1 (mở được bản đồ lãnh địa để xem). */
   managed: boolean;
   /** true = NGƯƠI là chủ thật của thành trì này — điều kiện để được xây. */
@@ -51,6 +73,8 @@ export interface Settlement {
   /** thu Vàng ròng mỗi tháng (Đồng Đỏ). */
   goldPerMonth: number;
   foodPerMonth: number;
+  /** Cứ điểm gameplay được bổ sung để province có nhiều mục tiêu kiểm soát. */
+  strategicStronghold?: boolean;
 }
 
 export interface RegionSummary {
@@ -64,6 +88,15 @@ export interface RegionSummary {
   managedCount: number;
   /** dân số vĩ mô của vùng (canon). */
   population: number;
+  populationBaseline: number;
+  populationDelta: number;
+  terrain: Terrain;
+  realmId: string;
+  controlRatio: number;
+  fullControl: boolean;
+  controlledStrongholds: number;
+  totalStrongholds: number;
+  unsecuredStrongholds: StrongholdControl[];
   /** dân số nằm trong các lãnh địa đã quản trị. */
   managedPopulation: number;
   buildings: number;
@@ -85,6 +118,59 @@ export interface RealmSummary {
   power: number;
   /** tỉ trọng quyền lực trong toàn Westeros (0-1). */
   share: number;
+}
+
+/** Một chính thể/de-jure realm ở tầng Vương Quốc, không đồng nghĩa một tước địa cố định. */
+export interface DeJureRealmSummary {
+  realmId: string;
+  name: string;
+  regionIds: string[];
+  anchor: [number, number];
+  population: number;
+  settlements: number;
+  controller: string;
+  controlledRegions: number;
+  totalRegions: number;
+  /** Chỉ là số province đang theo; điều kiện thành trì/chư hầu được engine kiểm tra sâu hơn. */
+  provinceShare: number;
+  isPlayerRealm: boolean;
+  controlRatio: number;
+  fullControl: boolean;
+  controlledStrongholds: number;
+  totalStrongholds: number;
+  unsecuredStrongholds: StrongholdControl[];
+}
+
+/** Thông tin có thể mở trực tiếp khi xem lớp bản đồ phe phái. */
+export interface FactionMapSummary {
+  factionId: string;
+  name: string;
+  houseIds: string[];
+  regionIds: string[];
+  colorHouseId: string;
+  population: number;
+  estimatedLevy: number;
+  controlledStrongholds: number;
+  totalStrongholds: number;
+  controlRatio: number;
+  fullyControlledRegions: number;
+}
+
+/** Hồ sơ một Nhà khi xem Bản Đồ Quan Hệ — tình cảm và pháp lý không bị trộn lẫn. */
+export interface RelationshipMapSummary {
+  houseId: string;
+  name: string;
+  seat: string;
+  attitude: string;
+  attitudeDescription: string;
+  diplomaticStatus: string;
+  trust: number;
+  warScore: number;
+  treatyNames: string[];
+  ourClaim: number;
+  theirClaim: number;
+  regionIds: string[];
+  population: number;
 }
 
 // ── Tầng 1 → 1 khu dân cư ───────────────────────────────────────────────────
@@ -137,6 +223,8 @@ export function summarizeHolding(state: StatData, holdingId: string): Settlement
     world: holdingAnchor(holdingId, holding, region),
     kind: kindFor(holding, seat),
     population: holding?.["Dân Số"] ?? 0,
+    terrain: holdingTerrain(holdingId, holding),
+    populationSource: "runtime",
     managed: true,
     ownedByPlayer: holdingOwnedByPlayer(state, holdingId),
     lord: holding?.["Người Kiểm Soát"] ?? "",
@@ -154,8 +242,12 @@ export function summarizeHolding(state: StatData, holdingId: string): Settlement
 }
 
 /** Địa danh tĩnh (chưa quản trị) → điểm Tầng 2 chỉ để nhìn. */
-function markerSettlement(m: { id: string; name: string; type: string; x: number; y: number; population?: number; regionId?: string }): Settlement {
-  const pop = m.population ?? 0;
+function markerSettlement(
+  m: { id: string; name: string; type: string; x: number; y: number; population?: number; regionId?: string },
+  eraId: string,
+): Settlement {
+  const region = REGIONS_BY_ID[m.regionId ?? ""];
+  const pop = canonicalSettlementPopulation(m.id, m.name, m.regionId ?? "", eraId, m.population ?? 0);
   const kind: SettlementKind =
     m.type === "landmark" ? "Địa Danh"
       : m.type === "castle" ? "Thành Trì"
@@ -163,7 +255,8 @@ function markerSettlement(m: { id: string; name: string; type: string; x: number
           : pop >= 20000 ? "Thị Trấn" : "Làng";
   return {
     id: m.id, name: m.name, regionId: m.regionId ?? "", world: [m.x, m.y], kind,
-    population: pop, managed: false, ownedByPlayer: false, lord: "", isPlayer: false, seat: false,
+    population: pop, terrain: region?.terrain ?? "Đồng Bằng", populationSource: "canon",
+    managed: false, ownedByPlayer: false, lord: "", isPlayer: false, seat: false,
     buildings: 0, underConstruction: 0, defense: 0, garrison: 0, loyalty: 0,
     goldPerMonth: 0, foodPerMonth: 0,
   };
@@ -186,12 +279,15 @@ export function allSettlements(state: StatData, eraId = ""): Settlement[] {
   }
 
   for (const region of REGIONS) {
+    if (region.seatHiddenEras?.includes(eraId)) continue;
     const seatId = `${region.id}-seat`;
     if (taken.has(seatId) || taken.has(region.seat)) continue;
     const sov = state["Chủ Quyền Lãnh Thổ"][region.id];
     out.push({
       id: seatId, name: region.seat, regionId: region.id, world: region.seatXY,
-      kind: "Thành Trì", population: region.seatPopulation ?? 0, managed: false,
+      kind: "Thành Trì",
+      population: canonicalSettlementPopulation(seatId, region.seat, region.id, eraId, region.seatPopulation ?? 0),
+      terrain: region.terrain, populationSource: "canon", managed: false,
       ownedByPlayer: false, lord: "", isPlayer: !!sov?.["Là Của Người Chơi"], seat: true,
       buildings: 0, underConstruction: 0, defense: 0,
       garrison: garrisonOf(state, [region.id]), loyalty: 0, goldPerMonth: 0, foodPerMonth: 0,
@@ -202,8 +298,40 @@ export function allSettlements(state: StatData, eraId = ""): Settlement[] {
 
   for (const m of markersForEra(eraId)) {
     if (taken.has(m.id) || taken.has(m.name)) continue;
-    out.push(markerSettlement(m));
+    out.push(markerSettlement(m, eraId));
     taken.add(m.id);
+  }
+  // Cứ điểm chiến lược không nhân đôi lâu đài canon. Chúng chỉ là mục tiêu
+  // gameplay và được hiện dần khi zoom gần ở RegionLayer.
+  for (const site of strongholdsForEra(eraId).filter((candidate) => candidate.source === "strategic")) {
+    if (taken.has(site.id) || taken.has(site.name)) continue;
+    const region = REGIONS_BY_ID[site.provinceId];
+    const holder = strongholdController(state, site.id);
+    out.push({
+      id: site.id,
+      name: site.name,
+      regionId: site.provinceId,
+      world: site.world,
+      kind: "Thành Trì",
+      population: site.population,
+      terrain: region?.terrain ?? "Đồng Bằng",
+      populationSource: "canon",
+      managed: false,
+      ownedByPlayer: holder === playerHouseId(state),
+      lord: "",
+      isPlayer: holder === playerHouseId(state),
+      seat: false,
+      buildings: 0,
+      underConstruction: 0,
+      defense: 1,
+      garrison: garrisonOf(state, [site.id, site.provinceId]),
+      loyalty: 0,
+      goldPerMonth: 0,
+      foodPerMonth: 0,
+      strategicStronghold: true,
+    });
+    taken.add(site.id);
+    taken.add(site.name);
   }
   return out;
 }
@@ -216,7 +344,13 @@ export function summarizeRegion(state: StatData, regionId: string, eraId = ""): 
   const settlements = allSettlements(state, eraId).filter((s) => s.regionId === regionId);
   // Số liệu tổng hợp chỉ tính đất NGƯƠI làm chủ — thành trì của lãnh chúa khác
   // vẫn hiện trên danh sách nhưng không được cộng vào sổ của mình.
-  const managed = settlements.filter((s) => s.ownedByPlayer);
+  const managed = settlements.filter((s) => s.managed && s.ownedByPlayer);
+  const population = regionPopulationBreakdown(state, regionId, eraId);
+  // Bảng của một vùng phải mô tả mức kiểm soát của NHÀ đang giữ vùng đó.
+  // Nếu luôn truyền Nhà người chơi, một thường dân Stark nhìn Winterfell cũng
+  // sẽ thấy như chính mình đang kiểm soát các thành của Nhà Stark.
+  const control = provinceControlStatus(state, regionId, sov?.["Nhà Kiểm Soát"] ?? "");
+  const fullControl = control.complete;
 
   return {
     regionId,
@@ -226,7 +360,16 @@ export function summarizeRegion(state: StatData, regionId: string, eraId = ""): 
     status: sov?.["Tình Trạng"] ?? "Ổn Định",
     settlements,
     managedCount: managed.length,
-    population: region?.population ?? 0,
+    population: population.total,
+    populationBaseline: population.baseline,
+    populationDelta: population.runtimeDelta,
+    terrain: region?.terrain ?? "Đồng Bằng",
+    realmId: region?.realmId ?? regionId,
+    controlRatio: fullControl ? 1 : control.controlRatio,
+    fullControl,
+    controlledStrongholds: fullControl ? control.totalStrongholds : control.controlledStrongholds,
+    totalStrongholds: control.totalStrongholds,
+    unsecuredStrongholds: fullControl ? [] : control.unsecuredStrongholds,
     managedPopulation: managed.reduce((n, s) => n + s.population, 0),
     buildings: managed.reduce((n, s) => n + s.buildings, 0),
     underConstruction: managed.reduce((n, s) => n + s.underConstruction, 0),
@@ -256,7 +399,7 @@ export function balanceOfPower(state: StatData, eraId = ""): RealmSummary[] {
     };
     const inRegion = settlements.filter((s) => s.regionId === region.id);
     entry.regionIds.push(region.id);
-    entry.population += region.population;
+    entry.population += regionPopulation(state, region.id, eraId);
     entry.settlements += inRegion.length;
     entry.garrison += garrisonOf(state, [region.id, ...inRegion.filter((s) => s.managed).map((s) => s.id)]);
     entry.defense += inRegion.reduce((n, s) => n + s.defense, 0);
@@ -270,6 +413,183 @@ export function balanceOfPower(state: StatData, eraId = ""): RealmSummary[] {
   const total = list.reduce((n, r) => n + r.power, 0) || 1;
   for (const r of list) r.share = r.power / total;
   return list.sort((a, b) => b.power - a.power);
+}
+
+/** Tổng hợp tầng Vương Quốc từ các province leaf; không lưu thêm một bản dân số riêng. */
+export function deJureRealms(state: StatData, eraId = ""): DeJureRealmSummary[] {
+  const groups = new Map<string, typeof REGIONS>();
+  const settlementsByRegion = new Map<string, number>();
+  for (const settlement of allSettlements(state, eraId)) {
+    settlementsByRegion.set(settlement.regionId, (settlementsByRegion.get(settlement.regionId) ?? 0) + 1);
+  }
+  for (const region of REGIONS) {
+    const list = groups.get(region.realmId) ?? [];
+    list.push(region);
+    groups.set(region.realmId, list);
+  }
+
+  return [...groups.entries()].map(([realmId, regions]) => {
+    const macro = MACRO_REGIONS.find((candidate) => candidate.legacyRegionId === realmId)
+      ?? MACRO_REGIONS.find((candidate) => regions.every((region) => region.parentId === candidate.id));
+    const byController = new Map<string, number>();
+    let population = 0;
+    let settlements = 0;
+    let controlledRegions = 0;
+    for (const region of regions) {
+      const currentPopulation = regionPopulation(state, region.id, eraId);
+      population += currentPopulation;
+      settlements += settlementsByRegion.get(region.id) ?? 0;
+      const sovereignty = state["Chủ Quyền Lãnh Thổ"][region.id];
+      const controller = sovereignty?.["Nhà Kiểm Soát"] ?? "";
+      if (controller) byController.set(controller, (byController.get(controller) ?? 0) + currentPopulation);
+      if (sovereignty?.["Là Của Người Chơi"]) controlledRegions += 1;
+    }
+    const controller = [...byController.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
+    const totalRegions = regions.length;
+    const control = realmControlStatus(state, realmId, controller);
+    const player = playerHouseId(state);
+    const anchor: [number, number] = macro?.labelXY ?? [
+      regions.reduce((sum, region) => sum + region.seatXY[0], 0) / totalRegions,
+      regions.reduce((sum, region) => sum + region.seatXY[1], 0) / totalRegions,
+    ];
+    return {
+      realmId,
+      name: macro?.name ?? REGIONS_BY_ID[realmId]?.name ?? realmId,
+      regionIds: regions.map((region) => region.id),
+      anchor,
+      population,
+      settlements,
+      controller,
+      controlledRegions,
+      totalRegions,
+      provinceShare: totalRegions ? controlledRegions / totalRegions : 0,
+      isPlayerRealm: !!player && controller === player && control.complete,
+      controlRatio: control.controlRatio,
+      fullControl: control.complete,
+      controlledStrongholds: control.controlledStrongholds,
+      totalStrongholds: control.totalStrongholds,
+      unsecuredStrongholds: control.unsecuredStrongholds,
+    };
+  }).sort((a, b) => b.population - a.population);
+}
+
+/** ID phe của một Nhà trong snapshot hiện tại; ngoài nội chiến, mỗi Nhà là một thế lực. */
+export function factionIdForHouse(state: StatData, houseId: string): string {
+  return factionIdForRegion(state, "", houseId);
+}
+
+/** Tổng hợp lớp phe phái từ chủ quyền + graph thành trì live, không giữ bảng số riêng. */
+export function factionMapSummaries(state: StatData, eraId = ""): FactionMapSummary[] {
+  const raw = factionsForYear(state["Thế Giới"]["Năm"] ?? 298);
+  const groups = new Map<string, FactionMapSummary>();
+  const provinceRatioSums = new Map<string, number>();
+  if (raw) {
+    for (const [factionId, houseIds] of Object.entries(raw)) {
+      const normalizedHouseIds = [...new Set(houseIds.map(toHouseId).filter(Boolean))];
+      groups.set(factionId, {
+        factionId,
+        name: factionId,
+        houseIds: normalizedHouseIds,
+        regionIds: [],
+        colorHouseId: toHouseId(FACTION_COLORS_MAP[factionId] ?? normalizedHouseIds[0] ?? ""),
+        population: 0,
+        estimatedLevy: 0,
+        controlledStrongholds: 0,
+        totalStrongholds: 0,
+        controlRatio: 0,
+        fullyControlledRegions: 0,
+      });
+    }
+  }
+
+  for (const region of REGIONS) {
+    const holder = toHouseId(state["Chủ Quyền Lãnh Thổ"]?.[region.id]?.["Nhà Kiểm Soát"] ?? "");
+    const factionId = factionIdForRegion(state, region.id, holder);
+    let group = groups.get(factionId);
+    if (!group) {
+      const neutral = factionId === "__neutral__";
+      const leaderHouse = factionId.startsWith("house:")
+        ? toHouseId(factionId.slice("house:".length))
+        : holder;
+      group = {
+        factionId,
+        name: neutral ? "Vô chủ / chưa xác định" : HOUSES_BY_ID[leaderHouse]?.name ?? leaderHouse,
+        houseIds: [...new Set([leaderHouse, holder].filter(Boolean))],
+        regionIds: [],
+        colorHouseId: neutral ? "" : leaderHouse,
+        population: 0,
+        estimatedLevy: 0,
+        controlledStrongholds: 0,
+        totalStrongholds: 0,
+        controlRatio: 0,
+        fullyControlledRegions: 0,
+      };
+      groups.set(factionId, group);
+    } else if (holder && !group.houseIds.includes(holder)) {
+      group.houseIds.push(holder);
+    }
+    const population = regionPopulation(state, region.id, eraId);
+    const control = provinceControlStatus(state, region.id, holder);
+    group.regionIds.push(region.id);
+    group.population += population;
+    group.estimatedLevy += Math.round(population * 0.005);
+    group.controlledStrongholds += control.controlledStrongholds;
+    group.totalStrongholds += control.totalStrongholds;
+    provinceRatioSums.set(factionId, (provinceRatioSums.get(factionId) ?? 0) + control.controlRatio);
+    if (control.complete) group.fullyControlledRegions += 1;
+  }
+
+  for (const group of groups.values()) {
+    // Tính theo từng province để vùng chưa có graph thành không biến mất khỏi
+    // mẫu số và tạo ra nhãn 100% giả dù trên bản đồ vẫn còn sọc.
+    group.controlRatio = group.regionIds.length > 0
+      ? (provinceRatioSums.get(group.factionId) ?? 0) / group.regionIds.length
+      : 0;
+  }
+  return [...groups.values()]
+    .filter((group) => group.regionIds.length > 0)
+    .sort((a, b) => b.population - a.population);
+}
+
+/** Tổng hợp hồ sơ bấm-mở của một Nhà trên Bản Đồ Quan Hệ. */
+export function relationshipMapSummary(
+  state: StatData,
+  houseId: string,
+  eraId = "",
+): RelationshipMapSummary | null {
+  const normalizedHouseId = toHouseId(houseId);
+  if (!normalizedHouseId) return null;
+  const house = HOUSES_BY_ID[normalizedHouseId];
+  const schemaName = house?.schemaName ?? houseId;
+  const attitude = state["Thái Độ Các Nhà"]?.[schemaName];
+  const relation = state["Quan Hệ Ngoại Giao"]?.[normalizedHouseId]
+    ?? state["Quan Hệ Ngoại Giao"]?.[houseId];
+  const regionIds = REGIONS
+    .filter((region) => toHouseId(state["Chủ Quyền Lãnh Thổ"]?.[region.id]?.["Nhà Kiểm Soát"] ?? "") === normalizedHouseId)
+    .map((region) => region.id);
+  const grievances = relation?.["Ân Oán"] ?? [];
+
+  return {
+    houseId: normalizedHouseId,
+    name: house?.name ?? normalizedHouseId,
+    seat: house?.seat ?? "",
+    attitude: attitude?.["Thái Độ"] ?? "Cảnh Giác",
+    attitudeDescription: attitude?.["Mô Tả"] ?? "",
+    diplomaticStatus: relation?.["Trạng Thái"] ?? "Hoà Bình",
+    trust: relation?.["Tin Cậy"] ?? 0,
+    warScore: relation?.["War Score"] ?? 0,
+    treatyNames: (relation?.["Hiệp Ước"] ?? [])
+      .filter((treaty) => treaty["Còn Hiệu Lực"])
+      .map((treaty) => treaty["Loại"]),
+    ourClaim: grievances
+      .filter((grievance) => grievance["Bên Nợ"] === "Họ Nợ Ta")
+      .reduce((sum, grievance) => sum + grievance["Mức"], 0),
+    theirClaim: grievances
+      .filter((grievance) => grievance["Bên Nợ"] === "Ta Nợ Họ")
+      .reduce((sum, grievance) => sum + grievance["Mức"], 0),
+    regionIds,
+    population: regionIds.reduce((sum, regionId) => sum + regionPopulation(state, regionId, eraId), 0),
+  };
 }
 
 /**

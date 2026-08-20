@@ -71,7 +71,9 @@ describe("M9 — đổ bộ → vây thành ven biển (7.8→12.2)", () => {
     const siege = useMilitaryStore.getState().siege(land.unit!, "the-westerlands");
     expect(siege.ok).toBe(true);
 
-    advanceDays(361); // > lương thủ (SIEGE_FOOD_DAYS = 360 ngày)
+    advanceDays(siege.daysToStart ?? 3); // quân đổ bộ dựng trại và khép vòng vây
+    expect(useMvuStore.getState().stat["Chủ Quyền Lãnh Thổ"]["the-westerlands"]["Tình Trạng"]).toBe("Bị Vây");
+    advanceDays(360); // hết lương thủ
     expect(regionController(useMvuStore.getState().stat, "the-westerlands")).toBe("greyjoy");
     expect(useMvuStore.getState().stat["Lãnh Địa"]["the-westerlands-seat"]).toBeDefined();
   });

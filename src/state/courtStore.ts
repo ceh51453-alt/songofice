@@ -8,10 +8,12 @@ import { create } from "zustand";
 import { useMvuStore } from "./mvuStore";
 import { applyPatch, type PatchOp } from "../mvu/patchEngine";
 import type { CourtPosition } from "../mvu/schema";
+import type { FamilyBranch, FamilyDuty } from "../mvu/npcSchema";
 import { appointOps, dismissOps } from "../strategy/court";
 import {
   marriageOps, proposeBetrothalOps, acceptBetrothalOps, rejectBetrothalOps,
   setSuccessionLawOps, designateHeirOps, reconcileSuccessionOps,
+  setFamilyBranchOps, assignFamilyDutyOps,
   type SuccessionLaw, type BetrothalInput, type MarriageOpts,
 } from "../strategy/succession";
 import { createLogger } from "../lib/log";
@@ -44,6 +46,8 @@ interface CourtState {
   setSuccessionLaw: (law: SuccessionLaw) => void;
   designateHeir: (name: string) => void;
   reconcileHeir: () => void;
+  setFamilyBranch: (name: string, branch: FamilyBranch) => void;
+  assignFamilyDuty: (name: string, duty: FamilyDuty, target?: string) => void;
 
   marry: (spouseName: string, opts: MarriageOpts) => void;
   proposeBetrothal: (id: string, b: BetrothalInput) => void;
@@ -77,6 +81,20 @@ export const useCourtStore = create<CourtState>()((set) => ({
   },
 
   reconcileHeir: () => applyEngineOps(reconcileSuccessionOps(useMvuStore.getState().stat)),
+
+  setFamilyBranch: (name, branch) => {
+    const stat = useMvuStore.getState().stat;
+    applyEngineOps(setFamilyBranchOps(stat, name, branch));
+    const label = stat["Mối Quan Hệ"]["Thành Viên Gia Tộc"][name]?.["Họ Tên"] || name;
+    pushToast(`${label} đã được xếp vào ${branch.toLowerCase()}.`);
+  },
+
+  assignFamilyDuty: (name, duty, target = "") => {
+    const stat = useMvuStore.getState().stat;
+    applyEngineOps(assignFamilyDutyOps(stat, name, duty, target));
+    const label = stat["Mối Quan Hệ"]["Thành Viên Gia Tộc"][name]?.["Họ Tên"] || name;
+    pushToast(`${label}: ${duty}${target.trim() ? ` — ${target.trim()}` : ""}.`);
+  },
 
   marry: (spouseName, opts) => {
     applyEngineOps(marriageOps(useMvuStore.getState().stat, spouseName, opts));

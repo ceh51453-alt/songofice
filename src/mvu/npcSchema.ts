@@ -95,6 +95,12 @@ export const NpcRelationshipSchema = z
   })
   .prefault({});
 
+export const FAMILY_BRANCHES = ["Dòng Chính", "Dòng Phụ"] as const;
+export type FamilyBranch = (typeof FAMILY_BRANCHES)[number];
+
+export const FAMILY_DUTIES = ["Tại Gia", "Quản Lý Lãnh Địa", "Ra Trận", "Liên Hôn"] as const;
+export type FamilyDuty = (typeof FAMILY_DUTIES)[number];
+
 export const NpcSchema = z
   .object({
     // ── ĐỊNH DANH & CHÂN DUNG ──
@@ -171,6 +177,9 @@ export const NpcSchema = z
     "Trang Bị Canon": z.array(safeString()).catch([]).prefault([]),
 
     // ── GIA TỘC / KẾ VỊ (nối 13.4) ──
+    "Nhánh Gia Tộc": z.enum(FAMILY_BRANCHES).catch("Dòng Chính").prefault("Dòng Chính"),
+    "Nhiệm Vụ Gia Tộc": z.enum(FAMILY_DUTIES).catch("Tại Gia").prefault("Tại Gia"),
+    "Mục Tiêu Nhiệm Vụ": safeString().optional(),
     "Người Thừa Kế": z.boolean().catch(false).prefault(false),
     "Thứ Bậc Kế Vị": z.coerce.number().int().optional(),
     "Đã Kết Hôn Với": safeString().optional(),

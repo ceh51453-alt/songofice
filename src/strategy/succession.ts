@@ -11,7 +11,7 @@
 import type { StatData } from "../mvu/schema";
 import { SUCCESSION_LAWS } from "../mvu/schema";
 import type { PatchOp } from "../mvu/patchEngine";
-import type { Npc } from "../mvu/npcSchema";
+import type { FamilyBranch, FamilyDuty, Npc } from "../mvu/npcSchema";
 import { registerDailyListener } from "../mvu/effects";
 import { HOUSES_BY_ID } from "../content/westeros/houses";
 import { findNpc } from "./court";
@@ -23,11 +23,23 @@ interface FamilyMember {
   npc: Npc;
 }
 
-/** Thành viên gia tộc còn sống — ứng viên kế vị (13.4). */
+/** Hậu duệ/người thân có thể kế vị; loại phối ngẫu và cha mẹ của người chơi. */
 export function livingFamily(state: StatData): FamilyMember[] {
+  const player = state["Thông Tin Nhân Vật"]["Họ Tên"].trim().toLocaleLowerCase("vi");
   return Object.entries(state["Mối Quan Hệ"]["Thành Viên Gia Tộc"])
-    .filter(([, npc]) => npc["Còn Sống"])
+    .filter(([, npc]) => {
+      if (!npc["Còn Sống"]) return false;
+      if (npc["Loại Quan Hệ"].includes("Vợ/Chồng")) return false;
+      if (npc["Đã Kết Hôn Với"]?.trim().toLocaleLowerCase("vi") === player) return false;
+      if (npc["Con Cái"].some((child) => child.trim().toLocaleLowerCase("vi") === player)) return false;
+      return true;
+    })
     .map(([name, npc]) => ({ name, npc }));
+}
+
+/** Chỉ dòng chính mới nằm trong thứ tự kế vị; save cũ mặc định là Dòng Chính. */
+function successionFamily(state: StatData): FamilyMember[] {
+  return livingFamily(state).filter(({ npc }) => (npc["Nhánh Gia Tộc"] ?? "Dòng Chính") === "Dòng Chính");
 }
 
 export function isLiving(state: StatData, name: string): boolean {
@@ -38,7 +50,7 @@ export function isLiving(state: StatData, name: string): boolean {
 /** Thứ tự kế vị suy theo Luật Kế Vị (13.4). Trả danh sách tên (còn sống). */
 export function successionOrder(state: StatData, lawOverride?: SuccessionLaw): string[] {
   const law = lawOverride ?? state["Gia Tộc Học"]["Luật Kế Vị"];
-  const fam = livingFamily(state);
+  const fam = successionFamily(state);
   const byAgeDesc = (a: FamilyMember, b: FamilyMember) => b.npc["Tuổi"] - a.npc["Tuổi"];
 
   if (law === "Chỉ Định") {
@@ -75,6 +87,10 @@ function orderToOps(order: string[], fam: Record<string, Npc>): PatchOp[] {
     { op: "replace", path: "stat_data.Gia Tộc Học.Thứ Tự Kế Vị", value: order },
     { op: "replace", path: "stat_data.Gia Tộc Học.Người Thừa Kế Hiện Tại", value: order[0] ?? "" },
   ];
+  Object.keys(fam).forEach((name) => {
+    ops.push({ op: "replace", path: `stat_data.Mối Quan Hệ.Thành Viên Gia Tộc.${name}.Thứ Bậc Kế Vị`, value: 0 });
+    ops.push({ op: "replace", path: `stat_data.Mối Quan Hệ.Thành Viên Gia Tộc.${name}.Người Thừa Kế`, value: false });
+  });
   order.forEach((name, i) => {
     if (!fam[name]) return;
     ops.push({ op: "replace", path: `stat_data.Mối Quan Hệ.Thành Viên Gia Tộc.${name}.Thứ Bậc Kế Vị`, value: i + 1 });
@@ -103,13 +119,83 @@ export function setSuccessionLawOps(state: StatData, law: SuccessionLaw): PatchO
 export function designateHeirOps(state: StatData, heirName: string): PatchOp[] {
   const fam = state["Mối Quan Hệ"]["Thành Viên Gia Tộc"];
   if (!fam[heirName] || !fam[heirName]["Còn Sống"]) return [];
-  const others = Object.keys(fam).filter((n) => n !== heirName && fam[n]["Còn Sống"]);
+  const promotedState: StatData = {
+    ...state,
+    "Mối Quan Hệ": {
+      ...state["Mối Quan Hệ"],
+      "Thành Viên Gia Tộc": {
+        ...fam,
+        [heirName]: { ...fam[heirName], "Nhánh Gia Tộc": "Dòng Chính" },
+      },
+    },
+  };
+  const others = successionOrder(promotedState, "Chỉ Định").filter((n) => n !== heirName);
   const order = [heirName, ...others];
   return [
     { op: "replace", path: "stat_data.Gia Tộc Học.Luật Kế Vị", value: "Chỉ Định" },
     { op: "replace", path: "stat_data.Gia Tộc Học._Khủng Hoảng Kế Vị", value: false },
+    { op: "replace", path: `stat_data.Mối Quan Hệ.Thành Viên Gia Tộc.${heirName}.Nhánh Gia Tộc`, value: "Dòng Chính" },
     ...orderToOps(order, fam),
   ];
+}
+
+/** Nâng lên dòng chính hoặc giáng xuống dòng phụ rồi chốt lại sổ kế vị. */
+export function setFamilyBranchOps(state: StatData, name: string, branch: FamilyBranch): PatchOp[] {
+  const fam = state["Mối Quan Hệ"]["Thành Viên Gia Tộc"];
+  const npc = fam[name];
+  if (!npc || !npc["Còn Sống"]) return [];
+  const nextState: StatData = {
+    ...state,
+    "Mối Quan Hệ": {
+      ...state["Mối Quan Hệ"],
+      "Thành Viên Gia Tộc": { ...fam, [name]: { ...npc, "Nhánh Gia Tộc": branch } },
+    },
+  };
+  return [
+    { op: "replace", path: `stat_data.Mối Quan Hệ.Thành Viên Gia Tộc.${name}.Nhánh Gia Tộc`, value: branch },
+    ...orderToOps(successionOrder(nextState), fam),
+  ];
+}
+
+/** Ghi nhiệm vụ của hậu duệ; diễn biến và hậu quả tiếp tục do AI kể trong chat. */
+export function assignFamilyDutyOps(state: StatData, name: string, duty: FamilyDuty, target = ""): PatchOp[] {
+  const npc = state["Mối Quan Hệ"]["Thành Viên Gia Tộc"][name];
+  if (!npc || !npc["Còn Sống"]) return [];
+  return [
+    { op: "replace", path: `stat_data.Mối Quan Hệ.Thành Viên Gia Tộc.${name}.Nhiệm Vụ Gia Tộc`, value: duty },
+    { op: "replace", path: `stat_data.Mối Quan Hệ.Thành Viên Gia Tộc.${name}.Mục Tiêu Nhiệm Vụ`, value: target.trim() },
+  ];
+}
+
+export interface HeirStoryRecommendation {
+  name: string;
+  label: string;
+  score: number;
+  evidence: string[];
+}
+
+/**
+ * Gợi ý người thừa kế từ chính diễn biến đã lưu: ký ức quan trọng, năng lực,
+ * lòng tin và vị trí dòng họ. UI dùng kết quả để giao AI kể lễ công bố.
+ */
+export function recommendHeirFromStory(state: StatData): HeirStoryRecommendation | null {
+  const candidates = livingFamily(state);
+  if (candidates.length === 0) return null;
+  const ranked = candidates.map(({ name, npc }) => {
+    const memories = [...npc["Ký Ức"]].sort((a, b) => b["Trọng Số"] - a["Trọng Số"]);
+    const memoryScore = memories.slice(0, 3).reduce((sum, memory) => sum + memory["Trọng Số"], 0) / 3;
+    const ability = npc["Năng Lực"];
+    const governingScore = (ability["Thống Soái"] + ability["Trí Mưu"] + ability["Ngoại Giao"] + ability["Võ Lực"] * 0.5) / 3.5;
+    const branchBonus = (npc["Nhánh Gia Tộc"] ?? "Dòng Chính") === "Dòng Chính" ? 12 : 0;
+    const score = governingScore * 0.45 + npc["Tin Cậy"] * 0.2 + npc["Độ Hảo Cảm"] * 0.1 + memoryScore * 0.25 + branchBonus;
+    const evidence = memories.slice(0, 2).map((memory) => memory["Sự Việc"]);
+    if (evidence.length === 0) {
+      evidence.push(`năng lực trị sự ${Math.round(governingScore)}/100`, `mức tin cậy ${npc["Tin Cậy"]}/100`);
+    }
+    return { name, label: npc["Họ Tên"] || name, score, evidence };
+  });
+  ranked.sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, "vi"));
+  return ranked[0] ?? null;
 }
 
 // ── Hôn nhân (13.4) ──────────────────────────────────────────────────────────
